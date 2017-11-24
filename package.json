@@ -10,10 +10,10 @@
   "homepage": "http://superfly.tv",
   "repository": {
     "type": "git",
-    "url": "git+https://bitbucket.org/superflytv/timeline.git"
+    "url": "git+https://github.com/SuperFlyTV/supertimeline.git"
   },
   "bugs": {
-    "url": "https://bitbucket.org/superflytv/timeline/issues"
+    "url": "https://github.com/SuperFlyTV/supertimeline/issues"
   },
   "main": "index.js",
   "scripts": { 

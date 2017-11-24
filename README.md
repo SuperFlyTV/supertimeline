@@ -1,6 +1,6 @@
-# SuperTimeline
+# Timeline
 
-The SuperTimeline is a collection of rules as well as a resolver for placing objects on a virtual timeline. It uses the concept of timing objects in sequences – absolute or relative timings – which resolves recursively in nested structures. This means it supports grouping, combinations of timing between groups, and objects within groups. It also supports logical conditions instead of timed conditions.
+The Timeline is a collection of rules as well as a resolver for placing objects on a virtual timeline. It uses the concept of timing objects in sequences – absolute or relative timings – which resolves recursively in nested structures. This means it supports grouping, combinations of timing between groups, and objects within groups. It also supports logical conditions instead of timed conditions.
 
 Licence: MIT
 
@@ -9,7 +9,7 @@ Licence: MIT
 ## Installation
 ### NodeJS
 
-`$ npm install --save supertimeline`
+`$ npm install --save superfly-timeline`
 
 ### Web browser
 Can be run in the browser using *browserify* or the like.
