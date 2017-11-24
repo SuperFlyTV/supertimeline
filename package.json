@@ -1,0 +1,26 @@
+{
+  "name": "superfly-timeline",
+  "version": "0.1.0",
+  "description": "A collection of rules as well as a resolver for placing objects on a virtual timeline.",
+  "license": "MIT",
+  "author": { 
+    "name" : "Johan Nyman", 
+    "email" : "johan@superfly.tv"
+  },
+  "homepage": "http://superfly.tv",
+  "repository": {
+    "type": "git",
+    "url": "git+https://bitbucket.org/superflytv/timeline.git"
+  },
+  "bugs": {
+    "url": "https://bitbucket.org/superflytv/timeline/issues"
+  },
+  "main": "index.js",
+  "scripts": { 
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "underscore": "^1.8.3",
+    "fast-clone": "^1.4.2"
+  }
+}
