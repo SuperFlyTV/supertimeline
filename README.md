@@ -1,6 +1,6 @@
-# Timeline
+# SuperFly-Timeline
 
-The Timeline is a collection of rules as well as a resolver for placing objects on a virtual timeline. It uses the concept of timing objects in sequences – absolute or relative timings – which resolves recursively in nested structures. This means it supports grouping, combinations of timing between groups, and objects within groups. It also supports logical conditions instead of timed conditions.
+The SuperFly-Timeline is a collection of rules as well as a resolver for placing objects on a virtual timeline. It uses the concept of timing objects in sequences -– absolute or relative timings -– which resolves recursively in nested structures. This means it supports grouping, combinations of timing between groups, and objects within groups. It also supports logical conditions instead of timed conditions.
 
 Licence: MIT
 
@@ -17,7 +17,7 @@ Can be run in the browser using *browserify* or the like.
 ## Getting started
 
 ```javascript
-var SuperTimeline = require("superfly-timeline");
+var Timeline = require("superfly-timeline");
 
 // The input to the timeline is an array of objects
 var myObjects = [];
@@ -27,7 +27,7 @@ myObjects.push({
 	id: 'obj0', // the id must be unique
 
 	trigger: {
-		type: SuperTimeline.enums.TriggerType.TIME_ABSOLUTE, 
+		type: Timeline.enums.TriggerType.TIME_ABSOLUTE, 
 		value: Date.now()/1000 - 10 // 10 seconds ago
 	},
 	duration: 60, // 1 minute long
@@ -39,7 +39,7 @@ myObjects.push({
 	id: 'obj1', // the id must be unique
 
 	trigger: {
-		type: SuperTimeline.enums.TriggerType.TIME_RELATIVE, 
+		type: Timeline.enums.TriggerType.TIME_RELATIVE, 
 		value: '#obj0.end'
 	},
 	duration: 60, // 1 minute long
@@ -47,10 +47,10 @@ myObjects.push({
 });
 
 // By resolving the timeline, the times of the objects are calculated:
-var tl = SuperTimeline.resolver.getTimelineInWindow(myObjects);
+var tl = Timeline.resolver.getTimelineInWindow(myObjects);
 
 // To see whats on right now, we fetch the State:
-var stateNow = SuperTimeline.resolver.getState(tl, Date.now()/1000);
+var stateNow = Timeline.resolver.getState(tl, Date.now()/1000);
 //
 /*
 stateNow = {
@@ -78,7 +78,7 @@ stateNow = {
 }
 */
 // To see what will be on in a minute, we fetch the state for that time:
-var stateInAMinute = SuperTimeline.resolver.getState(tl, Date.now()/1000 + 60);
+var stateInAMinute = Timeline.resolver.getState(tl, Date.now()/1000 + 60);
 /*
 stateNow = {
 	time: 1511009749,
@@ -110,12 +110,12 @@ stateNow = {
 
 ### Trigger types
 * **Absolute time** (TIME_ABSOLUTE)
-	The start time of the object is defined as a number (unix time).
+	The start time of the object is defined as a float number (unix time).
 
 * **Relative time** (TIME_RELATIVE)
 	The start time of the object is defined by an expression, relative to another object.
     
-	Exmples:
+	Examples:
     
 	**"#obj0.end"** The end time of another object
     
@@ -171,7 +171,7 @@ Example:
 	If two objects are on the same LLayer, the latest (or the one with highest priority) will take precedence.
 
 * **Graphical layer** (GLayer):
-	The difference between GLayers & LLayers are that while LLayers are used first to find out WHAT to play, WHERE to play it is defined by GLayers. **(For most applications, these two will allways be the same.)**
+	The difference between GLayers & LLayers are that while LLayers are used first to find out WHAT to play, WHERE to play it is defined by GLayers. **(For most applications, these two will always be the same.)**
 
 ## Object reference 
 
@@ -199,7 +199,7 @@ It is possible to add keyframes to an object, which works the same way as normal
 	id: 'obj0',
 	duration: 50,
 	trigger: {
-		type: SuperTimeline.enums.TriggerType.TIME_ABSOLUTE, 
+		type: Timeline.enums.TriggerType.TIME_ABSOLUTE, 
 		value: 1000,
 	},
 	LLayer: 1,
@@ -215,7 +215,7 @@ It is possible to add keyframes to an object, which works the same way as normal
 				id: 'K0', // id must be unique
 				duration: 5, // duration of keyframe
 				trigger: {
-					type: SuperTimeline.enums.TriggerType.TIME_ABSOLUTE,
+					type: Timeline.enums.TriggerType.TIME_ABSOLUTE,
 					value: 5 // Abslute time means "relative to parent start time" for a keyframe
 				},
 				content: {
