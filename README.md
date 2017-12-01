@@ -1,6 +1,8 @@
-# SuperFly-Timeline
+# SuperTimeline
 
-The SuperFly-Timeline is a collection of rules as well as a resolver for placing objects on a virtual timeline. It uses the concept of timing objects in sequences -– absolute or relative timings -– which resolves recursively in nested structures. This means it supports grouping, combinations of timing between groups, and objects within groups. It also supports logical conditions instead of timed conditions.
+The SuperTimeline is a collection of rules as well as a resolver for placing objects on a virtual timeline. It uses the concept of timing objects in sequences -– absolute or relative timings -– which resolves recursively in nested structures. This means it supports grouping, combinations of timing between groups, and objects within groups. It also supports logical conditions instead of timed conditions.
+
+Created and provided for free by SuperFly.tv
 
 Licence: MIT
 
@@ -9,7 +11,7 @@ Licence: MIT
 ## Installation
 ### NodeJS
 
-`$ npm install --save superfly-timeline`
+`$ npm install --save supertimeline`
 
 ### Web browser
 Can be run in the browser using *browserify* or the like.
@@ -17,7 +19,7 @@ Can be run in the browser using *browserify* or the like.
 ## Getting started
 
 ```javascript
-var Timeline = require("superfly-timeline");
+var Timeline = require("supertimeline");
 
 // The input to the timeline is an array of objects
 var myObjects = [];
@@ -30,11 +32,11 @@ myObjects.push({
 		type: Timeline.enums.TriggerType.TIME_ABSOLUTE, 
 		value: Date.now()/1000 - 10 // 10 seconds ago
 	},
-	duration: 60, // 1 minute long
+	duration: 60.5, // 1 minute 0.5 seconds
 	LLayer: 1 // Logical layer
 });
 
-// Lets add another object to the timeline, set to start right after the previous one:
+// Let's add another object to the timeline, set to start right after the previous one:
 myObjects.push({
 	id: 'obj1', // the id must be unique
 
@@ -42,7 +44,7 @@ myObjects.push({
 		type: Timeline.enums.TriggerType.TIME_RELATIVE, 
 		value: '#obj0.end'
 	},
-	duration: 60, // 1 minute long
+	duration: 60.5, // 1 minute 0.5 seconds
 	LLayer: 1 // Logical layer
 });
 
@@ -59,7 +61,7 @@ stateNow = {
 		'1': {
 			id: 'obj0',
 			trigger: {},
-			duration: 60,
+			duration: 60.5,
 			LLayer: 1,
 			content: {},
 			resolved: {} 
@@ -69,7 +71,7 @@ stateNow = {
 		'1': { 
 			id: 'obj0',
 			trigger: {},
-			duration: 60,
+			duration: 60.5,
 			LLayer: 1,
 			content: {},
 			resolved: {}
@@ -78,7 +80,7 @@ stateNow = {
 }
 */
 // To see what will be on in a minute, we fetch the state for that time:
-var stateInAMinute = Timeline.resolver.getState(tl, Date.now()/1000 + 60);
+var stateInAMinute = Timeline.resolver.getState(tl, Date.now()/1000 + 60.5);
 /*
 stateNow = {
 	time: 1511009749,
@@ -86,7 +88,7 @@ stateNow = {
 		'1': {
 			id: 'obj1',
 			trigger: {},
-			duration: 60,
+			duration: 60.5,
 			LLayer: 1,
 			content: {},
 			resolved: {} 
@@ -96,7 +98,7 @@ stateNow = {
 		'1': { 
 			id: 'obj1',
 			trigger: {},
-			duration: 60,
+			duration: 60.5,
 			LLayer: 1,
 			content: {},
 			resolved: {}
@@ -180,7 +182,7 @@ Example:
 | id | The id must be unique | 'obj0' |
 | trigger.type  | See "Trigger types" above | enums.TriggerType.TIME_ABSOLUTE, TIME_RELATIVE, LOGICAL |
 | trigger.value | See "Trigger types" above | For TIME_ABSOLUTE: Date.now()/1000, TIME_RELATIVE: "#obj1.end", LOGICAL: "#obj1" |
-| duration | The duration of the object (0 is infinite) | 60 |
+| duration | The duration of the object (0 is infinite) | 60.5 |
 | LLayer | See "Layers" above | 1 |
 | priority | Objects with higher priority will take precedence | 0 |
 | classes | An array of class-names, that can be referenced from other LOGICAL objects | ['main', 'bug'] |
@@ -192,7 +194,7 @@ Example:
 It is possible to add keyframes to an object, which works the same way as normal objects, and their content is added to the object's.
 
 ```javascript
-// example of an object with keyframes
+// Example of an object with keyframes
 
 {
 
@@ -216,7 +218,7 @@ It is possible to add keyframes to an object, which works the same way as normal
 				duration: 5, // duration of keyframe
 				trigger: {
 					type: Timeline.enums.TriggerType.TIME_ABSOLUTE,
-					value: 5 // Abslute time means "relative to parent start time" for a keyframe
+					value: 5 // Absolute time means "relative to parent start time" for a keyframe
 				},
 				content: {
 					attributes: {
@@ -227,7 +229,7 @@ It is possible to add keyframes to an object, which works the same way as normal
 		]
 	}
 }
-// At the time 1000 the content will be:
+// At time 1000 the content will be:
 /*
 {
 	media: 'AMB',
@@ -237,7 +239,7 @@ It is possible to add keyframes to an object, which works the same way as normal
 		scale: 1
 	}
 }
-// At the time 1005 (when the keyframes has started) the content will be:
+// At time 1005 (when the keyframes has started) the content will be:
 /*
 {
 	media: 'AMB',
