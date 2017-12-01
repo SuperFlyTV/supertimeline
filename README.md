@@ -1,6 +1,8 @@
-# SuperFly-Timeline
+# SuperTimeline
 
-The SuperFly-Timeline is a collection of rules as well as a resolver for placing objects on a virtual timeline. It uses the concept of timing objects in sequences -– absolute or relative timings -– which resolves recursively in nested structures. This means it supports grouping, combinations of timing between groups, and objects within groups. It also supports logical conditions instead of timed conditions.
+The SuperTimeline is a collection of rules as well as a resolver for placing objects on a virtual timeline. It uses the concept of timing objects in sequences -– absolute or relative timings -– which resolves recursively in nested structures. This means it supports grouping, combinations of timing between groups, and objects within groups. It also supports logical conditions instead of timed conditions.
+
+Created and provided for free by SuperFly.tv
 
 Licence: MIT
 
@@ -9,7 +11,7 @@ Licence: MIT
 ## Installation
 ### NodeJS
 
-`$ npm install --save superfly-timeline`
+`$ npm install --save supertimeline`
 
 ### Web browser
 Can be run in the browser using *browserify* or the like.
@@ -17,7 +19,7 @@ Can be run in the browser using *browserify* or the like.
 ## Getting started
 
 ```javascript
-var Timeline = require("superfly-timeline");
+var Timeline = require("supertimeline");
 
 // The input to the timeline is an array of objects
 var myObjects = [];
@@ -192,7 +194,7 @@ Example:
 It is possible to add keyframes to an object, which works the same way as normal objects, and their content is added to the object's.
 
 ```javascript
-// example of an object with keyframes
+// Example of an object with keyframes
 
 {
 
@@ -216,7 +218,7 @@ It is possible to add keyframes to an object, which works the same way as normal
 				duration: 5, // duration of keyframe
 				trigger: {
 					type: Timeline.enums.TriggerType.TIME_ABSOLUTE,
-					value: 5 // Abslute time means "relative to parent start time" for a keyframe
+					value: 5 // Absolute time means "relative to parent start time" for a keyframe
 				},
 				content: {
 					attributes: {
@@ -227,7 +229,7 @@ It is possible to add keyframes to an object, which works the same way as normal
 		]
 	}
 }
-// At the time 1000 the content will be:
+// At time 1000 the content will be:
 /*
 {
 	media: 'AMB',
@@ -237,7 +239,7 @@ It is possible to add keyframes to an object, which works the same way as normal
 		scale: 1
 	}
 }
-// At the time 1005 (when the keyframes has started) the content will be:
+// At time 1005 (when the keyframes has started) the content will be:
 /*
 {
 	media: 'AMB',
