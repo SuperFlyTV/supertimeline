@@ -32,11 +32,11 @@ myObjects.push({
 		type: Timeline.enums.TriggerType.TIME_ABSOLUTE, 
 		value: Date.now()/1000 - 10 // 10 seconds ago
 	},
-	duration: 60, // 1 minute long
+	duration: 60.5, // 1 minute 0.5 seconds
 	LLayer: 1 // Logical layer
 });
 
-// Lets add another object to the timeline, set to start right after the previous one:
+// Let's add another object to the timeline, set to start right after the previous one:
 myObjects.push({
 	id: 'obj1', // the id must be unique
 
@@ -44,7 +44,7 @@ myObjects.push({
 		type: Timeline.enums.TriggerType.TIME_RELATIVE, 
 		value: '#obj0.end'
 	},
-	duration: 60, // 1 minute long
+	duration: 60.5, // 1 minute 0.5 seconds
 	LLayer: 1 // Logical layer
 });
 
@@ -61,7 +61,7 @@ stateNow = {
 		'1': {
 			id: 'obj0',
 			trigger: {},
-			duration: 60,
+			duration: 60.5,
 			LLayer: 1,
 			content: {},
 			resolved: {} 
@@ -71,7 +71,7 @@ stateNow = {
 		'1': { 
 			id: 'obj0',
 			trigger: {},
-			duration: 60,
+			duration: 60.5,
 			LLayer: 1,
 			content: {},
 			resolved: {}
@@ -80,7 +80,7 @@ stateNow = {
 }
 */
 // To see what will be on in a minute, we fetch the state for that time:
-var stateInAMinute = Timeline.resolver.getState(tl, Date.now()/1000 + 60);
+var stateInAMinute = Timeline.resolver.getState(tl, Date.now()/1000 + 60.5);
 /*
 stateNow = {
 	time: 1511009749,
@@ -88,7 +88,7 @@ stateNow = {
 		'1': {
 			id: 'obj1',
 			trigger: {},
-			duration: 60,
+			duration: 60.5,
 			LLayer: 1,
 			content: {},
 			resolved: {} 
@@ -98,7 +98,7 @@ stateNow = {
 		'1': { 
 			id: 'obj1',
 			trigger: {},
-			duration: 60,
+			duration: 60.5,
 			LLayer: 1,
 			content: {},
 			resolved: {}
@@ -182,7 +182,7 @@ Example:
 | id | The id must be unique | 'obj0' |
 | trigger.type  | See "Trigger types" above | enums.TriggerType.TIME_ABSOLUTE, TIME_RELATIVE, LOGICAL |
 | trigger.value | See "Trigger types" above | For TIME_ABSOLUTE: Date.now()/1000, TIME_RELATIVE: "#obj1.end", LOGICAL: "#obj1" |
-| duration | The duration of the object (0 is infinite) | 60 |
+| duration | The duration of the object (0 is infinite) | 60.5 |
 | LLayer | See "Layers" above | 1 |
 | priority | Objects with higher priority will take precedence | 0 |
 | classes | An array of class-names, that can be referenced from other LOGICAL objects | ['main', 'bug'] |
