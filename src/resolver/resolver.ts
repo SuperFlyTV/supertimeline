@@ -1,27 +1,40 @@
-var exports = module.exports = {};
 
-var _ = require('underscore');
-var lib = require('./lib').lib;
+import * as _ from 'underscore'
+import {currentTime} from '../lib/lib'
 
-var enums = require('./enums.js').enums;
+import {TriggerType, TraceLevel, EventType} from '../enums/enums'
 var clone = require('fast-clone');
 
-var Resolver = {
+var traceLevel:TraceLevel = TraceLevel.ERRORS; // 0
+
+export interface TimelineObject {
+	id: string,
+	trigger: {
+		type: TriggerType,
+		value: number, // unix timestamp
+	},
+	duration: number, // seconds
+	LLayer: string | number,
+	content: any	
+}
+export type Time = number;
+
+class Resolver {
 
 	
 
-	setTraceLevel: function (levelName) {
-		var lvl = 0;
-		if (levelName) lvl = enums.TraceLevel[levelName] || 0;
+	static setTraceLevel(levelName:string) {
+		var lvl:any = TraceLevel.ERRORS;
+		if (levelName) lvl = TraceLevel[levelName] || TraceLevel.ERRORS;
 		traceLevel = lvl;
-	},
+	}
 	/*
 	 * getState
 	 * time [optional] unix time, default: now
 	 * returns the current state
 	*/
-	getState: function(data,time,externalFunctions) {
-		if (!time) time = lib.currentTime();
+	static getState(data,time?:Time,externalFunctions?:any) {
+		if (!time) time = currentTime();
 		
 
 
@@ -51,15 +64,15 @@ var Resolver = {
 
 		return state;
 
-	},
+	}
 
 	/*
 	* time [optional] unix time, default: now
 	* count: number, how many events we want to return
 	* returns an array of the next events
 	*/
-	getNextEvents: function(data,time,count) {
-		if (!time) time = lib.currentTime();
+	static getNextEvents(data,time?:Time,count?:number) {
+		if (!time) time = currentTime();
 		if (!count) count = 10;
 
 		var i, obj;
@@ -75,13 +88,13 @@ var Resolver = {
 
 
 		// Create a 'pseudo LLayers' here, it's composed of objects that are and some that might be...
-		var LLayers = [];
-		_.each(tl.resolved,function (obj) {
+		var LLayers:Array<TimelineObject> = [];
+		_.each(tl.resolved,function (obj:TimelineObject) {
 			LLayers.push(obj);
 		});
-		_.each(tl.unresolved,function (obj) {
+		_.each(tl.unresolved,function (obj:TimelineObject) {
 			
-			if (obj.trigger.type === enums.TriggerType.LOGICAL) {
+			if (obj.trigger.type === TriggerType.LOGICAL) {
 				// we'll just assume that the object might be there when the time comes...
 				LLayers.push(obj);
 			}
@@ -115,7 +128,7 @@ var Resolver = {
 
 				if ( obj.resolved.startTime >= time ) { // the object has not started yet
 					nextEvents.push({
-						type: enums.TimelineEventType.START,
+						type: EventType.START,
 						time: obj.resolved.startTime,
 						obj: obj
 					});
@@ -124,7 +137,7 @@ var Resolver = {
 				if (obj.resolved.endTime) {
 
 					nextEvents.push({
-						type: enums.TimelineEventType.END,
+						type: EventType.END,
 						time: obj.resolved.endTime,
 						obj: obj
 					});
@@ -137,7 +150,7 @@ var Resolver = {
 			}
 		}
 		_.each(tl.unresolved,function (obj) {
-			if (obj.trigger.type === enums.TriggerType.LOGICAL) {
+			if (obj.trigger.type === TriggerType.LOGICAL) {
 				usedObjIds[obj.id] = obj;
 			}
 		});
@@ -159,7 +172,7 @@ var Resolver = {
 					if (obj) {
 						
 						nextEvents.push({
-							type: enums.TimelineEventType.KEYFRAME,
+							type: EventType.KEYFRAME,
 							time: keyFrame.resolved.startTime,
 							obj: obj,
 							kf: keyFrame,
@@ -174,7 +187,7 @@ var Resolver = {
 					if (obj) {
 						
 						nextEvents.push({
-							type: enums.TimelineEventType.KEYFRAME,
+							type: EventType.KEYFRAME,
 							time: keyFrame.resolved.endTime,
 							obj: obj,
 							kf: keyFrame,
@@ -192,14 +205,14 @@ var Resolver = {
 		return nextEvents;
 
 
-	},
+	}
 
 	/*
 	* startTime: unix time
 	* endTime: unix time
 	* returns an array of the events that occurs inside a window
 	*/
-	getTimelineInWindow: function(data,startTime,endTime) {
+	static getTimelineInWindow(data,startTime?:Time,endTime?:Time) {
 		var tl = resolveTimeline(data,{
 			startTime: startTime,
 			endTime: endTime
@@ -208,14 +221,14 @@ var Resolver = {
 		log(tl,'TRACE');
 
 		return tl;
-	},
+	}
 
 	/*
 	* startTime: unix time
 	* endTime: unix time
 	* returns an array of the events that occurs inside a window
 	*/
-	getObjectsInWindow: function(data,startTime,endTime) {
+	static getObjectsInWindow(data,startTime?:Time,endTime?:Time) {
 		var tl = resolveTimeline(data,{
 			startTime: startTime,
 			endTime: endTime
@@ -228,20 +241,20 @@ var Resolver = {
 		//log('tld','TRACE');
 		//log(tld,'TRACE');
 		return tld;
-	},
+	}
 	/*
 	* time: unix time
 	* develops the provided timeline around specified time
 	* This handles inner content in groups
 	*/
-	developTimelineAroundTime: function(tl,time) {
+	static developTimelineAroundTime(tl,time?:Time) {
 
 		var tld = developTimelineAroundTime(tl,time);
 		
 		//log('tld','TRACE');
 		//log(tld,'TRACE');
 		return tld;
-	},
+	}
 
 
 
@@ -261,13 +274,13 @@ var Resolver = {
 	*
 	*
 	*/
-	interpretExpression: function(strOrExpr,isLogical) {
+	static interpretExpression(strOrExpr,isLogical?:boolean) {
 		return interpretExpression(strOrExpr,isLogical);
-	},
+	}
 
-	decipherLogicalValue: function (str,obj,currentState,returnExpl) {
+	static decipherLogicalValue (str,obj,currentState,returnExpl?:boolean) {
 		return decipherLogicalValue(str,obj,currentState,returnExpl); 
-	},
+	}
 };
 
 /*
@@ -279,7 +292,7 @@ var Resolver = {
 	}
 	
 */
-var resolveTimeline = function (unresolvedData,filter) {
+function resolveTimeline(unresolvedData,filter?:object) {
 	if (!filter) filter = {};
 	if (!unresolvedData) throw 'resolveFullTimeline: parameter unresolvedData missing!';
 
@@ -413,9 +426,23 @@ var resolveTimeline = function (unresolvedData,filter) {
 	};
 
 };
-
-var developTimelineAroundTime = function(tl,time) {
-	if (!time) time = lib.currentTime();
+interface DevelopedObject extends TimelineObject {
+	resolved: {
+		parendId?: string,
+		innerStartTime: number,
+		innerEndTime: number,
+		startTime: number,
+		endTime: number,
+		innerDuration: number
+	}
+}
+interface DevelopedTimeline {
+	resolved: Array<DevelopedObject>,
+	groups: Array<Group>,
+	unresolved: Array<TimelineObject>
+}
+function developTimelineAroundTime(tl,time:Time):DevelopedTimeline {
+	if (!time) time = currentTime();
 	// extract group & inner content around a given time
 
 	log('developTimelineAroundTime '+time,'TRACE');
@@ -448,16 +475,13 @@ var developTimelineAroundTime = function(tl,time) {
 
 		var tmpObj = _.omit(obj,['parent']);
 		if (tmpObj.content && tmpObj.content.objects) {
-			var objects2 = [];
+			var objects2:any = [];
 
 			_.each(tmpObj.content.objects, function (o) {
 				objects2.push(_.omit(o,['parent']));
 			});
 			tmpObj.content.objects = objects2;
 		}
-
-		
-
 		var objClone = clone(tmpObj);
 		var parentTime = 0;
 
@@ -529,18 +553,18 @@ var developTimelineAroundTime = function(tl,time) {
 };
 
 
-var resolveObjectStartTime = function (obj, resolvedObjects) {
+function resolveObjectStartTime (obj, resolvedObjects) {
 	// recursively resolve object trigger startTime
 	if (!obj.resolved) obj.resolved = {};
 
-	if (obj.trigger.type === enums.TriggerType.TIME_ABSOLUTE) {
+	if (obj.trigger.type === TriggerType.TIME_ABSOLUTE) {
 
 		if (obj.parent) throw 'Trigger type TIME_ABSOLUTE not allowed inside groups!';
 
 		// Easy, return the absolute time then:
 		obj.resolved.startTime = obj.trigger.value;
 
-	} else if (obj.trigger.type === enums.TriggerType.TIME_RELATIVE) {
+	} else if (obj.trigger.type === TriggerType.TIME_RELATIVE) {
 		// ooh, it's a relative time! Relative to what, one might ask? Let's find out:
 
 		if ( !_.has(obj.resolved,'startTime') || _.isNull(obj.resolved.startTime) ) {
@@ -565,7 +589,7 @@ var resolveObjectStartTime = function (obj, resolvedObjects) {
 	return obj.resolved.startTime;
 
 };
-var resolveObjectDuration = function (obj,resolvedObjects) {
+function resolveObjectDuration(obj,resolvedObjects) {
 	// recursively resolve object duration
 
 
@@ -643,7 +667,7 @@ var resolveObjectDuration = function (obj,resolvedObjects) {
 
 };
 
-var resolveObjectEndTime = function (obj, resolvedObjects) {
+function resolveObjectEndTime (obj, resolvedObjects) {
 	if (!obj.resolved) obj.resolved = {};
 
 	if (!_.has(obj.resolved,'startTime') && resolvedObjects) {
@@ -668,7 +692,7 @@ var resolveObjectEndTime = function (obj, resolvedObjects) {
 	return obj.resolved.endTime;
 };
 
-var interpretExpression = function (strOrExpr,isLogical) {
+function interpretExpression(strOrExpr,isLogical?:boolean) {
 	
 	// note: the order is the priority!
 	var operatorList = ['+','-','*','/'];
@@ -862,7 +886,7 @@ var interpretExpression = function (strOrExpr,isLogical) {
 	return expression;
 };
 
-var decipherTimeRelativeValue = function (str,resolvedObjects) {
+function decipherTimeRelativeValue(str,resolvedObjects) {
 	// Decipher a value related to the trigger type TIME_RELATIVE
 	// Examples:
 	// #asdf.end -2 // Relative to object asdf's end (plus 2 seconds)
@@ -984,7 +1008,7 @@ var decipherTimeRelativeValue = function (str,resolvedObjects) {
 	}
 
 };
-var decipherLogicalValue = function (str,obj,currentState,returnExpl) {
+function decipherLogicalValue(str,obj,currentState,returnExpl) {
 	// Decipher a value related to the trigger type TIME_RELATIVE
 	// Examples:
 	/* Examples: 
@@ -1260,8 +1284,8 @@ var decipherLogicalValue = function (str,obj,currentState,returnExpl) {
 
 };
 
-var resolveState = function (tld,time) {
-	if (!time) time = lib.currentTime();
+function resolveState(tld,time) {
+	if (!time) time = currentTime();
 	
 	log('resolveState','TRACE');
 	//log('resolveState '+time)
@@ -1345,7 +1369,7 @@ var resolveState = function (tld,time) {
 	var unresolvedLogicObjs = [];
 
 	_.each(tld.unresolved,function (o) {
-		if (o.trigger.type === enums.TriggerType.LOGICAL) {
+		if (o.trigger.type === TriggerType.LOGICAL) {
 			
 			// ensure there's no startTime on obj
 
@@ -1432,7 +1456,7 @@ var resolveState = function (tld,time) {
 	};
 };
 
-var evaluateKeyFrames = function(state,tld) {
+function evaluateKeyFrames(state,tld) {
 
 	
 	// prepare data
@@ -1489,14 +1513,14 @@ var evaluateKeyFrames = function(state,tld) {
 						var triggerTime = null;
 
 						
-						if (keyFrame.trigger.type === enums.TriggerType.LOGICAL) {
+						if (keyFrame.trigger.type === TriggerType.LOGICAL) {
 							var onTimeLine = decipherLogicalValue(keyFrame.trigger.value,keyFrame,state);
 
 							if (onTimeLine) {
 								triggerTime = 1;
 								keyFrame.resolved.startTime = triggerTime;
 							}
-						} else if (keyFrame.trigger.type === enums.TriggerType.TIME_ABSOLUTE) {
+						} else if (keyFrame.trigger.type === TriggerType.TIME_ABSOLUTE) {
 							// relative to parent start time
 
 							if (obj.resolved.startTime) {
@@ -1618,7 +1642,7 @@ var evaluateKeyFrames = function(state,tld) {
 
 };
 
-var evaluateFunctions = function(state, tld, externalFunctions) {
+function evaluateFunctions(state, tld, externalFunctions) {
 	var triggernewResolveState = false;
 
 
@@ -1651,19 +1675,19 @@ function isNumeric(num){
 }
 
 //var log = console.log;
-var traceLevel = enums.TraceLevel.ERRORS; // 0
 
-//traceLevel = enums.TraceLevel.TRACE;
 
-var log = function (str,levelName) {
+//traceLevel = TraceLevel.TRACE;
+
+function log(str,levelName) {
 	var lvl = 0;
-	if (levelName) lvl = enums.TraceLevel[levelName] || 0;
+	if (levelName) lvl = TraceLevel[levelName] || 0;
 	
 	
 
 	if (traceLevel >= lvl ) console.log(str);
 };
-var explJoin = function (arr,decimator,lastDecimator) {
+function explJoin(arr,decimator,lastDecimator) {
 	
 	if (arr.length === 1) {
 		return arr[0];
@@ -1678,4 +1702,4 @@ var explJoin = function (arr,decimator,lastDecimator) {
 
 
 
-exports.resolver = Resolver;
+export {Resolver};
