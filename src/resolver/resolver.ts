@@ -8,24 +8,146 @@ var clone = require('fast-clone');
 var traceLevel:TraceLevel = TraceLevel.ERRORS; // 0
 
 export interface TimelineObject {
-	id: string,
+	id: ObjectId,
 	trigger: {
 		type: TriggerType,
-		value: number, // unix timestamp
+		value: number|string, // unix timestamp
 	},
 	duration: number, // seconds
 	LLayer: string | number,
-	content: any	
+	content: {
+		objects?: Array<TimelineObject>,
+
+		keyframes?:Array<TimelineKeyframe>,
+		//templateData?: any,
+
+		[key:string]: any
+	},
+	classes?:Array<string>
+	disabled?: boolean,
+	isGroup?:boolean,
+	repeating?:boolean,
+	priority?: number
 }
-export type Time = number;
+export interface TimelineGroup extends TimelineObject {
+	
+}
+export type TimeMaybe = number|null;
+
+export type StartTime = number|null;
+export type EndTime = number|null;
+export type Duration = number|null;
+export type SomeTime = number;
+
+export type ObjectId = string;
+
+export interface TimelineEvent {
+	type:EventType,
+	time:SomeTime,
+	obj:TimelineObject,
+	kf?:TimelineResolvedKeyframe
+}
+export interface TimelineKeyframe {
+	id: string,
+	trigger: {
+		type: TriggerType,
+		value: number|string, // unix timestamp
+	},
+	duration: number, // seconds
+	content?: {
+
+		//templateData?: any,
+		[key:string]: any
+	},
+	classes?:Array<string>
+	
+
+}
+interface UnresolvedLogicObject {
+	prevOnTimeline: null,
+	obj: TimelineObject
+
+}
+export interface TimelineResolvedObject extends TimelineObject {
+	resolved: ResolvedDetails
+	parent?:TimelineResolvedObject
+	useExternalFunctions?:boolean
+}
+export interface TimelineResolvedKeyframe extends TimelineKeyframe {
+	resolved: ResolvedDetails
+	parent?:ObjectId
+}
+export interface ResolvedDetails {
+	startTime?: 	StartTime,
+	endTime?: 		EndTime,
+	innerStartTime?:StartTime,
+	innerEndTime?: 	EndTime,
+	innerDuration?: Duration
+	outerDuration?: Duration,
+	parentId?: 		ObjectId,
+	disabled?: 		boolean,
+
+	referralIndex?: number|null,
+	referredObjectIds?: Array<{
+		id:string,
+		hook:string
+	}>|null,
+
+	repeatingStartTime?: StartTime,
+
+	templateData?: any
+}
+export interface ResolvedTimeline {
+	resolved:Array<TimelineResolvedObject>,
+	unresolved:Array<TimelineObject>
+}
+export interface DevelopedTimeline {
+	resolved: Array<TimelineResolvedObject>,
+	unresolved: Array<TimelineObject>
+	groups: Array<TimelineGroup>,
+}
+
+export interface TimelineState {
+	time: SomeTime,
+	GLayers: {
+		[GLayer:string]: TimelineResolvedObject
+	},
+	LLayers: {
+		[LLayer:string]: TimelineResolvedObject
+	}
+}
+export interface ExternalFunctions {
+	[fcnName:string]: (
+		obj:TimelineResolvedObject, 
+		state:TimelineState,
+		tld: DevelopedTimeline
+	) => any
+}
+export interface UnresolvedTimeline extends Array<TimelineObject>{}
+
+interface ResolvedObjectsStore {
+	[id:string]: TimelineResolvedObject|TimelineResolvedKeyframe
+}
+
+export type Expression = number|string|ExpressionObj;
+export interface ExpressionObj {
+	l: Expression,
+	o: string,
+	r: Expression
+}
+export interface Filter {
+	startTime?: StartTime,
+	endTime?: EndTime,
+}
 
 class Resolver {
 
 	
 
-	static setTraceLevel(levelName:string) {
+	static setTraceLevel(levelName:string|TraceLevel) {
 		var lvl:any = TraceLevel.ERRORS;
-		if (levelName) lvl = TraceLevel[levelName] || TraceLevel.ERRORS;
+		if (_.isNumber(levelName)) lvl = levelName;
+		else if (levelName) lvl = TraceLevel[levelName] || TraceLevel.ERRORS;
 		traceLevel = lvl;
 	}
 	/*
@@ -33,7 +155,7 @@ class Resolver {
 	 * time [optional] unix time, default: now
 	 * returns the current state
 	*/
-	static getState(data,time?:Time,externalFunctions?:any) {
+	static getState(data:UnresolvedTimeline,time?:SomeTime,externalFunctions?:ExternalFunctions) {
 		if (!time) time = currentTime();
 		
 
@@ -71,13 +193,17 @@ class Resolver {
 	* count: number, how many events we want to return
 	* returns an array of the next events
 	*/
-	static getNextEvents(data,time?:Time,count?:number) {
+	static getNextEvents(data:ResolvedTimeline, time?:SomeTime, count?:number) {
 		if (!time) time = currentTime();
 		if (!count) count = 10;
 
 		var i, obj;
 
-		var tl;
+		var tl:ResolvedTimeline = {
+			resolved: [],
+			unresolved: []
+		};
+
 		if (_.isArray(data)) {
 			tl = resolveTimeline(data);
 		} else if (_.isObject(data) && data.resolved) {
@@ -88,21 +214,24 @@ class Resolver {
 
 
 		// Create a 'pseudo LLayers' here, it's composed of objects that are and some that might be...
-		var LLayers:Array<TimelineObject> = [];
-		_.each(tl.resolved,function (obj:TimelineObject) {
-			LLayers.push(obj);
+		var LLayers:{[GLayer:string]: TimelineResolvedObject} = {};
+
+		_.each(tl.resolved,function (obj:TimelineResolvedObject) {
+			LLayers[obj.id] = obj;
 		});
 		_.each(tl.unresolved,function (obj:TimelineObject) {
 			
 			if (obj.trigger.type === TriggerType.LOGICAL) {
 				// we'll just assume that the object might be there when the time comes...
-				LLayers.push(obj);
+				var obj2 = <TimelineResolvedObject> obj;
+				LLayers[obj.id] = obj2;
 			}
 		});
 
 	
 		var keyframes = evaluateKeyFrames({
 			LLayers: LLayers,
+			GLayers: {},
 			time: 0
 		},tld);
 
@@ -111,7 +240,7 @@ class Resolver {
 		log('getNextEvents','TRACE');
 
 
-		var nextEvents = [];
+		var nextEvents:Array<TimelineEvent> = [];
 		var usedObjIds = {};
 		var endCount = 0;
 		var startCount = 0;
@@ -163,7 +292,11 @@ class Resolver {
 
 			
 
-			if (keyFrame && keyFrame.parent && (keyFrame.resolved||{}).startTime ) {
+			if (keyFrame && 
+				keyFrame.parent && 
+				keyFrame.resolved && 
+				keyFrame.resolved.startTime
+			) {
 				
 				if ( keyFrame.resolved.startTime >= time ) { // the object has not already started
 				
@@ -179,8 +312,8 @@ class Resolver {
 						});
 					}
 				}
-				if ( 
-					keyFrame.resolved.endTime >= time
+				if (
+					(keyFrame.resolved.endTime||0) >= time
 				) { 
 					
 					obj = usedObjIds[keyFrame.parent];
@@ -188,7 +321,7 @@ class Resolver {
 						
 						nextEvents.push({
 							type: EventType.KEYFRAME,
-							time: keyFrame.resolved.endTime,
+							time: (keyFrame.resolved.endTime||0),
 							obj: obj,
 							kf: keyFrame,
 						});
@@ -212,7 +345,7 @@ class Resolver {
 	* endTime: unix time
 	* returns an array of the events that occurs inside a window
 	*/
-	static getTimelineInWindow(data,startTime?:Time,endTime?:Time) {
+	static getTimelineInWindow(data:UnresolvedTimeline, startTime?:StartTime, endTime?:EndTime) {
 		var tl = resolveTimeline(data,{
 			startTime: startTime,
 			endTime: endTime
@@ -228,7 +361,7 @@ class Resolver {
 	* endTime: unix time
 	* returns an array of the events that occurs inside a window
 	*/
-	static getObjectsInWindow(data,startTime?:Time,endTime?:Time) {
+	static getObjectsInWindow(data:UnresolvedTimeline, startTime:SomeTime, endTime?:SomeTime) {
 		var tl = resolveTimeline(data,{
 			startTime: startTime,
 			endTime: endTime
@@ -247,7 +380,7 @@ class Resolver {
 	* develops the provided timeline around specified time
 	* This handles inner content in groups
 	*/
-	static developTimelineAroundTime(tl,time?:Time) {
+	static developTimelineAroundTime(tl:ResolvedTimeline,time?:SomeTime) {
 
 		var tld = developTimelineAroundTime(tl,time);
 		
@@ -292,13 +425,16 @@ class Resolver {
 	}
 	
 */
-function resolveTimeline(unresolvedData,filter?:object) {
+function resolveTimeline(data:UnresolvedTimeline|ResolvedTimeline, filter?:Filter):ResolvedTimeline {
 	if (!filter) filter = {};
-	if (!unresolvedData) throw 'resolveFullTimeline: parameter unresolvedData missing!';
+	if (!data) throw 'resolveFullTimeline: parameter data missing!';
 
-	// check: if unresolvedData is infact a resolved timeline, then just return it:
-	if (_.isObject(unresolvedData) && unresolvedData.resolved && unresolvedData.unresolved) {
-		return unresolvedData;
+	// check: if data is infact a resolved timeline, then just return it:
+	let unresolvedData:UnresolvedTimeline;
+	if (_.isObject(data) && data['resolved'] && data['unresolved'] ) {
+		return <ResolvedTimeline> data;
+	} else {
+		unresolvedData = <UnresolvedTimeline> data;
 	}
 
 	log('resolveTimeline','TRACE');
@@ -306,9 +442,13 @@ function resolveTimeline(unresolvedData,filter?:object) {
 	
 	// Start resolving the triggers, i.e. resolve them into absolute times on the timeline:
 
-	var resolvedObjects = {};
-	var unresolvedObjects = [];
-	var objectIds = {};
+	var resolvedObjects:{
+		[id:string]: TimelineResolvedObject
+	} = {};
+	var unresolvedObjects:Array<TimelineObject> = [];
+	var objectIds:{
+		[id:string]: boolean
+	} = {};
 
 	_.each(unresolvedData,function (obj) {
 		
@@ -342,15 +482,17 @@ function resolveTimeline(unresolvedData,filter?:object) {
 		log('======= Iterating objects...','TRACE');
 
 		for (var i=0;i<unresolvedObjects.length;i++) {
-			var obj = unresolvedObjects[i];
-
+			var obj:TimelineResolvedObject = _.extend(_.clone(unresolvedObjects[i]),{
+				resolved: {}
+			});
 			if (obj) {
+
 				log('--------------- object '+obj.id,'TRACE');
-				if (!obj.resolved) obj.resolved = {};
+				//if (!obj.resolved) obj.resolved = {};
 
 				if (obj.disabled) obj.resolved.disabled = true;
 
-				var triggerTime = null;
+				var triggerTime:StartTime = null;
 				try {
 					triggerTime = resolveObjectStartTime(obj, resolvedObjects);
 				} catch (e) {
@@ -373,6 +515,7 @@ function resolveTimeline(unresolvedData,filter?:object) {
 						hasAddedAnyObjects = true; // this will cause the iteration to run again
 					} else {
 						log('no duration','TRACE');
+						log('outerDuration:'+outerDuration,'TRACE');
 					}
 					
 				}
@@ -392,7 +535,7 @@ function resolveTimeline(unresolvedData,filter?:object) {
 
 
 	// Next: Filter away objects not relevant to filter:
-	var filteredObjects = [];
+	var filteredObjects:Array<TimelineResolvedObject> = [];
 	
 	
 	_.each(resolvedObjects,function (obj) {
@@ -401,15 +544,17 @@ function resolveTimeline(unresolvedData,filter?:object) {
 
 			var ok = true;
 
-			if ( 
+			if (
+				filter && 
 				filter.startTime && 
 				obj.resolved.endTime !== 0 &&
-				obj.resolved.endTime < filter.startTime
+				(obj.resolved.endTime||0) < filter.startTime
 			) ok = false; // The object has ended before filter.startTime
 
 			if (
+				filter &&
 				filter.endTime && 
-				obj.resolved.startTime > filter.endTime
+				(obj.resolved.startTime||0) > filter.endTime
 			) ok = false; // The object starts after filter.endTime
 			
 
@@ -417,7 +562,9 @@ function resolveTimeline(unresolvedData,filter?:object) {
 		}
 	});
 
-	filteredObjects = _.sortBy(filteredObjects,function (obj) {return obj.resolved.startTime;});
+	filteredObjects = _.sortBy(filteredObjects,function (obj) {
+		return obj.resolved.startTime;
+	});
 
 
 	return {
@@ -426,30 +573,16 @@ function resolveTimeline(unresolvedData,filter?:object) {
 	};
 
 };
-interface DevelopedObject extends TimelineObject {
-	resolved: {
-		parendId?: string,
-		innerStartTime: number,
-		innerEndTime: number,
-		startTime: number,
-		endTime: number,
-		innerDuration: number
-	}
-}
-interface DevelopedTimeline {
-	resolved: Array<DevelopedObject>,
-	groups: Array<Group>,
-	unresolved: Array<TimelineObject>
-}
-function developTimelineAroundTime(tl,time:Time):DevelopedTimeline {
-	if (!time) time = currentTime();
+
+function developTimelineAroundTime(tl:ResolvedTimeline,devTime?:SomeTime):DevelopedTimeline {
+	var time:SomeTime = (devTime ? devTime : currentTime());
 	// extract group & inner content around a given time
 
 	log('developTimelineAroundTime '+time,'TRACE');
 
 	//var resolvedObjects = {};
 
-	var tl2 = {
+	var tl2:DevelopedTimeline = {
 		resolved: [],
 		groups: [],
 		unresolved: tl.unresolved
@@ -469,11 +602,11 @@ function developTimelineAroundTime(tl,time:Time):DevelopedTimeline {
 		return time;
 	};
 
-	var developObj = function (obj,parentObj) {
+	var developObj = function (obj:TimelineResolvedObject,parentObj?:TimelineResolvedObject) {
 		
 		log('developObj','TRACE');
 
-		var tmpObj = _.omit(obj,['parent']);
+		var tmpObj:TimelineResolvedObject = _.omit(obj,['parent']);
 		if (tmpObj.content && tmpObj.content.objects) {
 			var objects2:any = [];
 
@@ -482,7 +615,7 @@ function developTimelineAroundTime(tl,time:Time):DevelopedTimeline {
 			});
 			tmpObj.content.objects = objects2;
 		}
-		var objClone = clone(tmpObj);
+		var objClone:TimelineResolvedObject = clone(tmpObj);
 		var parentTime = 0;
 
 		if (parentObj) {
@@ -496,7 +629,7 @@ function developTimelineAroundTime(tl,time:Time):DevelopedTimeline {
 		objClone.resolved.innerStartTime = objClone.resolved.startTime;
 		objClone.resolved.innerEndTime = objClone.resolved.endTime;
 
-		objClone.resolved.startTime += parentTime;
+		objClone.resolved.startTime = (objClone.resolved.startTime||0) + parentTime;
 		
 		if (objClone.resolved.endTime) {
 			objClone.resolved.endTime += parentTime;
@@ -529,10 +662,12 @@ function developTimelineAroundTime(tl,time:Time):DevelopedTimeline {
 
 
 		if (obj.isGroup) {
-			_.each(obj.content.objects,function (child) {
-				if (!child.parent) child.parent = obj;
-				developObj(child,objClone);
-			});
+			if (obj.content.objects) {
+				_.each(obj.content.objects,function (child:TimelineResolvedObject) {
+					if (!child.parent) child.parent = obj;
+					developObj(child,objClone);
+				});
+			}
 
 			tl2.groups.push(objClone);
 		} else {
@@ -553,7 +688,7 @@ function developTimelineAroundTime(tl,time:Time):DevelopedTimeline {
 };
 
 
-function resolveObjectStartTime (obj, resolvedObjects) {
+function resolveObjectStartTime (obj:TimelineResolvedObject|TimelineResolvedKeyframe, resolvedObjects:ResolvedObjectsStore):StartTime {
 	// recursively resolve object trigger startTime
 	if (!obj.resolved) obj.resolved = {};
 
@@ -561,14 +696,21 @@ function resolveObjectStartTime (obj, resolvedObjects) {
 
 		if (obj.parent) throw 'Trigger type TIME_ABSOLUTE not allowed inside groups!';
 
+		var val:number;
+		if (_.isNumber(obj.trigger.value)) {
+			val = obj.trigger.value;
+		} else {
+			val = parseFloat(obj.trigger.value+'');
+		}
+		
 		// Easy, return the absolute time then:
-		obj.resolved.startTime = obj.trigger.value;
+		obj.resolved.startTime = val;
 
 	} else if (obj.trigger.type === TriggerType.TIME_RELATIVE) {
 		// ooh, it's a relative time! Relative to what, one might ask? Let's find out:
 
 		if ( !_.has(obj.resolved,'startTime') || _.isNull(obj.resolved.startTime) ) {
-			var o = decipherTimeRelativeValue(obj.trigger.value, resolvedObjects);
+			var o = decipherTimeRelativeValue(obj.trigger.value+'', resolvedObjects);
 			obj.resolved.startTime = (o ? o.value : null);
 			obj.resolved.referralIndex = (o ? o.referralIndex : null);
 			obj.resolved.referredObjectIds = (o ? o.referredObjectIds : null);
@@ -586,39 +728,48 @@ function resolveObjectStartTime (obj, resolvedObjects) {
 	
 	resolveObjectEndTime(obj);
 
-	return obj.resolved.startTime;
+	return obj.resolved.startTime || null;
 
 };
-function resolveObjectDuration(obj,resolvedObjects) {
+function resolveObjectDuration(obj:TimelineResolvedObject|TimelineResolvedKeyframe,resolvedObjects:ResolvedObjectsStore):Duration {
 	// recursively resolve object duration
 
 
 	if (!obj.resolved) obj.resolved = {};
 
-	if (obj.isGroup) {
+
+	var outerDuration:Duration = obj.resolved.outerDuration || null;
+	var innerDuration:Duration = obj.resolved.innerDuration || null;
+
+	if (obj['isGroup']) {
+
+		var objO = <TimelineResolvedObject> obj;
 		
-		if (!_.has(obj.resolved,'outerDuration') ) {
+		if (!_.has(objO.resolved,'outerDuration') ) {
 
 			log('RESOLVE GROUP DURATION','TRACE');
-			var lastEndTime = -1;
+			var lastEndTime:EndTime = -1;
 			var hasInfiniteDuration = false;
-			_.each(obj.content.objects, function (child) {
-				if (!child.parent) child.parent = obj;
+			if (objO.content && objO.content.objects) {
+				_.each(objO.content.objects, function (child:TimelineResolvedObject) {
+					if (!child.parent) child.parent = objO;
 
-				if (!child.resolved) child.resolved = {};
+					if (!child.resolved) child.resolved = {};
 
-				var startTime = resolveObjectStartTime(child,resolvedObjects);
-				var outerDuration = resolveObjectDuration(child,resolvedObjects);
-				if (!_.isNull(startTime) && !_.isNull(outerDuration) && !_.isNull(child.resolved.innerDuration) ) {
-					resolvedObjects[child.id] = child;
-				}
+					var startTime = resolveObjectStartTime(child,resolvedObjects);
+					var outerDuration0 = resolveObjectDuration(child,resolvedObjects);
+					if (!_.isNull(startTime) && !_.isNull(outerDuration0) && !_.isNull(child.resolved.innerDuration) ) {
+						resolvedObjects[child.id] = child;
+					}
 
-				
-				log(child,'TRACE');
+					
+					log(child,'TRACE');
 
-				if (child.resolved.endTime === 0) hasInfiniteDuration = true;
-				if (child.resolved.endTime > lastEndTime) lastEndTime = child.resolved.endTime;
-			});
+					if (child.resolved.endTime === 0) hasInfiniteDuration = true;
+					if ((child.resolved.endTime||0) > (lastEndTime||0))
+						lastEndTime = child.resolved.endTime||0;
+				});
+			}
 			
 
 			
@@ -627,14 +778,15 @@ function resolveObjectDuration(obj,resolvedObjects) {
 			} else {
 				if (lastEndTime === -1) lastEndTime = null;
 			}
-			obj.resolved.innerDuration = lastEndTime;
+			obj.resolved.innerDuration = lastEndTime||0;
 
 
-			obj.resolved.outerDuration = (
+			outerDuration = (
 				obj.duration > 0 || obj.duration === 0 ?
 				obj.duration : 
-				lastEndTime
+				(lastEndTime||0)
 			);
+			obj.resolved.outerDuration = outerDuration
 			
 
 			log('GROUP DURATION: '+obj.resolved.innerDuration+', '+obj.resolved.outerDuration,'TRACE');
@@ -646,28 +798,31 @@ function resolveObjectDuration(obj,resolvedObjects) {
 
 		var contentDuration = (obj.content||{}).duration;
 
+		
 
-		obj.resolved.outerDuration = (
+		outerDuration = (
 			obj.duration > 0 || obj.duration === 0 ? 
 			obj.duration : 
 			contentDuration
 		);
+		obj.resolved.outerDuration = outerDuration;
 
-		obj.resolved.innerDuration = (
+		innerDuration = (
 			contentDuration > 0 || contentDuration === 0 ?
 			contentDuration : 
 			obj.duration
 		);
+		obj.resolved.innerDuration = innerDuration;
 	}
 
 	resolveObjectEndTime(obj); // don't provide resolvedObjects here, that might cause an infinite loop
 
-	return obj.resolved.outerDuration;
+	return outerDuration;
 
 
 };
 
-function resolveObjectEndTime (obj, resolvedObjects) {
+function resolveObjectEndTime (obj:TimelineResolvedObject|TimelineResolvedKeyframe, resolvedObjects?:ResolvedObjectsStore):EndTime {
 	if (!obj.resolved) obj.resolved = {};
 
 	if (!_.has(obj.resolved,'startTime') && resolvedObjects) {
@@ -677,6 +832,8 @@ function resolveObjectEndTime (obj, resolvedObjects) {
 		resolveObjectDuration(obj, resolvedObjects);
 	}
 
+	var endTime:EndTime = obj.resolved.endTime || null;
+
 	if (
 		_.has(obj.resolved,'startTime') &&
 		_.has(obj.resolved,'outerDuration') &&
@@ -684,12 +841,13 @@ function resolveObjectEndTime (obj, resolvedObjects) {
 		!_.isNull(obj.resolved.outerDuration)
 	) {
 		if (obj.resolved.outerDuration) {
-			obj.resolved.endTime = obj.resolved.startTime + obj.resolved.outerDuration;
+			endTime = (obj.resolved.startTime||0) + obj.resolved.outerDuration;
 		} else {
-			obj.resolved.endTime = 0; // infinite
+			endTime = 0; // infinite
 		}
+		obj.resolved.endTime = endTime;
 	}
-	return obj.resolved.endTime;
+	return endTime;
 };
 
 function interpretExpression(strOrExpr,isLogical?:boolean) {
@@ -710,7 +868,7 @@ function interpretExpression(strOrExpr,isLogical?:boolean) {
 	});
 	
 
-	var expression = null;
+	var expression:Expression|null = null;
 
 
 	if (strOrExpr) {
@@ -836,11 +994,15 @@ function interpretExpression(strOrExpr,isLogical?:boolean) {
 
 	// is valid expression?
 	
-	var validateExpression = function (expr,breadcrumbs) {
+	var validateExpression = function (expr0:Expression, breadcrumbs?:string) {
 		if (!breadcrumbs) breadcrumbs = 'ROOT';
 		
 
-		if (_.isObject(expr)) {
+		if (_.isObject(expr0)) {
+
+			let expr:ExpressionObj = <ExpressionObj> expr0;
+
+
 			if (!_.has(expr,'l')) throw 'validateExpression: "+breadcrumbs+".l missing';
 			if (!_.has(expr,'o')) throw 'validateExpression: "+breadcrumbs+".o missing';
 			if (!_.has(expr,'r')) throw 'validateExpression: "+breadcrumbs+".r missing';
@@ -855,7 +1017,9 @@ function interpretExpression(strOrExpr,isLogical?:boolean) {
 	};
 
 	try {
-		validateExpression(expression);
+		if (expression) {
+			validateExpression(expression);
+		}
 	} catch (e) {
 		var errStr = JSON.stringify(expression);
 		throw errStr+' '+e;
@@ -886,7 +1050,7 @@ function interpretExpression(strOrExpr,isLogical?:boolean) {
 	return expression;
 };
 
-function decipherTimeRelativeValue(str,resolvedObjects) {
+function decipherTimeRelativeValue(str:string,resolvedObjects:ResolvedObjectsStore) {
 	// Decipher a value related to the trigger type TIME_RELATIVE
 	// Examples:
 	// #asdf.end -2 // Relative to object asdf's end (plus 2 seconds)
@@ -899,7 +1063,10 @@ function decipherTimeRelativeValue(str,resolvedObjects) {
 		
 
 		var touchedObjectExpressions = {};
-		var touchedObjectIDs = [];
+		var touchedObjectIDs:Array<{
+			id:string,
+			hook:string
+		}> = [];
 
 		var expression = interpretExpression(str);
 		
@@ -910,11 +1077,13 @@ function decipherTimeRelativeValue(str,resolvedObjects) {
 		
 
 		// resolve expression
-		var resolveExpression = function (expression) {
+		var resolveExpression = function (expression0:Expression) {
 			// todo:
 			
 
-			if (_.isObject(expression)) {
+			if (_.isObject(expression0)) {
+
+				let expression:ExpressionObj = <ExpressionObj> expression0;
 				
 				log('resolveExpression','TRACE');
 
@@ -934,69 +1103,83 @@ function decipherTimeRelativeValue(str,resolvedObjects) {
 				if (expression.o === '/') return l/r;
 			} else {
 
-				if (isNumeric(expression)) return parseFloat(expression);
-
-				if (expression[0] === '#') { // Referring to an other object: '#id-of-object'
-
-					
-
-					if (_.has(touchedObjectExpressions,expression)) return touchedObjectExpressions[expression]; // to improve performance and avoid circular dependencies
-					touchedObjectExpressions[expression] = null; // to avoid circular dependencies
-					
-
-					//
-
-					var words = expression.slice(1).split('.');
-					var hook = 'end';
-					if (words.length === 2) {
-						hook = words[1];
-					}
-
-					touchedObjectIDs.push({
-						id: words[0],
-						hook: hook
-					});
-
-					var obj = resolvedObjects[words[0]];
-					if (!obj) {
-						log('obj "'+words[0]+'" not found','TRACE');
-						return null;
-					}
-
-					var referredObjValue = (
-						_.has(obj.resolved,'startTime') ?
-						obj.resolved.startTime :
-						resolveObjectStartTime(obj,resolvedObjects)
-					);
-
-					var obj_referralIndex = ((obj.resolved||{}).referralIndex || 0) + 1 ;
-					if (obj_referralIndex > referralIndex) referralIndex = obj_referralIndex;
-					
-
-					var val = null;
-					if (hook === 'start') {
-						val = referredObjValue;
-					} else if (hook === 'end') {
-						val = referredObjValue + obj.resolved.outerDuration;
-					} else if (hook === 'duration') {
-						val = obj.resolved.outerDuration;
+				if (isNumeric(expression0)) {
+					if (_.isNumber(expression0)) {
+						return expression0;
 					} else {
-						throw 'Unknown hook: "'+expression+'"';
+
+						return parseFloat(expression0+'');
 					}
-					
+				} else {
+					let expression:string = expression0+'';
 
-					touchedObjectExpressions[expression] = val;
+					if (expression[0] === '#') { // Referring to an other object: '#id-of-object'
 
-					
-					return val;
+						
+
+						if (_.has(touchedObjectExpressions,expression)) return touchedObjectExpressions[expression]; // to improve performance and avoid circular dependencies
+						touchedObjectExpressions[expression] = null; // to avoid circular dependencies
+						
+
+						//
+
+						var words = expression.slice(1).split('.');
+						var hook = 'end';
+						if (words.length === 2) {
+							hook = words[1];
+						}
+
+						touchedObjectIDs.push({
+							id: words[0],
+							hook: hook
+						});
+
+						var obj = resolvedObjects[words[0]];
+						if (!obj) {
+							log('obj "'+words[0]+'" not found','TRACE');
+							return null;
+						}
+
+						var referredObjValue:StartTime = (
+							_.has(obj.resolved,'startTime') ?
+							(obj.resolved.startTime||0) :
+							resolveObjectStartTime(obj,resolvedObjects)
+						);
+
+						var obj_referralIndex = ((obj.resolved||{}).referralIndex || 0) + 1 ;
+						if (obj_referralIndex > referralIndex) referralIndex = obj_referralIndex;
+						
+
+						var val:StartTime = null;
+						if (hook === 'start') {
+							val = referredObjValue;
+						} else if (hook === 'end') {
+							if (referredObjValue && obj.resolved.outerDuration) {
+								val = referredObjValue + obj.resolved.outerDuration;
+							}
+						} else if (hook === 'duration') {
+							if (obj.resolved.outerDuration) {
+								val = obj.resolved.outerDuration;
+							}
+						} else {
+							throw 'Unknown hook: "'+expression+'"';
+						}
+						
+
+						touchedObjectExpressions[expression] = val;
+
+						
+						return val;
+					}
 				}
+
 			}
 			return null;
 			
 		};
 
 		return {
-			value: resolveExpression(expression),
+			value: (expression ? resolveExpression(expression) : 0),
 			referralIndex: referralIndex,
 			referredObjectIds: touchedObjectIDs
 		};
@@ -1008,7 +1191,7 @@ function decipherTimeRelativeValue(str,resolvedObjects) {
 	}
 
 };
-function decipherLogicalValue(str,obj,currentState,returnExpl) {
+function decipherLogicalValue(str,obj,currentState:TimelineState,returnExpl?:boolean) {
 	// Decipher a value related to the trigger type TIME_RELATIVE
 	// Examples:
 	/* Examples: 
@@ -1098,7 +1281,7 @@ function decipherLogicalValue(str,obj,currentState,returnExpl) {
 					if (isNumeric(str)) return !!parseInt(str);
 
 
-					var m = null;
+					var m:Array<string>|null = null;
 
 					var tmpStr = str.trim();
 
@@ -1114,9 +1297,15 @@ function decipherLogicalValue(str,obj,currentState,returnExpl) {
 						return false;
 					}
 
-					var filterAdd = [];
-					var filterRemove = [];
-					var objsToCheck = [];
+					var filterAdd:Array<{
+						t: string,
+						val: string
+					}> = [];
+					var filterRemove:Array<{
+						t: string,
+						val: string
+					}> = [];
+					var objsToCheck:Array<TimelineResolvedObject> = [];
 					for (var i=0;i<10;i++) {
 
 						m = tmpStr.match(/^([#\$\.])([^#\$\. ]+)(.*)/) ; // '$L12', '$L', '$G123.main#asdf'
@@ -1145,8 +1334,8 @@ function decipherLogicalValue(str,obj,currentState,returnExpl) {
 					}
 
 					var err = '';
-					var explAdd = [];
-					var explRemove = [];
+					var explAdd:Array<string> = [];
+					var explRemove:Array<string> = [];
 
 					if (filterAdd.length) {
 						//log('filterAdd')
@@ -1284,7 +1473,7 @@ function decipherLogicalValue(str,obj,currentState,returnExpl) {
 
 };
 
-function resolveState(tld,time) {
+function resolveState(tld:DevelopedTimeline,time:SomeTime):TimelineState {
 	if (!time) time = currentTime();
 	
 	log('resolveState','TRACE');
@@ -1366,17 +1555,17 @@ function resolveState(tld,time) {
 
 
 	// Logic expressions:
-	var unresolvedLogicObjs = [];
+	var unresolvedLogicObjs:Array<UnresolvedLogicObject> = [];
 
 	_.each(tld.unresolved,function (o) {
 		if (o.trigger.type === TriggerType.LOGICAL) {
 			
 			// ensure there's no startTime on obj
 
-			if (o.resolved) {
-				o.resolved.startTime = null;
-				o.resolved.endTime = null;
-				o.resolved.duration = null;
+			if (o['resolved']) {
+				o['resolved'].startTime = null;
+				o['resolved'].endTime = null;
+				o['resolved'].duration = null;
 			}
 
 			unresolvedLogicObjs.push({
@@ -1399,6 +1588,7 @@ function resolveState(tld,time) {
 
 
 			var onTimeLine = decipherLogicalValue(o.obj.trigger.value,o.obj,{
+				time: time,
 				GLayers: GLayers,
 				LLayers: LLayers,
 			});
@@ -1456,48 +1646,51 @@ function resolveState(tld,time) {
 	};
 };
 
-function evaluateKeyFrames(state,tld) {
+function evaluateKeyFrames(state:TimelineState,tld:DevelopedTimeline):Array<TimelineResolvedKeyframe> {
 
 	
 	// prepare data
-	var resolvedObjects = {};
+	var resolvedObjects:ResolvedObjectsStore = {};
+
 	_.each(tld.resolved,function (obj) {
 		resolvedObjects[obj.id] = obj;
 	});
 	
 	
 
-	var allValidKeyFrames = [];
+	var allValidKeyFrames:Array<TimelineResolvedKeyframe> = [];
 
 
 
 	_.each(state.LLayers,function (obj) {
 
 		
-		//if (!obj.content.mixer) obj.content.mixer = {};
+		
 		if (!obj.resolved) obj.resolved = {};
-		//obj.resolved.mixer = _.clone(obj.content.mixer);
+		
+
 		_.each(_.omit(obj.content,['GLayer']), function (val, key) {
-			obj.resolved[key] = _.clone(val);
+			if (obj.resolved) obj.resolved[key] = _.clone(val);
 		});
+			
 		
 		obj.resolved.templateData = _.clone(obj.content.templateData);
 
 
 
-		if (((obj||{}).content||{}).keyframes) {
+		if (obj.content && obj.content.keyframes ) {
 
 			
 
-			var resolvedKeyFrames = [];
+			var resolvedKeyFrames:Array<TimelineResolvedKeyframe> = [];
 
-			var unresolvedKeyFrames = [];
-			_.each(obj.content.keyframes,function (keyFrame) {
+			var unresolvedKeyFrames:Array<TimelineKeyframe> = [];
+			_.each(obj.content.keyframes,function (keyFrame:TimelineKeyframe) {
 				unresolvedKeyFrames.push(keyFrame);
 			});
 
 
-			var resolvedObjectsInternal = _.clone(resolvedObjects);
+			var resolvedObjectsInternal:ResolvedObjectsStore = _.clone(resolvedObjects);
 			
 
 			var hasAddedAnyObjects = true;
@@ -1505,12 +1698,13 @@ function evaluateKeyFrames(state,tld) {
 				hasAddedAnyObjects = false;
 
 				for (var i=0;i<unresolvedKeyFrames.length;i++) {
-					var keyFrame = unresolvedKeyFrames[i];
+					var keyFrame:TimelineResolvedKeyframe = _.extend(_.clone(unresolvedKeyFrames[i]),{
+						resolved: {}
+					});
 
 					if (keyFrame && keyFrame.trigger) {
 
-						keyFrame.resolved = {};
-						var triggerTime = null;
+						var triggerTime:TimeMaybe = null;
 
 						
 						if (keyFrame.trigger.type === TriggerType.LOGICAL) {
@@ -1519,14 +1713,22 @@ function evaluateKeyFrames(state,tld) {
 							if (onTimeLine) {
 								triggerTime = 1;
 								keyFrame.resolved.startTime = triggerTime;
+
 							}
 						} else if (keyFrame.trigger.type === TriggerType.TIME_ABSOLUTE) {
 							// relative to parent start time
 
-							if (obj.resolved.startTime) {
-								triggerTime = parseFloat(keyFrame.trigger.value) + obj.resolved.startTime;
+							var val:number;
+							if (_.isNumber(keyFrame.trigger.value)) {
+								val = keyFrame.trigger.value;
 							} else {
-								triggerTime = (keyFrame.trigger.value ? 1 : 0);
+								val = parseFloat(keyFrame.trigger.value+'');
+							}
+
+							if (obj.resolved.startTime) {
+								triggerTime = val + obj.resolved.startTime;
+							} else {
+								triggerTime = (val ? 1 : 0);
 							}
 							if (triggerTime) keyFrame.resolved.startTime = triggerTime;
 
@@ -1541,7 +1743,7 @@ function evaluateKeyFrames(state,tld) {
 
 							resolveObjectEndTime(keyFrame,resolvedObjectsInternal);
 							
-							triggerTime = keyFrame.resolved.startTime;
+							triggerTime = keyFrame.resolved.startTime || null;
 
 						}
 						if (triggerTime) {
@@ -1577,8 +1779,9 @@ function evaluateKeyFrames(state,tld) {
 			// Apply keyframes
 			_.each(resolvedKeyFrames,function (keyFrame) {
 				
-				var startTime = (keyFrame.resolved||{}).startTime;
-				var endTime = (keyFrame.resolved||{}).endTime;
+				var startTime = (keyFrame.resolved||{}).startTime || 0;
+				var endTime = (keyFrame.resolved||{}).endTime || 0;
+
 				if (
 					startTime > 0 &&
 					(!state.time || startTime <= state.time) &&
@@ -1613,7 +1816,7 @@ function evaluateKeyFrames(state,tld) {
 							}
 						});
 					}
-
+					/*
 					if (keyFrame.templateData) {
 
 						if (_.isObject(obj.resolved.templateData) && _.isObject(keyFrame.templateData)) {
@@ -1624,6 +1827,7 @@ function evaluateKeyFrames(state,tld) {
 						}
 						usingThisKeyframe = true;
 					}
+					*/
 
 					if (usingThisKeyframe) {
 						allValidKeyFrames.push(_.extend({parent: obj.id},keyFrame));
@@ -1642,7 +1846,7 @@ function evaluateKeyFrames(state,tld) {
 
 };
 
-function evaluateFunctions(state, tld, externalFunctions) {
+function evaluateFunctions(state:TimelineState, tld:DevelopedTimeline, externalFunctions?:ExternalFunctions) {
 	var triggernewResolveState = false;
 
 
@@ -1670,7 +1874,7 @@ function evaluateFunctions(state, tld, externalFunctions) {
 	return triggernewResolveState;
 };
 
-function isNumeric(num){
+function isNumeric(num):boolean {
     return !isNaN(num);
 }
 
@@ -1679,15 +1883,15 @@ function isNumeric(num){
 
 //traceLevel = TraceLevel.TRACE;
 
-function log(str,levelName) {
-	var lvl = 0;
+function log(str:any,levelName):void {
+	var lvl:any = TraceLevel.ERRORS;
 	if (levelName) lvl = TraceLevel[levelName] || 0;
 	
 	
 
 	if (traceLevel >= lvl ) console.log(str);
 };
-function explJoin(arr,decimator,lastDecimator) {
+function explJoin(arr:Array<string>,decimator:string,lastDecimator:string):string {
 	
 	if (arr.length === 1) {
 		return arr[0];

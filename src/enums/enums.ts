@@ -23,7 +23,7 @@ export enum TraceLevel {
 	TRACE = 2
 }
 
-export const enums = {
+export const Enums = {
 	TriggerType: TriggerType,
 	TimelineEventType: EventType,
 	TraceLevel: TraceLevel,

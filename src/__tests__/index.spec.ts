@@ -685,7 +685,6 @@ test('Timeline, override object 2', () => {
 		.concat(getTestData('override'))
 		.concat(getTestData('override2'))
 
-	
 	var state = Resolver.getState(data, 1000);
 	expect(state.LLayers['10'].id).toBe( 'obj5');
 	
@@ -784,7 +783,6 @@ test('Timeline, relative timing 2', () => {
 
 	var tl = Resolver.getTimelineInWindow(data);
 		
-	
 		expect(tl.resolved).toHaveLength( 2);
 		expect(tl.unresolved).toHaveLength( 1);
 		
