@@ -12,11 +12,8 @@ module.exports = {
 		'^.+\\.(ts|tsx)$': './node_modules/ts-jest/preprocessor.js'
 	},
 	testMatch: [
-		'**/__tests__/**/*.(spec).(ts|js)'
+		'**/__tests__/**/*.spec.(ts|js)'
 	],
-	testPathIgnorePatterns: [
-		'integrationTests'
-	],	
 	testEnvironment: 'node',
 	coverageThreshold: {
 		global: {
