@@ -61,7 +61,7 @@ export interface TimelineKeyframe {
 	classes?: Array<string>
 }
 interface UnresolvedLogicObject {
-	prevOnTimeline: null,
+	prevOnTimeline?: string | boolean | null,
 	obj: TimelineObject
 
 }
@@ -123,7 +123,7 @@ export interface ExternalFunctions {
 }
 export interface UnresolvedTimeline extends Array<TimelineObject> {}
 
-interface ResolvedObjectsStore {
+export interface ResolvedObjectsStore {
 	[id: string]: TimelineResolvedObject|TimelineResolvedKeyframe
 }
 
@@ -686,11 +686,11 @@ function developTimelineAroundTime (tl: ResolvedTimeline,time: SomeTime): Develo
 			log('innerDuration: ' + objClone.resolved.innerDuration,'TRACE')
 
 			let repeatingStartTime = Math.max(
-				objClone.resolved.startTime,
-				time - ((time - objClone.resolved.startTime) % objClone.resolved.innerDuration)
+				(objClone.resolved.startTime || 0),
+				time - ((time - (objClone.resolved.startTime || 0)) % objClone.resolved.innerDuration)
 			) // This is the startTime closest to, and before, time
 
-			log('repeatingStartTime: ' + repeatingStartTime,'TRACE')
+			log('repeatingStartTime: ' + repeatingStartTime, 'TRACE')
 
 			objClone.resolved.repeatingStartTime = repeatingStartTime
 
@@ -765,7 +765,13 @@ function resolveObjectStartTime (obj: TimelineResolvedObject|TimelineResolvedKey
 
 	resolveObjectEndTime(obj)
 
-	return obj.resolved.startTime
+	let startTime: StartTime = null
+	if (!_.isUndefined(obj.resolved.startTime)) {
+		// @ts-ignore
+		startTime = obj.resolved.startTime
+	}
+
+	return startTime
 
 }
 function resolveObjectDuration (obj: TimelineResolvedObject|TimelineResolvedKeyframe,resolvedObjects: ResolvedObjectsStore): Duration {
@@ -883,7 +889,7 @@ function resolveObjectEndTime (obj: TimelineResolvedObject|TimelineResolvedKeyfr
 	return endTime
 }
 
-function interpretExpression (strOrExpr,isLogical?: boolean): Expression|null {
+function interpretExpression (strOrExpr: string | number | Expression, isLogical?: boolean): Expression|null {
 
 	// note: the order is the priority!
 	let operatorList = ['+','-','*','/']
@@ -904,9 +910,9 @@ function interpretExpression (strOrExpr,isLogical?: boolean): Expression|null {
 
 	if (strOrExpr) {
 
-		if (_.isString(strOrExpr)) {
+		if (_.isString(strOrExpr) || _.isNumber(strOrExpr)) {
 
-			let str = strOrExpr
+			let str: string = strOrExpr + ''
 			// Prepare the string:
 			// Make sure all operators (+-/*) have spaces between them
 
@@ -1065,7 +1071,7 @@ function interpretExpression (strOrExpr,isLogical?: boolean): Expression|null {
 	*/
 	return expression
 }
-interface ResolveExpressionContext {
+export interface ResolveExpressionContext {
 	touchedObjectExpressions: {[expression: string]: any },
 	touchedObjectIDs: Array<{id: string,hook: string}>,
 	referralIndex: number
@@ -1177,7 +1183,7 @@ function resolveExpression (
 }
 function resolveLogicalExpression (
 	expressionOrString: Expression|null,
-	obj?: TimelineResolvedObject,
+	obj?: TimelineObject | TimelineKeyframe,
 	returnExpl?: boolean,
 	currentState?: TimelineState
 ) {
@@ -1291,7 +1297,7 @@ function resolveLogicalExpression (
 							let LLayer = (
 								m[2] ?
 								m[2] :
-								(obj || {}).LLayer
+								(obj || {})['LLayer'] || null
 							)
 							// log('obj on LL '+LLayer)
 							// log(currentState.LLayers[LLayer])
@@ -1310,7 +1316,7 @@ function resolveLogicalExpression (
 							let GLayer = (
 								m[2] ?
 								m[2] :
-								((obj || {}).content || {GLayer: null}).GLayer
+								((obj || {})['content'] || {GLayer: null}).GLayer
 							)
 							if (GLayer) {
 								if (currentState && currentState.GLayers[GLayer]) {
@@ -1439,8 +1445,8 @@ function decipherTimeRelativeValue (str: string, resolvedObjects: ResolvedObject
 	}
 
 }
-function decipherLogicalValue (str: string,
-	obj: TimelineResolvedObject,
+function decipherLogicalValue (str: string | number,
+	obj: TimelineObject | TimelineKeyframe,
 	currentState: TimelineState,
 	returnExpl?: boolean
 ): boolean | string {
@@ -1597,7 +1603,7 @@ function resolveState (tld: DevelopedTimeline,time: SomeTime): TimelineState {
 
 		_.each(unresolvedLogicObjs, function (o) {
 
-			let onTimeLine = decipherLogicalValue(o.obj.trigger.value,o.obj,{
+			let onTimeLine = decipherLogicalValue(o.obj.trigger.value, o.obj, {
 				time: time,
 				GLayers: GLayers,
 				LLayers: LLayers
@@ -1701,7 +1707,7 @@ function evaluateKeyFrames (state: TimelineState,tld: DevelopedTimeline): Array<
 						let triggerTime: TimeMaybe = null
 
 						if (keyFrame.trigger.type === TriggerType.LOGICAL) {
-							let onTimeLine = decipherLogicalValue(keyFrame.trigger.value,keyFrame,state)
+							let onTimeLine = decipherLogicalValue(keyFrame.trigger.value, keyFrame, state )
 
 							if (onTimeLine) {
 								triggerTime = 1
