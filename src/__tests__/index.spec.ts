@@ -661,6 +661,43 @@ let testData = {
 			LLayer: 1
 		}
 	],
+	'infinitegroup': [
+		{
+			id: 'group0', // the id must be unique
+
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now - 10 // 10 seconds ago
+			},
+			duration: 0, // infinite duration
+			LLayer: 1,
+			isGroup: true,
+			content: {
+				objects: [
+					{
+						id: 'child0', // the id must be unique
+
+						trigger: {
+							type: TriggerType.TIME_ABSOLUTE,
+							value: 0 // Relative to parent object
+						},
+						duration: 15,
+						LLayer: 1
+					},
+					{
+						id: 'child1', // the id must be unique
+
+						trigger: {
+							type: TriggerType.TIME_RELATIVE,
+							value: '#child0.end'
+						},
+						duration: 10,
+						LLayer: 1
+					}
+				]
+			}
+		}
+	],
 	'repeatinggroup': [
 		{
 			id: 'group0', // the id must be unique
@@ -1550,8 +1587,26 @@ test('repeating group in repeating group', () => {
 	expect(events2[2]).toMatchObject({
 		type: EventType.END, time: 1122, obj: {id: 'child0'}})
 })
+test('infinite group', () => {
+	let data = clone(getTestData('infinitegroup'))
+
+	let tl = Resolver.getTimelineInWindow(data)
+	expect(tl.resolved).toHaveLength(1)
+	expect(tl.unresolved).toHaveLength(0)
+
+	let tld = Resolver.developTimelineAroundTime(tl, now)
+	expect(tld.resolved).toHaveLength(2)
+	expect(tld.unresolved).toHaveLength(0)
+
+	let events0 = Resolver.getNextEvents(tl, now)
+	expect(events0).toHaveLength(3)
+	let state0 = Resolver.getState(tl, now)
+	expect(state0.LLayers['1']).toBeTruthy()
+	expect(state0.LLayers['1'].id).toBe( 'child0')
+})
 
 // TOOD: test group
+
 
 // TODO: test looping group
 
