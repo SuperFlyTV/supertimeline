@@ -792,9 +792,11 @@ function resolveObjectDuration (obj: TimelineResolvedObject|TimelineResolvedKeyf
 			let lastEndTime: EndTime = -1
 			let hasInfiniteDuration = false
 			if (obj0.content && obj0.content.objects) {
+				let obj0Clone = clone(obj0)
+
 				_.each(obj0.content.objects, function (child: TimelineResolvedObject) {
 
-					if (!child.parent) child.parent = clone(obj0)
+					if (!child.parent) child.parent = obj0Clone
 
 					if (!child.resolved) child.resolved = {}
 
