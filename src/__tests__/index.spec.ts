@@ -635,7 +635,7 @@ let testData = {
 							value: 0 // Relative to parent object
 						},
 						duration: 15,
-						LLayer: 1
+						LLayer: 2
 					},
 					{
 						id: 'child1', // the id must be unique
@@ -645,7 +645,7 @@ let testData = {
 							value: '#child0.end'
 						},
 						duration: 10,
-						LLayer: 1
+						LLayer: 2
 					}
 				]
 			}
@@ -658,7 +658,7 @@ let testData = {
 				value: '#group0.end' // will essentially never play
 			},
 			duration: 60, // 1 minute long
-			LLayer: 1
+			LLayer: 2
 		}
 	],
 	'infinitegroup': [
@@ -1394,7 +1394,7 @@ test('bad objects on timeline', () => {
 		Resolver.getState(clone(data), now)
 	}).toThrowError()
 })
-test('simple group', () => {
+test.only('simple group', () => {
 
 	let data = clone(getTestData('simplegroup'))
 
@@ -1409,23 +1409,27 @@ test('simple group', () => {
 	let events0 = Resolver.getNextEvents(tl, now)
 	expect(events0).toHaveLength(5)
 	let state0 = Resolver.getState(tl, now)
-	expect(state0.LLayers['1']).toBeTruthy()
-	expect(state0.LLayers['1'].id).toBe( 'child0')
+	expect(state0.LLayers['2']).toBeTruthy()
+	expect(state0.GLayers['2']).toBeTruthy()
+	expect(state0.LLayers['2'].id).toBe( 'child0')
 
 	let events1 = Resolver.getNextEvents(tl, now + 10)
 	expect(events1).toHaveLength(3)
 	let state1 = Resolver.getState(tl, now + 10)
-	expect(state1.LLayers['1']).toBeTruthy()
-	expect(state1.LLayers['1'].id).toBe( 'child1')
+	expect(state1.LLayers['2']).toBeTruthy()
+	expect(state1.GLayers['2']).toBeTruthy()
+	expect(state1.LLayers['2'].id).toBe( 'child1')
 
 	let events2 = Resolver.getNextEvents(tl, now + 25)
 	expect(events2).toHaveLength(2)
 	let state2 = Resolver.getState(tl, now + 25)
-	expect(state2.LLayers['1']).toBeFalsy()
+	expect(state2.LLayers['2']).toBeFalsy()
+	expect(state2.GLayers['2']).toBeFalsy()
 
 	let state3 = Resolver.getState(tl, now + 60)
-	expect(state3.LLayers['1']).toBeTruthy()
-	expect(state3.LLayers['1'].id).toBe( 'obj1')
+	expect(state3.LLayers['2']).toBeTruthy()
+	expect(state3.GLayers['2']).toBeTruthy()
+	expect(state3.LLayers['2'].id).toBe( 'obj1')
 })
 test('repeating group', () => {
 

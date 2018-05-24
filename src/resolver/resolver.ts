@@ -1549,6 +1549,7 @@ function resolveState (tld: DevelopedTimeline,time: SomeTime): TimelineState {
 
 	let getGLayer = function (obj) {
 		if (_.has(obj.content,'GLayer')) return obj.content.GLayer
+		if (_.has(obj,'LLayer')) return obj.LLayer
 		if (obj.parent) return getGLayer(obj.parent)
 		return null
 	}
