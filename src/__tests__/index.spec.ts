@@ -1276,13 +1276,13 @@ test('logical objects, references 3', () => {
 	// let tl = Resolver.getTimelineInWindow(data)
 	try {
 		let state0 = Resolver.getState(clone(data), now)
-		
+
 		expect(state0.GLayers['1']).toBeTruthy()
 		expect(state0.GLayers['2']).toBeTruthy()
 		expect(state0.GLayers['3']).toBeFalsy()
-		
+
 		let state1 = Resolver.getState(clone(data), now + 1000)
-		
+
 		expect(state1.GLayers['1']).toBeFalsy() // TimelineResolvedObject
 		expect(state1.GLayers['2']).toBeFalsy() // TimelineResolvedObject
 		expect(state1.GLayers['3']).toBeTruthy() // TimelineResolvedObject
