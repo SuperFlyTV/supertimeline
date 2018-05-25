@@ -163,7 +163,8 @@ class Resolver {
 		})
 
 		let tld = developTimelineAroundTime(tl,time)
-		// log(tl)
+		log('tld', 'TRACE')
+		log(tld, 'TRACE')
 
 		let state = resolveState(tld,time)
 		evaluateKeyFrames(state,tld)
@@ -592,24 +593,6 @@ function developTimelineAroundTime (tl: ResolvedTimeline,time: SomeTime): Develo
 	let developObj = function (objClone: TimelineResolvedObject, givenParentObj?: TimelineResolvedObject) {
 
 		log('developObj','TRACE')
-
-		/*
-
-		let tmpObj: TimelineResolvedObject = _.omit(objOrg,['parent'])
-		if (tmpObj.content && tmpObj.content.objects) {
-			let objects2: any = []
-
-			_.each(tmpObj.content.objects, function (o) {
-				objects2.push(_.omit(o,['parent']))
-			})
-			tmpObj.content.objects = objects2
-		}
-		let objClone: TimelineResolvedObject = clone(tmpObj)
-		 */
-
-		// console.log('tmpObj',tmpObj.content.objects)
-
-		// let objClone: TimelineResolvedObject = clone(objOrg)
 
 		objClone.resolved.innerStartTime = objClone.resolved.startTime
 		objClone.resolved.innerEndTime = objClone.resolved.endTime
@@ -1502,16 +1485,18 @@ function resolveState (tld: DevelopedTimeline,time: SomeTime): TimelineState {
 
 	log('resolveState','TRACE')
 	// log('resolveState '+time)
-	let LLayers = {}
+	let LLayers: {[layerId: string]: TimelineResolvedObject} = {}
+	let GLayers: {[layerId: string]: TimelineResolvedObject} = {}
 	let obj
 	let obj2
-
+	log('tld','TRACE')
+	log(tld,'TRACE')
+	log('Resolved objects:','TRACE')
 	for (let i = 0; i < tld.resolved.length; i++) {
 
 		obj = _.clone(tld.resolved[i])
 
 		log(obj,'TRACE')
-
 		if (
 			(
 				obj.resolved.endTime > time ||
@@ -1547,14 +1532,12 @@ function resolveState (tld: DevelopedTimeline,time: SomeTime): TimelineState {
 	log('LLayers: ','TRACE')
 	log(LLayers,'TRACE')
 
-	let getGLayer = function (obj) {
+	let getGLayer = function (obj): string | null {
 		if (_.has(obj.content,'GLayer')) return obj.content.GLayer
 		if (_.has(obj,'LLayer')) return obj.LLayer
 		if (obj.parent) return getGLayer(obj.parent)
 		return null
 	}
-
-	let GLayers = {}
 
 	for (let LLayer in LLayers) {
 		obj = LLayers[LLayer]
@@ -1574,73 +1557,134 @@ function resolveState (tld: DevelopedTimeline,time: SomeTime): TimelineState {
 		}
 
 	}
-	log('GLayers: ','TRACE')
+	log('GLayers, before logical: ','TRACE')
 	log(GLayers,'TRACE')
 
 	// Logic expressions:
-	let unresolvedLogicObjs: Array<UnresolvedLogicObject> = []
-
-	_.each(tld.unresolved,function (o) {
+	let groupsOnState: {[id: string]: boolean} = {}
+	let unresolvedLogicObjs: {[id: string]: UnresolvedLogicObject} = {}
+	let addLogicalObj = (o, parent?: TimelineObject) => {
 		if (o.trigger.type === TriggerType.LOGICAL) {
 
 			// ensure there's no startTime on obj
 
-			if (o['resolved']) {
-				o['resolved'].startTime = null
-				o['resolved'].endTime = null
-				o['resolved'].duration = null
+			let o2 = clone(o)
+			if (o2['resolved']) {
+				o2['resolved'].startTime = null
+				o2['resolved'].endTime = null
+				o2['resolved'].duration = null
 			}
 
-			unresolvedLogicObjs.push({
-				prevOnTimeline: null,
-				obj: o
+			if (parent) {
+				o2.parent = parent
+			}
+			if (unresolvedLogicObjs[o2.id]) {
+				// already there
+				return false
+			} else {
+				unresolvedLogicObjs[o2.id] = {
+					prevOnTimeline: null,
+					obj: o2
+				}
+				return true
+			}
+		}
+		return false
+	}
+	_.each(tld.unresolved, (o) => {
+		addLogicalObj(o)
+	})
+	_.each(tld.groups, (o) => {
+		if (o.isGroup && o.content && o.content.objects) {
+			if (o.trigger.type === TriggerType.LOGICAL) {
+				addLogicalObj(o)
+			} else {
+				groupsOnState[o.id] = true
+			}
+			_.each(o.content.objects, (child) => {
+				addLogicalObj(child, o)
 			})
 		}
 	})
 
 	let hasChangedSomethingInIteration = true
-	let iterationsLeft = unresolvedLogicObjs.length
-
+	let iterationsLeft = _.keys(unresolvedLogicObjs).length + 2
+	log('unresolvedLogicObjs','TRACE')
+	log(unresolvedLogicObjs,'TRACE')
+	log('Logical objects:','TRACE')
 	while ( hasChangedSomethingInIteration && iterationsLeft-- >= 0) {
 		hasChangedSomethingInIteration = false
 
-		_.each(unresolvedLogicObjs, function (o) {
-
-			let onTimeLine = decipherLogicalValue(o.obj.trigger.value, o.obj, {
+		_.each(unresolvedLogicObjs, function (o: UnresolvedLogicObject) {
+			log(o,'TRACE')
+			let onTimeLine = !!(decipherLogicalValue(o.obj.trigger.value, o.obj, {
 				time: time,
 				GLayers: GLayers,
 				LLayers: LLayers
-			})
-			if (onTimeLine && !o.obj.disabled) {
-				let oldLLobj = LLayers[o.obj.LLayer]
+			}) && !o.obj.disabled)
+			log('onTimeLine ' + onTimeLine,'TRACE')
 
-				if (
-					!oldLLobj ||
-					(o.obj.priority || 0) > (oldLLobj.priority || 0) // o.obj has higher priority => replaces oldLLobj
-				) {
-					LLayers[o.obj.LLayer] = o.obj
-
-					let GLayer = getGLayer(o.obj) || 0
-
-					let oldGLObj = GLayers[GLayer]
-					if (
-						!oldGLObj ||
-						oldGLObj.LLayer <= o.obj.LLayer || // maybe add some better logic here, right now we use the LLayer index as a priority (higher LLayer => higher priority)
-						(
-							oldLLobj && oldGLObj.id === oldLLobj.id // the old object has just been replaced
-						)
-					) {
-						GLayers[GLayer] = o.obj
+			if (o.obj.isGroup) {
+				groupsOnState[o.obj.id] = onTimeLine
+				if (onTimeLine) {
+					// a group isn't placed in the state, instead its children are evaluated
+					if (o.obj.content && o.obj.content.objects) {
+						_.each(o.obj.content.objects, (o2) => {
+							if (addLogicalObj(o2, o.obj)) {
+								iterationsLeft++
+								hasChangedSomethingInIteration = true
+							}
+						})
 					}
 				}
-				if (oldLLobj && oldLLobj.id !== LLayers[o.obj.LLayer].id) {
-					// oldLLobj has been removed from LLayers
-					// maybe remove it from GLayers as well?
+			} else {
+				if (o.obj['parent']) {
+					let parentId = o.obj['parent'].id
+					onTimeLine = (
+						onTimeLine &&
+						groupsOnState[parentId]
+					)
+				}
 
-					let GLayer = getGLayer(o.obj) || 0
+				let oldLLobj: TimelineResolvedObject | undefined = LLayers[o.obj.LLayer]
+				let GLayer = getGLayer(o.obj) || 0
+				let oldGLObj: TimelineResolvedObject | undefined = GLayers[GLayer]
+				if (onTimeLine) {
+					// Place in state, according to priority rules:
 
-					if (GLayers[GLayer].id === oldLLobj.id) {
-						// yes, remove it:
+					if (
+						!oldLLobj ||
+						(o.obj.priority || 0) > (oldLLobj.priority || 0) // o.obj has higher priority => replaces oldLLobj
+					) {
+						LLayers[o.obj.LLayer] = o.obj as TimelineResolvedObject
+						if (
+							!oldGLObj ||
+							oldGLObj.LLayer <= o.obj.LLayer || // maybe add some better logic here, right now we use the LLayer index as a priority (higher LLayer => higher priority)
+							(
+								oldLLobj && oldGLObj.id === oldLLobj.id // the old object has just been replaced
+							)
+						) {
+							GLayers[GLayer] = o.obj as TimelineResolvedObject
+						}
+					}
+					if (oldLLobj && oldLLobj.id !== LLayers[o.obj.LLayer].id) {
+						// oldLLobj has been removed from LLayers
+						// maybe remove it from GLayers as well?
+
+						let GLayer = getGLayer(o.obj) || 0
+						if (GLayers[GLayer].id === oldLLobj.id) {
+							// yes, remove it:
+							delete GLayers[GLayer]
+						}
+					}
+				} else {
+					// Object should not be in the state
+					if (oldLLobj && oldLLobj.id === o.obj.id) {
+						// remove the object then:
+						delete LLayers[o.obj.LLayer]
+					}
+					if (oldGLObj && oldGLObj.id === o.obj.id) {
+						// remove the object then:
 						delete GLayers[GLayer]
 					}
 				}
@@ -1649,11 +1693,16 @@ function resolveState (tld: DevelopedTimeline,time: SomeTime): TimelineState {
 				(o.prevOnTimeline !== onTimeLine)
 			) {
 				hasChangedSomethingInIteration = true
-
 				o.prevOnTimeline = onTimeLine
 			}
 		})
 	}
+	if (iterationsLeft <= 0) {
+		log('Timeline Warning: Many Logical iterations, maybe there is a cyclic dependency?',TraceLevel.ERRORS)
+	}
+
+	log('GLayers: ','TRACE')
+	log(GLayers,'TRACE')
 
 	return {
 		time: time,

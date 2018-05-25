@@ -1,5 +1,3 @@
-import * as _ from 'underscore'
-let clone = require('fast-clone')
 
 import { TriggerType, EventType, TraceLevel } from '../enums/enums'
 import {
@@ -9,7 +7,9 @@ import {
 	DevelopedTimeline,
 	ExternalFunctions
 } from '../resolver/resolver'
+import * as _ from 'underscore'
 // let assert = require('assert')
+let clone = require('fast-clone')
 
 let now = 1000
 
@@ -698,6 +698,91 @@ let testData = {
 			}
 		}
 	],
+	'logicalInGroup': [
+		{
+			id: 'group0', // the id must be unique
+
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now - 10 // 10 seconds ago
+			},
+			duration: 0, // infinite duration
+			LLayer: 1,
+			isGroup: true,
+			content: {
+				objects: [
+					{
+						id: 'child0', // the id must be unique
+
+						trigger: {
+							type: TriggerType.LOGICAL,
+							value: '1'
+						},
+						LLayer: 2
+					}
+				]
+			}
+		},
+		{
+			id: 'outside0', // the id must be unique
+
+			trigger: {
+				type: TriggerType.LOGICAL,
+				value: '1'
+			},
+			LLayer: 3
+		}
+	],
+	'logicalInGroupLogical': [
+		{
+			id: 'group0', // the id must be unique
+
+			trigger: {
+				type: TriggerType.LOGICAL,
+				value: '1'
+			},
+			// duration: 0, // infinite duration
+			LLayer: 1,
+			isGroup: true,
+			content: {
+				objects: [
+					{
+						id: 'child0', // the id must be unique
+
+						trigger: {
+							type: TriggerType.LOGICAL,
+							value: '1'
+						},
+						LLayer: 2
+					}
+				]
+			}
+		},
+		{
+			id: 'group1', // the id must be unique
+
+			trigger: {
+				type: TriggerType.LOGICAL,
+				value: '0'
+			},
+			// duration: 0, // infinite duration
+			LLayer: 3,
+			isGroup: true,
+			content: {
+				objects: [
+					{
+						id: 'child1', // the id must be unique
+
+						trigger: {
+							type: TriggerType.LOGICAL,
+							value: '1'
+						},
+						LLayer: 4
+					}
+				]
+			}
+		}
+	],
 	'repeatinggroup': [
 		{
 			id: 'group0', // the id must be unique
@@ -1189,18 +1274,21 @@ test('logical objects, references 3', () => {
 		.concat(getTestData('logical3'))
 
 	// let tl = Resolver.getTimelineInWindow(data)
-
-	let state0 = Resolver.getState(clone(data), now)
-
-	expect(state0.GLayers['1']).toBeTruthy()
-	expect(state0.GLayers['2']).toBeTruthy()
-	expect(state0.GLayers['3']).toBeFalsy()
-
-	let state1 = Resolver.getState(clone(data), now + 1000)
-
-	expect(state1.GLayers['1']).toBeFalsy() // TimelineResolvedObject
-	expect(state1.GLayers['2']).toBeFalsy() // TimelineResolvedObject
-	expect(state1.GLayers['3']).toBeTruthy() // TimelineResolvedObject
+	try {
+		let state0 = Resolver.getState(clone(data), now)
+		
+		expect(state0.GLayers['1']).toBeTruthy()
+		expect(state0.GLayers['2']).toBeTruthy()
+		expect(state0.GLayers['3']).toBeFalsy()
+		
+		let state1 = Resolver.getState(clone(data), now + 1000)
+		
+		expect(state1.GLayers['1']).toBeFalsy() // TimelineResolvedObject
+		expect(state1.GLayers['2']).toBeFalsy() // TimelineResolvedObject
+		expect(state1.GLayers['3']).toBeTruthy() // TimelineResolvedObject
+	} catch (e) {
+		console.log(e, e.stack)
+	}
 })
 test('setTraceLevel', () => {
 	Resolver.setTraceLevel(TraceLevel.INFO)
@@ -1394,7 +1482,7 @@ test('bad objects on timeline', () => {
 		Resolver.getState(clone(data), now)
 	}).toThrowError()
 })
-test.only('simple group', () => {
+test('simple group', () => {
 
 	let data = clone(getTestData('simplegroup'))
 
@@ -1516,7 +1604,6 @@ test('repeating group', () => {
 		type: EventType.END, time: 1070, obj: {id: 'obj1'}})
 
 })
-
 test('repeating group in repeating group', () => {
 
 	let data = clone(getTestData('repeatinggroupinrepeatinggroup'))
@@ -1608,9 +1695,52 @@ test('infinite group', () => {
 	expect(state0.LLayers['1']).toBeTruthy()
 	expect(state0.LLayers['1'].id).toBe( 'child0')
 })
+test('logical objects in group', () => {
+	let data = clone(getTestData('logicalInGroup'))
 
+	let tl = Resolver.getTimelineInWindow(data)
+	expect(tl.resolved).toHaveLength(1)
+	expect(tl.unresolved).toHaveLength(1)
+
+	let tld = Resolver.developTimelineAroundTime(tl, now)
+	expect(tld.resolved).toHaveLength(1)
+	expect(tld.unresolved).toHaveLength(1)
+
+	let events0 = Resolver.getNextEvents(tl, now)
+	expect(events0).toHaveLength(0)
+	// Resolver.setTraceLevel(TraceLevel.TRACE)
+	let state0 = Resolver.getState(tl, now)
+	expect(state0.LLayers['2']).toBeTruthy()
+	expect(state0.GLayers['2']).toBeTruthy()
+	expect(state0.LLayers['2'].id).toBe( 'child0')
+
+	expect(state0.LLayers['3']).toBeTruthy()
+	expect(state0.GLayers['3']).toBeTruthy()
+	expect(state0.LLayers['3'].id).toBe( 'outside0')
+})
+test('logical objects in group with logical expr', () => {
+	let data = clone(getTestData('logicalInGroupLogical'))
+
+	let tl = Resolver.getTimelineInWindow(data)
+	// expect(tl.resolved).toHaveLength(1)
+	// expect(tl.unresolved).toHaveLength(1)
+
+	// let tld = Resolver.developTimelineAroundTime(tl, now)
+	// expect(tld.resolved).toHaveLength(2)
+	// expect(tld.unresolved).toHaveLength(1)
+
+	// let events0 = Resolver.getNextEvents(tl, now)
+	// expect(events0).toHaveLength(0)
+	// Resolver.setTraceLevel(TraceLevel.TRACE)
+	let state0 = Resolver.getState(tl, now)
+	expect(state0.LLayers['2']).toBeTruthy()
+	expect(state0.GLayers['2']).toBeTruthy()
+	expect(state0.LLayers['2'].id).toBe( 'child0')
+
+	expect(state0.LLayers['4']).toBeFalsy()
+	expect(state0.GLayers['4']).toBeFalsy()
+})
 // TOOD: test group
-
 
 // TODO: test looping group
 
