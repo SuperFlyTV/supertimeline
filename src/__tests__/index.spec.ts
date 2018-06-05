@@ -1383,11 +1383,11 @@ test('Expressions', () => {
 	}).toThrowError()
 	expect(() => {
 		Resolver.resolveLogicalExpression(
-			Resolver.interpretExpression('5 ( + 2') // unbalanced paranthesis
+			Resolver.interpretExpression('5 ( + 2')) // unbalanced paranthesis
 	}).toThrowError()
 	expect(() => {
 		Resolver.resolveLogicalExpression(
-			Resolver.interpretExpression('5 * ') // unbalanced expression
+			Resolver.interpretExpression('5 * ')) // unbalanced expression
 	}).toThrowError()
 
 	expect(Resolver.resolveLogicalExpression(
