@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.0.285"></a>
+## [1.0.285](https://github.com/SuperFlyTV/supertimeline/compare/v1.0.284...v1.0.285) (2018-06-06)
+
+
+
 <a name="1.0.284"></a>
 ## [1.0.284](https://github.com/SuperFlyTV/supertimeline/compare/v1.0.283...v1.0.284) (2018-06-06)
 
