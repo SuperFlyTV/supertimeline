@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.0.317"></a>
+## [1.0.317](https://github.com/SuperFlyTV/supertimeline/compare/v1.0.316...v1.0.317) (2018-06-06)
+
+
+### Bug Fixes
+
+* set skip ci to prevent looping on release ([0589e6f](https://github.com/SuperFlyTV/supertimeline/commit/0589e6f))
+
+
+
 <a name="1.0.316"></a>
 ## [1.0.316](https://github.com/SuperFlyTV/supertimeline/compare/v1.0.315...v1.0.316) (2018-06-06)
 
