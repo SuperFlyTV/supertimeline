@@ -2,7 +2,6 @@
 import * as _ from 'underscore'
 
 import { TriggerType, TraceLevel, EventType } from '../enums/enums'
-let clone = require('fast-clone')
 
 let traceLevel: TraceLevel = TraceLevel.ERRORS // 0
 
@@ -454,9 +453,10 @@ function resolveTimeline (data: UnresolvedTimeline|ResolvedTimeline, filter?: Fi
 
 	checkArrayOfObjects(unresolvedData)
 
-	_.each(unresolvedData,function (obj) {
+	unresolvedData = _.map(unresolvedData, function (objOrg) {
+		let obj = _.clone(objOrg)
 		if (obj) {
-			if (!obj.content) obj.content = {}
+			obj.content = _.clone(obj.content || {})
 
 			if (!_.has(obj.content,'GLayer')) {
 				obj.content.GLayer = obj.LLayer
@@ -464,6 +464,7 @@ function resolveTimeline (data: UnresolvedTimeline|ResolvedTimeline, filter?: Fi
 			unresolvedObjects.push(obj)
 			objectIds[obj.id] = true
 		}
+		return obj
 	})
 
 	log('======= resolveTimeline: Starting iterating... ==============','TRACE')
@@ -474,7 +475,7 @@ function resolveTimeline (data: UnresolvedTimeline|ResolvedTimeline, filter?: Fi
 
 		log('======= Iterating objects...','TRACE')
 
-		for (let i = 0;i < unresolvedObjects.length;i++) {
+		for (let i = 0; i < unresolvedObjects.length; i++) {
 			let obj: TimelineResolvedObject = _.extend(_.clone(unresolvedObjects[i]),{
 				resolved: {}
 			})
@@ -571,145 +572,142 @@ function developTimelineAroundTime (tl: ResolvedTimeline,time: SomeTime): Develo
 		unresolved: tl.unresolved
 	}
 
-	let getParentTime = function (obj) {
-		let time = 0
-		if (
-			_.has(obj.resolved,'repeatingStartTime') &&
-			!_.isNull(obj.resolved.repeatingStartTime)
-		) {
-			time = obj.resolved.repeatingStartTime
-
-		} else if (obj.resolved.startTime) {
-			time = obj.resolved.startTime
-		}
-
-		if (obj.parent) {
-			time += getParentTime(obj.parent) - obj.parent.resolved.startTime
-		}
-
-		return time
-	}
-
-	let developObj = function (objClone: TimelineResolvedObject, givenParentObj?: TimelineResolvedObject) {
-
-		log('developObj','TRACE')
-
-		objClone.resolved.innerStartTime = objClone.resolved.startTime
-		objClone.resolved.innerEndTime = objClone.resolved.endTime
-
-		let parentObj = givenParentObj || objClone.parent
-		let parentTime = 0
-		let parentIsRepeating = false
-		if (parentObj) {
-			parentTime = getParentTime(parentObj)
-			objClone.resolved.parentId = parentObj.id
-
-			parentIsRepeating = (
-				_.has(parentObj.resolved,'repeatingStartTime') &&
-				!_.isNull(parentObj.resolved.repeatingStartTime)
-			)
-		}
-
-		objClone.resolved.startTime = (objClone.resolved.startTime || 0) + parentTime
-
-		if (objClone.resolved.endTime) {
-			objClone.resolved.endTime += parentTime
-		}
-
-		if (
-			parentObj &&
-			parentIsRepeating &&
-			objClone.resolved.endTime &&
-			objClone.resolved.startTime &&
-			parentObj.resolved.innerDuration &&
-			objClone.resolved.endTime < time
-		) {
-			// The object's playtime has already passed, move forward then:
-			objClone.resolved.startTime += parentObj.resolved.innerDuration
-			objClone.resolved.endTime += parentObj.resolved.innerDuration
-		}
-
-		// cap inside parent:
-		if (parentObj &&
-			objClone.resolved &&
-			objClone.resolved.endTime &&
-			parentObj.resolved &&
-			parentObj.resolved.endTime &&
-			objClone.resolved.endTime > parentObj.resolved.endTime
-		) {
-			objClone.resolved.endTime = parentObj.resolved.endTime
-		}
-
-		if (
-			parentObj &&
-			objClone.resolved.startTime &&
-			parentObj.resolved.endTime &&
-			parentObj.resolved.startTime &&
-			objClone.resolved.endTime &&
-			(
-				objClone.resolved.startTime > parentObj.resolved.endTime ||
-				objClone.resolved.endTime < parentObj.resolved.startTime
-			)
-		) {
-			// we're outside parent, invalidate
-			objClone.resolved.startTime = null
-			objClone.resolved.endTime = null
-		}
-
-		log(objClone,'TRACE')
-
-		if (objClone.repeating) {
-			log('Repeating','TRACE')
-
-			// let outerDuration = objClone.resolved.outerDuration;
-
-			if (!objClone.resolved.innerDuration) throw Error('Object "#' + objClone.id + '" is repeating but missing innerDuration!')
-
-			log('time: ' + time,'TRACE')
-			log('innerDuration: ' + objClone.resolved.innerDuration,'TRACE')
-
-			let repeatingStartTime = Math.max(
-				(objClone.resolved.startTime || 0),
-				time - ((time - (objClone.resolved.startTime || 0)) % objClone.resolved.innerDuration)
-			) // This is the startTime closest to, and before, time
-
-			log('repeatingStartTime: ' + repeatingStartTime, 'TRACE')
-
-			objClone.resolved.repeatingStartTime = repeatingStartTime
-
-		}
-
-		if (objClone.isGroup) {
-			if (objClone.content.objects) {
-				_.each(objClone.content.objects,function (child: TimelineResolvedObject) {
-					let newChild = clone(child)
-
-					if (!newChild.parent) newChild.parent = objClone
-					developObj(newChild,objClone)
-				})
-			} else {
-				throw Error('.isGroup is set, but .content.objects is missing!')
-			}
-
-			tl2.groups.push(objClone)
-		} else {
-			tl2.resolved.push(objClone)
-		}
-	}
-
-	// Develop and place on tl2:
-
 	_.each(tl.resolved,function (resolvedObj) {
-		let newObj = clone(resolvedObj)
-
-		developObj(newObj)
+		// let newObj = clone(resolvedObj)
+		developObj(tl2, time, resolvedObj)
 	})
 
 	tl2.resolved = sortObjects(tl2.resolved)
 
 	return tl2
 }
+function getParentTime (obj) {
+	let time = 0
+	if (
+		_.has(obj.resolved,'repeatingStartTime') &&
+		!_.isNull(obj.resolved.repeatingStartTime)
+	) {
+		time = obj.resolved.repeatingStartTime
 
+	} else if (obj.resolved.startTime) {
+		time = obj.resolved.startTime
+	}
+
+	if (obj.parent) {
+		time += getParentTime(obj.parent) - obj.parent.resolved.startTime
+	}
+
+	return time
+}
+function developObj (tl2: DevelopedTimeline, time: SomeTime, objOrg: TimelineResolvedObject, givenParentObj?: TimelineResolvedObject) {
+	// Develop and place on tl2:
+	log('developObj','TRACE')
+
+	let returnObj = _.clone(objOrg)
+	returnObj.resolved = _.clone(returnObj.resolved)
+
+	returnObj.resolved.innerStartTime = returnObj.resolved.startTime
+	returnObj.resolved.innerEndTime = returnObj.resolved.endTime
+
+	let parentObj = givenParentObj || returnObj.parent
+	let parentTime = 0
+	let parentIsRepeating = false
+	if (parentObj) {
+		parentTime = getParentTime(parentObj)
+		returnObj.resolved.parentId = parentObj.id
+
+		parentIsRepeating = (
+			_.has(parentObj.resolved,'repeatingStartTime') &&
+			!_.isNull(parentObj.resolved.repeatingStartTime)
+		)
+	}
+
+	returnObj.resolved.startTime = (returnObj.resolved.startTime || 0) + parentTime
+
+	if (returnObj.resolved.endTime) {
+		returnObj.resolved.endTime += parentTime
+	}
+
+	if (
+		parentObj &&
+		parentIsRepeating &&
+		returnObj.resolved.endTime &&
+		returnObj.resolved.startTime &&
+		parentObj.resolved.innerDuration &&
+		returnObj.resolved.endTime < time
+	) {
+		// The object's playtime has already passed, move forward then:
+		returnObj.resolved.startTime += parentObj.resolved.innerDuration
+		returnObj.resolved.endTime += parentObj.resolved.innerDuration
+	}
+
+	// cap inside parent:
+	if (parentObj &&
+		returnObj.resolved &&
+		returnObj.resolved.endTime &&
+		parentObj.resolved &&
+		parentObj.resolved.endTime &&
+		returnObj.resolved.endTime > parentObj.resolved.endTime
+	) {
+		returnObj.resolved.endTime = parentObj.resolved.endTime
+	}
+
+	if (
+		parentObj &&
+		returnObj.resolved.startTime &&
+		parentObj.resolved.endTime &&
+		parentObj.resolved.startTime &&
+		returnObj.resolved.endTime &&
+		(
+			returnObj.resolved.startTime > parentObj.resolved.endTime ||
+			returnObj.resolved.endTime < parentObj.resolved.startTime
+		)
+	) {
+		// we're outside parent, invalidate
+		returnObj.resolved.startTime = null
+		returnObj.resolved.endTime = null
+	}
+
+	log(returnObj,'TRACE')
+
+	if (returnObj.repeating) {
+		log('Repeating','TRACE')
+
+		// let outerDuration = objNOTClone.resolved.outerDuration;
+
+		if (!returnObj.resolved.innerDuration) throw Error('Object "#' + returnObj.id + '" is repeating but missing innerDuration!')
+
+		log('time: ' + time,'TRACE')
+		log('innerDuration: ' + returnObj.resolved.innerDuration,'TRACE')
+
+		let repeatingStartTime = Math.max(
+			(returnObj.resolved.startTime || 0),
+			time - ((time - (returnObj.resolved.startTime || 0)) % returnObj.resolved.innerDuration)
+		) // This is the startTime closest to, and before, time
+
+		log('repeatingStartTime: ' + repeatingStartTime, 'TRACE')
+
+		returnObj.resolved.repeatingStartTime = repeatingStartTime
+
+	}
+
+	if (returnObj.isGroup) {
+		if (returnObj.content.objects) {
+			_.each(returnObj.content.objects,function (child: TimelineResolvedObject) {
+				let newChild = _.clone(child)
+
+				if (!newChild.parent) newChild.parent = returnObj
+				developObj(tl2, time, newChild,returnObj)
+			})
+		} else {
+			throw Error('.isGroup is set, but .content.objects is missing!')
+		}
+
+		tl2.groups.push(returnObj)
+	} else {
+		tl2.resolved.push(returnObj)
+	}
+}
 function resolveObjectStartTime (obj: TimelineResolvedObject|TimelineResolvedKeyframe, resolvedObjects: ResolvedObjectsStore): StartTime {
 	// recursively resolve object trigger startTime
 	if (!obj.resolved) obj.resolved = {}
@@ -769,17 +767,26 @@ function resolveObjectDuration (obj: TimelineResolvedObject|TimelineResolvedKeyf
 
 		let obj0 = obj as TimelineResolvedObject
 
-		if (!_.has(obj0.resolved,'outerDuration') ) {
+		if (!_.has(obj.resolved,'outerDuration') ) {
 
 			log('RESOLVE GROUP DURATION','TRACE')
 			let lastEndTime: EndTime = -1
 			let hasInfiniteDuration = false
-			if (obj0.content && obj0.content.objects) {
-				let obj0Clone = clone(obj0)
+			if (obj.content && obj.content.objects) {
+				// let obj = clone(obj)
 
-				_.each(obj0.content.objects, function (child: TimelineResolvedObject) {
+				if (!obj.content.hasClonedChildren) { // we should clone out children, so that we wont affect the original objects
+					obj.content.hasClonedChildren = true
+					obj.content.objects = _.map(obj.content.objects, (o: any) => {
+						let o2 = _.clone(o)
+						o2.content = _.clone(o2.content)
+						return o2
+					})
+				}
 
-					if (!child.parent) child.parent = obj0Clone
+				_.each(obj.content.objects, function (child: TimelineResolvedObject) {
+
+					if (!child.parent) child.parent = obj0
 
 					if (!child.resolved) child.resolved = {}
 
@@ -1460,7 +1467,7 @@ function decipherLogicalValue (str: string | number,
 
 	*/
 
-	log('decipherTimeRelativeValue','TRACE')
+	log('decipherLogicalValue','TRACE')
 
 	// let referralIndex = 0
 
@@ -1563,34 +1570,36 @@ function resolveState (tld: DevelopedTimeline,time: SomeTime): TimelineState {
 	// Logic expressions:
 	let groupsOnState: {[id: string]: boolean} = {}
 	let unresolvedLogicObjs: {[id: string]: UnresolvedLogicObject} = {}
-	let addLogicalObj = (o, parent?: TimelineObject) => {
-		if (o.trigger.type === TriggerType.LOGICAL) {
+	let addLogicalObj = (oOrg, parent?: TimelineObject) => {
+		if (oOrg.trigger.type === TriggerType.LOGICAL) {
 
 			// ensure there's no startTime on obj
 
-			let o2 = clone(o)
-			if (o2['resolved']) {
-				o2['resolved'].startTime = null
-				o2['resolved'].endTime = null
-				o2['resolved'].duration = null
+			let o = _.clone(oOrg)
+			o.content = _.clone(o.content)
+			if (o['resolved']) {
+				o['resolved'].startTime = null
+				o['resolved'].endTime = null
+				o['resolved'].duration = null
 			}
 
 			if (parent) {
-				o2.parent = parent
+				o.parent = parent
 			}
-			if (unresolvedLogicObjs[o2.id]) {
+			if (unresolvedLogicObjs[o.id]) {
 				// already there
 				return false
 			} else {
-				unresolvedLogicObjs[o2.id] = {
+				unresolvedLogicObjs[o.id] = {
 					prevOnTimeline: null,
-					obj: o2
+					obj: o
 				}
 				return true
 			}
 		}
 		return false
 	}
+	// Logical objects will be in the unresolved array:
 	_.each(tld.unresolved, (o) => {
 		addLogicalObj(o)
 	})

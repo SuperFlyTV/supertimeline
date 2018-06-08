@@ -915,11 +915,13 @@ test('Basic timeline', () => {
 	let data = getTestData('basic')
 
 	let tl = Resolver.getTimelineInWindow(data)
+	expect(data).toEqual(getTestData('basic')) // Make sure the original data is unmodified
 
 	expect(tl.resolved).toHaveLength(2)
 	expect(tl.unresolved).toHaveLength(0)
 
 	let nextEvents = Resolver.getNextEvents(data, now - 100)
+	expect(data).toEqual(getTestData('basic')) // Make sure the original data was unmodified
 
 	expect(nextEvents).toHaveLength( 4)
 	expect(nextEvents[0]).toMatchObject({
@@ -931,6 +933,7 @@ test('Basic timeline', () => {
 		type: EventType.START, time: 1050, obj: {id: 'obj1'}})
 
 	let state = Resolver.getState(data, now)
+	expect(data).toEqual(getTestData('basic')) // Make sure the original data was unmodified
 
 	expect(state.GLayers['1']).toBeTruthy() // TimelineObject
 	expect(state.time).toBe( now)
@@ -940,6 +943,8 @@ test('Basic timeline', () => {
 	let state2 = Resolver.getState(tl, now)
 
 	expect(state2.GLayers['1'].id).toBe( 'obj0')
+	expect(data).toEqual(getTestData('basic')) // Make sure the original data was unmodified
+
 })
 test('Basic timeline 2', () => {
 
@@ -965,6 +970,7 @@ test('Basic timeline 2', () => {
 	let state2 = Resolver.getState(tl, 1000)
 
 	expect(state2.GLayers['10'].id).toBe( 'obj0')
+	expect(data).toEqual(getTestData('basic2')) // Make sure the original data is unmodified
 })
 test('Basic timeline 3', () => {
 
@@ -983,6 +989,8 @@ test('Basic timeline 3', () => {
 	let state = Resolver.getState(tl, 1000)
 	expect(state.LLayers['10'].id).toBe( 'obj1')
 	expect(state.LLayers['11'].id).toBe( 'obj2')
+	expect(data).toEqual(getTestData('basic2')
+		.concat(getTestData('basic3'))) // Make sure the original data is unmodified
 })
 test('Timeline, override object', () => {
 
@@ -1086,6 +1094,8 @@ test('Timeline, relative timing', () => {
 		type: EventType.START, time: 1118, obj: {id: 'obj4'}})
 	expect(nextEvents[9]).toMatchObject({
 		type: EventType.START, time: 1123, obj: {id: 'obj5'}})
+
+	expect(data).toEqual(getTestData('relative1')) // Make sure the original data is unmodified
 })
 test('Timeline, relative timing 2', () => {
 
@@ -1157,6 +1167,8 @@ test('Timeline, relative timing and keyframes', () => {
 
 	expect(sobj2.resolved.mixer.opacity).toBe( 0.3)
 	expect(sobj2.resolved.mixer.myCustomAttribute).toBe( 1)
+
+	expect(data).toEqual(getTestData('keyframes1')) // Make sure the original data is unmodified
 })
 test('Timeline, absolute keyframe', () => {
 
@@ -1211,6 +1223,8 @@ test('Timeline, absolute keyframe', () => {
 
 	expect(sobj2.resolved.attributes).toBeTruthy()
 	expect(sobj2.resolved.attributes.opacity).toBeFalsy()
+
+	expect(data).toEqual(getTestData('abskeyframe')) // Make sure the original data is unmodified
 })
 test('logical objects, references', () => {
 
@@ -1248,6 +1262,9 @@ test('logical objects, references', () => {
 	expect(state1.GLayers['2']).toBeTruthy() // TimelineResolvedObject
 	expect(state1.GLayers['3']).toBeFalsy() // TimelineResolvedObject
 	expect(state1.GLayers['4']).toBeTruthy() // TimelineResolvedObject
+
+	expect(data).toEqual(getTestData('basic')
+		.concat(getTestData('logical1'))) // Make sure the original data is unmodified
 })
 test('logical objects, references 2', () => {
 
@@ -1267,6 +1284,9 @@ test('logical objects, references 2', () => {
 	expect(state1.GLayers['1']).toBeFalsy() // TimelineResolvedObject
 	expect(state1.GLayers['2']).toBeFalsy() // TimelineResolvedObject
 	expect(state1.GLayers['3']).toBeTruthy() // TimelineResolvedObject
+
+	expect(data).toEqual(getTestData('basic')
+		.concat(getTestData('logical2'))) // Make sure the original data is unmodified
 })
 test('logical objects, references 3', () => {
 
@@ -1310,11 +1330,14 @@ test('getObjectsInWindow', () => {
 
 	expect(tld.resolved).toHaveLength(1)
 	expect(tld.unresolved).toHaveLength(0)
+
+	expect(data).toEqual(getTestData('basic')) // Make sure the original data is unmodified
 })
 test('External functions', () => {
 	let data = clone(getTestData('basic'))
 
 	let state0 = Resolver.getState(data, now)
+	expect(data).toEqual(getTestData('basic')) // Make sure the original data is unmodified
 
 	expect(state0.LLayers['1']).toBeTruthy() // TimelineObject
 	expect(state0.LLayers['1'].id).toBe( 'obj0')
@@ -1335,6 +1358,7 @@ test('External functions', () => {
 	expect(externalFunctions0.ext0).toHaveBeenCalledTimes(1)
 
 	expect(state1.LLayers['1']).toBeFalsy() // TimelineObject
+
 })
 test('Expressions', () => {
 
@@ -1487,6 +1511,7 @@ test('simple group', () => {
 	let data = clone(getTestData('simplegroup'))
 
 	let tl = Resolver.getTimelineInWindow(data)
+	expect(data).toEqual(getTestData('simplegroup')) // Make sure the original data is unmodified
 	expect(tl.resolved).toHaveLength(2)
 	expect(tl.unresolved).toHaveLength(0)
 
@@ -1518,6 +1543,8 @@ test('simple group', () => {
 	expect(state3.LLayers['2']).toBeTruthy()
 	expect(state3.GLayers['2']).toBeTruthy()
 	expect(state3.LLayers['2'].id).toBe( 'obj1')
+
+	expect(data).toEqual(getTestData('simplegroup')) // Make sure the original data was unmodified
 })
 test('repeating group', () => {
 
@@ -1603,6 +1630,8 @@ test('repeating group', () => {
 	expect(events4[2]).toMatchObject({
 		type: EventType.END, time: 1070, obj: {id: 'obj1'}})
 
+	expect(data).toEqual(getTestData('repeatinggroup')) // Make sure the original data is unmodified
+
 })
 test('repeating group in repeating group', () => {
 
@@ -1677,6 +1706,8 @@ test('repeating group in repeating group', () => {
 		type: EventType.START, time: 1092, obj: {id: 'child0'}})
 	expect(events2[2]).toMatchObject({
 		type: EventType.END, time: 1122, obj: {id: 'child0'}})
+
+	expect(data).toEqual(getTestData('repeatinggroupinrepeatinggroup')) // Make sure the original data is unmodified
 })
 test('infinite group', () => {
 	let data = clone(getTestData('infinitegroup'))
@@ -1694,6 +1725,8 @@ test('infinite group', () => {
 	let state0 = Resolver.getState(tl, now)
 	expect(state0.LLayers['1']).toBeTruthy()
 	expect(state0.LLayers['1'].id).toBe( 'child0')
+
+	expect(data).toEqual(getTestData('infinitegroup')) // Make sure the original data is unmodified
 })
 test('logical objects in group', () => {
 	let data = clone(getTestData('logicalInGroup'))
@@ -1717,11 +1750,14 @@ test('logical objects in group', () => {
 	expect(state0.LLayers['3']).toBeTruthy()
 	expect(state0.GLayers['3']).toBeTruthy()
 	expect(state0.LLayers['3'].id).toBe( 'outside0')
+
+	expect(data).toEqual(getTestData('logicalInGroup')) // Make sure the original data is unmodified
 })
 test('logical objects in group with logical expr', () => {
 	let data = clone(getTestData('logicalInGroupLogical'))
 
 	let tl = Resolver.getTimelineInWindow(data)
+	expect(data).toEqual(getTestData('logicalInGroupLogical')) // Make sure the original data is unmodified
 	// expect(tl.resolved).toHaveLength(1)
 	// expect(tl.unresolved).toHaveLength(1)
 
@@ -1739,6 +1775,8 @@ test('logical objects in group with logical expr', () => {
 
 	expect(state0.LLayers['4']).toBeFalsy()
 	expect(state0.GLayers['4']).toBeFalsy()
+
+	expect(data).toEqual(getTestData('logicalInGroupLogical')) // Make sure the original data is unmodified
 })
 // TOOD: test group
 
