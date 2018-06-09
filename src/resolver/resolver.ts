@@ -760,8 +760,7 @@ function resolveObjectStartTime (obj: TimelineResolvedObject | TimelineResolvedK
 	resolveObjectEndTime(obj)
 
 	let startTime: StartTime = null
-	if (!_.isUndefined(obj.resolved.startTime)) {
-		// @ts-ignore
+	if (typeof obj.resolved.startTime !== 'undefined') {
 		startTime = obj.resolved.startTime
 	}
 
