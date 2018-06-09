@@ -9,7 +9,7 @@ export interface TimelineObject {
 	id: ObjectId,
 	trigger: {
 		type: TriggerType,
-		value: number|string // unix timestamp
+		value: number | string // unix timestamp
 	},
 	duration: number, // seconds
 	LLayer: string | number,
@@ -32,11 +32,11 @@ export interface TimelineGroup extends TimelineObject {
 	resolved: ResolvedDetails
 	parent?: TimelineGroup
 }
-export type TimeMaybe = number|null
+export type TimeMaybe = number | null
 
-export type StartTime = number|null
-export type EndTime = number|null
-export type Duration = number|null
+export type StartTime = number | null
+export type EndTime = number | null
+export type Duration = number | null
 export type SomeTime = number
 
 export type ObjectId = string
@@ -51,7 +51,7 @@ export interface TimelineKeyframe {
 	id: string,
 	trigger: {
 		type: TriggerType,
-		value: number|string // unix timestamp
+		value: number | string // unix timestamp
 	},
 	duration: number, // seconds
 	content?: {
@@ -84,11 +84,11 @@ export interface ResolvedDetails {
 	parentId?: ObjectId,
 	disabled?: boolean,
 
-	referralIndex?: number|null,
+	referralIndex?: number | null,
 	referredObjectIds?: Array<{
 		id: string,
 		hook: string
-	}>|null,
+	}> | null,
 
 	repeatingStartTime?: StartTime,
 
@@ -125,10 +125,10 @@ export interface ExternalFunctions {
 export interface UnresolvedTimeline extends Array<TimelineObject> {}
 
 export interface ResolvedObjectsStore {
-	[id: string]: TimelineResolvedObject|TimelineResolvedKeyframe
+	[id: string]: TimelineResolvedObject | TimelineResolvedKeyframe
 }
 
-export type Expression = number|string|ExpressionObj
+export type Expression = number | string | ExpressionObj
 export interface ExpressionObj {
 	l: Expression,
 	o: string,
@@ -140,7 +140,7 @@ export interface Filter {
 }
 
 class Resolver {
-	static setTraceLevel (levelName: string|TraceLevel) {
+	static setTraceLevel (levelName: string | TraceLevel) {
 		let lvl: TraceLevel = TraceLevel.ERRORS
 		if (_.isNumber(levelName)) lvl = levelName
 		else if (levelName === 'ERRORS') lvl = TraceLevel.ERRORS
@@ -158,7 +158,7 @@ class Resolver {
 	 * time [optional] unix time, default: now
 	 * returns the current state
 	*/
-	static getState (data: UnresolvedTimeline|ResolvedTimeline,time: SomeTime,externalFunctions?: ExternalFunctions) {
+	static getState (data: UnresolvedTimeline | ResolvedTimeline,time: SomeTime,externalFunctions?: ExternalFunctions) {
 
 		const tl = resolveTimeline(data,{
 			/*
@@ -243,7 +243,7 @@ class Resolver {
 			 ) {
 				if (
 					obj.resolved.startTime &&
-					(obj.resolved.startTime || 0) >= time ) { // the object has not started yet
+					(obj.resolved.startTime || 0) >= time) { // the object has not started yet
 					nextEvents.push({
 						type: EventType.START,
 						time: obj.resolved.startTime,
@@ -282,7 +282,7 @@ class Resolver {
 				keyFrame.resolved.startTime
 			) {
 
-				if ( keyFrame.resolved.startTime >= time ) { // the object has not already started
+				if (keyFrame.resolved.startTime >= time) { // the object has not already started
 
 					const obj = usedObjIds[keyFrame.parent]
 					if (obj) {
@@ -392,7 +392,7 @@ class Resolver {
 		return resolveExpression(strOrExpr, resolvedObjects, ctx)
 	}
 	static resolveLogicalExpression (
-		expressionOrString: Expression|null,
+		expressionOrString: Expression | null,
 		obj?: TimelineResolvedObject,
 		returnExpl?: boolean,
 		currentState?: TimelineState
@@ -422,14 +422,14 @@ class Resolver {
 	}
 
 */
-function resolveTimeline (data: UnresolvedTimeline|ResolvedTimeline, filter?: Filter): ResolvedTimeline {
+function resolveTimeline (data: UnresolvedTimeline | ResolvedTimeline, filter?: Filter): ResolvedTimeline {
 	if (!filter) filter = {}
 	if (!data) throw Error('resolveFullTimeline: parameter data missing!')
 
 	// check: if data is infact a resolved timeline, then just return it:
 	let unresolvedData: UnresolvedTimeline
 	// @ts-ignore check if resolved / unresolved exists on object
-	if (_.isObject(data) && data.resolved && data.unresolved ) {
+	if (_.isObject(data) && data.resolved && data.unresolved) {
 		return data as ResolvedTimeline
 	} else {
 		unresolvedData = data as UnresolvedTimeline
@@ -505,12 +505,12 @@ function resolveTimeline (data: UnresolvedTimeline|ResolvedTimeline, filter?: Fi
 					console.log(e)
 					triggerTime = null
 				}
-				if (triggerTime ) {
+				if (triggerTime) {
 					log('resolved object ' + i,TraceLevel.TRACE)
 
 					const outerDuration = resolveObjectDuration(obj,resolvedObjects)
 
-					if (outerDuration !== null && obj.resolved.innerDuration !== null ) {
+					if (outerDuration !== null && obj.resolved.innerDuration !== null) {
 
 						resolvedObjects[obj.id] = obj
 						unresolvedObjects.splice(i,1)
@@ -721,7 +721,7 @@ function developObj (tl2: DevelopedTimeline, time: SomeTime, objOrg: TimelineRes
 		tl2.resolved.push(returnObj)
 	}
 }
-function resolveObjectStartTime (obj: TimelineResolvedObject|TimelineResolvedKeyframe, resolvedObjects: ResolvedObjectsStore): StartTime {
+function resolveObjectStartTime (obj: TimelineResolvedObject | TimelineResolvedKeyframe, resolvedObjects: ResolvedObjectsStore): StartTime {
 	// recursively resolve object trigger startTime
 	if (!obj.resolved) obj.resolved = {}
 
@@ -740,7 +740,7 @@ function resolveObjectStartTime (obj: TimelineResolvedObject|TimelineResolvedKey
 	} else if (obj.trigger.type === TriggerType.TIME_RELATIVE) {
 		// ooh, it's a relative time! Relative to what, one might ask? Let's find out:
 
-		if ( !_.has(obj.resolved,'startTime') || obj.resolved.startTime === null ) {
+		if (!_.has(obj.resolved,'startTime') || obj.resolved.startTime === null) {
 			const o = decipherTimeRelativeValue(obj.trigger.value + '', resolvedObjects)
 			obj.resolved.startTime = (o ? o.value : null)
 			obj.resolved.referralIndex = (o ? o.referralIndex : null)
@@ -768,7 +768,7 @@ function resolveObjectStartTime (obj: TimelineResolvedObject|TimelineResolvedKey
 	return startTime
 
 }
-function resolveObjectDuration (obj: TimelineResolvedObject|TimelineResolvedKeyframe,resolvedObjects: ResolvedObjectsStore): Duration {
+function resolveObjectDuration (obj: TimelineResolvedObject | TimelineResolvedKeyframe,resolvedObjects: ResolvedObjectsStore): Duration {
 	// recursively resolve object duration
 
 	if (!obj.resolved) obj.resolved = {}
@@ -781,7 +781,7 @@ function resolveObjectDuration (obj: TimelineResolvedObject|TimelineResolvedKeyf
 
 		const obj0 = obj as TimelineResolvedObject
 
-		if (!_.has(obj.resolved,'outerDuration') ) {
+		if (!_.has(obj.resolved,'outerDuration')) {
 
 			log('RESOLVE GROUP DURATION',TraceLevel.TRACE)
 			let lastEndTime: EndTime = -1
@@ -867,7 +867,7 @@ function resolveObjectDuration (obj: TimelineResolvedObject|TimelineResolvedKeyf
 
 }
 
-function resolveObjectEndTime (obj: TimelineResolvedObject|TimelineResolvedKeyframe, resolvedObjects?: ResolvedObjectsStore): EndTime {
+function resolveObjectEndTime (obj: TimelineResolvedObject | TimelineResolvedKeyframe, resolvedObjects?: ResolvedObjectsStore): EndTime {
 	if (!obj.resolved) obj.resolved = {}
 
 	if (!_.has(obj.resolved,'startTime') && resolvedObjects) {
@@ -895,7 +895,7 @@ function resolveObjectEndTime (obj: TimelineResolvedObject|TimelineResolvedKeyfr
 	return endTime
 }
 
-function interpretExpression (strOrExpr: string | number | Expression, isLogical?: boolean): Expression|null {
+function interpretExpression (strOrExpr: string | number | Expression, isLogical?: boolean): Expression | null {
 
 	// note: the order is the priority!
 	let operatorList = ['+','-','*','/']
@@ -912,7 +912,7 @@ function interpretExpression (strOrExpr: string | number | Expression, isLogical
 		regexpOperators += '\\' + o
 	})
 
-	let expression: Expression|null = null
+	let expression: Expression | null = null
 
 	if (strOrExpr) {
 
@@ -933,7 +933,7 @@ function interpretExpression (strOrExpr: string | number | Expression, isLogical
 
 			// Fix special case: a + - b
 			for (let i = words.length - 2; i >= 1; i--) {
-				if ( ( words[i] === '-' || words[i] === '+') && wordIsOperator(words[i - 1]) ) {
+				if ((words[i] === '-' || words[i] === '+') && wordIsOperator(words[i - 1])) {
 					words[i] = words[i] + words[i + 1]
 					words.splice(i + 1,1)
 				}
@@ -1178,7 +1178,7 @@ function resolveExpression (
 	return null
 }
 function resolveLogicalExpression (
-	expressionOrString: Expression|null,
+	expressionOrString: Expression | null,
 	obj?: TimelineObject | TimelineKeyframe,
 	returnExpl?: boolean,
 	currentState?: TimelineState
@@ -1215,7 +1215,7 @@ function resolveLogicalExpression (
 		}
 
 	} else if (_.isString(expressionOrString)) {
-		const expression = expressionOrString as string
+		const expression: string = expressionOrString
 
 		const m = expression.match(/!/g)
 		const invert: number = (m ? m.length : 0) % 2
@@ -1229,7 +1229,7 @@ function resolveLogicalExpression (
 		): boolean => {
 			if (isNumeric(str)) return !!parseInt(str, 10)
 
-			let m: Array<string>|null = null
+			let m: Array<string> | null = null
 
 			let tmpStr = str.trim()
 
@@ -1321,7 +1321,7 @@ function resolveLogicalExpression (
 								m[2] ?
 								m[2] :
 								// @ts-ignore
-								((obj || {}).content || {GLayer: null}).GLayer
+								((obj || {}).content || { GLayer: null }).GLayer
 							)
 							if (GLayer) {
 								if (currentState && currentState.GLayers[GLayer]) {
@@ -1576,7 +1576,7 @@ function resolveState (tld: DevelopedTimeline,time: SomeTime): TimelineState {
 			} else {
 				// maybe add some better logic here, right now we use the LLayer index as a priority (higher LLayer => higher priority).
 				obj2 = GLayers[GLayer]
-				if (obj2.LLayer < obj.LLayer ) {
+				if (obj2.LLayer < obj.LLayer) {
 					GLayers[GLayer] = obj
 				}
 			}
@@ -1589,7 +1589,7 @@ function resolveState (tld: DevelopedTimeline,time: SomeTime): TimelineState {
 	// Logic expressions:
 	const groupsOnState: {[id: string]: boolean} = {}
 	const unresolvedLogicObjs: {[id: string]: UnresolvedLogicObject} = {}
-	const addLogicalObj = (oOrg: TimelineResolvedObject|TimelineObject, parent?: TimelineGroup) => {
+	const addLogicalObj = (oOrg: TimelineResolvedObject | TimelineObject, parent?: TimelineGroup) => {
 		if (oOrg.trigger.type === TriggerType.LOGICAL) {
 
 			// ensure there's no startTime on obj
@@ -1640,7 +1640,7 @@ function resolveState (tld: DevelopedTimeline,time: SomeTime): TimelineState {
 	log('unresolvedLogicObjs',TraceLevel.TRACE)
 	log(unresolvedLogicObjs,TraceLevel.TRACE)
 	log('Logical objects:',TraceLevel.TRACE)
-	while ( hasChangedSomethingInIteration && iterationsLeft-- >= 0) {
+	while (hasChangedSomethingInIteration && iterationsLeft-- >= 0) {
 		hasChangedSomethingInIteration = false
 
 		_.each(unresolvedLogicObjs, function (o: UnresolvedLogicObject) {
@@ -1684,7 +1684,7 @@ function resolveState (tld: DevelopedTimeline,time: SomeTime): TimelineState {
 						!oldLLobj ||
 						(o.obj.priority || 0) > (oldLLobj.priority || 0) // o.obj has higher priority => replaces oldLLobj
 					) {
-						LLayers[o.obj.LLayer] = o.obj as TimelineResolvedObject
+						LLayers[o.obj.LLayer] = o.obj
 						if (
 							!oldGLObj ||
 							oldGLObj.LLayer <= o.obj.LLayer || // maybe add some better logic here, right now we use the LLayer index as a priority (higher LLayer => higher priority)
@@ -1692,7 +1692,7 @@ function resolveState (tld: DevelopedTimeline,time: SomeTime): TimelineState {
 								oldLLobj && oldGLObj.id === oldLLobj.id // the old object has just been replaced
 							)
 						) {
-							GLayers[GLayer] = o.obj as TimelineResolvedObject
+							GLayers[GLayer] = o.obj
 						}
 					}
 					if (oldLLobj && oldLLobj.id !== LLayers[o.obj.LLayer].id) {
@@ -1762,7 +1762,7 @@ function evaluateKeyFrames (state: TimelineState,tld: DevelopedTimeline): Array<
 			obj.resolved.templateData = _.clone(obj.content.templateData)
 		}
 
-		if (obj.content && obj.content.keyframes ) {
+		if (obj.content && obj.content.keyframes) {
 
 			const resolvedKeyFrames: Array<TimelineResolvedKeyframe> = []
 
@@ -1787,7 +1787,7 @@ function evaluateKeyFrames (state: TimelineState,tld: DevelopedTimeline): Array<
 						let triggerTime: TimeMaybe = null
 
 						if (keyFrame.trigger.type === TriggerType.LOGICAL) {
-							const onTimeLine = decipherLogicalValue(keyFrame.trigger.value, keyFrame, state )
+							const onTimeLine = decipherLogicalValue(keyFrame.trigger.value, keyFrame, state)
 
 							if (onTimeLine) {
 								triggerTime = 1
@@ -1902,7 +1902,7 @@ function evaluateKeyFrames (state: TimelineState,tld: DevelopedTimeline): Array<
 					*/
 
 					if (usingThisKeyframe) {
-						allValidKeyFrames.push(_.extend({parent: obj.id},keyFrame))
+						allValidKeyFrames.push(_.extend({ parent: obj.id },keyFrame))
 					}
 
 				}
@@ -1937,7 +1937,7 @@ function evaluateFunctions (state: TimelineState, tld: DevelopedTimeline, extern
 	return triggernewResolveState
 }
 
-function isNumeric (num: any ): boolean {
+function isNumeric (num: any): boolean {
 	return !isNaN(num)
 }
 
@@ -1945,7 +1945,7 @@ function log (str: any, levelName: TraceLevel): void {
 	let lvl: any = TraceLevel.ERRORS
 	if (levelName) lvl = TraceLevel[levelName] || 0
 
-	if (traceLevel >= lvl ) console.log(str)
+	if (traceLevel >= lvl) console.log(str)
 }
 function explJoin (arr: Array<string>,decimator: string,lastDecimator: string): string {
 
