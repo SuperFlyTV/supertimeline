@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.0.0"></a>
+# [2.0.0](https://github.com/SuperFlyTV/supertimeline/compare/1.0.317...2.0.0) (2018-06-09)
+
+
+* Empty commit, to trigger breaking version bump ([9b2426e](https://github.com/SuperFlyTV/supertimeline/commit/9b2426e))
+
+
+### BREAKING CHANGES
+
+* some logic might have changed during the past months
+
+
+
 <a name="1.0.317"></a>
 ## [1.0.317](https://github.com/SuperFlyTV/supertimeline/compare/v1.0.316...v1.0.317) (2018-06-06)
 
