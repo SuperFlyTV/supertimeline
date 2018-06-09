@@ -1492,9 +1492,6 @@ function decipherLogicalValue (
 
 	try {
 
-		// let touchedObjectExpressions = {}
-		// let touchedObjectIDs = []
-
 		const expression = interpretExpression(str,true)
 
 		// resolve expression
