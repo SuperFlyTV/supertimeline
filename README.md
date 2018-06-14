@@ -5,8 +5,6 @@ The SuperFly-Timeline is a collection of rules as well as a resolver for placing
 
 Licence: MIT
 
-*Note: This documentation is a work-in-progress!*
-
 ## Installation
 ### NodeJS
 
