@@ -210,10 +210,10 @@ class Resolver {
 		// Create a 'pseudo LLayers' here, it's composed of objects that are and some that might be...
 		const LLayers: {[GLayer: string]: TimelineResolvedObject} = {}
 
-		_.each(tl.resolved,function (obj: TimelineResolvedObject) {
+		_.each(tld.resolved,function (obj: TimelineResolvedObject) {
 			LLayers[obj.id] = obj
 		})
-		_.each(tl.unresolved,function (obj: TimelineObject) {
+		_.each(tld.unresolved,function (obj: TimelineObject) {
 			if (obj.trigger.type === TriggerType.LOGICAL) {
 				// we'll just assume that the object might be there when the time comes...
 				const obj2 = obj as TimelineResolvedObject
