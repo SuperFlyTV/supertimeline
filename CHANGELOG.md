@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.1.0"></a>
+# [2.1.0](https://github.com/SuperFlyTV/supertimeline/compare/2.0.3...2.1.0) (2018-07-02)
+
+
+### Bug Fixes
+
+* fix for failing test "keyframe in a grouped object" ([f80ed3d](https://github.com/SuperFlyTV/supertimeline/commit/f80ed3d))
+* fix for failing test test: "test group with duration and infinite child" ([79d2b0e](https://github.com/SuperFlyTV/supertimeline/commit/79d2b0e))
+* updated test ([2207624](https://github.com/SuperFlyTV/supertimeline/commit/2207624))
+
+
+### Features
+
+* Add test for duration set only on group, not child ([d22d1ec](https://github.com/SuperFlyTV/supertimeline/commit/d22d1ec))
+
+
+
 <a name="2.0.3"></a>
 ## [2.0.3](https://github.com/SuperFlyTV/supertimeline/compare/2.0.2...2.0.3) (2018-06-15)
 
