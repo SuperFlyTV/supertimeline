@@ -904,8 +904,51 @@ const testData = {
 			duration: 60, // 1 minute long
 			LLayer: 1
 		}
+	],
+	'keyframeingroup': [
+		{
+			id: 'obj1',
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now
+			},
+			duration: 60,
+			isGroup: true,
+			LLayer: 1,
+			content: {
+				objects: [
+					{
+						id: 'obj2',
+						trigger: {
+							type: TriggerType.TIME_ABSOLUTE,
+							value: 0
+						},
+						LLayer: 2,
+						duration: 60,
+						content: {
+							type: 'file',
+							name: 'AMB',
+							keyframes: [
+								{
+									id: 'kf1',
+									trigger: {
+										type: TriggerType.TIME_ABSOLUTE,
+										value: 10
+									},
+									duration: 10,
+									content: {
+										mixer: {
+											opacity: 0
+										}
+									}
+								}
+							]
+						}
+					}
+				]
+			}
+		}
 	]
-
 }
 const getTestData = (dataset: string) => {
 	return clone(testData[dataset])
@@ -1782,6 +1825,24 @@ test('logical objects in group with logical expr', () => {
 
 	expect(data).toEqual(getTestData('logicalInGroupLogical')) // Make sure the original data is unmodified
 })
+test('keyframe in a grouped object', () => {
+	const data = clone(getTestData('keyframeingroup'))
+	const tl = Resolver.getTimelineInWindow(data)
+	expect(tl.resolved).toHaveLength(1)
+
+	const events = Resolver.getNextEvents(data, 1000, 4)
+	expect(events.length).toEqual(4)
+	expect(events[1].time).toEqual(1010)
+	expect(events[2].time).toEqual(1020)
+
+	const state0 = Resolver.getState(data, 1015)
+	const obj2 = state0.LLayers[1]
+
+	expect(obj2.resolved.name).toBe('go1080p25')
+
+	expect(1).toEqual(2)
+})
+
 // TOOD: test group
 
 // TODO: test looping group
