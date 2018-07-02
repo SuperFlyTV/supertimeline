@@ -657,10 +657,12 @@ function developObj (tl2: DevelopedTimeline, time: SomeTime, objOrg: TimelineRes
 	// cap inside parent:
 	if (parentObj &&
 		returnObj.resolved &&
-		returnObj.resolved.endTime &&
 		parentObj.resolved &&
 		parentObj.resolved.endTime &&
-		returnObj.resolved.endTime > parentObj.resolved.endTime
+		(
+			(returnObj.resolved.endTime || 0) > parentObj.resolved.endTime ||
+			!returnObj.resolved.endTime // infinite
+		)
 	) {
 		returnObj.resolved.endTime = parentObj.resolved.endTime
 	}
