@@ -904,8 +904,79 @@ const testData = {
 			duration: 60, // 1 minute long
 			LLayer: 1
 		}
-	]
+	],
+	'keyframeingroup': [
+		{
+			id: 'obj1',
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now
+			},
+			duration: 60,
+			isGroup: true,
+			LLayer: 1,
+			content: {
+				objects: [
+					{
+						id: 'obj2',
+						trigger: {
+							type: TriggerType.TIME_ABSOLUTE,
+							value: 0
+						},
+						LLayer: 2,
+						duration: 60,
+						content: {
+							type: 'file',
+							name: 'AMB',
+							keyframes: [
+								{
+									id: 'kf1',
+									trigger: {
+										type: TriggerType.TIME_ABSOLUTE,
+										value: 10
+									},
+									duration: 10,
+									content: {
+										mixer: {
+											opacity: 0
+										}
+									}
+								}
+							]
+						}
+					}
+				]
+			}
+		}
+	],
+	'groupwithduration': [ // group with duration only set on group and not the child
+		{
+			id: 'group0', // the id must be unique
 
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now
+			},
+			duration: 30, // 30s long
+			LLayer: 1,
+			isGroup: true,
+			repeating: false,
+			content: {
+				objects: [
+					{
+						id: 'child0', // the id must be unique
+
+						trigger: {
+							type: TriggerType.TIME_ABSOLUTE,
+							value: 0 // Relative to parent object
+						},
+						duration: 0,
+						LLayer: 1
+					}
+				]
+			}
+		}
+	]
 }
 const getTestData = (dataset: string) => {
 	return clone(testData[dataset])
@@ -1713,6 +1784,53 @@ test('repeating group in repeating group', () => {
 
 	expect(data).toEqual(getTestData('repeatinggroupinrepeatinggroup')) // Make sure the original data is unmodified
 })
+test('test group with duration and infinite child', () => {
+
+	const data = clone(getTestData('groupwithduration'))
+
+	const tl = Resolver.getTimelineInWindow(data)
+	expect(tl.resolved).toHaveLength(1)
+	expect(tl.unresolved).toHaveLength(0)
+
+	const tld0 = Resolver.developTimelineAroundTime(tl, now)
+
+	expect(tld0.resolved).toHaveLength(1)
+	expect(tld0.groups).toHaveLength(1)
+	expect(tld0.unresolved).toHaveLength(0)
+
+	expect(tld0.resolved[0]).toMatchObject({
+		id: 'child0', resolved:  { startTime: 1000 }})
+
+	const state0 = Resolver.getState(tl, now)
+	expect(state0.LLayers['1']).toBeTruthy()
+	expect(state0.LLayers['1'].id).toBe('child0')
+
+	const events0 = Resolver.getNextEvents(tl, now)
+	expect(events0).toHaveLength(2)
+	expect(events0[0]).toMatchObject({
+		type: EventType.START, time: 1000, obj: { id: 'child0' }})
+	expect(events0[1]).toMatchObject({
+		type: EventType.END, time: 1030, obj: { id: 'child0' }})
+
+	// a bit in:
+	const state1 = Resolver.getState(tl, now + 50)
+	expect(state1.LLayers['1']).toBeFalsy()
+
+	const events1 = Resolver.getNextEvents(tl, now + 50)
+	expect(events1).toHaveLength(0)
+
+	// just before group1 is done playing:
+	const state2 = Resolver.getState(tl, now + 29)
+	expect(state2.LLayers['1']).toBeTruthy()
+	expect(state2.LLayers['1'].id).toBe('child0')
+
+	const events2 = Resolver.getNextEvents(tl, now + 29)
+
+	expect(events2[0]).toMatchObject({
+		type: EventType.END, time: 1030, obj: { id: 'child0' }})
+
+	expect(data).toEqual(getTestData('groupwithduration')) // Make sure the original data is unmodified
+})
 test('infinite group', () => {
 	const data = clone(getTestData('infinitegroup'))
 
@@ -1782,6 +1900,24 @@ test('logical objects in group with logical expr', () => {
 
 	expect(data).toEqual(getTestData('logicalInGroupLogical')) // Make sure the original data is unmodified
 })
+test('keyframe in a grouped object', () => {
+	const data = clone(getTestData('keyframeingroup'))
+	const tl = Resolver.getTimelineInWindow(data)
+	expect(tl.resolved).toHaveLength(1)
+
+	const events = Resolver.getNextEvents(data, 1000, 4)
+	expect(events.length).toEqual(4)
+	expect(events[1].time).toEqual(1010)
+	expect(events[2].time).toEqual(1020)
+
+	const state0 = Resolver.getState(data, 1015)
+
+	expect(state0.LLayers['2']).toBeTruthy()
+	const obj2 = state0.LLayers['2']
+
+	expect(obj2.resolved.mixer.opacity).toEqual(0)
+})
+
 // TOOD: test group
 
 // TODO: test looping group
