@@ -1911,11 +1911,11 @@ test('keyframe in a grouped object', () => {
 	expect(events[2].time).toEqual(1020)
 
 	const state0 = Resolver.getState(data, 1015)
-	const obj2 = state0.LLayers[1]
 
-	expect(obj2.resolved.name).toBe('go1080p25')
+	expect(state0.LLayers['2']).toBeTruthy()
+	const obj2 = state0.LLayers['2']
 
-	expect(1).toEqual(2)
+	expect(obj2.resolved.mixer.opacity).toEqual(0)
 })
 
 // TOOD: test group
