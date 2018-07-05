@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.2.0"></a>
+# [2.2.0](https://github.com/SuperFlyTV/supertimeline/compare/2.1.0...2.2.0) (2018-07-05)
+
+
+### Features
+
+* implemented support for dynamic durations ([2b5c943](https://github.com/SuperFlyTV/supertimeline/commit/2b5c943))
+
+
+
 <a name="2.1.0"></a>
 # [2.1.0](https://github.com/SuperFlyTV/supertimeline/compare/2.0.3...2.1.0) (2018-07-02)
 
