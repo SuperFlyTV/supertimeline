@@ -976,6 +976,82 @@ const testData = {
 				]
 			}
 		}
+	],
+	'relativeduration0': [
+		{
+			id: 'obj0', // the id must be unique
+
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now
+			},
+			duration: 60, // 60s
+			LLayer: 1,
+			classes: ['obj0Class']
+		},
+		{
+			id: 'obj1', // the id must be unique
+
+			trigger: {
+				type: TriggerType.TIME_RELATIVE,
+				value: '#obj0.end'
+			},
+			duration: '#obj0.duration / 2', // 30s
+			LLayer: 1
+		},
+		{
+			id: 'obj2', // the id must be unique
+
+			trigger: {
+				type: TriggerType.TIME_RELATIVE,
+				value: '#obj1.end'
+			},
+			duration: '#obj1.end - #obj0.start', // 90s
+			LLayer: 1
+		},
+		{
+			id: 'obj3', // the id must be unique
+
+			trigger: {
+				type: TriggerType.TIME_RELATIVE,
+				value: '#obj2.end'
+			},
+			duration: '5400 - #.start', // so it ends at 5400 (#.start = my own start time)
+			LLayer: 1
+		}
+	],
+	'circulardependency0': [
+		{
+			id: 'obj0', // the id must be unique
+
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now
+			},
+			duration: '#obj2.end', // 60s
+			LLayer: 1,
+			classes: ['obj0Class']
+		},
+		{
+			id: 'obj1', // the id must be unique
+
+			trigger: {
+				type: TriggerType.TIME_RELATIVE,
+				value: '#obj0.end'
+			},
+			duration: '#obj0.duration / 2', // 30s
+			LLayer: 1
+		},
+		{
+			id: 'obj2', // the id must be unique
+
+			trigger: {
+				type: TriggerType.TIME_RELATIVE,
+				value: '#obj1.end'
+			},
+			duration: 10,
+			LLayer: 1
+		}
 	]
 }
 const getTestData = (dataset: string) => {
@@ -1916,6 +1992,55 @@ test('keyframe in a grouped object', () => {
 	const obj2 = state0.LLayers['2']
 
 	expect(obj2.resolved.mixer.opacity).toEqual(0)
+})
+test('relative durations', () => {
+	const data = clone(getTestData('relativeduration0'))
+	const tl = Resolver.getTimelineInWindow(data)
+	expect(tl.resolved).toHaveLength(4)
+
+	const events = Resolver.getNextEvents(data, 1000)
+	expect(events.length).toEqual(8)
+	expect(events[0].time).toEqual(1000)
+	expect(events[1].time).toEqual(1060)
+	expect(events[2].time).toEqual(1060)
+	expect(events[3].time).toEqual(1090)
+	expect(events[4].time).toEqual(1090)
+	expect(events[5].time).toEqual(1180)
+	expect(events[6].time).toEqual(1180)
+	expect(events[7].time).toEqual(5400)
+
+	const state0 = Resolver.getState(data, 1030)
+	expect(state0.LLayers['1']).toBeTruthy()
+	expect(state0.LLayers['1'].id).toEqual('obj0')
+
+	const state1 = Resolver.getState(data, 1070)
+	expect(state1.LLayers['1']).toBeTruthy()
+	expect(state1.LLayers['1'].id).toEqual('obj1')
+
+	const state2 = Resolver.getState(data, 1100)
+	expect(state2.LLayers['1']).toBeTruthy()
+	expect(state2.LLayers['1'].id).toEqual('obj2')
+
+	const state3 = Resolver.getState(data, 1190)
+	expect(state3.LLayers['1']).toBeTruthy()
+	expect(state3.LLayers['1'].id).toEqual('obj3')
+
+	const state4 = Resolver.getState(data, 5390)
+	expect(state4.LLayers['1']).toBeTruthy()
+	expect(state4.LLayers['1'].id).toEqual('obj3')
+
+	const state5 = Resolver.getState(data, 5401)
+	expect(state5.LLayers['1']).toBeFalsy()
+})
+test('Circular dependency', () => {
+	const data = clone(getTestData('circulardependency0'))
+	const tl = Resolver.getTimelineInWindow(data)
+	expect(tl.resolved).toHaveLength(0)
+
+	data[0].duration = 10 // break the circular dependency
+
+	const tl2 = Resolver.getTimelineInWindow(data)
+	expect(tl2.resolved).toHaveLength(3)
 })
 
 // TOOD: test group
