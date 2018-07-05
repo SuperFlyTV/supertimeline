@@ -130,6 +130,9 @@ stateNow = {
     
     **"(#obj0.start + #obj0.end) / 2 "** Half-way in
 
+* **Duraion**
+	The duration of an object can either be an absolute number, or an expresstion (like the Relative time)
+
 * **Logical expression** (LOGICAL)
 	Use a logical expression to place an object on the timeline (unlike a time-based expression).
 	When the expression is evaluated to True, the object will be present.
