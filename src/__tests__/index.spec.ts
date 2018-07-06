@@ -5,7 +5,8 @@ import {
 	TimelineResolvedObject,
 	TimelineState,
 	DevelopedTimeline,
-	ExternalFunctions
+	ExternalFunctions,
+	TimelineObject
 } from '../resolver/resolver'
 import * as _ from 'underscore'
 // let assert = require('assert')
@@ -1054,394 +1055,388 @@ const testData = {
 		}
 	]
 }
-const getTestData = (dataset: string) => {
-	return clone(testData[dataset])
+let reverseData = false
+const reverseDataObjs = (objs: Array<any>) => {
+	objs = objs.reverse()
+	_.each(objs, (obj) => {
+		if ((obj.content || {}).objects) {
+			obj.content.objects = reverseDataObjs(obj.content.objects)
+		}
+	})
+	return objs
 }
-test('Basic timeline', () => {
+const getTestData = (dataset: string) => {
+	let data = clone(testData[dataset])
+	if (reverseData) {
+		data = reverseDataObjs(data)
+	}
+	return data
+}
+type Tests = {[key: string]: any}
+let tests: Tests = {
+	'Basic timeline': () => {
+
+		const data = getTestData('basic')
+
+		const tl = Resolver.getTimelineInWindow(data)
+		expect(data).toEqual(getTestData('basic')) // Make sure the original data is unmodified
+
+		expect(tl.resolved).toHaveLength(2)
+		expect(tl.unresolved).toHaveLength(0)
+
+		const nextEvents = Resolver.getNextEvents(data, now - 100)
+		expect(data).toEqual(getTestData('basic')) // Make sure the original data was unmodified
+
+		expect(nextEvents).toHaveLength(4)
+		expect(nextEvents[0]).toMatchObject({
+			type: EventType.START, time: 990, obj: { id: 'obj0' }})
+
+		expect(nextEvents[1]).toMatchObject({
+			type: EventType.END, time: 1050, obj: { id: 'obj0' }})
+		expect(nextEvents[2]).toMatchObject({
+			type: EventType.START, time: 1050, obj: { id: 'obj1' }})
+
+		const state = Resolver.getState(data, now)
+		expect(data).toEqual(getTestData('basic')) // Make sure the original data was unmodified
+
+		expect(state.GLayers['1']).toBeTruthy() // TimelineObject
+		expect(state.time).toBe(now)
+		expect(state.GLayers['1'].id).toBe('obj0')
+		expect(state.LLayers['1'].id).toBe('obj0')
+
+		const state2 = Resolver.getState(tl, now)
+
+		expect(state2.GLayers['1'].id).toBe('obj0')
+		expect(data).toEqual(getTestData('basic')) // Make sure the original data was unmodified
+
+	},
+	'Basic timeline 2': () => {
+
+		const data = getTestData('basic2')
+
+		const tl = Resolver.getTimelineInWindow(data)
+		expect(tl.resolved).toHaveLength(1)
+		expect(tl.unresolved).toHaveLength(0)
+
+		const nextEvents = Resolver.getNextEvents(data, 900)
+		expect(nextEvents).toHaveLength(2)
+		expect(nextEvents[0].type).toBe(EventType.START)
+		expect(nextEvents[0].time).toBe(950)
+		expect(nextEvents[1].type).toBe(EventType.END)
+		expect(nextEvents[1].time).toBe(1050)
+
+		const state = Resolver.getState(data, 1000)
+
+		expect(state.time).toBe(1000)
+		expect(state.GLayers['10'].id).toBe('obj0')
+		expect(state.LLayers['10'].id).toBe('obj0')
+
+		const state2 = Resolver.getState(tl, 1000)
 
-	const data = getTestData('basic')
+		expect(state2.GLayers['10'].id).toBe('obj0')
+		expect(data).toEqual(getTestData('basic2')) // Make sure the original data is unmodified
+	},
+	'Basic timeline 3': () => {
 
-	const tl = Resolver.getTimelineInWindow(data)
-	expect(data).toEqual(getTestData('basic')) // Make sure the original data is unmodified
+		const data = getTestData('basic2')
+			.concat(getTestData('basic3'))
 
-	expect(tl.resolved).toHaveLength(2)
-	expect(tl.unresolved).toHaveLength(0)
+		const tl = Resolver.getTimelineInWindow(data)
+		expect(tl.resolved).toHaveLength(3)
+		expect(tl.unresolved).toHaveLength(0)
 
-	const nextEvents = Resolver.getNextEvents(data, now - 100)
-	expect(data).toEqual(getTestData('basic')) // Make sure the original data was unmodified
+		const nextEvents = Resolver.getNextEvents(tl, 1000, 1) // limit
+		expect(nextEvents).toHaveLength(1) // see that the limit is working
+		expect(nextEvents[0].type).toBe(EventType.END)
+		expect(nextEvents[0].time).toBe(1050)
+
+		const state = Resolver.getState(tl, 1000)
+		expect(state.LLayers['10'].id).toBe('obj1')
+		expect(state.LLayers['11'].id).toBe('obj2')
+		expect(data).toEqual(getTestData('basic2')
+			.concat(getTestData('basic3'))) // Make sure the original data is unmodified
+	},
+	'Timeline, override object': () => {
+
+		const data = getTestData('basic2')
+			.concat(getTestData('basic3'))
+			.concat(getTestData('override'))
+
+		const state = Resolver.getState(data, 1000)
+		expect(state.LLayers['10'].id).toBe('obj3')
+	},
+	'Timeline, override object 2': () => {
+
+		const data = getTestData('basic2')
+			.concat(getTestData('basic3'))
+			.concat(getTestData('override'))
+			.concat(getTestData('override2'))
+
+		const state = Resolver.getState(data, 1000)
+		expect(state.LLayers['10'].id).toBe('obj5')
+
+		const stateInFuture = Resolver.getState(data, 10000)
+		expect(stateInFuture.LLayers['10'].id).toBe('obj5')
+	},
+	'Timeline, override object 3': () => {
 
-	expect(nextEvents).toHaveLength(4)
-	expect(nextEvents[0]).toMatchObject({
-		type: EventType.START, time: 990, obj: { id: 'obj0' }})
+		const data = getTestData('basic2')
+			.concat(getTestData('basic3'))
+			.concat(getTestData('override'))
+			.concat(getTestData('override2'))
+			.concat(getTestData('override3'))
 
-	expect(nextEvents[1]).toMatchObject({
-		type: EventType.END, time: 1050, obj: { id: 'obj0' }})
-	expect(nextEvents[2]).toMatchObject({
-		type: EventType.START, time: 1050, obj: { id: 'obj1' }})
+		const state = Resolver.getState(data, 1000)
+		expect(state.LLayers['10'].id).toBe('obj6')
 
-	const state = Resolver.getState(data, now)
-	expect(data).toEqual(getTestData('basic')) // Make sure the original data was unmodified
+		const stateInFuture = Resolver.getState(data, 10000)
+		expect(stateInFuture.LLayers['10'].id).toBe('obj5')
+	},
+	'Timeline, relative timing': () => {
 
-	expect(state.GLayers['1']).toBeTruthy() // TimelineObject
-	expect(state.time).toBe(now)
-	expect(state.GLayers['1'].id).toBe('obj0')
-	expect(state.LLayers['1'].id).toBe('obj0')
+		const data = getTestData('relative1')
 
-	const state2 = Resolver.getState(tl, now)
+		const tl = Resolver.getTimelineInWindow(data)
 
-	expect(state2.GLayers['1'].id).toBe('obj0')
-	expect(data).toEqual(getTestData('basic')) // Make sure the original data was unmodified
+		expect(tl.resolved).toHaveLength(6)
+		expect(tl.unresolved).toHaveLength(1)
 
-})
-test('Basic timeline 2', () => {
+		const obj1 = _.find(tl.resolved, { id: 'obj1' })
+		expect(obj1).toBeTruthy() // TimelineObject
+		expect(obj1.resolved.startTime).toBe(1054)
+		expect(obj1.resolved.endTime).toBe(1064)
 
-	const data = getTestData('basic2')
+		const obj2 = _.find(tl.resolved, { id: 'obj2' })
+		expect(obj2).toBeTruthy() // TimelineObject
+		expect(obj2.resolved.startTime).toBe(1068)
+		expect(obj2.resolved.endTime).toBe(1118)
 
-	const tl = Resolver.getTimelineInWindow(data)
-	expect(tl.resolved).toHaveLength(1)
-	expect(tl.unresolved).toHaveLength(0)
+		const obj3 = _.find(tl.resolved, { id: 'obj3' })
+		expect(obj3).toBeTruthy() // TimelineObject
+		expect(obj3.resolved.startTime).toBe(1058)
+		expect(obj3.resolved.endTime).toBe(1068)
 
-	const nextEvents = Resolver.getNextEvents(data, 900)
-	expect(nextEvents).toHaveLength(2)
-	expect(nextEvents[0].type).toBe(EventType.START)
-	expect(nextEvents[0].time).toBe(950)
-	expect(nextEvents[1].type).toBe(EventType.END)
-	expect(nextEvents[1].time).toBe(1050)
+		const obj4 = _.find(tl.resolved, { id: 'obj4' })
+		expect(obj4).toBeTruthy() // TimelineObject
+		expect(obj4.resolved.startTime).toBe(1118)
+		expect(obj4.resolved.endTime).toBe(1128)
 
-	const state = Resolver.getState(data, 1000)
+		const obj5 = _.find(tl.resolved, { id: 'obj5' })
+		expect(obj5).toBeTruthy() // TimelineObject
+		expect(obj5.resolved.startTime).toBe(1123)
+		expect(obj5.resolved.endTime).toBe(1133)
 
-	expect(state.time).toBe(1000)
-	expect(state.GLayers['10'].id).toBe('obj0')
-	expect(state.LLayers['10'].id).toBe('obj0')
+		const state0 = Resolver.getState(data, 1067)
 
-	const state2 = Resolver.getState(tl, 1000)
+		expect(state0.GLayers['10'].id).toBe('obj3')
 
-	expect(state2.GLayers['10'].id).toBe('obj0')
-	expect(data).toEqual(getTestData('basic2')) // Make sure the original data is unmodified
-})
-test('Basic timeline 3', () => {
+		const state1 = Resolver.getState(data, 1068)
 
-	const data = getTestData('basic2')
-		.concat(getTestData('basic3'))
+		expect(state1.GLayers['10'].id).toBe('obj2')
 
-	const tl = Resolver.getTimelineInWindow(data)
-	expect(tl.resolved).toHaveLength(3)
-	expect(tl.unresolved).toHaveLength(0)
+		const nextEvents = Resolver.getNextEvents(tl, 900)
 
-	const nextEvents = Resolver.getNextEvents(tl, 1000, 1) // limit
-	expect(nextEvents).toHaveLength(1) // see that the limit is working
-	expect(nextEvents[0].type).toBe(EventType.END)
-	expect(nextEvents[0].time).toBe(1050)
+		expect(nextEvents).toHaveLength(10)
 
-	const state = Resolver.getState(tl, 1000)
-	expect(state.LLayers['10'].id).toBe('obj1')
-	expect(state.LLayers['11'].id).toBe('obj2')
-	expect(data).toEqual(getTestData('basic2')
-		.concat(getTestData('basic3'))) // Make sure the original data is unmodified
-})
-test('Timeline, override object', () => {
-
-	const data = getTestData('basic2')
-		.concat(getTestData('basic3'))
-		.concat(getTestData('override'))
-
-	const state = Resolver.getState(data, 1000)
-	expect(state.LLayers['10'].id).toBe('obj3')
-})
-test('Timeline, override object 2', () => {
+		expect(nextEvents[0]).toMatchObject({
+			type: EventType.START, time: 950, obj: { id: 'obj0' }})
+		expect(nextEvents[1]).toMatchObject({
+			type: EventType.END, time: 1050, obj: { id: 'obj0' }})
+		expect(nextEvents[2]).toMatchObject({
+			type: EventType.START, time: 1054, obj: { id: 'obj1' }})
+		expect(nextEvents[3]).toMatchObject({
+			type: EventType.START, time: 1058, obj: { id: 'obj3' }})
+		expect(nextEvents[4]).toMatchObject({
+			type: EventType.END, time: 1064, obj: { id: 'obj1' }})
+		expect(nextEvents[5]).toMatchObject({
+			type: EventType.END, time: 1068, obj: { id: 'obj3' }})
+		expect(nextEvents[6]).toMatchObject({
+			type: EventType.START, time: 1068, obj: { id: 'obj2' }})
+		expect(nextEvents[7]).toMatchObject({
+			type: EventType.END, time: 1118, obj: { id: 'obj2' }})
+		expect(nextEvents[8]).toMatchObject({
+			type: EventType.START, time: 1118, obj: { id: 'obj4' }})
+		expect(nextEvents[9]).toMatchObject({
+			type: EventType.START, time: 1123, obj: { id: 'obj5' }})
 
-	const data = getTestData('basic2')
-		.concat(getTestData('basic3'))
-		.concat(getTestData('override'))
-		.concat(getTestData('override2'))
+		expect(data).toEqual(getTestData('relative1')) // Make sure the original data is unmodified
+	},
+	'Timeline, relative timing 2': () => {
 
-	const state = Resolver.getState(data, 1000)
-	expect(state.LLayers['10'].id).toBe('obj5')
+		const data = getTestData('relative2')
 
-	const stateInFuture = Resolver.getState(data, 10000)
-	expect(stateInFuture.LLayers['10'].id).toBe('obj5')
-})
-test('Timeline, override object 2', () => {
+		const tl = Resolver.getTimelineInWindow(data)
 
-	const data = getTestData('basic2')
-		.concat(getTestData('basic3'))
-		.concat(getTestData('override'))
-		.concat(getTestData('override2'))
-		.concat(getTestData('override3'))
+		expect(tl.resolved).toHaveLength(2)
+		expect(tl.unresolved).toHaveLength(1)
 
-	const state = Resolver.getState(data, 1000)
-	expect(state.LLayers['10'].id).toBe('obj6')
+		const obj2 = _.find(tl.resolved, { id: 'obj2' })
+		expect(obj2).toBeTruthy() // TimelineObject
+		expect(obj2.resolved.startTime).toBe(965)
+		expect(obj2.resolved.endTime).toBe(1015)
 
-	const stateInFuture = Resolver.getState(data, 10000)
-	expect(stateInFuture.LLayers['10'].id).toBe('obj5')
-})
-test('Timeline, relative timing', () => {
+		const state0 = Resolver.getState(data, 1000)
 
-	const data = getTestData('relative1')
+		expect(state0.GLayers['10'].id).toBe('obj2')
 
-	const tl = Resolver.getTimelineInWindow(data)
+		const state1 = Resolver.getState(data, 2000)
 
-	expect(tl.resolved).toHaveLength(6)
-	expect(tl.unresolved).toHaveLength(1)
+		expect(state1.GLayers['10'].id).toBe('obj0')
+	},
+	'Timeline, relative timing and keyframes': () => {
 
-	const obj1 = _.find(tl.resolved, { id: 'obj1' })
-	expect(obj1).toBeTruthy() // TimelineObject
-	expect(obj1.resolved.startTime).toBe(1054)
-	expect(obj1.resolved.endTime).toBe(1064)
+		const data = getTestData('keyframes1')
 
-	const obj2 = _.find(tl.resolved, { id: 'obj2' })
-	expect(obj2).toBeTruthy() // TimelineObject
-	expect(obj2.resolved.startTime).toBe(1068)
-	expect(obj2.resolved.endTime).toBe(1118)
+		const tl = Resolver.getTimelineInWindow(data)
 
-	const obj3 = _.find(tl.resolved, { id: 'obj3' })
-	expect(obj3).toBeTruthy() // TimelineObject
-	expect(obj3.resolved.startTime).toBe(1058)
-	expect(obj3.resolved.endTime).toBe(1068)
+		expect(tl.resolved).toHaveLength(3)
+		expect(tl.unresolved).toHaveLength(0)
 
-	const obj4 = _.find(tl.resolved, { id: 'obj4' })
-	expect(obj4).toBeTruthy() // TimelineObject
-	expect(obj4.resolved.startTime).toBe(1118)
-	expect(obj4.resolved.endTime).toBe(1128)
+		const obj2 = _.find(tl.resolved, { id: 'obj2' })
 
-	const obj5 = _.find(tl.resolved, { id: 'obj5' })
-	expect(obj5).toBeTruthy() // TimelineObject
-	expect(obj5.resolved.startTime).toBe(1123)
-	expect(obj5.resolved.endTime).toBe(1133)
+		expect(obj2).toBeTruthy() // TimelineObject
+		expect(obj2.resolved.startTime).toBe(965)
+		expect(obj2.resolved.endTime).toBe(1015)
 
-	const state0 = Resolver.getState(data, 1067)
+		const obj3 = _.find(tl.resolved, { id: 'obj3' })
 
-	expect(state0.GLayers['10'].id).toBe('obj3')
+		expect(obj3).toBeTruthy() // TimelineObject
+		expect(obj3.resolved.startTime).toBe(985)
 
-	const state1 = Resolver.getState(data, 1068)
+		const nextEvents0 = Resolver.getNextEvents(data, 100)
+		expect(nextEvents0).toHaveLength(10)
+		const nextEvents1 = Resolver.getNextEvents(data, 2000)
+		expect(nextEvents1).toHaveLength(0)
 
-	expect(state1.GLayers['10'].id).toBe('obj2')
+		const state0 = Resolver.getState(data, 966)
 
-	const nextEvents = Resolver.getNextEvents(tl, 900)
+		let sobj2 = state0.GLayers['10']
 
-	expect(nextEvents).toHaveLength(10)
+		expect(sobj2.id).toBe('obj2')
+		expect(sobj2.resolved.mixer.opacity).toBe(0.1)
+		expect(sobj2.resolved.mixer.brightness).toBe(0.1)
+		expect(sobj2.resolved.mixer.myCustomAttribute).toBeFalsy()
 
-	expect(nextEvents[0]).toMatchObject({
-		type: EventType.START, time: 950, obj: { id: 'obj0' }})
-	expect(nextEvents[1]).toMatchObject({
-		type: EventType.END, time: 1050, obj: { id: 'obj0' }})
-	expect(nextEvents[2]).toMatchObject({
-		type: EventType.START, time: 1054, obj: { id: 'obj1' }})
-	expect(nextEvents[3]).toMatchObject({
-		type: EventType.START, time: 1058, obj: { id: 'obj3' }})
-	expect(nextEvents[4]).toMatchObject({
-		type: EventType.END, time: 1064, obj: { id: 'obj1' }})
-	expect(nextEvents[5]).toMatchObject({
-		type: EventType.END, time: 1068, obj: { id: 'obj3' }})
-	expect(nextEvents[6]).toMatchObject({
-		type: EventType.START, time: 1068, obj: { id: 'obj2' }})
-	expect(nextEvents[7]).toMatchObject({
-		type: EventType.END, time: 1118, obj: { id: 'obj2' }})
-	expect(nextEvents[8]).toMatchObject({
-		type: EventType.START, time: 1118, obj: { id: 'obj4' }})
-	expect(nextEvents[9]).toMatchObject({
-		type: EventType.START, time: 1123, obj: { id: 'obj5' }})
+		const state1 = Resolver.getState(data, 967)
 
-	expect(data).toEqual(getTestData('relative1')) // Make sure the original data is unmodified
-})
-test('Timeline, relative timing 2', () => {
+		sobj2 = state1.GLayers['10']
 
-	const data = getTestData('relative2')
+		expect(sobj2.resolved.mixer.opacity).toBe(0.2)
+		expect(sobj2.resolved.mixer.brightness).toBe(0.1)
+		expect(sobj2.resolved.mixer.myCustomAttribute).toBeFalsy()
 
-	const tl = Resolver.getTimelineInWindow(data)
+		const state2 = Resolver.getState(data, 984)
 
-	expect(tl.resolved).toHaveLength(2)
-	expect(tl.unresolved).toHaveLength(1)
+		sobj2 = state2.GLayers['10']
 
-	const obj2 = _.find(tl.resolved, { id: 'obj2' })
-	expect(obj2).toBeTruthy() // TimelineObject
-	expect(obj2.resolved.startTime).toBe(965)
-	expect(obj2.resolved.endTime).toBe(1015)
+		expect(sobj2.resolved.mixer.opacity).toBe(0.3)
+		expect(sobj2.resolved.mixer.myCustomAttribute).toBe(1)
 
-	const state0 = Resolver.getState(data, 1000)
+		expect(data).toEqual(getTestData('keyframes1')) // Make sure the original data is unmodified
+	},
+	'Timeline, absolute keyframe': () => {
 
-	expect(state0.GLayers['10'].id).toBe('obj2')
+		const data = getTestData('abskeyframe')
 
-	const state1 = Resolver.getState(data, 2000)
+		const tl = Resolver.getTimelineInWindow(data)
 
-	expect(state1.GLayers['10'].id).toBe('obj0')
-})
-test('Timeline, relative timing and keyframes', () => {
+		expect(tl.resolved).toHaveLength(1)
+		expect(tl.unresolved).toHaveLength(0)
 
-	const data = getTestData('keyframes1')
+		const obj0 = _.find(tl.resolved, { id: 'obj0' })
 
-	const tl = Resolver.getTimelineInWindow(data)
+		expect(obj0).toBeTruthy() // TimelineObject
+		expect(obj0.resolved.startTime).toBe(1000)
+		expect(obj0.resolved.endTime).toBe(1050)
 
-	expect(tl.resolved).toHaveLength(3)
-	expect(tl.unresolved).toHaveLength(0)
+		const state0 = Resolver.getState(clone(data), 1000)
 
-	const obj2 = _.find(tl.resolved, { id: 'obj2' })
+		const sobj0 = state0.GLayers['1']
 
-	expect(obj2).toBeTruthy() // TimelineObject
-	expect(obj2.resolved.startTime).toBe(965)
-	expect(obj2.resolved.endTime).toBe(1015)
+		expect(sobj0).toBeTruthy() // TimelineResolvedObject
+		expect(sobj0.id).toBe('obj0')
+		expect(sobj0.resolved).toBeTruthy() // TimelineResolvedObject
 
-	const obj3 = _.find(tl.resolved, { id: 'obj3' })
+		expect(sobj0.resolved.attributes).toMatchObject({
+			positionX: 	0,
+			positionY: 	0,
+			scale: 		1
+		})
+		expect(sobj0.resolved.attributes.opacity).toBeFalsy()
 
-	expect(obj3).toBeTruthy() // TimelineObject
-	expect(obj3.resolved.startTime).toBe(985)
+		const state1 = Resolver.getState(clone(data), 1005)
 
-	const nextEvents0 = Resolver.getNextEvents(data, 100)
-	expect(nextEvents0).toHaveLength(10)
-	const nextEvents1 = Resolver.getNextEvents(data, 2000)
-	expect(nextEvents1).toHaveLength(0)
+		const sobj1 = state1.GLayers['1']
+		expect(sobj1).toBeTruthy() // TimelineResolvedObject
+		expect(sobj1.resolved.attributes).toMatchObject({
+			positionX: 	0,
+			positionY: 	0,
+			scale: 		0.5,
+			opacity: 	0.5
+		})
 
-	const state0 = Resolver.getState(data, 966)
+		const state2 = Resolver.getState(clone(data), 1010)
 
-	let sobj2 = state0.GLayers['10']
+		const sobj2 = state2.GLayers['1']
+		expect(sobj2).toBeTruthy() // TimelineResolvedObject
+		expect(sobj2.resolved.attributes).toMatchObject({
+			positionX: 	0,
+			positionY: 	0,
+			scale: 		1
+		})
 
-	expect(sobj2.id).toBe('obj2')
-	expect(sobj2.resolved.mixer.opacity).toBe(0.1)
-	expect(sobj2.resolved.mixer.brightness).toBe(0.1)
-	expect(sobj2.resolved.mixer.myCustomAttribute).toBeFalsy()
+		expect(sobj2.resolved.attributes).toBeTruthy()
+		expect(sobj2.resolved.attributes.opacity).toBeFalsy()
 
-	const state1 = Resolver.getState(data, 967)
+		expect(data).toEqual(getTestData('abskeyframe')) // Make sure the original data is unmodified
+	},
+	'logical objects, references': () => {
 
-	sobj2 = state1.GLayers['10']
+		const data = getTestData('basic')
+			.concat(getTestData('logical1'))
 
-	expect(sobj2.resolved.mixer.opacity).toBe(0.2)
-	expect(sobj2.resolved.mixer.brightness).toBe(0.1)
-	expect(sobj2.resolved.mixer.myCustomAttribute).toBeFalsy()
+		/*
+		let tl = Resolver.getTimelineInWindow(data)
+		console.log('tl.resolved',tl.resolved)
+		expect(tl.resolved).toHaveLength( 3)
+		expect(tl.unresolved).toHaveLength( 0)
+		let logical0 = _.find(tl.resolved, {id: 'logical0'})
+			expect(logical0).toBeTruthy() // TimelineObject
 
-	const state2 = Resolver.getState(data, 984)
+		let logical1 = _.find(tl.resolved, {id: 'logical1'})
+			expect(logical1).toBeTruthy() // TimelineObject
+		*/
 
-	sobj2 = state2.GLayers['10']
+		const state0 = Resolver.getState(clone(data), now)
 
-	expect(sobj2.resolved.mixer.opacity).toBe(0.3)
-	expect(sobj2.resolved.mixer.myCustomAttribute).toBe(1)
+		expect(state0.GLayers['1']).toBeTruthy() // TimelineResolvedObject
+		expect(state0.GLayers['1'].id).toBe('obj0')
 
-	expect(data).toEqual(getTestData('keyframes1')) // Make sure the original data is unmodified
-})
-test('Timeline, absolute keyframe', () => {
+		expect(state0.GLayers['2']).toBeTruthy() // TimelineResolvedObject
+		expect(state0.GLayers['2'].id).toBe('logical0')
 
-	const data = getTestData('abskeyframe')
+		expect(state0.GLayers['3']).toBeTruthy() // TimelineResolvedObject
+		expect(state0.GLayers['3'].id).toBe('logical1')
 
-	const tl = Resolver.getTimelineInWindow(data)
+		expect(state0.GLayers['4']).toBeTruthy() // TimelineResolvedObject
+		expect(state0.GLayers['4'].id).toBe('logical2')
 
-	expect(tl.resolved).toHaveLength(1)
-	expect(tl.unresolved).toHaveLength(0)
+		const state1 = Resolver.getState(clone(data), now + 1000)
 
-	const obj0 = _.find(tl.resolved, { id: 'obj0' })
+		expect(state1.GLayers['2']).toBeTruthy() // TimelineResolvedObject
+		expect(state1.GLayers['3']).toBeFalsy() // TimelineResolvedObject
+		expect(state1.GLayers['4']).toBeTruthy() // TimelineResolvedObject
 
-	expect(obj0).toBeTruthy() // TimelineObject
-	expect(obj0.resolved.startTime).toBe(1000)
-	expect(obj0.resolved.endTime).toBe(1050)
+		expect(data).toEqual(getTestData('basic')
+			.concat(getTestData('logical1'))) // Make sure the original data is unmodified
+	},
+	'logical objects, references 2': () => {
 
-	const state0 = Resolver.getState(clone(data), 1000)
+		const data = getTestData('basic')
+			.concat(getTestData('logical2'))
 
-	const sobj0 = state0.GLayers['1']
+		// let tl = Resolver.getTimelineInWindow(data)
 
-	expect(sobj0).toBeTruthy() // TimelineResolvedObject
-	expect(sobj0.id).toBe('obj0')
-	expect(sobj0.resolved).toBeTruthy() // TimelineResolvedObject
-
-	expect(sobj0.resolved.attributes).toMatchObject({
-		positionX: 	0,
-		positionY: 	0,
-		scale: 		1
-	})
-	expect(sobj0.resolved.attributes.opacity).toBeFalsy()
-
-	const state1 = Resolver.getState(clone(data), 1005)
-
-	const sobj1 = state1.GLayers['1']
-	expect(sobj1).toBeTruthy() // TimelineResolvedObject
-	expect(sobj1.resolved.attributes).toMatchObject({
-		positionX: 	0,
-		positionY: 	0,
-		scale: 		0.5,
-		opacity: 	0.5
-	})
-
-	const state2 = Resolver.getState(clone(data), 1010)
-
-	const sobj2 = state2.GLayers['1']
-	expect(sobj2).toBeTruthy() // TimelineResolvedObject
-	expect(sobj2.resolved.attributes).toMatchObject({
-		positionX: 	0,
-		positionY: 	0,
-		scale: 		1
-	})
-
-	expect(sobj2.resolved.attributes).toBeTruthy()
-	expect(sobj2.resolved.attributes.opacity).toBeFalsy()
-
-	expect(data).toEqual(getTestData('abskeyframe')) // Make sure the original data is unmodified
-})
-test('logical objects, references', () => {
-
-	const data = getTestData('basic')
-		.concat(getTestData('logical1'))
-
-	/*
-	let tl = Resolver.getTimelineInWindow(data)
-	console.log('tl.resolved',tl.resolved)
-	expect(tl.resolved).toHaveLength( 3)
-	expect(tl.unresolved).toHaveLength( 0)
-	let logical0 = _.find(tl.resolved, {id: 'logical0'})
-		expect(logical0).toBeTruthy() // TimelineObject
-
-	let logical1 = _.find(tl.resolved, {id: 'logical1'})
-		expect(logical1).toBeTruthy() // TimelineObject
-	*/
-
-	const state0 = Resolver.getState(clone(data), now)
-
-	expect(state0.GLayers['1']).toBeTruthy() // TimelineResolvedObject
-	expect(state0.GLayers['1'].id).toBe('obj0')
-
-	expect(state0.GLayers['2']).toBeTruthy() // TimelineResolvedObject
-	expect(state0.GLayers['2'].id).toBe('logical0')
-
-	expect(state0.GLayers['3']).toBeTruthy() // TimelineResolvedObject
-	expect(state0.GLayers['3'].id).toBe('logical1')
-
-	expect(state0.GLayers['4']).toBeTruthy() // TimelineResolvedObject
-	expect(state0.GLayers['4'].id).toBe('logical2')
-
-	const state1 = Resolver.getState(clone(data), now + 1000)
-
-	expect(state1.GLayers['2']).toBeTruthy() // TimelineResolvedObject
-	expect(state1.GLayers['3']).toBeFalsy() // TimelineResolvedObject
-	expect(state1.GLayers['4']).toBeTruthy() // TimelineResolvedObject
-
-	expect(data).toEqual(getTestData('basic')
-		.concat(getTestData('logical1'))) // Make sure the original data is unmodified
-})
-test('logical objects, references 2', () => {
-
-	const data = getTestData('basic')
-		.concat(getTestData('logical2'))
-
-	// let tl = Resolver.getTimelineInWindow(data)
-
-	const state0 = Resolver.getState(clone(data), now)
-
-	expect(state0.GLayers['1']).toBeTruthy()
-	expect(state0.GLayers['2']).toBeTruthy()
-	expect(state0.GLayers['3']).toBeFalsy()
-
-	const state1 = Resolver.getState(clone(data), now + 1000)
-
-	expect(state1.GLayers['1']).toBeFalsy() // TimelineResolvedObject
-	expect(state1.GLayers['2']).toBeFalsy() // TimelineResolvedObject
-	expect(state1.GLayers['3']).toBeTruthy() // TimelineResolvedObject
-
-	expect(data).toEqual(getTestData('basic')
-		.concat(getTestData('logical2'))) // Make sure the original data is unmodified
-})
-test('logical objects, references 3', () => {
-
-	const data = getTestData('basic')
-		.concat(getTestData('logical3'))
-
-	// let tl = Resolver.getTimelineInWindow(data)
-	try {
 		const state0 = Resolver.getState(clone(data), now)
 
 		expect(state0.GLayers['1']).toBeTruthy()
@@ -1453,594 +1448,641 @@ test('logical objects, references 3', () => {
 		expect(state1.GLayers['1']).toBeFalsy() // TimelineResolvedObject
 		expect(state1.GLayers['2']).toBeFalsy() // TimelineResolvedObject
 		expect(state1.GLayers['3']).toBeTruthy() // TimelineResolvedObject
-	} catch (e) {
-		console.log(e, e.stack)
-	}
-})
-test('setTraceLevel', () => {
-	Resolver.setTraceLevel(TraceLevel.INFO)
-	expect(Resolver.getTraceLevel()).toEqual(TraceLevel.INFO)
 
-	Resolver.setTraceLevel(TraceLevel.ERRORS)
-	expect(Resolver.getTraceLevel()).toEqual(TraceLevel.ERRORS)
+		expect(data).toEqual(getTestData('basic')
+			.concat(getTestData('logical2'))) // Make sure the original data is unmodified
+	},
+	'logical objects, references 3': () => {
 
-	Resolver.setTraceLevel('INFO')
-	expect(Resolver.getTraceLevel()).toEqual(TraceLevel.INFO)
+		const data = getTestData('basic')
+			.concat(getTestData('logical3'))
 
-	Resolver.setTraceLevel('asdf')
-	expect(Resolver.getTraceLevel()).toEqual(TraceLevel.ERRORS)
-})
-test('getObjectsInWindow', () => {
-	const data = clone(getTestData('basic'))
+		// let tl = Resolver.getTimelineInWindow(data)
+		try {
+			const state0 = Resolver.getState(clone(data), now)
 
-	const tld = Resolver.getObjectsInWindow(clone(data), now - 10, now + 10)
+			expect(state0.GLayers['1']).toBeTruthy()
+			expect(state0.GLayers['2']).toBeTruthy()
+			expect(state0.GLayers['3']).toBeFalsy()
 
-	expect(tld.resolved).toHaveLength(1)
-	expect(tld.unresolved).toHaveLength(0)
+			const state1 = Resolver.getState(clone(data), now + 1000)
 
-	expect(data).toEqual(getTestData('basic')) // Make sure the original data is unmodified
-})
-test('External functions', () => {
-	const data = clone(getTestData('basic'))
+			expect(state1.GLayers['1']).toBeFalsy() // TimelineResolvedObject
+			expect(state1.GLayers['2']).toBeFalsy() // TimelineResolvedObject
+			expect(state1.GLayers['3']).toBeTruthy() // TimelineResolvedObject
+		} catch (e) {
+			console.log(e, e.stack)
+		}
+	},
+	'setTraceLevel': () => {
+		Resolver.setTraceLevel(TraceLevel.INFO)
+		expect(Resolver.getTraceLevel()).toEqual(TraceLevel.INFO)
 
-	const state0 = Resolver.getState(data, now)
-	expect(data).toEqual(getTestData('basic')) // Make sure the original data is unmodified
+		Resolver.setTraceLevel(TraceLevel.ERRORS)
+		expect(Resolver.getTraceLevel()).toEqual(TraceLevel.ERRORS)
 
-	expect(state0.LLayers['1']).toBeTruthy() // TimelineObject
-	expect(state0.LLayers['1'].id).toBe('obj0')
+		Resolver.setTraceLevel('INFO')
+		expect(Resolver.getTraceLevel()).toEqual(TraceLevel.INFO)
 
-	data[0].externalFunction = 'ext0'
+		Resolver.setTraceLevel('asdf')
+		expect(Resolver.getTraceLevel()).toEqual(TraceLevel.ERRORS)
+	},
+	'getObjectsInWindow': () => {
+		const data = clone(getTestData('basic'))
 
-	const externalFunctions0: ExternalFunctions = {
-		'ext0': jest.fn((resolvedObj: TimelineResolvedObject, state: TimelineState, tld: DevelopedTimeline) => {
-			// disable this object
-			resolvedObj.resolved.disabled = true
-			state = state
-			tld = tld
+		const tld = Resolver.getObjectsInWindow(clone(data), now - 10, now + 10)
 
-			return true
+		expect(tld.resolved).toHaveLength(1)
+		expect(tld.unresolved).toHaveLength(0)
+
+		expect(data).toEqual(getTestData('basic')) // Make sure the original data is unmodified
+	},
+	'External functions': () => {
+		const data = clone(getTestData('basic'))
+
+		const state0 = Resolver.getState(data, now)
+		expect(data).toEqual(getTestData('basic')) // Make sure the original data is unmodified
+
+		expect(state0.LLayers['1']).toBeTruthy() // TimelineObject
+		expect(state0.LLayers['1'].id).toBe('obj0')
+
+		data[0].externalFunction = 'ext0'
+
+		const externalFunctions0: ExternalFunctions = {
+			'ext0': jest.fn((resolvedObj: TimelineResolvedObject, state: TimelineState, tld: DevelopedTimeline) => {
+				// disable this object
+				resolvedObj.resolved.disabled = true
+				state = state
+				tld = tld
+
+				return true
+			})
+		}
+
+		const state1 = Resolver.getState(data, now, externalFunctions0)
+
+		expect(externalFunctions0.ext0).toHaveBeenCalledTimes(1)
+
+		expect(state1.LLayers['1']).toBeFalsy() // TimelineObject
+
+	},
+	'Expressions': () => {
+
+		expect(Resolver.interpretExpression('1 + 2')).toMatchObject({
+			l: '1',
+			o: '+',
+			r: '2'
 		})
-	}
 
-	const state1 = Resolver.getState(data, now, externalFunctions0)
+		expect(Resolver.resolveExpression(
+			Resolver.interpretExpression('1 + 2')
+		)).toEqual(3)
 
-	expect(externalFunctions0.ext0).toHaveBeenCalledTimes(1)
+		expect(Resolver.resolveExpression(
+			Resolver.interpretExpression('4 * 5.5')
+		)).toEqual(22)
 
-	expect(state1.LLayers['1']).toBeFalsy() // TimelineObject
+		expect(Resolver.resolveExpression(
+			Resolver.interpretExpression('2 * (2 + 3) - 2 * 2')
+		)).toEqual(6)
 
-})
-test('Expressions', () => {
+		expect(Resolver.resolveExpression(
+			Resolver.interpretExpression('2 * 2 + 3 - 2 * 2')
+		)).toEqual(3)
 
-	expect(Resolver.interpretExpression('1 + 2')).toMatchObject({
-		l: '1',
-		o: '+',
-		r: '2'
-	})
+		expect(Resolver.resolveExpression(
+			Resolver.interpretExpression('2 * 2 + 3 - 2 * 2')
+		)).toEqual(3)
 
-	expect(Resolver.resolveExpression(
-		Resolver.interpretExpression('1 + 2')
-	)).toEqual(3)
+		expect(Resolver.resolveExpression(
+			Resolver.interpretExpression('5 + -3')
+		)).toEqual(2)
 
-	expect(Resolver.resolveExpression(
-		Resolver.interpretExpression('4 * 5.5')
-	)).toEqual(22)
+		expect(Resolver.resolveExpression(
+			Resolver.interpretExpression('5 + - 3')
+		)).toEqual(2)
 
-	expect(Resolver.resolveExpression(
-		Resolver.interpretExpression('2 * (2 + 3) - 2 * 2')
-	)).toEqual(6)
+		expect(Resolver.resolveExpression(
+			Resolver.interpretExpression('')
+		)).toEqual(NaN)
 
-	expect(Resolver.resolveExpression(
-		Resolver.interpretExpression('2 * 2 + 3 - 2 * 2')
-	)).toEqual(3)
+		expect(() => {
+			Resolver.resolveLogicalExpression(
+				Resolver.interpretExpression('5 + ) 2') // unbalanced paranthesis
+			)
+		}).toThrowError()
+		expect(() => {
+			Resolver.resolveLogicalExpression(
+				Resolver.interpretExpression('5 ( + 2') // unbalanced paranthesis
+			)
+		}).toThrowError()
+		expect(() => {
+			Resolver.resolveLogicalExpression(
+				Resolver.interpretExpression('5 * ') // unbalanced expression
+			)
+		}).toThrowError()
 
-	expect(Resolver.resolveExpression(
-		Resolver.interpretExpression('2 * 2 + 3 - 2 * 2')
-	)).toEqual(3)
+		expect(Resolver.resolveLogicalExpression(
+			Resolver.interpretExpression('1 | 0', true)
+		)).toEqual(true)
+		expect(Resolver.resolveLogicalExpression(
+			Resolver.interpretExpression('1 & 0', true)
+		)).toEqual(false)
 
-	expect(Resolver.resolveExpression(
-		Resolver.interpretExpression('5 + -3')
-	)).toEqual(2)
+		expect(Resolver.resolveLogicalExpression(
+			Resolver.interpretExpression('1 | 0 & 0', true)
+		)).toEqual(false)
 
-	expect(Resolver.resolveExpression(
-		Resolver.interpretExpression('5 + - 3')
-	)).toEqual(2)
+		expect(Resolver.resolveLogicalExpression(
+			Resolver.interpretExpression('0 & 1 | 1', true)
+		)).toEqual(false)
+		expect(Resolver.resolveLogicalExpression(
+			Resolver.interpretExpression('(0 & 1) | 1', true)
+		)).toEqual(true)
 
-	expect(Resolver.resolveExpression(
-		Resolver.interpretExpression('')
-	)).toEqual(NaN)
+		expect(() => {
+			Resolver.resolveLogicalExpression(
+				Resolver.interpretExpression('(0 & 1) | 1 a', true) // strange operator
+			)
+		}).toThrowError()
 
-	expect(() => {
-		Resolver.resolveLogicalExpression(
-			Resolver.interpretExpression('5 + ) 2') // unbalanced paranthesis
-		)
-	}).toThrowError()
-	expect(() => {
-		Resolver.resolveLogicalExpression(
-			Resolver.interpretExpression('5 ( + 2') // unbalanced paranthesis
-		)
-	}).toThrowError()
-	expect(() => {
-		Resolver.resolveLogicalExpression(
-			Resolver.interpretExpression('5 * ') // unbalanced expression
-		)
-	}).toThrowError()
+		expect(Resolver.resolveLogicalExpression(
+			Resolver.interpretExpression('(0 & 1) | a', true) // strange operand
+		)).toEqual(false)
+	},
+	'disabled objects on timeline': () => {
 
-	expect(Resolver.resolveLogicalExpression(
-		Resolver.interpretExpression('1 | 0', true)
-	)).toEqual(true)
-	expect(Resolver.resolveLogicalExpression(
-		Resolver.interpretExpression('1 & 0', true)
-	)).toEqual(false)
-
-	expect(Resolver.resolveLogicalExpression(
-		Resolver.interpretExpression('1 | 0 & 0', true)
-	)).toEqual(false)
-
-	expect(Resolver.resolveLogicalExpression(
-		Resolver.interpretExpression('0 & 1 | 1', true)
-	)).toEqual(false)
-	expect(Resolver.resolveLogicalExpression(
-		Resolver.interpretExpression('(0 & 1) | 1', true)
-	)).toEqual(true)
-
-	expect(() => {
-		Resolver.resolveLogicalExpression(
-			Resolver.interpretExpression('(0 & 1) | 1 a', true) // strange operator
-		)
-	}).toThrowError()
-
-	expect(Resolver.resolveLogicalExpression(
-		Resolver.interpretExpression('(0 & 1) | a', true) // strange operand
-	)).toEqual(false)
-})
-test('disabled objects on timeline', () => {
-
-	const data = clone(getTestData('basic'))
-	data[0].disabled = true
-
-	const tl = Resolver.getTimelineInWindow(data)
-
-	expect(tl.resolved).toHaveLength(2)
-	expect(tl.unresolved).toHaveLength(0)
-
-	const state0 = Resolver.getState(tl, now)
-
-	expect(state0.LLayers['1']).toBeFalsy()
-})
-test('object with infinite duration', () => {
-
-	const data = clone(getTestData('infiniteduration'))
-
-	const tl = Resolver.getTimelineInWindow(data)
-
-	expect(tl.resolved).toHaveLength(1)
-	expect(tl.unresolved).toHaveLength(1) // because obj0 has infinite duration
-
-	const state0 = Resolver.getState(tl, now)
-
-	expect(state0.LLayers['1']).toBeTruthy()
-	expect(state0.LLayers['1'].id).toBe('obj0')
-})
-test('bad objects on timeline', () => {
-
-	expect(() => {
 		const data = clone(getTestData('basic'))
-		delete data[0].id
-		Resolver.getState(clone(data), now)
-	}).toThrowError()
+		data[0].disabled = true
 
-	expect(() => {
-		const data = clone(getTestData('basic'))
-		delete data[0].trigger
-		Resolver.getState(clone(data), now)
-	}).toThrowError()
-	expect(() => {
-		const data = clone(getTestData('basic'))
-		delete data[0].trigger.type
-		Resolver.getState(clone(data), now)
-	}).toThrowError()
-	expect(() => {
-		const data = clone(getTestData('basic'))
-		delete data[0].LLayer
-		Resolver.getState(clone(data), now)
-	}).toThrowError()
-	expect(() => {
-		const data = clone(getTestData('basic'))
-		data[0].id = 'asdf'
-		data[1].id = 'asdf' // should be unique
-		Resolver.getState(clone(data), now)
-	}).toThrowError()
+		const tl = Resolver.getTimelineInWindow(data)
 
-	expect(() => {
+		expect(tl.resolved).toHaveLength(2)
+		expect(tl.unresolved).toHaveLength(0)
+
+		const state0 = Resolver.getState(tl, now)
+
+		expect(state0.LLayers['1']).toBeFalsy()
+	},
+	'object with infinite duration': () => {
+
+		const data = clone(getTestData('infiniteduration'))
+
+		const tl = Resolver.getTimelineInWindow(data)
+
+		expect(tl.resolved).toHaveLength(1)
+		expect(tl.unresolved).toHaveLength(1) // because obj0 has infinite duration
+
+		const state0 = Resolver.getState(tl, now)
+
+		expect(state0.LLayers['1']).toBeTruthy()
+		expect(state0.LLayers['1'].id).toBe('obj0')
+	},
+	'bad objects on timeline': () => {
+
+		expect(() => {
+			const data = clone(getTestData('basic'))
+			delete data[0].id
+			Resolver.getState(clone(data), now)
+		}).toThrowError()
+
+		expect(() => {
+			const data = clone(getTestData('basic'))
+			delete data[0].trigger
+			Resolver.getState(clone(data), now)
+		}).toThrowError()
+		expect(() => {
+			const data = clone(getTestData('basic'))
+			delete data[0].trigger.type
+			Resolver.getState(clone(data), now)
+		}).toThrowError()
+		expect(() => {
+			const data = clone(getTestData('basic'))
+			delete data[0].LLayer
+			Resolver.getState(clone(data), now)
+		}).toThrowError()
+		expect(() => {
+			const data = clone(getTestData('basic'))
+			data[0].id = 'asdf'
+			data[1].id = 'asdf' // should be unique
+			Resolver.getState(clone(data), now)
+		}).toThrowError()
+
+		expect(() => {
+			const data = clone(getTestData('simplegroup'))
+			delete data[0].content.objects
+			Resolver.getState(clone(data), now)
+		}).toThrowError()
+	},
+	'simple group': () => {
+
 		const data = clone(getTestData('simplegroup'))
-		delete data[0].content.objects
-		Resolver.getState(clone(data), now)
-	}).toThrowError()
+
+		const tl = Resolver.getTimelineInWindow(data)
+		expect(data).toEqual(getTestData('simplegroup')) // Make sure the original data is unmodified
+		expect(tl.resolved).toHaveLength(2)
+		expect(tl.unresolved).toHaveLength(0)
+
+		const tld = Resolver.developTimelineAroundTime(tl, now)
+		expect(tld.resolved).toHaveLength(3)
+		expect(tld.unresolved).toHaveLength(0)
+
+		const events0 = Resolver.getNextEvents(tl, now)
+		expect(events0).toHaveLength(5)
+		const state0 = Resolver.getState(tl, now)
+		expect(state0.LLayers['2']).toBeTruthy()
+		expect(state0.GLayers['2']).toBeTruthy()
+		expect(state0.LLayers['2'].id).toBe('child0')
+
+		const events1 = Resolver.getNextEvents(tl, now + 10)
+		expect(events1).toHaveLength(3)
+		const state1 = Resolver.getState(tl, now + 10)
+		expect(state1.LLayers['2']).toBeTruthy()
+		expect(state1.GLayers['2']).toBeTruthy()
+		expect(state1.LLayers['2'].id).toBe('child1')
+
+		const events2 = Resolver.getNextEvents(tl, now + 25)
+		expect(events2).toHaveLength(2)
+		const state2 = Resolver.getState(tl, now + 25)
+		expect(state2.LLayers['2']).toBeFalsy()
+		expect(state2.GLayers['2']).toBeFalsy()
+
+		const state3 = Resolver.getState(tl, now + 60)
+		expect(state3.LLayers['2']).toBeTruthy()
+		expect(state3.GLayers['2']).toBeTruthy()
+		expect(state3.LLayers['2'].id).toBe('obj1')
+
+		expect(data).toEqual(getTestData('simplegroup')) // Make sure the original data was unmodified
+	},
+	'repeating group': () => {
+
+		const data = clone(getTestData('repeatinggroup'))
+
+		const tl = Resolver.getTimelineInWindow(data)
+		expect(tl.resolved).toHaveLength(2)
+		expect(tl.unresolved).toHaveLength(0)
+
+		const tld0 = Resolver.developTimelineAroundTime(tl, now)
+
+		expect(tld0.resolved).toHaveLength(3)
+		expect(tld0.resolved[0].id).toBe('child0')
+		expect(tld0.resolved[0].resolved.startTime).toBe(990)
+		expect(tld0.resolved[1].id).toBe('child1')
+		expect(tld0.resolved[1].resolved.startTime).toBe(1005)
+
+		const events0 = Resolver.getNextEvents(tl, now)
+		expect(events0).toHaveLength(5)
+		expect(events0[0]).toMatchObject({
+			type: EventType.END, time: 1005, obj: { id: 'child0' }})
+		expect(events0[1]).toMatchObject({
+			type: EventType.START, time: 1005, obj: { id: 'child1' }})
+		expect(events0[2]).toMatchObject({
+			type: EventType.END, time: 1015, obj: { id: 'child1' }})
+
+		const state0 = Resolver.getState(tl, now)
+		expect(state0.LLayers['1']).toBeTruthy()
+		expect(state0.LLayers['1'].id).toBe('child0')
+
+		const tld1 = Resolver.developTimelineAroundTime(tl, now + 10)
+		expect(tld1.resolved).toHaveLength(3)
+		expect(tld1.resolved[0].id).toBe('child1')
+		expect(tld1.resolved[0].resolved.startTime).toBe(1005)
+		expect(tld1.resolved[1].id).toBe('child0')
+		expect(tld1.resolved[1].resolved.startTime).toBe(1015)
+		const events1 = Resolver.getNextEvents(tl, now + 10)
+		expect(events1).toHaveLength(5)
+		expect(events1[0]).toMatchObject({
+			type: EventType.END, time: 1015, obj: { id: 'child1' }})
+		expect(events1[1]).toMatchObject({
+			type: EventType.START, time: 1015, obj: { id: 'child0' }})
+		expect(events1[2]).toMatchObject({
+			type: EventType.END, time: 1030, obj: { id: 'child0' }})
+
+		const state1 = Resolver.getState(tl, now + 10)
+		expect(state1.LLayers['1']).toBeTruthy()
+		expect(state1.LLayers['1'].id).toBe('child1')
+
+		// Next loop:
+		const tld2 = Resolver.developTimelineAroundTime(tl, now + 25)
+		expect(tld2.resolved).toHaveLength(3)
+		expect(tld2.resolved[0].id).toBe('child0')
+		expect(tld2.resolved[0].resolved.startTime).toBe(1015)
+		expect(tld2.resolved[1].id).toBe('child1')
+		expect(tld2.resolved[1].resolved.startTime).toBe(1030)
+		const events2 = Resolver.getNextEvents(tl, now + 25)
+		expect(events2).toHaveLength(5)
+		expect(events2[0]).toMatchObject({
+			type: EventType.END, time: 1030, obj: { id: 'child0' }})
+		expect(events2[1]).toMatchObject({
+			type: EventType.START, time: 1030, obj: { id: 'child1' }})
+		expect(events2[2]).toMatchObject({
+			type: EventType.END, time: 1040, obj: { id: 'child1' }})
+
+		const state2 = Resolver.getState(tl, now + 25)
+		expect(state2.LLayers['1']).toBeTruthy()
+		expect(state2.LLayers['1'].id).toBe('child0')
+
+		const state3 = Resolver.getState(tl, now + 35)
+		expect(state3.LLayers['1']).toBeTruthy()
+		expect(state3.LLayers['1'].id).toBe('child1')
+		const events3 = Resolver.getNextEvents(tl, now + 35)
+		expect(events3).toHaveLength(5)
+
+		// just before group0 is done:
+		// let tld4 = Resolver.developTimelineAroundTime(tl, now + 50)
+		const events4 = Resolver.getNextEvents(tl, now + 50)
+		expect(events4[0]).toMatchObject({
+			type: EventType.END, time: 1053, obj: { id: 'child0' }})
+		expect(events4[1]).toMatchObject({
+			type: EventType.START, time: 1053, obj: { id: 'obj1' }})
+		expect(events4[2]).toMatchObject({
+			type: EventType.END, time: 1070, obj: { id: 'obj1' }})
+
+		expect(data).toEqual(getTestData('repeatinggroup')) // Make sure the original data is unmodified
+
+	},
+	'repeating group in repeating group': () => {
+
+		const data = clone(getTestData('repeatinggroupinrepeatinggroup'))
+
+		const tl = Resolver.getTimelineInWindow(data)
+		expect(tl.resolved).toHaveLength(2)
+		expect(tl.unresolved).toHaveLength(0)
+
+		const tld0 = Resolver.developTimelineAroundTime(tl, now)
+
+		expect(tld0.resolved).toHaveLength(4)
+		expect(tld0.groups).toHaveLength(2)
+		expect(tld0.unresolved).toHaveLength(0)
+
+		expect(tld0.resolved[0]).toMatchObject({
+			id: 'child0', resolved:  { startTime: 1000 }})
+		expect(tld0.resolved[1]).toMatchObject({
+			id: 'child1', resolved:  { startTime: 1030 }})
+		expect(tld0.resolved[2]).toMatchObject({
+			id: 'child2', resolved:  { startTime: 1040 }})
+		expect(tld0.resolved[3]).toMatchObject({
+			id: 'obj1', resolved:  { startTime: 1300 }})
+
+		const state0 = Resolver.getState(tl, now)
+		expect(state0.LLayers['1']).toBeTruthy()
+		expect(state0.LLayers['1'].id).toBe('child0')
+
+		const events0 = Resolver.getNextEvents(tl, now)
+		expect(events0).toHaveLength(8)
+		expect(events0[0]).toMatchObject({
+			type: EventType.START, time: 1000, obj: { id: 'child0' }})
+		expect(events0[1]).toMatchObject({
+			type: EventType.END, time: 1030, obj: { id: 'child0' }})
+		expect(events0[2]).toMatchObject({
+			type: EventType.START, time: 1030, obj: { id: 'child1' }})
+		expect(events0[3]).toMatchObject({
+			type: EventType.END, time: 1040, obj: { id: 'child1' }})
+		expect(events0[4]).toMatchObject({
+			type: EventType.START, time: 1040, obj: { id: 'child2' }})
+		expect(events0[5]).toMatchObject({
+			type: EventType.END, time: 1055, obj: { id: 'child2' }})
+		expect(events0[6]).toMatchObject({
+			type: EventType.START, time: 1300, obj: { id: 'obj1' }})
+		expect(events0[7]).toMatchObject({
+			type: EventType.END, time: 1360, obj: { id: 'obj1' }})
+
+		// a bit in:
+		const state1 = Resolver.getState(tl, now + 50)
+		expect(state1.LLayers['1']).toBeTruthy()
+		expect(state1.LLayers['1'].id).toBe('child2')
+
+		const events1 = Resolver.getNextEvents(tl, now + 50)
+		expect(events1).toHaveLength(7)
+		expect(events1[0]).toMatchObject({
+			type: EventType.END, time: 1055, obj: { id: 'child2' }})
+		expect(events1[1]).toMatchObject({
+			type: EventType.START, time: 1055, obj: { id: 'child1' }})
+		expect(events1[2]).toMatchObject({
+			type: EventType.END, time: 1065, obj: { id: 'child1' }})
+
+		// just before group1 is done playing:
+		const state2 = Resolver.getState(tl, now + 91)
+		expect(state2.LLayers['1']).toBeTruthy()
+		expect(state2.LLayers['1'].id).toBe('child2')
+
+		const events2 = Resolver.getNextEvents(tl, now + 91)
+
+		expect(events2[0]).toMatchObject({
+			type: EventType.END, time: 1092, obj: { id: 'child2' }})
+		expect(events2[1]).toMatchObject({
+			type: EventType.START, time: 1092, obj: { id: 'child0' }})
+		expect(events2[2]).toMatchObject({
+			type: EventType.END, time: 1122, obj: { id: 'child0' }})
+
+		expect(data).toEqual(getTestData('repeatinggroupinrepeatinggroup')) // Make sure the original data is unmodified
+	},
+	'test group with duration and infinite child': () => {
+
+		const data = clone(getTestData('groupwithduration'))
+
+		const tl = Resolver.getTimelineInWindow(data)
+		expect(tl.resolved).toHaveLength(1)
+		expect(tl.unresolved).toHaveLength(0)
+
+		const tld0 = Resolver.developTimelineAroundTime(tl, now)
+
+		expect(tld0.resolved).toHaveLength(1)
+		expect(tld0.groups).toHaveLength(1)
+		expect(tld0.unresolved).toHaveLength(0)
+
+		expect(tld0.resolved[0]).toMatchObject({
+			id: 'child0', resolved:  { startTime: 1000 }})
+
+		const state0 = Resolver.getState(tl, now)
+		expect(state0.LLayers['1']).toBeTruthy()
+		expect(state0.LLayers['1'].id).toBe('child0')
+
+		const events0 = Resolver.getNextEvents(tl, now)
+		expect(events0).toHaveLength(2)
+		expect(events0[0]).toMatchObject({
+			type: EventType.START, time: 1000, obj: { id: 'child0' }})
+		expect(events0[1]).toMatchObject({
+			type: EventType.END, time: 1030, obj: { id: 'child0' }})
+
+		// a bit in:
+		const state1 = Resolver.getState(tl, now + 50)
+		expect(state1.LLayers['1']).toBeFalsy()
+
+		const events1 = Resolver.getNextEvents(tl, now + 50)
+		expect(events1).toHaveLength(0)
+
+		// just before group1 is done playing:
+		const state2 = Resolver.getState(tl, now + 29)
+		expect(state2.LLayers['1']).toBeTruthy()
+		expect(state2.LLayers['1'].id).toBe('child0')
+
+		const events2 = Resolver.getNextEvents(tl, now + 29)
+
+		expect(events2[0]).toMatchObject({
+			type: EventType.END, time: 1030, obj: { id: 'child0' }})
+
+		expect(data).toEqual(getTestData('groupwithduration')) // Make sure the original data is unmodified
+	},
+	'infinite group': () => {
+		const data = clone(getTestData('infinitegroup'))
+
+		const tl = Resolver.getTimelineInWindow(data)
+		expect(tl.resolved).toHaveLength(1)
+		expect(tl.unresolved).toHaveLength(0)
+
+		const tld = Resolver.developTimelineAroundTime(tl, now)
+		expect(tld.resolved).toHaveLength(2)
+		expect(tld.unresolved).toHaveLength(0)
+
+		const events0 = Resolver.getNextEvents(tl, now)
+		expect(events0).toHaveLength(3)
+		const state0 = Resolver.getState(tl, now)
+		expect(state0.LLayers['1']).toBeTruthy()
+		expect(state0.LLayers['1'].id).toBe('child0')
+
+		expect(data).toEqual(getTestData('infinitegroup')) // Make sure the original data is unmodified
+	},
+	'logical objects in group': () => {
+		const data = clone(getTestData('logicalInGroup'))
+
+		const tl = Resolver.getTimelineInWindow(data)
+		expect(tl.resolved).toHaveLength(1)
+		expect(tl.unresolved).toHaveLength(1)
+
+		const tld = Resolver.developTimelineAroundTime(tl, now)
+		expect(tld.resolved).toHaveLength(1)
+		expect(tld.unresolved).toHaveLength(1)
+
+		const events0 = Resolver.getNextEvents(tl, now)
+		expect(events0).toHaveLength(0)
+		// Resolver.setTraceLevel(TraceLevel.TRACE)
+		const state0 = Resolver.getState(tl, now)
+		expect(state0.LLayers['2']).toBeTruthy()
+		expect(state0.GLayers['2']).toBeTruthy()
+		expect(state0.LLayers['2'].id).toBe('child0')
+
+		expect(state0.LLayers['3']).toBeTruthy()
+		expect(state0.GLayers['3']).toBeTruthy()
+		expect(state0.LLayers['3'].id).toBe('outside0')
+
+		expect(data).toEqual(getTestData('logicalInGroup')) // Make sure the original data is unmodified
+	},
+	'logical objects in group with logical expr': () => {
+		const data = clone(getTestData('logicalInGroupLogical'))
+
+		const tl = Resolver.getTimelineInWindow(data)
+		expect(data).toEqual(getTestData('logicalInGroupLogical')) // Make sure the original data is unmodified
+		// expect(tl.resolved).toHaveLength(1)
+		// expect(tl.unresolved).toHaveLength(1)
+
+		// let tld = Resolver.developTimelineAroundTime(tl, now)
+		// expect(tld.resolved).toHaveLength(2)
+		// expect(tld.unresolved).toHaveLength(1)
+
+		// let events0 = Resolver.getNextEvents(tl, now)
+		// expect(events0).toHaveLength(0)
+		// Resolver.setTraceLevel(TraceLevel.TRACE)
+		const state0 = Resolver.getState(tl, now)
+		expect(state0.LLayers['2']).toBeTruthy()
+		expect(state0.GLayers['2']).toBeTruthy()
+		expect(state0.LLayers['2'].id).toBe('child0')
+
+		expect(state0.LLayers['4']).toBeFalsy()
+		expect(state0.GLayers['4']).toBeFalsy()
+
+		expect(data).toEqual(getTestData('logicalInGroupLogical')) // Make sure the original data is unmodified
+	},
+	'keyframe in a grouped object': () => {
+		const data = clone(getTestData('keyframeingroup'))
+		const tl = Resolver.getTimelineInWindow(data)
+		expect(tl.resolved).toHaveLength(1)
+
+		const events = Resolver.getNextEvents(data, 1000, 4)
+		expect(events.length).toEqual(4)
+		expect(events[1].time).toEqual(1010)
+		expect(events[2].time).toEqual(1020)
+
+		const state0 = Resolver.getState(data, 1015)
+
+		expect(state0.LLayers['2']).toBeTruthy()
+		const obj2 = state0.LLayers['2']
+
+		expect(obj2.resolved.mixer.opacity).toEqual(0)
+	},
+	'relative durations': () => {
+		const data = clone(getTestData('relativeduration0'))
+		const tl = Resolver.getTimelineInWindow(data)
+		expect(tl.resolved).toHaveLength(4)
+
+		const events = Resolver.getNextEvents(data, 1000)
+		expect(events.length).toEqual(8)
+		expect(events[0].time).toEqual(1000)
+		expect(events[1].time).toEqual(1060)
+		expect(events[2].time).toEqual(1060)
+		expect(events[3].time).toEqual(1090)
+		expect(events[4].time).toEqual(1090)
+		expect(events[5].time).toEqual(1180)
+		expect(events[6].time).toEqual(1180)
+		expect(events[7].time).toEqual(5400)
+
+		const state0 = Resolver.getState(data, 1030)
+		expect(state0.LLayers['1']).toBeTruthy()
+		expect(state0.LLayers['1'].id).toEqual('obj0')
+
+		const state1 = Resolver.getState(data, 1070)
+		expect(state1.LLayers['1']).toBeTruthy()
+		expect(state1.LLayers['1'].id).toEqual('obj1')
+
+		const state2 = Resolver.getState(data, 1100)
+		expect(state2.LLayers['1']).toBeTruthy()
+		expect(state2.LLayers['1'].id).toEqual('obj2')
+
+		const state3 = Resolver.getState(data, 1190)
+		expect(state3.LLayers['1']).toBeTruthy()
+		expect(state3.LLayers['1'].id).toEqual('obj3')
+
+		const state4 = Resolver.getState(data, 5390)
+		expect(state4.LLayers['1']).toBeTruthy()
+		expect(state4.LLayers['1'].id).toEqual('obj3')
+
+		const state5 = Resolver.getState(data, 5401)
+		expect(state5.LLayers['1']).toBeFalsy()
+	},
+	'Circular dependency': () => {
+		const data = clone(getTestData('circulardependency0'))
+		const tl = Resolver.getTimelineInWindow(data)
+		expect(tl.resolved).toHaveLength(0)
+
+		data[0].duration = 10 // break the circular dependency
+
+		const tl2 = Resolver.getTimelineInWindow(data)
+		expect(tl2.resolved).toHaveLength(3)
+	}
+}
+const onlyTests: Tests = {}
+_.each(tests, (t, key: string) => {
+	if ((key.match(/^only/))) {
+		onlyTests[key] = t
+	}
 })
-test('simple group', () => {
+if (!_.isEmpty(onlyTests)) tests = onlyTests
 
-	const data = clone(getTestData('simplegroup'))
-
-	const tl = Resolver.getTimelineInWindow(data)
-	expect(data).toEqual(getTestData('simplegroup')) // Make sure the original data is unmodified
-	expect(tl.resolved).toHaveLength(2)
-	expect(tl.unresolved).toHaveLength(0)
-
-	const tld = Resolver.developTimelineAroundTime(tl, now)
-	expect(tld.resolved).toHaveLength(3)
-	expect(tld.unresolved).toHaveLength(0)
-
-	const events0 = Resolver.getNextEvents(tl, now)
-	expect(events0).toHaveLength(5)
-	const state0 = Resolver.getState(tl, now)
-	expect(state0.LLayers['2']).toBeTruthy()
-	expect(state0.GLayers['2']).toBeTruthy()
-	expect(state0.LLayers['2'].id).toBe('child0')
-
-	const events1 = Resolver.getNextEvents(tl, now + 10)
-	expect(events1).toHaveLength(3)
-	const state1 = Resolver.getState(tl, now + 10)
-	expect(state1.LLayers['2']).toBeTruthy()
-	expect(state1.GLayers['2']).toBeTruthy()
-	expect(state1.LLayers['2'].id).toBe('child1')
-
-	const events2 = Resolver.getNextEvents(tl, now + 25)
-	expect(events2).toHaveLength(2)
-	const state2 = Resolver.getState(tl, now + 25)
-	expect(state2.LLayers['2']).toBeFalsy()
-	expect(state2.GLayers['2']).toBeFalsy()
-
-	const state3 = Resolver.getState(tl, now + 60)
-	expect(state3.LLayers['2']).toBeTruthy()
-	expect(state3.GLayers['2']).toBeTruthy()
-	expect(state3.LLayers['2'].id).toBe('obj1')
-
-	expect(data).toEqual(getTestData('simplegroup')) // Make sure the original data was unmodified
+describe('All tests', () => {
+	_.each(tests, (t, key) => {
+		test(key, () => {
+			reverseData = false
+			t()
+		})
+	})
 })
-test('repeating group', () => {
-
-	const data = clone(getTestData('repeatinggroup'))
-
-	const tl = Resolver.getTimelineInWindow(data)
-	expect(tl.resolved).toHaveLength(2)
-	expect(tl.unresolved).toHaveLength(0)
-
-	const tld0 = Resolver.developTimelineAroundTime(tl, now)
-
-	expect(tld0.resolved).toHaveLength(3)
-	expect(tld0.resolved[0].id).toBe('child0')
-	expect(tld0.resolved[0].resolved.startTime).toBe(990)
-	expect(tld0.resolved[1].id).toBe('child1')
-	expect(tld0.resolved[1].resolved.startTime).toBe(1005)
-
-	const events0 = Resolver.getNextEvents(tl, now)
-	expect(events0).toHaveLength(5)
-	expect(events0[0]).toMatchObject({
-		type: EventType.END, time: 1005, obj: { id: 'child0' }})
-	expect(events0[1]).toMatchObject({
-		type: EventType.START, time: 1005, obj: { id: 'child1' }})
-	expect(events0[2]).toMatchObject({
-		type: EventType.END, time: 1015, obj: { id: 'child1' }})
-
-	const state0 = Resolver.getState(tl, now)
-	expect(state0.LLayers['1']).toBeTruthy()
-	expect(state0.LLayers['1'].id).toBe('child0')
-
-	const tld1 = Resolver.developTimelineAroundTime(tl, now + 10)
-	expect(tld1.resolved).toHaveLength(3)
-	expect(tld1.resolved[0].id).toBe('child1')
-	expect(tld1.resolved[0].resolved.startTime).toBe(1005)
-	expect(tld1.resolved[1].id).toBe('child0')
-	expect(tld1.resolved[1].resolved.startTime).toBe(1015)
-	const events1 = Resolver.getNextEvents(tl, now + 10)
-	expect(events1).toHaveLength(5)
-	expect(events1[0]).toMatchObject({
-		type: EventType.END, time: 1015, obj: { id: 'child1' }})
-	expect(events1[1]).toMatchObject({
-		type: EventType.START, time: 1015, obj: { id: 'child0' }})
-	expect(events1[2]).toMatchObject({
-		type: EventType.END, time: 1030, obj: { id: 'child0' }})
-
-	const state1 = Resolver.getState(tl, now + 10)
-	expect(state1.LLayers['1']).toBeTruthy()
-	expect(state1.LLayers['1'].id).toBe('child1')
-
-	// Next loop:
-	const tld2 = Resolver.developTimelineAroundTime(tl, now + 25)
-	expect(tld2.resolved).toHaveLength(3)
-	expect(tld2.resolved[0].id).toBe('child0')
-	expect(tld2.resolved[0].resolved.startTime).toBe(1015)
-	expect(tld2.resolved[1].id).toBe('child1')
-	expect(tld2.resolved[1].resolved.startTime).toBe(1030)
-	const events2 = Resolver.getNextEvents(tl, now + 25)
-	expect(events2).toHaveLength(5)
-	expect(events2[0]).toMatchObject({
-		type: EventType.END, time: 1030, obj: { id: 'child0' }})
-	expect(events2[1]).toMatchObject({
-		type: EventType.START, time: 1030, obj: { id: 'child1' }})
-	expect(events2[2]).toMatchObject({
-		type: EventType.END, time: 1040, obj: { id: 'child1' }})
-
-	const state2 = Resolver.getState(tl, now + 25)
-	expect(state2.LLayers['1']).toBeTruthy()
-	expect(state2.LLayers['1'].id).toBe('child0')
-
-	const state3 = Resolver.getState(tl, now + 35)
-	expect(state3.LLayers['1']).toBeTruthy()
-	expect(state3.LLayers['1'].id).toBe('child1')
-	const events3 = Resolver.getNextEvents(tl, now + 35)
-	expect(events3).toHaveLength(5)
-
-	// just before group0 is done:
-	// let tld4 = Resolver.developTimelineAroundTime(tl, now + 50)
-	const events4 = Resolver.getNextEvents(tl, now + 50)
-	expect(events4[0]).toMatchObject({
-		type: EventType.END, time: 1053, obj: { id: 'child0' }})
-	expect(events4[1]).toMatchObject({
-		type: EventType.START, time: 1053, obj: { id: 'obj1' }})
-	expect(events4[2]).toMatchObject({
-		type: EventType.END, time: 1070, obj: { id: 'obj1' }})
-
-	expect(data).toEqual(getTestData('repeatinggroup')) // Make sure the original data is unmodified
-
-})
-test('repeating group in repeating group', () => {
-
-	const data = clone(getTestData('repeatinggroupinrepeatinggroup'))
-
-	const tl = Resolver.getTimelineInWindow(data)
-	expect(tl.resolved).toHaveLength(2)
-	expect(tl.unresolved).toHaveLength(0)
-
-	const tld0 = Resolver.developTimelineAroundTime(tl, now)
-
-	expect(tld0.resolved).toHaveLength(4)
-	expect(tld0.groups).toHaveLength(2)
-	expect(tld0.unresolved).toHaveLength(0)
-
-	expect(tld0.resolved[0]).toMatchObject({
-		id: 'child0', resolved:  { startTime: 1000 }})
-	expect(tld0.resolved[1]).toMatchObject({
-		id: 'child1', resolved:  { startTime: 1030 }})
-	expect(tld0.resolved[2]).toMatchObject({
-		id: 'child2', resolved:  { startTime: 1040 }})
-	expect(tld0.resolved[3]).toMatchObject({
-		id: 'obj1', resolved:  { startTime: 1300 }})
-
-	const state0 = Resolver.getState(tl, now)
-	expect(state0.LLayers['1']).toBeTruthy()
-	expect(state0.LLayers['1'].id).toBe('child0')
-
-	const events0 = Resolver.getNextEvents(tl, now)
-	expect(events0).toHaveLength(8)
-	expect(events0[0]).toMatchObject({
-		type: EventType.START, time: 1000, obj: { id: 'child0' }})
-	expect(events0[1]).toMatchObject({
-		type: EventType.END, time: 1030, obj: { id: 'child0' }})
-	expect(events0[2]).toMatchObject({
-		type: EventType.START, time: 1030, obj: { id: 'child1' }})
-	expect(events0[3]).toMatchObject({
-		type: EventType.END, time: 1040, obj: { id: 'child1' }})
-	expect(events0[4]).toMatchObject({
-		type: EventType.START, time: 1040, obj: { id: 'child2' }})
-	expect(events0[5]).toMatchObject({
-		type: EventType.END, time: 1055, obj: { id: 'child2' }})
-	expect(events0[6]).toMatchObject({
-		type: EventType.START, time: 1300, obj: { id: 'obj1' }})
-	expect(events0[7]).toMatchObject({
-		type: EventType.END, time: 1360, obj: { id: 'obj1' }})
-
-	// a bit in:
-	const state1 = Resolver.getState(tl, now + 50)
-	expect(state1.LLayers['1']).toBeTruthy()
-	expect(state1.LLayers['1'].id).toBe('child2')
-
-	const events1 = Resolver.getNextEvents(tl, now + 50)
-	expect(events1).toHaveLength(7)
-	expect(events1[0]).toMatchObject({
-		type: EventType.END, time: 1055, obj: { id: 'child2' }})
-	expect(events1[1]).toMatchObject({
-		type: EventType.START, time: 1055, obj: { id: 'child1' }})
-	expect(events1[2]).toMatchObject({
-		type: EventType.END, time: 1065, obj: { id: 'child1' }})
-
-	// just before group1 is done playing:
-	const state2 = Resolver.getState(tl, now + 91)
-	expect(state2.LLayers['1']).toBeTruthy()
-	expect(state2.LLayers['1'].id).toBe('child2')
-
-	const events2 = Resolver.getNextEvents(tl, now + 91)
-
-	expect(events2[0]).toMatchObject({
-		type: EventType.END, time: 1092, obj: { id: 'child2' }})
-	expect(events2[1]).toMatchObject({
-		type: EventType.START, time: 1092, obj: { id: 'child0' }})
-	expect(events2[2]).toMatchObject({
-		type: EventType.END, time: 1122, obj: { id: 'child0' }})
-
-	expect(data).toEqual(getTestData('repeatinggroupinrepeatinggroup')) // Make sure the original data is unmodified
-})
-test('test group with duration and infinite child', () => {
-
-	const data = clone(getTestData('groupwithduration'))
-
-	const tl = Resolver.getTimelineInWindow(data)
-	expect(tl.resolved).toHaveLength(1)
-	expect(tl.unresolved).toHaveLength(0)
-
-	const tld0 = Resolver.developTimelineAroundTime(tl, now)
-
-	expect(tld0.resolved).toHaveLength(1)
-	expect(tld0.groups).toHaveLength(1)
-	expect(tld0.unresolved).toHaveLength(0)
-
-	expect(tld0.resolved[0]).toMatchObject({
-		id: 'child0', resolved:  { startTime: 1000 }})
-
-	const state0 = Resolver.getState(tl, now)
-	expect(state0.LLayers['1']).toBeTruthy()
-	expect(state0.LLayers['1'].id).toBe('child0')
-
-	const events0 = Resolver.getNextEvents(tl, now)
-	expect(events0).toHaveLength(2)
-	expect(events0[0]).toMatchObject({
-		type: EventType.START, time: 1000, obj: { id: 'child0' }})
-	expect(events0[1]).toMatchObject({
-		type: EventType.END, time: 1030, obj: { id: 'child0' }})
-
-	// a bit in:
-	const state1 = Resolver.getState(tl, now + 50)
-	expect(state1.LLayers['1']).toBeFalsy()
-
-	const events1 = Resolver.getNextEvents(tl, now + 50)
-	expect(events1).toHaveLength(0)
-
-	// just before group1 is done playing:
-	const state2 = Resolver.getState(tl, now + 29)
-	expect(state2.LLayers['1']).toBeTruthy()
-	expect(state2.LLayers['1'].id).toBe('child0')
-
-	const events2 = Resolver.getNextEvents(tl, now + 29)
-
-	expect(events2[0]).toMatchObject({
-		type: EventType.END, time: 1030, obj: { id: 'child0' }})
-
-	expect(data).toEqual(getTestData('groupwithduration')) // Make sure the original data is unmodified
-})
-test('infinite group', () => {
-	const data = clone(getTestData('infinitegroup'))
-
-	const tl = Resolver.getTimelineInWindow(data)
-	expect(tl.resolved).toHaveLength(1)
-	expect(tl.unresolved).toHaveLength(0)
-
-	const tld = Resolver.developTimelineAroundTime(tl, now)
-	expect(tld.resolved).toHaveLength(2)
-	expect(tld.unresolved).toHaveLength(0)
-
-	const events0 = Resolver.getNextEvents(tl, now)
-	expect(events0).toHaveLength(3)
-	const state0 = Resolver.getState(tl, now)
-	expect(state0.LLayers['1']).toBeTruthy()
-	expect(state0.LLayers['1'].id).toBe('child0')
-
-	expect(data).toEqual(getTestData('infinitegroup')) // Make sure the original data is unmodified
-})
-test('logical objects in group', () => {
-	const data = clone(getTestData('logicalInGroup'))
-
-	const tl = Resolver.getTimelineInWindow(data)
-	expect(tl.resolved).toHaveLength(1)
-	expect(tl.unresolved).toHaveLength(1)
-
-	const tld = Resolver.developTimelineAroundTime(tl, now)
-	expect(tld.resolved).toHaveLength(1)
-	expect(tld.unresolved).toHaveLength(1)
-
-	const events0 = Resolver.getNextEvents(tl, now)
-	expect(events0).toHaveLength(0)
-	// Resolver.setTraceLevel(TraceLevel.TRACE)
-	const state0 = Resolver.getState(tl, now)
-	expect(state0.LLayers['2']).toBeTruthy()
-	expect(state0.GLayers['2']).toBeTruthy()
-	expect(state0.LLayers['2'].id).toBe('child0')
-
-	expect(state0.LLayers['3']).toBeTruthy()
-	expect(state0.GLayers['3']).toBeTruthy()
-	expect(state0.LLayers['3'].id).toBe('outside0')
-
-	expect(data).toEqual(getTestData('logicalInGroup')) // Make sure the original data is unmodified
-})
-test('logical objects in group with logical expr', () => {
-	const data = clone(getTestData('logicalInGroupLogical'))
-
-	const tl = Resolver.getTimelineInWindow(data)
-	expect(data).toEqual(getTestData('logicalInGroupLogical')) // Make sure the original data is unmodified
-	// expect(tl.resolved).toHaveLength(1)
-	// expect(tl.unresolved).toHaveLength(1)
-
-	// let tld = Resolver.developTimelineAroundTime(tl, now)
-	// expect(tld.resolved).toHaveLength(2)
-	// expect(tld.unresolved).toHaveLength(1)
-
-	// let events0 = Resolver.getNextEvents(tl, now)
-	// expect(events0).toHaveLength(0)
-	// Resolver.setTraceLevel(TraceLevel.TRACE)
-	const state0 = Resolver.getState(tl, now)
-	expect(state0.LLayers['2']).toBeTruthy()
-	expect(state0.GLayers['2']).toBeTruthy()
-	expect(state0.LLayers['2'].id).toBe('child0')
-
-	expect(state0.LLayers['4']).toBeFalsy()
-	expect(state0.GLayers['4']).toBeFalsy()
-
-	expect(data).toEqual(getTestData('logicalInGroupLogical')) // Make sure the original data is unmodified
-})
-test('keyframe in a grouped object', () => {
-	const data = clone(getTestData('keyframeingroup'))
-	const tl = Resolver.getTimelineInWindow(data)
-	expect(tl.resolved).toHaveLength(1)
-
-	const events = Resolver.getNextEvents(data, 1000, 4)
-	expect(events.length).toEqual(4)
-	expect(events[1].time).toEqual(1010)
-	expect(events[2].time).toEqual(1020)
-
-	const state0 = Resolver.getState(data, 1015)
-
-	expect(state0.LLayers['2']).toBeTruthy()
-	const obj2 = state0.LLayers['2']
-
-	expect(obj2.resolved.mixer.opacity).toEqual(0)
-})
-test('relative durations', () => {
-	const data = clone(getTestData('relativeduration0'))
-	const tl = Resolver.getTimelineInWindow(data)
-	expect(tl.resolved).toHaveLength(4)
-
-	const events = Resolver.getNextEvents(data, 1000)
-	expect(events.length).toEqual(8)
-	expect(events[0].time).toEqual(1000)
-	expect(events[1].time).toEqual(1060)
-	expect(events[2].time).toEqual(1060)
-	expect(events[3].time).toEqual(1090)
-	expect(events[4].time).toEqual(1090)
-	expect(events[5].time).toEqual(1180)
-	expect(events[6].time).toEqual(1180)
-	expect(events[7].time).toEqual(5400)
-
-	const state0 = Resolver.getState(data, 1030)
-	expect(state0.LLayers['1']).toBeTruthy()
-	expect(state0.LLayers['1'].id).toEqual('obj0')
-
-	const state1 = Resolver.getState(data, 1070)
-	expect(state1.LLayers['1']).toBeTruthy()
-	expect(state1.LLayers['1'].id).toEqual('obj1')
-
-	const state2 = Resolver.getState(data, 1100)
-	expect(state2.LLayers['1']).toBeTruthy()
-	expect(state2.LLayers['1'].id).toEqual('obj2')
-
-	const state3 = Resolver.getState(data, 1190)
-	expect(state3.LLayers['1']).toBeTruthy()
-	expect(state3.LLayers['1'].id).toEqual('obj3')
-
-	const state4 = Resolver.getState(data, 5390)
-	expect(state4.LLayers['1']).toBeTruthy()
-	expect(state4.LLayers['1'].id).toEqual('obj3')
-
-	const state5 = Resolver.getState(data, 5401)
-	expect(state5.LLayers['1']).toBeFalsy()
-})
-test('Circular dependency', () => {
-	const data = clone(getTestData('circulardependency0'))
-	const tl = Resolver.getTimelineInWindow(data)
-	expect(tl.resolved).toHaveLength(0)
-
-	data[0].duration = 10 // break the circular dependency
-
-	const tl2 = Resolver.getTimelineInWindow(data)
-	expect(tl2.resolved).toHaveLength(3)
+describe('Tests with reversed data', () => {
+	_.each(tests, (t, key) => {
+		test(key, () => {
+			reverseData = true
+			t()
+		})
+	})
 })
 
 // TOOD: test group
