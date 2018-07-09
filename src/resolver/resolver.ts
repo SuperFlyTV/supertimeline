@@ -787,7 +787,8 @@ function resolveObjectDuration (
 			let result: IterateResolveObjectsResult = {
 				lastEndTime: null,
 				hasInfiniteDuration: false,
-				unresolvedObjects: []
+				unresolvedObjects: [],
+				resolvedObjects: []
 			}
 
 			log('RESOLVE GROUP DURATION ' + obj.id,TraceLevel.TRACE)
@@ -795,7 +796,6 @@ function resolveObjectDuration (
 			// let hasInfiniteDuration = false
 			if (obj.content && obj.content.objects) {
 				// let obj = clone(obj)
-
 				if (!obj.content.hasClonedChildren) { // we should clone out children, so that we wont affect the original objects
 					obj.content.hasClonedChildren = true
 					obj.content.objects = _.map(obj.content.objects, (o: any) => {
@@ -804,24 +804,21 @@ function resolveObjectDuration (
 						return o2
 					})
 				}
-
 				result = iterateResolveObjects(obj.content.objects, resolvedObjects, resolveObjectTouches, obj0)
-
 				obj.content.objects = result.resolvedObjects.concat(result.unresolvedObjects as Array<any>)
 			}
-
-			obj.resolved.innerDuration = result.lastEndTime || 0
-
+			innerDuration = result.lastEndTime || 0
+			obj.resolved.innerDuration = innerDuration
 			const duration = resolveDuration(obj)
-			outerDuration = (
-				(duration || 0) > 0 || duration === 0 ?
-				duration :
-				(result.lastEndTime || 0)
-			)
-			obj.resolved.outerDuration = outerDuration
-
+			if (duration !== null) {
+				outerDuration = (
+					(duration || 0) > 0 || duration === 0 ?
+					duration :
+					(result.lastEndTime || 0)
+				)
+				obj.resolved.outerDuration = outerDuration
+			}
 			log('GROUP DURATION: ' + obj.resolved.innerDuration + ', ' + obj.resolved.outerDuration,TraceLevel.TRACE)
-
 		}
 
 	} else {
@@ -842,6 +839,7 @@ function resolveObjectDuration (
 		)
 		obj.resolved.innerDuration = innerDuration
 	}
+	log('Duration ' + outerDuration + ', ' + innerDuration, TraceLevel.TRACE)
 
 	resolveObjectEndTime(obj, null, null) // don't provide resolvedObjects here, that might cause an infinite loop
 	// resolveObjectEndTime(obj) // don't provide resolvedObjects here, that might cause an infinite loop
@@ -2070,14 +2068,12 @@ function iterateResolveObjects (
 					startTime
 				)
 				if (startTimeIsOk) {
-					log('resolved object ' + obj.id,TraceLevel.TRACE)
-
 					const outerDuration = resolveObjectDuration(obj,resolvedObjects, resolveObjectTouches)
-
 					if (
 						outerDuration !== null &&
 						obj.resolved.innerDuration !== null
 					) {
+						log('resolved object ' + obj.id,TraceLevel.TRACE)
 
 						resolvedObjects[obj.id] = obj
 						unresolvedObjects.splice(i,1)

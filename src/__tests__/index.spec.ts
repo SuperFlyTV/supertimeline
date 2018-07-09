@@ -2130,6 +2130,16 @@ let tests: Tests = {
 		const data = clone(getTestData('relativedurationorder0'))
 		const tl = Resolver.getTimelineInWindow(data)
 		expect(tl.resolved).toHaveLength(2)
+		const tld = Resolver.developTimelineAroundTime(tl, now)
+		expect(tld.resolved).toHaveLength(2)
+
+		const child0: TimelineResolvedObject = _.findWhere(tld.resolved, { id: 'child0' })
+		const child1: TimelineResolvedObject = _.findWhere(tld.resolved, { id: 'child1' })
+
+		expect(child0.resolved.startTime).toBe(1000)
+		expect(child0.resolved.endTime).toBe(1150)
+		expect(child1.resolved.startTime).toBe(1150)
+		expect(child1.resolved.endTime).toBe(0)
 
 		const events = Resolver.getNextEvents(data, 1000)
 		expect(events.length).toEqual(3)
