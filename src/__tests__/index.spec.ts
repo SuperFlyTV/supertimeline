@@ -1131,7 +1131,6 @@ let tests: Tests = {
 	'Basic timeline': () => {
 
 		const data = getTestData('basic')
-
 		const tl = Resolver.getTimelineInWindow(data)
 		expect(data).toEqual(getTestData('basic')) // Make sure the original data is unmodified
 
@@ -1731,7 +1730,6 @@ let tests: Tests = {
 		}).toThrowError()
 	},
 	'simple group': () => {
-
 		const data = clone(getTestData('simplegroup'))
 
 		const tl = Resolver.getTimelineInWindow(data)
@@ -1743,7 +1741,19 @@ let tests: Tests = {
 		expect(tld.resolved).toHaveLength(3)
 		expect(tld.unresolved).toHaveLength(0)
 
+		const child0: TimelineResolvedObject = _.findWhere(tld.resolved, { id: 'child0' })
+		const child1: TimelineResolvedObject = _.findWhere(tld.resolved, { id: 'child1' })
+		const obj1: TimelineResolvedObject = _.findWhere(tld.resolved, { id: 'obj1' })
+
+		expect(child0.resolved.startTime).toBe(990)
+		expect(child0.resolved.endTime).toBe(1005)
+		expect(child1.resolved.startTime).toBe(1005)
+		expect(child1.resolved.endTime).toBe(1015)
+		expect(obj1.resolved.startTime).toBe(1050)
+
 		const events0 = Resolver.getNextEvents(tl, now)
+		// console.log('tld', tld.resolved)
+		// console.log('events0', events0)
 		expect(events0).toHaveLength(5)
 		const state0 = Resolver.getState(tl, now)
 		expect(state0.LLayers['2']).toBeTruthy()
@@ -2110,7 +2120,8 @@ let tests: Tests = {
 		const tl = Resolver.getTimelineInWindow(data)
 		expect(tl.resolved).toHaveLength(0)
 
-		data[0].duration = 10 // break the circular dependency
+		const obj0: TimelineResolvedObject = _.findWhere(data, { id: 'obj0' })
+		obj0.duration = 10 // break the circular dependency
 
 		const tl2 = Resolver.getTimelineInWindow(data)
 		expect(tl2.resolved).toHaveLength(3)
