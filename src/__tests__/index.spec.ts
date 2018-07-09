@@ -1560,7 +1560,8 @@ let tests: Tests = {
 		expect(state0.LLayers['1']).toBeTruthy() // TimelineObject
 		expect(state0.LLayers['1'].id).toBe('obj0')
 
-		data[0].externalFunction = 'ext0'
+		const obj0: TimelineObject = _.findWhere(data, { id: 'obj0' })
+		obj0.externalFunction = 'ext0'
 
 		const externalFunctions0: ExternalFunctions = {
 			'ext0': jest.fn((resolvedObj: TimelineResolvedObject, state: TimelineState, tld: DevelopedTimeline) => {
@@ -1667,7 +1668,8 @@ let tests: Tests = {
 	'disabled objects on timeline': () => {
 
 		const data = clone(getTestData('basic'))
-		data[0].disabled = true
+		const obj0: TimelineObject = _.findWhere(data, { id: 'obj0' })
+		obj0.disabled = true
 
 		const tl = Resolver.getTimelineInWindow(data)
 
