@@ -1021,6 +1021,60 @@ const testData = {
 			LLayer: 1
 		}
 	],
+	'relativedurationorder0': [
+		{
+			id: 'group0', // the id must be unique
+
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now
+			},
+			duration: '#group1.start - #.start', // stop with start of child1
+			LLayer: 1,
+			isGroup: true,
+			repeating: false,
+			content: {
+				objects: [
+					{
+						id: 'child0', // the id must be unique
+
+						trigger: {
+							type: TriggerType.TIME_ABSOLUTE,
+							value: 0 // Relative to parent object
+						},
+						duration: 0,
+						LLayer: 1
+					}
+				]
+			}
+		},
+		{
+			id: 'group1', // the id must be unique
+
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now + 150
+			},
+			duration: 0, // infinite
+			LLayer: 2,
+			isGroup: true,
+			repeating: false,
+			content: {
+				objects: [
+					{
+						id: 'child1', // the id must be unique
+
+						trigger: {
+							type: TriggerType.TIME_ABSOLUTE,
+							value: 0 // Relative to parent object
+						},
+						duration: 0,
+						LLayer: 2
+					}
+				]
+			}
+		}
+	],
 	'circulardependency0': [
 		{
 			id: 'obj0', // the id must be unique
@@ -2058,6 +2112,27 @@ let tests: Tests = {
 
 		const tl2 = Resolver.getTimelineInWindow(data)
 		expect(tl2.resolved).toHaveLength(3)
+	},
+	'relative durations object order': () => {
+		const data = clone(getTestData('relativedurationorder0'))
+		const tl = Resolver.getTimelineInWindow(data)
+		expect(tl.resolved).toHaveLength(2)
+
+		const events = Resolver.getNextEvents(data, 1000)
+		expect(events.length).toEqual(3)
+		expect(events[0].time).toEqual(1000)
+		expect(events[1].time).toEqual(1150)
+		expect(events[2].time).toEqual(1150)
+
+		const state0 = Resolver.getState(data, 1030)
+		expect(state0.LLayers['1']).toBeTruthy()
+		expect(state0.LLayers['1'].id).toEqual('child0')
+		expect(state0.LLayers['2']).toBeFalsy()
+
+		const state1 = Resolver.getState(data, 1170)
+		expect(state1.LLayers['2']).toBeTruthy()
+		expect(state1.LLayers['2'].id).toEqual('child1')
+		expect(state1.LLayers['1']).toBeFalsy()
 	}
 }
 const onlyTests: Tests = {}
