@@ -1107,6 +1107,70 @@ const testData = {
 			duration: 10,
 			LLayer: 1
 		}
+	],
+	'dependenciesBetweengroupchildren': [
+		{
+			id: 'group0', // the id must be unique
+
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now
+			},
+			// duration: '', // stop with start of child1
+			LLayer: 1,
+			isGroup: true,
+			repeating: false,
+			content: {
+				objects: [
+					{
+						id: 'child0', // the id must be unique
+
+						trigger: {
+							type: TriggerType.TIME_ABSOLUTE,
+							value: 0 // Relative to parent object
+						},
+						duration: 10,
+						LLayer: 1
+					},
+					{
+						id: 'child1', // the id must be unique
+
+						trigger: {
+							type: TriggerType.TIME_RELATIVE,
+							value: '#child0.end'
+						},
+						duration: 20,
+						LLayer: 1
+					}
+				]
+			}
+		},
+		{
+			id: 'group1', // the id must be unique
+
+			trigger: {
+				type: TriggerType.TIME_RELATIVE,
+				value: '#child1.end'
+			},
+			// duration: '', // stop with start of child1
+			LLayer: 1,
+			isGroup: true,
+			repeating: false,
+			content: {
+				objects: [
+					{
+						id: 'child2', // the id must be unique
+
+						trigger: {
+							type: TriggerType.TIME_ABSOLUTE,
+							value: 0 // Relative to parent object
+						},
+						duration: '#child0.duration + #child1.duration',
+						LLayer: 1
+					}
+				]
+			}
+		}
 	]
 }
 let reverseData = false
@@ -1783,13 +1847,11 @@ let tests: Tests = {
 	'repeating group': () => {
 
 		const data = clone(getTestData('repeatinggroup'))
-
 		const tl = Resolver.getTimelineInWindow(data)
 		expect(tl.resolved).toHaveLength(2)
 		expect(tl.unresolved).toHaveLength(0)
 
 		const tld0 = Resolver.developTimelineAroundTime(tl, now)
-
 		expect(tld0.resolved).toHaveLength(3)
 		expect(tld0.resolved[0].id).toBe('child0')
 		expect(tld0.resolved[0].resolved.startTime).toBe(990)
@@ -2156,6 +2218,52 @@ let tests: Tests = {
 		expect(state1.LLayers['2']).toBeTruthy()
 		expect(state1.LLayers['2'].id).toEqual('child1')
 		expect(state1.LLayers['1']).toBeFalsy()
+	},
+	'Cross-dependencies between group children': () => {
+		const data = clone(getTestData('dependenciesBetweengroupchildren'))
+		const tl = Resolver.getTimelineInWindow(data)
+		expect(tl.resolved).toHaveLength(2)
+
+		const group0: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'group0' })
+		const group1: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'group1' })
+
+		expect(group0.resolved.startTime).toBe(1000)
+		expect(group1.resolved.startTime).toBe(1030)
+
+		const tld = Resolver.developTimelineAroundTime(tl, now)
+		expect(tld.resolved).toHaveLength(3)
+
+		const child0: TimelineResolvedObject = _.findWhere(tld.resolved, { id: 'child0' })
+		const child1: TimelineResolvedObject = _.findWhere(tld.resolved, { id: 'child1' })
+		const child2: TimelineResolvedObject = _.findWhere(tld.resolved, { id: 'child2' })
+
+		expect(child0.resolved.startTime).toBe(1000)
+		expect(child0.resolved.endTime).toBe(1010)
+		expect(child1.resolved.startTime).toBe(1010)
+		expect(child1.resolved.endTime).toBe(1030)
+		expect(child2.resolved.startTime).toBe(1030)
+		expect(child2.resolved.endTime).toBe(1060)
+
+		const events = Resolver.getNextEvents(data, 1000)
+		expect(events.length).toEqual(6)
+		expect(events[0].time).toEqual(1000)
+		expect(events[1].time).toEqual(1010)
+		expect(events[2].time).toEqual(1010)
+		expect(events[3].time).toEqual(1030)
+		expect(events[4].time).toEqual(1030)
+		expect(events[5].time).toEqual(1060)
+
+		const state0 = Resolver.getState(data, 1005)
+		expect(state0.LLayers['1']).toBeTruthy()
+		expect(state0.LLayers['1'].id).toEqual('child0')
+
+		const state1 = Resolver.getState(data, 1015)
+		expect(state1.LLayers['1']).toBeTruthy()
+		expect(state1.LLayers['1'].id).toEqual('child1')
+
+		const state2 = Resolver.getState(data, 1040)
+		expect(state2.LLayers['1']).toBeTruthy()
+		expect(state2.LLayers['1'].id).toEqual('child2')
 	}
 }
 const onlyTests: Tests = {}
