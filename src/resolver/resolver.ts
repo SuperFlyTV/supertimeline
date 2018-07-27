@@ -90,6 +90,7 @@ export interface ResolvedDetails {
 	repeatingStartTime?: StartTime,
 
 	templateData?: any
+	developed?: boolean
 
 	[key: string]: any
 }
@@ -457,7 +458,7 @@ function resolveTimeline (data: UnresolvedTimeline | ResolvedTimeline, filter?: 
 	const resolvedObjects: {
 		[id: string]: TimelineResolvedObject
 	} = {}
-	const unresolvedObjects: Array<TimelineObject> = []
+	let unresolvedObjects: Array<TimelineObject> = []
 	const objectIds: {
 		[id: string]: boolean
 	} = {}
@@ -503,47 +504,14 @@ function resolveTimeline (data: UnresolvedTimeline | ResolvedTimeline, filter?: 
 	while (hasAddedAnyObjects) {
 		hasAddedAnyObjects = false
 
-		log('======= Iterating objects...',TraceLevel.TRACE)
+		const clonedUnresolvedObjects = _.map(unresolvedObjects, (o: any) => {
+			const o2 = _.clone(o)
+			// o2.content = _.clone(o2.content)
+			return o2
+		})
+		const result = iterateResolveObjects(clonedUnresolvedObjects, resolvedObjects, resolveObjectTouches)
 
-		for (let i = 0; i < unresolvedObjects.length; i++) {
-			const obj: TimelineResolvedObject = _.extend(_.clone(unresolvedObjects[i]),{
-				resolved: {}
-			})
-			if (obj) {
-
-				log('--------------- object ' + obj.id,TraceLevel.TRACE)
-				// if (!obj.resolved) obj.resolved = {}
-				if (obj.disabled) obj.resolved.disabled = true
-
-				let triggerTime: StartTime = null
-				try {
-					triggerTime = resolveObjectStartTime(obj, resolvedObjects, resolveObjectTouches)
-				} catch (e) {
-					console.log(e)
-					triggerTime = null
-				}
-				if (triggerTime) {
-					log('resolved object ' + i,TraceLevel.TRACE)
-
-					const outerDuration = resolveObjectDuration(obj,resolvedObjects, resolveObjectTouches)
-
-					if (outerDuration !== null && obj.resolved.innerDuration !== null) {
-
-						resolvedObjects[obj.id] = obj
-						unresolvedObjects.splice(i,1)
-						i--
-						hasAddedAnyObjects = true // this will cause the iteration to run again
-					} else {
-						log('no duration',TraceLevel.TRACE)
-						log('outerDuration: ' + outerDuration,TraceLevel.TRACE)
-					}
-
-				}
-				// log(obj)
-				log(obj,TraceLevel.TRACE)
-
-			}
-		}
+		unresolvedObjects = result.unresolvedObjects
 	}
 	// Now we should have resolved all resolvable objects into absolute times.
 	// Any object that couldn't be resolved are left in unresolvedObjects
@@ -611,8 +579,13 @@ function developTimelineAroundTime (tl: ResolvedTimeline,time: SomeTime): Develo
 
 	return tl2
 }
-function getParentTime (obj: TimelineResolvedObject) {
-	let time = 0
+function getParentStartTime (
+	obj: TimelineResolvedObject,
+	resolveParentStartTime?: boolean,
+	resolvedObjects?: ResolvedObjectsStore,
+	resolveObjectTouches?: ResolvedObjectTouches
+): StartTime {
+	let time: StartTime = null
 	if (
 		_.has(obj.resolved,'repeatingStartTime') &&
 		obj.resolved.repeatingStartTime
@@ -621,17 +594,31 @@ function getParentTime (obj: TimelineResolvedObject) {
 
 	} else if (obj.resolved.startTime) {
 		time = obj.resolved.startTime
+	} else {
+		// if (resolveParentStartTime) {
+		if (resolvedObjects && resolveObjectTouches) {
+			time = resolveObjectStartTime(obj, resolvedObjects, resolveObjectTouches)
+		}
+		// }
 	}
+	if (time === null) return time
 
-	if (obj.parent) {
-		time += getParentTime(obj.parent) - (obj.parent.resolved.startTime || 0)
+	if (obj.parent && !obj.resolved.developed) {
+		const parentTime = getParentStartTime(
+			obj.parent,
+			resolveParentStartTime,
+			resolvedObjects,
+			resolveObjectTouches
+		)
+		if (parentTime === null) return null
+		time += parentTime - (obj.parent.resolved.startTime || 0)
 	}
-
+	log('getParentStartTime ' + obj.id + ' ' + time, TraceLevel.TRACE)
 	return time
 }
 function developObj (tl2: DevelopedTimeline, time: SomeTime, objOrg: TimelineResolvedObject, givenParentObj?: TimelineResolvedObject) {
 	// Develop and place on tl2:
-	log('developObj',TraceLevel.TRACE)
+	log('developObj ' + objOrg.id + ' ' + time,TraceLevel.TRACE)
 
 	const returnObj = _.clone(objOrg)
 	returnObj.resolved = _.clone(returnObj.resolved)
@@ -640,42 +627,56 @@ function developObj (tl2: DevelopedTimeline, time: SomeTime, objOrg: TimelineRes
 	returnObj.resolved.innerEndTime = returnObj.resolved.endTime
 
 	const parentObj = givenParentObj || returnObj.parent
-	let parentTime = 0
+
 	let parentIsRepeating = false
 	if (parentObj) {
-		parentTime = getParentTime(parentObj)
 		returnObj.resolved.parentId = parentObj.id
 
 		parentIsRepeating = (
 			_.has(parentObj.resolved,'repeatingStartTime') &&
 			parentObj.resolved.repeatingStartTime !== null
 		)
+		if (!returnObj.resolved.developed) {
+			let parentTime: StartTime = 0
+			parentTime = getParentStartTime(parentObj)
+			returnObj.resolved.startTime = (returnObj.resolved.startTime || 0) + (parentTime || 0)
+			if (returnObj.resolved.endTime) {
+				returnObj.resolved.endTime += (parentTime || 0)
+			}
+			returnObj.resolved.developed = true
+		} else if (
+			parentObj.resolved.repeatingStartTime &&
+			parentObj.resolved.startTime &&
+			returnObj.resolved.startTime &&
+			returnObj.resolved.endTime
+		) {
+			// parent is repeating, move our startTime forward then
+			const moveForward = parentObj.resolved.repeatingStartTime - parentObj.resolved.startTime
+			if (moveForward > 0) {
+				returnObj.resolved.startTime += moveForward
+				returnObj.resolved.endTime += moveForward
+			}
+		}
 	}
-
-	returnObj.resolved.startTime = (returnObj.resolved.startTime || 0) + parentTime
-
-	if (returnObj.resolved.endTime) {
-		returnObj.resolved.endTime += parentTime
-	}
-
 	if (
 		parentObj &&
 		parentIsRepeating &&
+		parentObj.resolved.innerDuration &&
 		returnObj.resolved.endTime &&
 		returnObj.resolved.startTime &&
-		parentObj.resolved.innerDuration &&
 		returnObj.resolved.endTime < time
 	) {
 		// The object's playtime has already passed, move forward then:
+
 		returnObj.resolved.startTime += parentObj.resolved.innerDuration
 		returnObj.resolved.endTime += parentObj.resolved.innerDuration
 	}
 
 	// cap inside parent:
 	if (parentObj &&
-		returnObj.resolved &&
 		parentObj.resolved &&
 		parentObj.resolved.endTime &&
+		returnObj.resolved &&
 		(
 			(returnObj.resolved.endTime || 0) > parentObj.resolved.endTime ||
 			!returnObj.resolved.endTime // infinite
@@ -686,9 +687,9 @@ function developObj (tl2: DevelopedTimeline, time: SomeTime, objOrg: TimelineRes
 
 	if (
 		parentObj &&
-		returnObj.resolved.startTime &&
 		parentObj.resolved.endTime &&
 		parentObj.resolved.startTime &&
+		returnObj.resolved.startTime &&
 		returnObj.resolved.endTime &&
 		(
 			returnObj.resolved.startTime > parentObj.resolved.endTime ||
@@ -752,15 +753,27 @@ function resolveObjectStartTime (
 
 	if (obj.trigger.type === TriggerType.TIME_ABSOLUTE) {
 
-		let val: number
+		let startTime: number
 		if (_.isNumber(obj.trigger.value)) {
-			val = obj.trigger.value
+			startTime = obj.trigger.value
 		} else {
-			val = parseFloat(obj.trigger.value + '')
+			startTime = parseFloat(obj.trigger.value + '')
+		}
+		if (obj.parent && typeof obj.parent === 'object') {
+			const parentTime = getParentStartTime(
+				obj.parent,
+				true,
+				resolvedObjects,
+				resolveObjectTouches
+			)
+			if (parentTime !== null) {
+				startTime = startTime + parentTime
+			}
 		}
 
 		// Easy, return the absolute time then:
-		obj.resolved.startTime = val
+		obj.resolved.startTime = startTime
+		obj.resolved.developed = true
 
 	} else if (obj.trigger.type === TriggerType.TIME_RELATIVE) {
 		// ooh, it's a relative time! Relative to what, one might ask? Let's find out:
@@ -768,6 +781,7 @@ function resolveObjectStartTime (
 		if (!_.has(obj.resolved,'startTime') || obj.resolved.startTime === null) {
 			const o = decipherTimeRelativeValue(obj.trigger.value + '', resolvedObjects, obj)
 			obj.resolved.startTime = (o ? o.value : null)
+			obj.resolved.developed = true
 			updateReferralIndex(obj, (o ? o.referralIndex : null))
 			updateReferredObjectIds(obj, (o ? o.referredObjectIds : null), resolvedObjects)
 		}
@@ -817,64 +831,47 @@ function resolveObjectDuration (
 
 		if (!_.has(obj.resolved,'outerDuration')) {
 
-			log('RESOLVE GROUP DURATION',TraceLevel.TRACE)
-			let lastEndTime: EndTime = -1
-			let hasInfiniteDuration = false
-			if (obj.content && obj.content.objects) {
-				// let obj = clone(obj)
+			let result: IterateResolveObjectsResult = {
+				lastEndTime: null,
+				hasInfiniteDuration: false,
+				unresolvedObjects: [],
+				resolvedObjects: []
+			}
+			const startTime = resolveObjectStartTime(obj, resolvedObjects, resolveObjectTouches)
 
-				if (!obj.content.hasClonedChildren) { // we should clone out children, so that we wont affect the original objects
-					obj.content.hasClonedChildren = true
-					obj.content.objects = _.map(obj.content.objects, (o: any) => {
-						const o2 = _.clone(o)
-						o2.content = _.clone(o2.content)
-						return o2
-					})
+			log('RESOLVE GROUP DURATION ' + obj.id,TraceLevel.TRACE)
+			// let lastEndTime: EndTime = -1
+			// let hasInfiniteDuration = false
+			if (startTime) {
+				if (obj.content && obj.content.objects) {
+					// let obj = clone(obj)
+					if (!obj.content.hasClonedChildren) { // we should clone out children, so that we wont affect the original objects
+						obj.content.hasClonedChildren = true
+						obj.content.objects = _.map(obj.content.objects, (o: any) => {
+							const o2 = _.clone(o)
+							o2.content = _.clone(o2.content)
+							return o2
+						})
+					}
+					result = iterateResolveObjects(obj.content.objects, resolvedObjects, resolveObjectTouches, obj0)
+					obj.content.objects = result.resolvedObjects.concat(result.unresolvedObjects as Array<any>)
 				}
-
-				_.each(obj.content.objects, function (child: TimelineResolvedObject) {
-
-					if (!child.parent) child.parent = obj0
-
-					if (!child.resolved) child.resolved = {}
-
-					const startTime = resolveObjectStartTime(child,resolvedObjects, resolveObjectTouches)
-
-					const outerDuration0 = resolveObjectDuration(child,resolvedObjects, resolveObjectTouches)
-
-					if (startTime !== null && outerDuration0 !== null && child.resolved.innerDuration !== null) {
-						resolvedObjects[child.id] = child
-					}
-
-					log(child,TraceLevel.TRACE)
-
-					if (child.resolved.endTime === 0) {
-						hasInfiniteDuration = true
-					}
-					if ((child.resolved.endTime || 0) > (lastEndTime || 0)) {
-						lastEndTime = child.resolved.endTime || 0
-					}
-				})
-			}
-
-			if (hasInfiniteDuration) {
-				lastEndTime = 0
 			} else {
-				if (lastEndTime === -1) lastEndTime = null
+				log('Cannot resolve group duration, has no own startTime ' + obj.id,TraceLevel.TRACE)
 			}
 
-			obj.resolved.innerDuration = lastEndTime || 0
-
+			innerDuration = (result.lastEndTime || 0) - (startTime || 0)
+			obj.resolved.innerDuration = innerDuration
 			const duration = resolveDuration(obj)
-			outerDuration = (
-				(duration || 0) > 0 || duration === 0 ?
-				duration :
-				(lastEndTime || 0)
-			)
-			obj.resolved.outerDuration = outerDuration
-
+			if (duration !== null) {
+				outerDuration = (
+					(duration || 0) > 0 || duration === 0 ?
+					duration :
+					(result.lastEndTime || 0)
+				)
+				obj.resolved.outerDuration = outerDuration
+			}
 			log('GROUP DURATION: ' + obj.resolved.innerDuration + ', ' + obj.resolved.outerDuration,TraceLevel.TRACE)
-
 		}
 
 	} else {
@@ -895,6 +892,7 @@ function resolveObjectDuration (
 		)
 		obj.resolved.innerDuration = innerDuration
 	}
+	log('Duration ' + outerDuration + ', ' + innerDuration, TraceLevel.TRACE)
 
 	resolveObjectEndTime(obj, null, null) // don't provide resolvedObjects here, that might cause an infinite loop
 	// resolveObjectEndTime(obj) // don't provide resolvedObjects here, that might cause an infinite loop
@@ -1197,11 +1195,30 @@ function resolveExpression (
 					obj: TimelineResolvedObject | TimelineResolvedKeyframe,
 					resolvedObjects: ResolvedObjectsStore
 				): StartTime => {
-					return (
+
+					let startTime = (
 						_.has(obj.resolved,'startTime') ?
 						(obj.resolved.startTime || 0) :
 						resolveObjectStartTime(obj, resolvedObjects, resolveObjectTouches)
 					)
+					if (startTime !== null) {
+
+						if (!obj.resolved.developed) {
+							if (obj.parent && typeof obj.parent === 'object') {
+								const parentTime = getParentStartTime(
+									obj.parent,
+									true,
+									resolvedObjects,
+									resolveObjectTouches
+								)
+								if (parentTime !== null) {
+									startTime = startTime + parentTime
+								}
+							}
+						}
+					}
+
+					return startTime
 				}
 				const getReferredDuration = (
 					obj: TimelineResolvedObject | TimelineResolvedKeyframe,
@@ -1231,6 +1248,7 @@ function resolveExpression (
 
 				ctx.touchedObjectExpressions[expression] = val
 
+				log('val ' + val, TraceLevel.TRACE)
 				return val
 			}
 		}
@@ -2006,10 +2024,7 @@ function isNumeric (num: any): boolean {
 	return !isNaN(num)
 }
 
-function log (str: any, levelName: TraceLevel): void {
-	let lvl: any = TraceLevel.ERRORS
-	if (levelName) lvl = TraceLevel[levelName] || 0
-
+function log (str: any, lvl: TraceLevel): void {
 	if (traceLevel >= lvl) console.log(str)
 }
 function explJoin (arr: Array<string>,decimator: string,lastDecimator: string): string {
@@ -2070,5 +2085,101 @@ function touchResolveObject (key: string, resolveObjectTouches?: ResolvedObjectT
 			throw Error('Circular dependency: ' + key)
 		}
 	}
+}
+interface IterateResolveObjectsResult {
+	lastEndTime: EndTime
+	hasInfiniteDuration: boolean,
+	unresolvedObjects: Array<TimelineObject>,
+	resolvedObjects: Array<TimelineResolvedObject>
+}
+function iterateResolveObjects (
+	unresolvedObjects: Array<TimelineObject>,
+	resolvedObjects: ResolvedObjectsStore,
+	resolveObjectTouches: ResolvedObjectTouches,
+	parentObj?: TimelineResolvedObject
+) {
+	const result: IterateResolveObjectsResult = {
+		lastEndTime: -1,
+		hasInfiniteDuration: false,
+		unresolvedObjects: [],
+		resolvedObjects: []
+	}
+
+	let hasAddedAnyObjects = true
+	while (hasAddedAnyObjects) {
+		hasAddedAnyObjects = false
+
+		if (parentObj) {
+			log('======= Iterating objects in ' + parentObj.id + '...',TraceLevel.TRACE)
+		} else {
+			log('======= Iterating objects...',TraceLevel.TRACE)
+		}
+
+		for (let i = 0; i < unresolvedObjects.length; i++) {
+		// _.each(unresolvedObjects, (obj: TimelineResolvedObject) => {
+			// @ts-ignore resolved attribute is added later
+			const obj: TimelineResolvedObject = unresolvedObjects[i]
+
+			if (obj) {
+				if (!obj.resolved) obj.resolved = {}
+
+				if (parentObj && !obj.parent) obj.parent = parentObj
+
+				log('--------------- object ' + obj.id,TraceLevel.TRACE)
+				// if (!obj.resolved) obj.resolved = {}
+				if (obj.disabled) obj.resolved.disabled = true
+
+				let startTime: StartTime = null
+				try {
+					startTime = resolveObjectStartTime(obj, resolvedObjects, resolveObjectTouches)
+				} catch (e) {
+					console.log(e)
+					startTime = null
+				}
+				const startTimeIsOk = (
+					(parentObj && startTime !== null) || // inside a group, 0 is okay too
+					startTime
+				)
+				if (startTimeIsOk) {
+					const outerDuration = resolveObjectDuration(obj,resolvedObjects, resolveObjectTouches)
+					if (
+						outerDuration !== null &&
+						obj.resolved.innerDuration !== null
+					) {
+						log('resolved object ' + obj.id,TraceLevel.TRACE)
+
+						resolvedObjects[obj.id] = obj
+						unresolvedObjects.splice(i,1)
+						result.resolvedObjects.push(obj)
+						i--
+						hasAddedAnyObjects = true // this will cause the iteration to run again
+					} else {
+						log('no duration',TraceLevel.TRACE)
+						log('outerDuration: ' + outerDuration,TraceLevel.TRACE)
+					}
+
+				} else {
+					log('object not resolved',TraceLevel.TRACE)
+				}
+
+				if (obj.resolved.endTime === 0) {
+					result.hasInfiniteDuration = true
+				}
+				if ((obj.resolved.endTime || 0) > (result.lastEndTime || 0)) {
+					result.lastEndTime = obj.resolved.endTime || 0
+				}
+				// log(obj)
+				log(obj,TraceLevel.TRACE)
+
+			}
+		}
+		result.unresolvedObjects = unresolvedObjects
+		if (result.hasInfiniteDuration) {
+			result.lastEndTime = 0
+		} else {
+			if (result.lastEndTime === -1) result.lastEndTime = null
+		}
+	}
+	return result
 }
 export { Resolver }
