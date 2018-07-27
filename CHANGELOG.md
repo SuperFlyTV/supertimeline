@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.0.0"></a>
+# [3.0.0](https://github.com/SuperFlyTV/supertimeline/compare/2.2.0...3.0.0) (2018-07-27)
+
+
+### Bug Fixes
+
+* bugfix for passing test "relative durations object order" ([31a886f](https://github.com/SuperFlyTV/supertimeline/commit/31a886f))
+* refactored the tests, making them all run with the data reversed as well ([e823243](https://github.com/SuperFlyTV/supertimeline/commit/e823243))
+* refactoring: object resolving iteration loop, so the same function is used inside groups as well as on root ([36fbb58](https://github.com/SuperFlyTV/supertimeline/commit/36fbb58))
+* test incompatible with reversed data ([8fceadc](https://github.com/SuperFlyTV/supertimeline/commit/8fceadc))
+
+
+### Features
+
+* Add test to check order of objects in the source data has no affect on relative duration resolving ([2551789](https://github.com/SuperFlyTV/supertimeline/commit/2551789))
+* added ability to reference objects between groups ([80bbb4a](https://github.com/SuperFlyTV/supertimeline/commit/80bbb4a))
+* added test for cross-dependencies between children ([775051c](https://github.com/SuperFlyTV/supertimeline/commit/775051c))
+
+
+### BREAKING CHANGES
+
+* when referring to an object within a group, now you get the absolute time, not the local time within that group
+
+
+
 <a name="2.2.0"></a>
 # [2.2.0](https://github.com/SuperFlyTV/supertimeline/compare/2.1.0...2.2.0) (2018-07-05)
 
