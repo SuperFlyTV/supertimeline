@@ -265,4 +265,3 @@ It is possible to add keyframes to an object, which works the same way as normal
 
 ## Todo
 * Add documentation for how to use *groups*
-* Add more tests
