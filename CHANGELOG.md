@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.0.1"></a>
+## [4.0.1](https://github.com/SuperFlyTV/supertimeline/compare/4.0.0...4.0.1) (2018-08-03)
+
+
+### Bug Fixes
+
+* quick patch for when resolved property missing ([66f1adf](https://github.com/SuperFlyTV/supertimeline/commit/66f1adf))
+
+
+
 <a name="4.0.0"></a>
 # [4.0.0](https://github.com/SuperFlyTV/supertimeline/compare/2.2.0...4.0.0) (2018-07-30)
 
