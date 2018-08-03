@@ -621,7 +621,7 @@ function developObj (tl2: DevelopedTimeline, time: SomeTime, objOrg: TimelineRes
 	log('developObj ' + objOrg.id + ' ' + time,TraceLevel.TRACE)
 
 	const returnObj = _.clone(objOrg)
-	returnObj.resolved = _.clone(returnObj.resolved)
+	returnObj.resolved = _.clone(returnObj.resolved) || {}
 
 	returnObj.resolved.innerStartTime = returnObj.resolved.startTime
 	returnObj.resolved.innerEndTime = returnObj.resolved.endTime
