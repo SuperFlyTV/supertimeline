@@ -2207,7 +2207,7 @@ function iterateResolveObjects (
 		}
 		if (!resolvedOk) {
 			if (!_.isEmpty(referencedObjectIds)) {
-				_.each(referencedObjectIds, (roi, objId) => {
+				_.each(referencedObjectIds, (_roi, objId) => {
 					referencedObjects[objId] = obj.id
 				})
 			}
