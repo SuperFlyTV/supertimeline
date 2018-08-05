@@ -1080,6 +1080,39 @@ const testData = {
 			id: 'obj0', // the id must be unique
 
 			trigger: {
+				type: TriggerType.TIME_RELATIVE,
+				value: '#obj2.end'
+			},
+			duration: '0',
+			LLayer: 1,
+			classes: ['obj0Class']
+		},
+		{
+			id: 'obj1', // the id must be unique
+
+			trigger: {
+				type: TriggerType.TIME_RELATIVE,
+				value: '#obj0.end'
+			},
+			duration: '0',
+			LLayer: 1
+		},
+		{
+			id: 'obj2', // the id must be unique
+
+			trigger: {
+				type: TriggerType.TIME_RELATIVE,
+				value: '#obj1.end'
+			},
+			duration: 10,
+			LLayer: 1
+		}
+	],
+	'circulardependency1': [
+		{
+			id: 'obj0', // the id must be unique
+
+			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
 				value: now
 			},
@@ -1170,6 +1203,26 @@ const testData = {
 					}
 				]
 			}
+		}
+	],
+	'selfreferenceexpression0': [
+		{
+			id: 'obj0',
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now
+			},
+			duration: 10,
+			LLayer: 1
+		},
+		{
+			id: 'obj1',
+			trigger: {
+				type: TriggerType.TIME_RELATIVE,
+				value: '#obj0.start + 5'
+			},
+			duration: '#obj0.end - #.start', // make it end at the same time as obj0
+			LLayer: 1
 		}
 	]
 }
@@ -2177,8 +2230,22 @@ let tests: Tests = {
 		const state5 = Resolver.getState(data, 5401)
 		expect(state5.LLayers['1']).toBeFalsy()
 	},
-	'Circular dependency': () => {
+	'Circular dependency 1': () => {
+		// console.log('======')
+		// Resolver.setTraceLevel(TraceLevel.TRACE)
 		const data = clone(getTestData('circulardependency0'))
+		const tl = Resolver.getTimelineInWindow(data)
+		// Resolver.setTraceLevel(TraceLevel.ERRORS)
+		expect(tl.resolved).toHaveLength(0)
+
+		// const obj0: TimelineResolvedObject = _.findWhere(data, { id: 'obj0' })
+		// obj0.duration = 10 // break the circular dependency
+
+		// const tl2 = Resolver.getTimelineInWindow(data)
+		// expect(tl2.resolved).toHaveLength(3)
+	},
+	'Circular dependency 2': () => {
+		const data = clone(getTestData('circulardependency1'))
 		const tl = Resolver.getTimelineInWindow(data)
 		expect(tl.resolved).toHaveLength(0)
 
@@ -2264,6 +2331,56 @@ let tests: Tests = {
 		const state2 = Resolver.getState(data, 1040)
 		expect(state2.LLayers['1']).toBeTruthy()
 		expect(state2.LLayers['1'].id).toEqual('child2')
+	},
+	'self-reference expression': () => {
+		const data = clone(getTestData('selfreferenceexpression0'))
+		const tl = Resolver.getTimelineInWindow(data)
+		expect(tl.resolved).toHaveLength(2)
+
+		const obj0 = _.findWhere(tl.resolved, { id: 'obj0' })
+		const obj1 = _.findWhere(tl.resolved, { id: 'obj1' })
+
+		expect(obj0.resolved.startTime).toEqual(1000)
+		expect(obj0.resolved.endTime).toEqual(1010)
+
+		expect(obj1.resolved.startTime).toEqual(1005)
+		expect(obj1.resolved.endTime).toEqual(1010)
+	},
+	'large dataset': () => {
+		// worst-case dataset: only relative objects, in random order
+		const size = 100
+		let data: any[] = []
+		for (let i = 0; i < size; i++) {
+			data.push({
+				id: 'obj' + i,
+				trigger: (
+					i === 0 ?
+					{
+						type: TriggerType.TIME_ABSOLUTE,
+						value: now
+					} :
+					{
+						type: TriggerType.TIME_RELATIVE,
+						value: '#obj' + (i - 1) + '.end'
+					}
+				),
+				duration: 10,
+				LLayer: 1
+			})
+		}
+		data = _.sortBy(data, Math.random)
+
+		const tl = Resolver.getTimelineInWindow(data)
+		expect(tl.resolved).toHaveLength(size)
+
+		// const obj0 = _.findWhere(tl.resolved, { id: 'obj0' })
+		// const obj1 = _.findWhere(tl.resolved, { id: 'obj1' })
+
+		// expect(obj0.resolved.startTime).toEqual(1000)
+		// expect(obj0.resolved.endTime).toEqual(1010)
+
+		// expect(obj1.resolved.startTime).toEqual(1005)
+		// expect(obj1.resolved.endTime).toEqual(1010)
 	}
 }
 const onlyTests: Tests = {}
