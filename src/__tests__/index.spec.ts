@@ -2345,6 +2345,42 @@ let tests: Tests = {
 
 		expect(obj1.resolved.startTime).toEqual(1005)
 		expect(obj1.resolved.endTime).toEqual(1010)
+	},
+	'large dataset': () => {
+		// worst-case dataset: only relative objects, in random order
+		const size = 100
+		let data: any[] = []
+		for (let i = 0; i < size; i++) {
+			data.push({
+				id: 'obj' + i,
+				trigger: (
+					i === 0 ?
+					{
+						type: TriggerType.TIME_ABSOLUTE,
+						value: now
+					} :
+					{
+						type: TriggerType.TIME_RELATIVE,
+						value: '#obj' + (i - 1) + '.end'
+					}
+				),
+				duration: 10,
+				LLayer: 1
+			})
+		}
+		data = _.sortBy(data, Math.random)
+
+		const tl = Resolver.getTimelineInWindow(data)
+		expect(tl.resolved).toHaveLength(size)
+
+		// const obj0 = _.findWhere(tl.resolved, { id: 'obj0' })
+		// const obj1 = _.findWhere(tl.resolved, { id: 'obj1' })
+
+		// expect(obj0.resolved.startTime).toEqual(1000)
+		// expect(obj0.resolved.endTime).toEqual(1010)
+
+		// expect(obj1.resolved.startTime).toEqual(1005)
+		// expect(obj1.resolved.endTime).toEqual(1010)
 	}
 }
 const onlyTests: Tests = {}

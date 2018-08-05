@@ -500,20 +500,15 @@ function resolveTimeline (data: UnresolvedTimeline | ResolvedTimeline, filter?: 
 	})
 
 	log('======= resolveTimeline: Starting iterating... ==============',TraceLevel.TRACE)
+	const clonedUnresolvedObjects = _.map(unresolvedObjects, (o: any) => {
+		const o2 = _.clone(o)
+		// o2.content = _.clone(o2.content)
+		return o2
+	})
+	const result = iterateResolveObjects(clonedUnresolvedObjects, resolvedObjects, resolveObjectTouches)
+	unresolvedObjects = result.unresolvedObjects
 
-	let hasAddedAnyObjects = true
-	while (hasAddedAnyObjects) {
-		hasAddedAnyObjects = false
-
-		const clonedUnresolvedObjects = _.map(unresolvedObjects, (o: any) => {
-			const o2 = _.clone(o)
-			// o2.content = _.clone(o2.content)
-			return o2
-		})
-		const result = iterateResolveObjects(clonedUnresolvedObjects, resolvedObjects, resolveObjectTouches)
-
-		unresolvedObjects = result.unresolvedObjects
-	}
+	// log('Timeline iterations: ' + timelineIterations, TraceLevel.TRACE)
 	// Now we should have resolved all resolvable objects into absolute times.
 	// Any object that couldn't be resolved are left in unresolvedObjects
 
@@ -2156,80 +2151,143 @@ function iterateResolveObjects (
 	}
 
 	let hasAddedAnyObjects = true
-	while (hasAddedAnyObjects) {
-		hasAddedAnyObjects = false
 
+	const referencedObjects: {[refId: string]: string} = {} // refid -> objId
+	// let prevReferencedObjects: {[refId: string]: string} = {} // refid -> objId
+	let iteratedObjects: {[objId: string]: true} = {}
+
+	const unresolvedObjectsLeft: {[objId: string]: TimelineObject} = {}
+	_.each(unresolvedObjectsArray, (o) => {
+		unresolvedObjectsLeft[o.id] = o
+	})
+
+	const resolveObject = (obj: TimelineResolvedObject) => {
+		log('--------------- object ' + obj.id,TraceLevel.TRACE)
+		iteratedObjects[obj.id] = true
+		let resolvedOk = false
+		if (!obj.resolved) obj.resolved = {}
+		if (parentObj && !obj.parent) obj.parent = parentObj
+
+		// if (!obj.resolved) obj.resolved = {}
+		if (obj.disabled) obj.resolved.disabled = true
+
+		const referencedObjectIds: ReferencedObjects = {}
+
+		let startTime: StartTime = null
+		try {
+			startTime = resolveObjectStartTime(obj, [], resolvedObjects, resolveObjectTouches, referencedObjectIds)
+		} catch (e) {
+			console.log(e)
+			startTime = null
+		}
+		const startTimeIsOk = (
+			(parentObj && startTime !== null) || // inside a group, 0 is okay too
+			startTime
+		)
+		if (startTimeIsOk) {
+			const outerDuration = resolveObjectDuration(obj, [], resolvedObjects, resolveObjectTouches, referencedObjectIds)
+			if (
+				outerDuration !== null &&
+				obj.resolved.innerDuration !== null
+			) {
+				log('resolved object ' + obj.id,TraceLevel.TRACE)
+
+				resolvedObjects[obj.id] = obj
+				delete unresolvedObjectsLeft[obj.id]
+				result.resolvedObjects.push(obj)
+				// i--
+				hasAddedAnyObjects = true // this will cause the iteration to run again
+				resolvedOk = true
+			} else {
+				log('no duration',TraceLevel.TRACE)
+				log('outerDuration: ' + outerDuration,TraceLevel.TRACE)
+			}
+		} else {
+			log('object not resolved',TraceLevel.TRACE)
+		}
+		if (!resolvedOk) {
+			if (!_.isEmpty(referencedObjectIds)) {
+				_.each(referencedObjectIds, (roi, objId) => {
+					referencedObjects[objId] = obj.id
+				})
+			}
+		}
+
+		if (obj.resolved.endTime === 0) {
+			result.hasInfiniteDuration = true
+		}
+		if ((obj.resolved.endTime || 0) > (result.lastEndTime || 0)) {
+			result.lastEndTime = obj.resolved.endTime || 0
+		}
+		// log(obj)
+		log(obj,TraceLevel.TRACE)
+	}
+	while (hasAddedAnyObjects) {
 		if (parentObj) {
 			log('======= Iterating objects in ' + parentObj.id + '...',TraceLevel.TRACE)
 		} else {
 			log('======= Iterating objects...',TraceLevel.TRACE)
 		}
 
-		for (let i = 0; i < unresolvedObjects.length; i++) {
-		// _.each(unresolvedObjects, (obj: TimelineResolvedObject) => {
-			// @ts-ignore resolved attribute is added later
-			const obj: TimelineResolvedObject = unresolvedObjects[i]
+		// Preparations before iteration:
 
-			if (obj) {
-				if (!obj.resolved) obj.resolved = {}
-
-				if (parentObj && !obj.parent) obj.parent = parentObj
-
-				log('--------------- object ' + obj.id,TraceLevel.TRACE)
-				// if (!obj.resolved) obj.resolved = {}
-				if (obj.disabled) obj.resolved.disabled = true
-
-				let startTime: StartTime = null
-				try {
-					startTime = resolveObjectStartTime(obj, resolvedObjects, resolveObjectTouches)
-				} catch (e) {
-					console.log(e)
-					startTime = null
+		// Check if any of the referencedObjects are referring to resolved objects
+		// If there are, we can drastically improve performance by iterating those first
+		const objsWithReferences: string[] = []
+		_.each(referencedObjects, (objId, refId) => {
+			if (unresolvedObjectsLeft[objId]) {
+				if (
+					unresolvedObjectsLeft[objId] &&
+					resolvedObjects[refId]
+				) {
+					objsWithReferences.push(objId)
 				}
-				const startTimeIsOk = (
-					(parentObj && startTime !== null) || // inside a group, 0 is okay too
-					startTime
-				)
-				if (startTimeIsOk) {
-					const outerDuration = resolveObjectDuration(obj,resolvedObjects, resolveObjectTouches)
-					if (
-						outerDuration !== null &&
-						obj.resolved.innerDuration !== null
-					) {
-						log('resolved object ' + obj.id,TraceLevel.TRACE)
+			} else {
+				// the obj has been resolved, remove it then:
+				delete referencedObjects[refId]
+			}
+		})
 
-						resolvedObjects[obj.id] = obj
-						unresolvedObjects.splice(i,1)
-						result.resolvedObjects.push(obj)
-						i--
-						hasAddedAnyObjects = true // this will cause the iteration to run again
-					} else {
-						log('no duration',TraceLevel.TRACE)
-						log('outerDuration: ' + outerDuration,TraceLevel.TRACE)
-					}
+		// Start iteration:
+		hasAddedAnyObjects = false
+		// referencedObjects = {}
+		iteratedObjects = {}
 
-				} else {
-					log('object not resolved',TraceLevel.TRACE)
+		let dontIterateAllUnresolved = false
+
+		if (objsWithReferences.length) {
+			_.each(objsWithReferences, (objId) => {
+				// @ts-ignore resolved attribute is added later
+				const obj: TimelineResolvedObject = unresolvedObjectsLeft[objId]
+				if (obj && !iteratedObjects[obj.id]) {
+					resolveObject(obj)
 				}
-
-				if (obj.resolved.endTime === 0) {
-					result.hasInfiniteDuration = true
-				}
-				if ((obj.resolved.endTime || 0) > (result.lastEndTime || 0)) {
-					result.lastEndTime = obj.resolved.endTime || 0
-				}
-				// log(obj)
-				log(obj,TraceLevel.TRACE)
-
+			})
+			if (hasAddedAnyObjects) {
+				// if any object has been added, it's best performance-wise to NOT iterate through
+				// the rest of the unresolved objects blindly, but instead skip them, and go to the next sweep
+				dontIterateAllUnresolved = true
 			}
 		}
-		result.unresolvedObjects = unresolvedObjects
+
+		if (!dontIterateAllUnresolved) {
+			_.each(unresolvedObjectsLeft, (obj: TimelineResolvedObject) => {
+				// @ts-ignore resolved attribute is added later
+				// const obj: TimelineResolvedObject = unresolvedObjects[i]
+				if (obj && !iteratedObjects[obj.id]) {
+					resolveObject(obj)
+				}
+			})
+		}
+
 		if (result.hasInfiniteDuration) {
 			result.lastEndTime = 0
 		} else {
 			if (result.lastEndTime === -1) result.lastEndTime = null
 		}
 	}
+	result.unresolvedObjects = _.values(unresolvedObjectsLeft)
+
 	return result
 }
 function unshiftAndReturn<T> (arr?: Array<T>, ...objs: Array<T>): Array<T> {
