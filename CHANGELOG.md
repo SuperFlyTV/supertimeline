@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.0.2"></a>
+## [4.0.2](https://github.com/SuperFlyTV/supertimeline/compare/4.0.1...4.0.2) (2018-08-05)
+
+
+### Bug Fixes
+
+* added referenceObjectIds, to use as trace in error messages & to determine which object is dependant of which ([e50ec99](https://github.com/SuperFlyTV/supertimeline/commit/e50ec99))
+* inefficient iteration led to terrible performance in situations with many relative objects. Rehauled the whole resolve iteration loop ([3a2b847](https://github.com/SuperFlyTV/supertimeline/commit/3a2b847))
+
+
+
 <a name="4.0.1"></a>
 ## [4.0.1](https://github.com/SuperFlyTV/supertimeline/compare/4.0.0...4.0.1) (2018-08-03)
 
