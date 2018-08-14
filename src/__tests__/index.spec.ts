@@ -1224,6 +1224,60 @@ const testData = {
 			duration: '#obj0.end - #.start', // make it end at the same time as obj0
 			LLayer: 1
 		}
+	],
+	'relativeStartOrder0': [
+		{
+			id: 'trans0', // the id must be unique
+
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now
+			},
+			duration: 2500,
+			LLayer: 2,
+			isGroup: true,
+			repeating: false,
+			content: {
+				objects: [
+					{
+						id: 'child1', // the id must be unique
+
+						trigger: {
+							type: TriggerType.TIME_ABSOLUTE,
+							value: 0 // Relative to parent object
+						},
+						duration: 0,
+						LLayer: 3
+					}
+				]
+			}
+		},
+		{
+			id: 'group0', // the id must be unique
+
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now
+			},
+			duration: 0,
+			LLayer: 1,
+			isGroup: true,
+			repeating: false,
+			content: {
+				objects: [
+					{
+						id: 'child0', // the id must be unique
+
+						trigger: {
+							type: TriggerType.TIME_RELATIVE,
+							value: '#trans0.start + 1500'
+						},
+						duration: 0,
+						LLayer: 3
+					}
+				]
+			}
+		}
 	]
 }
 let reverseData = false
@@ -2381,6 +2435,45 @@ let tests: Tests = {
 
 		// expect(obj1.resolved.startTime).toEqual(1005)
 		// expect(obj1.resolved.endTime).toEqual(1010)
+	},
+	'Relative start order': () => {
+		const data = clone(getTestData('relativeStartOrder0'))
+		const tl = Resolver.getTimelineInWindow(data)
+		expect(tl.unresolved).toHaveLength(0)
+		expect(tl.resolved).toHaveLength(2)
+
+		const group0: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'group0' })
+		const trans0: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'trans0' })
+
+		expect(group0.resolved.startTime).toBe(1000)
+		expect(group0.resolved.outerDuration).toBe(0)
+
+		expect(trans0.resolved.startTime).toBe(1000)
+		expect(trans0.resolved.outerDuration).toBe(2500)
+
+		const tld = Resolver.developTimelineAroundTime(tl, 1500)
+		expect(tld.resolved).toHaveLength(2)
+
+		const child0: TimelineResolvedObject = _.findWhere(tld.resolved, { id: 'child0' })
+		const child1: TimelineResolvedObject = _.findWhere(tld.resolved, { id: 'child1' })
+
+		expect(child0.resolved.startTime).toBe(2500)
+		expect(child0.resolved.outerDuration).toBe(0)
+
+		expect(child1.resolved.startTime).toBe(1000)
+		expect(child1.resolved.outerDuration).toBe(0)
+
+		const state0 = Resolver.getState(data, 1500)
+		expect(state0.LLayers['3']).toBeTruthy()
+		expect(state0.LLayers['3'].id).toEqual('child1')
+
+		const state1 = Resolver.getState(data, 3500)
+		expect(state1.LLayers['3']).toBeTruthy()
+		expect(state1.LLayers['3'].id).toEqual('child0')
+
+		const state2 = Resolver.getState(data, 4500)
+		expect(state2.LLayers['3']).toBeTruthy()
+		expect(state2.LLayers['3'].id).toEqual('child0')
 	}
 }
 const onlyTests: Tests = {}
