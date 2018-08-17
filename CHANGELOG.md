@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.0.0"></a>
+# [5.0.0](https://github.com/SuperFlyTV/supertimeline/compare/4.0.2...5.0.0) (2018-08-17)
+
+
+### Features
+
+* Major refactoring, switched out the iterative resolving for a nice recursive one ([13cbace](https://github.com/SuperFlyTV/supertimeline/commit/13cbace))
+
+
+### BREAKING CHANGES
+
+* removed circular, iterative resolving. Might cause unexpected issues
+
+
+
 <a name="4.0.2"></a>
 ## [4.0.2](https://github.com/SuperFlyTV/supertimeline/compare/4.0.1...4.0.2) (2018-08-05)
 
