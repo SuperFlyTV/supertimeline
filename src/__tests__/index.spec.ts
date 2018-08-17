@@ -1300,7 +1300,6 @@ const getTestData = (dataset: string) => {
 type Tests = {[key: string]: any}
 let tests: Tests = {
 	'Basic timeline': () => {
-
 		const data = getTestData('basic')
 		const tl = Resolver.getTimelineInWindow(data)
 		expect(data).toEqual(getTestData('basic')) // Make sure the original data is unmodified
@@ -1390,7 +1389,6 @@ let tests: Tests = {
 		expect(state.LLayers['10'].id).toBe('obj3')
 	},
 	'Timeline, override object 2': () => {
-
 		const data = getTestData('basic2')
 			.concat(getTestData('basic3'))
 			.concat(getTestData('override'))
@@ -1508,7 +1506,6 @@ let tests: Tests = {
 		expect(state1.GLayers['10'].id).toBe('obj0')
 	},
 	'Timeline, relative timing and keyframes': () => {
-
 		const data = getTestData('keyframes1')
 
 		const tl = Resolver.getTimelineInWindow(data)
@@ -1834,6 +1831,12 @@ let tests: Tests = {
 		expect(Resolver.resolveLogicalExpression(
 			Resolver.interpretExpression('(0 & 1) | a', true) // strange operand
 		)).toEqual(false)
+
+		expect(() => {
+			Resolver.resolveLogicalExpression(
+				Resolver.interpretExpression('14 + #badReference.start', true)
+			)
+		}).toThrowError()
 	},
 	'disabled objects on timeline': () => {
 
@@ -2044,7 +2047,11 @@ let tests: Tests = {
 		expect(tl.resolved).toHaveLength(2)
 		expect(tl.unresolved).toHaveLength(0)
 
+		expect(data).toEqual(getTestData('repeatinggroupinrepeatinggroup')) // Make sure the original data is unmodified
+
 		const tld0 = Resolver.developTimelineAroundTime(tl, now)
+
+		expect(data).toEqual(getTestData('repeatinggroupinrepeatinggroup')) // Make sure the original data is unmodified
 
 		expect(tld0.resolved).toHaveLength(4)
 		expect(tld0.groups).toHaveLength(2)
@@ -2062,6 +2069,8 @@ let tests: Tests = {
 		const state0 = Resolver.getState(tl, now)
 		expect(state0.LLayers['1']).toBeTruthy()
 		expect(state0.LLayers['1'].id).toBe('child0')
+
+		expect(data).toEqual(getTestData('repeatinggroupinrepeatinggroup')) // Make sure the original data is unmodified
 
 		const events0 = Resolver.getNextEvents(tl, now)
 		expect(events0).toHaveLength(8)
@@ -2183,11 +2192,11 @@ let tests: Tests = {
 
 		const tl = Resolver.getTimelineInWindow(data)
 		expect(tl.resolved).toHaveLength(1)
-		expect(tl.unresolved).toHaveLength(1)
+		expect(tl.unresolved).toHaveLength(2)
 
 		const tld = Resolver.developTimelineAroundTime(tl, now)
 		expect(tld.resolved).toHaveLength(1)
-		expect(tld.unresolved).toHaveLength(1)
+		expect(tld.unresolved).toHaveLength(2)
 
 		const events0 = Resolver.getNextEvents(tl, now)
 		expect(events0).toHaveLength(0)
