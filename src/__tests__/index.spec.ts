@@ -1300,6 +1300,10 @@ const getTestData = (dataset: string) => {
 type Tests = {[key: string]: any}
 let tests: Tests = {
 	'Basic timeline': () => {
+		expect(() => {
+			// @ts-ignore bad input
+			const tl = Resolver.getTimelineInWindow()
+		}).toThrowError()
 		const data = getTestData('basic')
 		const tl = Resolver.getTimelineInWindow(data)
 		expect(data).toEqual(getTestData('basic')) // Make sure the original data is unmodified
@@ -1837,6 +1841,16 @@ let tests: Tests = {
 				Resolver.interpretExpression('14 + #badReference.start', true)
 			)
 		}).toThrowError()
+
+		const data = clone(getTestData('logical1'))
+		const state: TimelineState = {
+			time: now,
+			GLayers: {},
+			LLayers: {}
+		}
+		const val = Resolver.decipherLogicalValue('1', data[0], state)
+		expect(val).toBeTruthy()
+
 	},
 	'disabled objects on timeline': () => {
 
