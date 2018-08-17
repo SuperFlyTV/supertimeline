@@ -937,9 +937,6 @@ img { max-width: 100%; }
 			<a href="interfaces/iterateresolveobjectsresult.html" class="tsd-kind-icon">Iterate<wbr>Resolve<wbr>Objects<wbr>Result</a>
 		</li>
 		<li class=" tsd-kind-interface tsd-is-external">
-			<a href="interfaces/resolveexpressioncontext.html" class="tsd-kind-icon">Resolve<wbr>Expression<wbr>Context</a>
-		</li>
-		<li class=" tsd-kind-interface tsd-is-external">
 			<a href="interfaces/resolveddetails.html" class="tsd-kind-icon">Resolved<wbr>Details</a>
 		</li>
 		<li class=" tsd-kind-interface tsd-is-external">
@@ -993,9 +990,6 @@ img { max-width: 100%; }
 		<li class=" tsd-kind-type-alias tsd-is-external">
 			<a href="globals.html#objectid" class="tsd-kind-icon">Object<wbr>Id</a>
 		</li>
-		<li class=" tsd-kind-type-alias tsd-is-external tsd-is-not-exported">
-			<a href="globals.html#referencedobjects" class="tsd-kind-icon">Referenced<wbr>Objects</a>
-		</li>
 		<li class=" tsd-kind-type-alias tsd-is-external">
 			<a href="globals.html#sometime" class="tsd-kind-icon">Some<wbr>Time</a>
 		</li>
@@ -1006,16 +1000,19 @@ img { max-width: 100%; }
 			<a href="globals.html#timemaybe" class="tsd-kind-icon">Time<wbr>Maybe</a>
 		</li>
 		<li class=" tsd-kind-type-alias tsd-is-external tsd-is-not-exported">
-			<a href="globals.html#touchedobjectids" class="tsd-kind-icon">Touched<wbr>Object<wbr>Ids</a>
-		</li>
-		<li class=" tsd-kind-type-alias tsd-is-external tsd-is-not-exported">
 			<a href="globals.html#whosaskingtrace" class="tsd-kind-icon">Whos<wbr>Asking<wbr>Trace</a>
 		</li>
+		<li class=" tsd-kind-type-alias tsd-is-external tsd-is-not-exported">
+			<a href="globals.html#objattributefunction" class="tsd-kind-icon">obj<wbr>Attribute<wbr>Function</a>
+		</li>
 		<li class=" tsd-kind-variable tsd-is-external tsd-is-not-exported">
-			<a href="globals.html#circular_limit" class="tsd-kind-icon">CIRCULAR_<wbr>LIMIT</a>
+			<a href="globals.html#throwerrors" class="tsd-kind-icon">throw<wbr>Errors</a>
 		</li>
 		<li class=" tsd-kind-variable tsd-is-external tsd-is-not-exported">
 			<a href="globals.html#tracelevel" class="tsd-kind-icon">trace<wbr>Level</a>
+		</li>
+		<li class=" tsd-kind-function tsd-is-external tsd-is-not-exported">
+			<a href="globals.html#creategetobjectattribute" class="tsd-kind-icon">create<wbr>Get<wbr>Object<wbr>Attribute</a>
 		</li>
 		<li class=" tsd-kind-function tsd-is-external tsd-is-not-exported">
 			<a href="globals.html#decipherlogicalvalue" class="tsd-kind-icon">decipher<wbr>Logical<wbr>Value</a>
@@ -1048,10 +1045,16 @@ img { max-width: 100%; }
 			<a href="globals.html#isnumeric" class="tsd-kind-icon">is<wbr>Numeric</a>
 		</li>
 		<li class=" tsd-kind-function tsd-is-external tsd-is-not-exported">
+			<a href="globals.html#isresolvedgood" class="tsd-kind-icon">is<wbr>Resolved<wbr>Good</a>
+		</li>
+		<li class=" tsd-kind-function tsd-is-external tsd-is-not-exported">
 			<a href="globals.html#iterateresolveobjects" class="tsd-kind-icon">iterate<wbr>Resolve<wbr>Objects</a>
 		</li>
 		<li class=" tsd-kind-function tsd-is-external tsd-is-not-exported">
 			<a href="globals.html#log" class="tsd-kind-icon">log</a>
+		</li>
+		<li class=" tsd-kind-function tsd-is-external tsd-is-not-exported">
+			<a href="globals.html#nullgetobjectattribute" class="tsd-kind-icon">null<wbr>Get<wbr>Object<wbr>Attribute</a>
 		</li>
 		<li class=" tsd-kind-function tsd-is-external tsd-is-not-exported">
 			<a href="globals.html#printwhosasking" class="tsd-kind-icon">print<wbr>Whos<wbr>Asking</a>
@@ -1080,17 +1083,8 @@ img { max-width: 100%; }
 		<li class=" tsd-kind-function tsd-is-external tsd-is-not-exported">
 			<a href="globals.html#sortobjects" class="tsd-kind-icon">sort<wbr>Objects</a>
 		</li>
-		<li class=" tsd-kind-function tsd-is-external tsd-is-not-exported">
-			<a href="globals.html#touchresolveobject" class="tsd-kind-icon">touch<wbr>Resolve<wbr>Object</a>
-		</li>
 		<li class=" tsd-kind-function tsd-has-type-parameter tsd-is-external tsd-is-not-exported">
 			<a href="globals.html#unshiftandreturn" class="tsd-kind-icon">unshift<wbr>And<wbr>Return</a>
-		</li>
-		<li class=" tsd-kind-function tsd-is-external tsd-is-not-exported">
-			<a href="globals.html#updatereferralindex" class="tsd-kind-icon">update<wbr>Referral<wbr>Index</a>
-		</li>
-		<li class=" tsd-kind-function tsd-is-external tsd-is-not-exported">
-			<a href="globals.html#updatereferredobjectids" class="tsd-kind-icon">update<wbr>Referred<wbr>Object<wbr>Ids</a>
 		</li>
 		<li class=" tsd-kind-object-literal tsd-is-external">
 			<a href="globals.html#enums" class="tsd-kind-icon">Enums</a>
@@ -1414,7 +1408,6 @@ stateNow = {
 							<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/externalfunctions.html" class="tsd-kind-icon">External<wbr>Functions</a></li>
 							<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/filter.html" class="tsd-kind-icon">Filter</a></li>
 							<li class="tsd-kind-interface tsd-is-external tsd-is-not-exported"><a href="interfaces/iterateresolveobjectsresult.html" class="tsd-kind-icon">Iterate<wbr>Resolve<wbr>Objects<wbr>Result</a></li>
-							<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/resolveexpressioncontext.html" class="tsd-kind-icon">Resolve<wbr>Expression<wbr>Context</a></li>
 							<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/resolveddetails.html" class="tsd-kind-icon">Resolved<wbr>Details</a></li>
 							<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/resolvedobjectid.html" class="tsd-kind-icon">Resolved<wbr>Object<wbr>Id</a></li>
 							<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/resolvedobjecttouches.html" class="tsd-kind-icon">Resolved<wbr>Object<wbr>Touches</a></li>
@@ -1438,24 +1431,24 @@ stateNow = {
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="globals.html#endtime" class="tsd-kind-icon">End<wbr>Time</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="globals.html#expression" class="tsd-kind-icon">Expression</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="globals.html#objectid" class="tsd-kind-icon">Object<wbr>Id</a></li>
-							<li class="tsd-kind-type-alias tsd-is-external tsd-is-not-exported"><a href="globals.html#referencedobjects" class="tsd-kind-icon">Referenced<wbr>Objects</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="globals.html#sometime" class="tsd-kind-icon">Some<wbr>Time</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="globals.html#starttime" class="tsd-kind-icon">Start<wbr>Time</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="globals.html#timemaybe" class="tsd-kind-icon">Time<wbr>Maybe</a></li>
-							<li class="tsd-kind-type-alias tsd-is-external tsd-is-not-exported"><a href="globals.html#touchedobjectids" class="tsd-kind-icon">Touched<wbr>Object<wbr>Ids</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external tsd-is-not-exported"><a href="globals.html#whosaskingtrace" class="tsd-kind-icon">Whos<wbr>Asking<wbr>Trace</a></li>
+							<li class="tsd-kind-type-alias tsd-is-external tsd-is-not-exported"><a href="globals.html#objattributefunction" class="tsd-kind-icon">obj<wbr>Attribute<wbr>Function</a></li>
 						</ul>
 					</section>
 					<section class="tsd-index-section tsd-is-external tsd-is-not-exported">
 						<h3>Variables</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-variable tsd-is-external tsd-is-not-exported"><a href="globals.html#circular_limit" class="tsd-kind-icon">CIRCULAR_<wbr>LIMIT</a></li>
+							<li class="tsd-kind-variable tsd-is-external tsd-is-not-exported"><a href="globals.html#throwerrors" class="tsd-kind-icon">throw<wbr>Errors</a></li>
 							<li class="tsd-kind-variable tsd-is-external tsd-is-not-exported"><a href="globals.html#tracelevel" class="tsd-kind-icon">trace<wbr>Level</a></li>
 						</ul>
 					</section>
 					<section class="tsd-index-section tsd-is-external tsd-is-not-exported">
 						<h3>Functions</h3>
 						<ul class="tsd-index-list">
+							<li class="tsd-kind-function tsd-is-external tsd-is-not-exported"><a href="globals.html#creategetobjectattribute" class="tsd-kind-icon">create<wbr>Get<wbr>Object<wbr>Attribute</a></li>
 							<li class="tsd-kind-function tsd-is-external tsd-is-not-exported"><a href="globals.html#decipherlogicalvalue" class="tsd-kind-icon">decipher<wbr>Logical<wbr>Value</a></li>
 							<li class="tsd-kind-function tsd-is-external tsd-is-not-exported"><a href="globals.html#deciphertimerelativevalue" class="tsd-kind-icon">decipher<wbr>Time<wbr>Relative<wbr>Value</a></li>
 							<li class="tsd-kind-function tsd-is-external tsd-is-not-exported"><a href="globals.html#developobj" class="tsd-kind-icon">develop<wbr>Obj</a></li>
@@ -1466,8 +1459,10 @@ stateNow = {
 							<li class="tsd-kind-function tsd-is-external tsd-is-not-exported"><a href="globals.html#getparentstarttime" class="tsd-kind-icon">get<wbr>Parent<wbr>Start<wbr>Time</a></li>
 							<li class="tsd-kind-function tsd-is-external tsd-is-not-exported"><a href="globals.html#interpretexpression" class="tsd-kind-icon">interpret<wbr>Expression</a></li>
 							<li class="tsd-kind-function tsd-is-external tsd-is-not-exported"><a href="globals.html#isnumeric" class="tsd-kind-icon">is<wbr>Numeric</a></li>
+							<li class="tsd-kind-function tsd-is-external tsd-is-not-exported"><a href="globals.html#isresolvedgood" class="tsd-kind-icon">is<wbr>Resolved<wbr>Good</a></li>
 							<li class="tsd-kind-function tsd-is-external tsd-is-not-exported"><a href="globals.html#iterateresolveobjects" class="tsd-kind-icon">iterate<wbr>Resolve<wbr>Objects</a></li>
 							<li class="tsd-kind-function tsd-is-external tsd-is-not-exported"><a href="globals.html#log" class="tsd-kind-icon">log</a></li>
+							<li class="tsd-kind-function tsd-is-external tsd-is-not-exported"><a href="globals.html#nullgetobjectattribute" class="tsd-kind-icon">null<wbr>Get<wbr>Object<wbr>Attribute</a></li>
 							<li class="tsd-kind-function tsd-is-external tsd-is-not-exported"><a href="globals.html#printwhosasking" class="tsd-kind-icon">print<wbr>Whos<wbr>Asking</a></li>
 							<li class="tsd-kind-function tsd-is-external tsd-is-not-exported"><a href="globals.html#resolveexpression" class="tsd-kind-icon">resolve<wbr>Expression</a></li>
 							<li class="tsd-kind-function tsd-is-external tsd-is-not-exported"><a href="globals.html#resolvelogicalexpression" class="tsd-kind-icon">resolve<wbr>Logical<wbr>Expression</a></li>
@@ -1477,10 +1472,7 @@ stateNow = {
 							<li class="tsd-kind-function tsd-is-external tsd-is-not-exported"><a href="globals.html#resolvestate" class="tsd-kind-icon">resolve<wbr>State</a></li>
 							<li class="tsd-kind-function tsd-is-external tsd-is-not-exported"><a href="globals.html#resolvetimeline" class="tsd-kind-icon">resolve<wbr>Timeline</a></li>
 							<li class="tsd-kind-function tsd-is-external tsd-is-not-exported"><a href="globals.html#sortobjects" class="tsd-kind-icon">sort<wbr>Objects</a></li>
-							<li class="tsd-kind-function tsd-is-external tsd-is-not-exported"><a href="globals.html#touchresolveobject" class="tsd-kind-icon">touch<wbr>Resolve<wbr>Object</a></li>
 							<li class="tsd-kind-function tsd-has-type-parameter tsd-is-external tsd-is-not-exported"><a href="globals.html#unshiftandreturn" class="tsd-kind-icon">unshift<wbr>And<wbr>Return</a></li>
-							<li class="tsd-kind-function tsd-is-external tsd-is-not-exported"><a href="globals.html#updatereferralindex" class="tsd-kind-icon">update<wbr>Referral<wbr>Index</a></li>
-							<li class="tsd-kind-function tsd-is-external tsd-is-not-exported"><a href="globals.html#updatereferredobjectids" class="tsd-kind-icon">update<wbr>Referred<wbr>Object<wbr>Ids</a></li>
 						</ul>
 					</section>
 					<section class="tsd-index-section tsd-is-external">
@@ -1500,7 +1492,7 @@ stateNow = {
 				<div class="tsd-signature tsd-kind-icon">Duration<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L39">resolver/resolver.ts:39</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L39">resolver/resolver.ts:39</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1510,7 +1502,7 @@ stateNow = {
 				<div class="tsd-signature tsd-kind-icon">End<wbr>Time<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L38">resolver/resolver.ts:38</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L38">resolver/resolver.ts:38</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1520,7 +1512,7 @@ stateNow = {
 				<div class="tsd-signature tsd-kind-icon">Expression<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><a href="interfaces/expressionobj.html" class="tsd-signature-type">ExpressionObj</a></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L136">resolver/resolver.ts:136</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L138">resolver/resolver.ts:138</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1530,27 +1522,9 @@ stateNow = {
 				<div class="tsd-signature tsd-kind-icon">Object<wbr>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L42">resolver/resolver.ts:42</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L42">resolver/resolver.ts:42</a></li>
 					</ul>
 				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external tsd-is-not-exported">
-				<a name="referencedobjects" class="tsd-anchor"></a>
-				<h3>Referenced<wbr>Objects</h3>
-				<div class="tsd-signature tsd-kind-icon">Referenced<wbr>Objects<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L147">resolver/resolver.ts:147</a></li>
-					</ul>
-				</aside>
-				<div class="tsd-type-declaration">
-					<h4>Type declaration</h4>
-					<ul class="tsd-parameters">
-						<li class="tsd-parameter-index-signature">
-							<h5><span class="tsd-signature-symbol">[</span>objId: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">true</span></h5>
-						</li>
-					</ul>
-				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
 				<a name="sometime" class="tsd-anchor"></a>
@@ -1558,7 +1532,7 @@ stateNow = {
 				<div class="tsd-signature tsd-kind-icon">Some<wbr>Time<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L40">resolver/resolver.ts:40</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L40">resolver/resolver.ts:40</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1568,7 +1542,7 @@ stateNow = {
 				<div class="tsd-signature tsd-kind-icon">Start<wbr>Time<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L37">resolver/resolver.ts:37</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L37">resolver/resolver.ts:37</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1578,40 +1552,70 @@ stateNow = {
 				<div class="tsd-signature tsd-kind-icon">Time<wbr>Maybe<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L35">resolver/resolver.ts:35</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external tsd-is-not-exported">
-				<a name="touchedobjectids" class="tsd-anchor"></a>
-				<h3>Touched<wbr>Object<wbr>Ids</h3>
-				<div class="tsd-signature tsd-kind-icon">Touched<wbr>Object<wbr>Ids<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">&gt;</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L1141">resolver/resolver.ts:1141</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L35">resolver/resolver.ts:35</a></li>
 					</ul>
 				</aside>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external tsd-is-not-exported">
 				<a name="whosaskingtrace" class="tsd-anchor"></a>
 				<h3>Whos<wbr>Asking<wbr>Trace</h3>
-				<div class="tsd-signature tsd-kind-icon">Whos<wbr>Asking<wbr>Trace<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="interfaces/timelineresolvedobject.html" class="tsd-signature-type">TimelineResolvedObject</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/timelineresolvedkeyframe.html" class="tsd-signature-type">TimelineResolvedKeyframe</a><span class="tsd-signature-symbol">&gt;</span></div>
+				<div class="tsd-signature tsd-kind-icon">Whos<wbr>Asking<wbr>Trace<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L146">resolver/resolver.ts:146</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L148">resolver/resolver.ts:148</a></li>
 					</ul>
 				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external tsd-is-not-exported">
+				<a name="objattributefunction" class="tsd-anchor"></a>
+				<h3>obj<wbr>Attribute<wbr>Function</h3>
+				<div class="tsd-signature tsd-kind-icon">obj<wbr>Attribute<wbr>Function<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L149">resolver/resolver.ts:149</a></li>
+					</ul>
+				</aside>
+				<div class="tsd-type-declaration">
+					<h4>Type declaration</h4>
+					<ul class="tsd-parameters">
+						<li class="tsd-parameter-siganture">
+							<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-alias tsd-is-not-exported">
+								<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>objId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, hook<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"start"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"end"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"duration"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"parentStart"</span>, whosAsking<span class="tsd-signature-symbol">: </span><a href="globals.html#whosaskingtrace" class="tsd-signature-type">WhosAskingTrace</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></li>
+							</ul>
+							<ul class="tsd-descriptions">
+								<li class="tsd-description">
+									<h4 class="tsd-parameters-title">Parameters</h4>
+									<ul class="tsd-parameters">
+										<li>
+											<h5>objId: <span class="tsd-signature-type">string</span></h5>
+										</li>
+										<li>
+											<h5>hook: <span class="tsd-signature-type">"start"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"end"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"duration"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"parentStart"</span></h5>
+										</li>
+										<li>
+											<h5>whosAsking: <a href="globals.html#whosaskingtrace" class="tsd-signature-type">WhosAskingTrace</a></h5>
+										</li>
+									</ul>
+									<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span>
+										<span class="tsd-signature-symbol"> | </span>
+										<span class="tsd-signature-type">null</span>
+									</h4>
+								</li>
+							</ul>
+						</li>
+					</ul>
+				</div>
 			</section>
 		</section>
 		<section class="tsd-panel-group tsd-member-group tsd-is-external tsd-is-not-exported">
 			<h2>Variables</h2>
 			<section class="tsd-panel tsd-member tsd-kind-variable tsd-is-external tsd-is-not-exported">
-				<a name="circular_limit" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagLet">Let</span> CIRCULAR_<wbr>LIMIT</h3>
-				<div class="tsd-signature tsd-kind-icon">CIRCULAR_<wbr>LIMIT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;10</span></div>
+				<a name="throwerrors" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagConst">Const</span> throw<wbr>Errors</h3>
+				<div class="tsd-signature tsd-kind-icon">throw<wbr>Errors<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;false</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L7">resolver/resolver.ts:7</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L7">resolver/resolver.ts:7</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1621,13 +1625,68 @@ stateNow = {
 				<div class="tsd-signature tsd-kind-icon">trace<wbr>Level<span class="tsd-signature-symbol">:</span> <a href="enums/tracelevel.html" class="tsd-signature-type">TraceLevel</a><span class="tsd-signature-symbol"> =&nbsp;TraceLevel.ERRORS</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L6">resolver/resolver.ts:6</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L6">resolver/resolver.ts:6</a></li>
 					</ul>
 				</aside>
 			</section>
 		</section>
 		<section class="tsd-panel-group tsd-member-group tsd-is-external tsd-is-not-exported">
 			<h2>Functions</h2>
+			<section class="tsd-panel tsd-member tsd-kind-function tsd-is-external tsd-is-not-exported">
+				<a name="creategetobjectattribute" class="tsd-anchor"></a>
+				<h3>create<wbr>Get<wbr>Object<wbr>Attribute</h3>
+				<ul class="tsd-signatures tsd-kind-function tsd-is-external tsd-is-not-exported">
+					<li class="tsd-signature tsd-kind-icon">create<wbr>Get<wbr>Object<wbr>Attribute<span class="tsd-signature-symbol">(</span>allObjects<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L1923">resolver/resolver.ts:1923</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>allObjects: <span class="tsd-signature-type">object</span></h5>
+								<ul class="tsd-parameters">
+									<li class="tsd-parameter-index-signature">
+										<h5><span class="tsd-signature-symbol">[</span>id: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">any</span></h5>
+									</li>
+								</ul>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">function</span></h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter-siganture">
+								<ul class="tsd-signatures tsd-kind-type-literal tsd-is-not-exported">
+									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>objId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, hook<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"start"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"end"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"duration"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"parentStart"</span>, whosAsking<span class="tsd-signature-symbol">: </span><a href="globals.html#whosaskingtrace" class="tsd-signature-type">WhosAskingTrace</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></li>
+								</ul>
+								<ul class="tsd-descriptions">
+									<li class="tsd-description">
+										<h4 class="tsd-parameters-title">Parameters</h4>
+										<ul class="tsd-parameters">
+											<li>
+												<h5>objId: <span class="tsd-signature-type">string</span></h5>
+											</li>
+											<li>
+												<h5>hook: <span class="tsd-signature-type">"start"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"end"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"duration"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"parentStart"</span></h5>
+											</li>
+											<li>
+												<h5>whosAsking: <a href="globals.html#whosaskingtrace" class="tsd-signature-type">WhosAskingTrace</a></h5>
+											</li>
+										</ul>
+										<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span>
+											<span class="tsd-signature-symbol"> | </span>
+											<span class="tsd-signature-type">null</span>
+										</h4>
+									</li>
+								</ul>
+							</li>
+						</ul>
+					</li>
+				</ul>
+			</section>
 			<section class="tsd-panel tsd-member tsd-kind-function tsd-is-external tsd-is-not-exported">
 				<a name="decipherlogicalvalue" class="tsd-anchor"></a>
 				<h3>decipher<wbr>Logical<wbr>Value</h3>
@@ -1638,7 +1697,7 @@ stateNow = {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L1580">resolver/resolver.ts:1580</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L1414">resolver/resolver.ts:1414</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1667,13 +1726,13 @@ stateNow = {
 				<a name="deciphertimerelativevalue" class="tsd-anchor"></a>
 				<h3>decipher<wbr>Time<wbr>Relative<wbr>Value</h3>
 				<ul class="tsd-signatures tsd-kind-function tsd-is-external tsd-is-not-exported">
-					<li class="tsd-signature tsd-kind-icon">decipher<wbr>Time<wbr>Relative<wbr>Value<span class="tsd-signature-symbol">(</span>str<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, resolvedObjects<span class="tsd-signature-symbol">: </span><a href="interfaces/resolvedobjectsstore.html" class="tsd-signature-type">ResolvedObjectsStore</a>, whosAsking<span class="tsd-signature-symbol">: </span><a href="globals.html#whosaskingtrace" class="tsd-signature-type">WhosAskingTrace</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></li>
+					<li class="tsd-signature tsd-kind-icon">decipher<wbr>Time<wbr>Relative<wbr>Value<span class="tsd-signature-symbol">(</span>str<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, whosAsking<span class="tsd-signature-symbol">: </span><a href="globals.html#whosaskingtrace" class="tsd-signature-type">WhosAskingTrace</a>, getObjectAttribute<span class="tsd-signature-symbol">: </span><a href="globals.html#objattributefunction" class="tsd-signature-type">objAttributeFunction</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L1531">resolver/resolver.ts:1531</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L1380">resolver/resolver.ts:1380</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1682,24 +1741,16 @@ stateNow = {
 								<h5>str: <span class="tsd-signature-type">string</span></h5>
 							</li>
 							<li>
-								<h5>resolvedObjects: <a href="interfaces/resolvedobjectsstore.html" class="tsd-signature-type">ResolvedObjectsStore</a></h5>
-							</li>
-							<li>
 								<h5>whosAsking: <a href="globals.html#whosaskingtrace" class="tsd-signature-type">WhosAskingTrace</a></h5>
 							</li>
-						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">object</span></h4>
-						<ul class="tsd-parameters">
-							<li class="tsd-parameter">
-								<h5>referral<wbr>Index<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></h5>
-							</li>
-							<li class="tsd-parameter">
-								<h5>referred<wbr>Object<wbr>Ids<span class="tsd-signature-symbol">: </span><a href="globals.html#touchedobjectids" class="tsd-signature-type">TouchedObjectIds</a></h5>
-							</li>
-							<li class="tsd-parameter">
-								<h5>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></h5>
+							<li>
+								<h5>getObjectAttribute: <a href="globals.html#objattributefunction" class="tsd-signature-type">objAttributeFunction</a></h5>
 							</li>
 						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span>
+							<span class="tsd-signature-symbol"> | </span>
+							<span class="tsd-signature-type">null</span>
+						</h4>
 					</li>
 				</ul>
 			</section>
@@ -1707,13 +1758,13 @@ stateNow = {
 				<a name="developobj" class="tsd-anchor"></a>
 				<h3>develop<wbr>Obj</h3>
 				<ul class="tsd-signatures tsd-kind-function tsd-is-external tsd-is-not-exported">
-					<li class="tsd-signature tsd-kind-icon">develop<wbr>Obj<span class="tsd-signature-symbol">(</span>tl2<span class="tsd-signature-symbol">: </span><a href="interfaces/developedtimeline.html" class="tsd-signature-type">DevelopedTimeline</a>, time<span class="tsd-signature-symbol">: </span><a href="globals.html#sometime" class="tsd-signature-type">SomeTime</a>, objOrg<span class="tsd-signature-symbol">: </span><a href="interfaces/timelineresolvedobject.html" class="tsd-signature-type">TimelineResolvedObject</a>, givenParentObj<span class="tsd-signature-symbol">?: </span><a href="interfaces/timelineresolvedobject.html" class="tsd-signature-type">TimelineResolvedObject</a>, referencedObjectIds<span class="tsd-signature-symbol">?: </span><a href="globals.html#referencedobjects" class="tsd-signature-type">ReferencedObjects</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					<li class="tsd-signature tsd-kind-icon">develop<wbr>Obj<span class="tsd-signature-symbol">(</span>tl2<span class="tsd-signature-symbol">: </span><a href="interfaces/developedtimeline.html" class="tsd-signature-type">DevelopedTimeline</a>, time<span class="tsd-signature-symbol">: </span><a href="globals.html#sometime" class="tsd-signature-type">SomeTime</a>, objOrg<span class="tsd-signature-symbol">: </span><a href="interfaces/timelineresolvedobject.html" class="tsd-signature-type">TimelineResolvedObject</a>, getObjectAttribute<span class="tsd-signature-symbol">: </span><a href="globals.html#objattributefunction" class="tsd-signature-type">objAttributeFunction</a>, givenParentObj<span class="tsd-signature-symbol">?: </span><a href="interfaces/timelineresolvedobject.html" class="tsd-signature-type">TimelineResolvedObject</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L619">resolver/resolver.ts:619</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L596">resolver/resolver.ts:596</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1728,10 +1779,10 @@ stateNow = {
 								<h5>objOrg: <a href="interfaces/timelineresolvedobject.html" class="tsd-signature-type">TimelineResolvedObject</a></h5>
 							</li>
 							<li>
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> givenParentObj: <a href="interfaces/timelineresolvedobject.html" class="tsd-signature-type">TimelineResolvedObject</a></h5>
+								<h5>getObjectAttribute: <a href="globals.html#objattributefunction" class="tsd-signature-type">objAttributeFunction</a></h5>
 							</li>
 							<li>
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> referencedObjectIds: <a href="globals.html#referencedobjects" class="tsd-signature-type">ReferencedObjects</a></h5>
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> givenParentObj: <a href="interfaces/timelineresolvedobject.html" class="tsd-signature-type">TimelineResolvedObject</a></h5>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -1748,7 +1799,7 @@ stateNow = {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L556">resolver/resolver.ts:556</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L540">resolver/resolver.ts:540</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1781,7 +1832,7 @@ stateNow = {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L2038">resolver/resolver.ts:2038</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L1800">resolver/resolver.ts:1800</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1810,7 +1861,7 @@ stateNow = {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L1861">resolver/resolver.ts:1861</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L1687">resolver/resolver.ts:1687</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1836,7 +1887,7 @@ stateNow = {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L2068">resolver/resolver.ts:2068</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L1830">resolver/resolver.ts:1830</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1859,13 +1910,13 @@ stateNow = {
 				<a name="getparentstarttime" class="tsd-anchor"></a>
 				<h3>get<wbr>Parent<wbr>Start<wbr>Time</h3>
 				<ul class="tsd-signatures tsd-kind-function tsd-is-external tsd-is-not-exported">
-					<li class="tsd-signature tsd-kind-icon">get<wbr>Parent<wbr>Start<wbr>Time<span class="tsd-signature-symbol">(</span>obj<span class="tsd-signature-symbol">: </span><a href="interfaces/timelineresolvedobject.html" class="tsd-signature-type">TimelineResolvedObject</a>, whosAsking<span class="tsd-signature-symbol">: </span><a href="globals.html#whosaskingtrace" class="tsd-signature-type">WhosAskingTrace</a>, resolveParentStartTime<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span>, resolvedObjects<span class="tsd-signature-symbol">?: </span><a href="interfaces/resolvedobjectsstore.html" class="tsd-signature-type">ResolvedObjectsStore</a>, resolveObjectTouches<span class="tsd-signature-symbol">?: </span><a href="interfaces/resolvedobjecttouches.html" class="tsd-signature-type">ResolvedObjectTouches</a>, referencedObjectIds<span class="tsd-signature-symbol">?: </span><a href="globals.html#referencedobjects" class="tsd-signature-type">ReferencedObjects</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="globals.html#starttime" class="tsd-signature-type">StartTime</a></li>
+					<li class="tsd-signature tsd-kind-icon">get<wbr>Parent<wbr>Start<wbr>Time<span class="tsd-signature-symbol">(</span>obj<span class="tsd-signature-symbol">: </span><a href="interfaces/timelineresolvedobject.html" class="tsd-signature-type">TimelineResolvedObject</a>, whosAsking<span class="tsd-signature-symbol">: </span><a href="globals.html#whosaskingtrace" class="tsd-signature-type">WhosAskingTrace</a>, getObjectAttribute<span class="tsd-signature-symbol">: </span><a href="globals.html#objattributefunction" class="tsd-signature-type">objAttributeFunction</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="globals.html#starttime" class="tsd-signature-type">StartTime</a></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L578">resolver/resolver.ts:578</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L565">resolver/resolver.ts:565</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1877,16 +1928,7 @@ stateNow = {
 								<h5>whosAsking: <a href="globals.html#whosaskingtrace" class="tsd-signature-type">WhosAskingTrace</a></h5>
 							</li>
 							<li>
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> resolveParentStartTime: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span></h5>
-							</li>
-							<li>
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> resolvedObjects: <a href="interfaces/resolvedobjectsstore.html" class="tsd-signature-type">ResolvedObjectsStore</a></h5>
-							</li>
-							<li>
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> resolveObjectTouches: <a href="interfaces/resolvedobjecttouches.html" class="tsd-signature-type">ResolvedObjectTouches</a></h5>
-							</li>
-							<li>
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> referencedObjectIds: <a href="globals.html#referencedobjects" class="tsd-signature-type">ReferencedObjects</a></h5>
+								<h5>getObjectAttribute: <a href="globals.html#objattributefunction" class="tsd-signature-type">objAttributeFunction</a></h5>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <a href="globals.html#starttime" class="tsd-signature-type">StartTime</a></h4>
@@ -1903,7 +1945,7 @@ stateNow = {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L964">resolver/resolver.ts:964</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L890">resolver/resolver.ts:890</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1932,7 +1974,7 @@ stateNow = {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L2061">resolver/resolver.ts:2061</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L1823">resolver/resolver.ts:1823</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1946,31 +1988,45 @@ stateNow = {
 				</ul>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-function tsd-is-external tsd-is-not-exported">
-				<a name="iterateresolveobjects" class="tsd-anchor"></a>
-				<h3>iterate<wbr>Resolve<wbr>Objects</h3>
+				<a name="isresolvedgood" class="tsd-anchor"></a>
+				<h3>is<wbr>Resolved<wbr>Good</h3>
 				<ul class="tsd-signatures tsd-kind-function tsd-is-external tsd-is-not-exported">
-					<li class="tsd-signature tsd-kind-icon">iterate<wbr>Resolve<wbr>Objects<span class="tsd-signature-symbol">(</span>unresolvedObjectsArray<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="interfaces/timelineobject.html" class="tsd-signature-type">TimelineObject</a><span class="tsd-signature-symbol">&gt;</span>, resolvedObjects<span class="tsd-signature-symbol">: </span><a href="interfaces/resolvedobjectsstore.html" class="tsd-signature-type">ResolvedObjectsStore</a>, resolveObjectTouches<span class="tsd-signature-symbol">: </span><a href="interfaces/resolvedobjecttouches.html" class="tsd-signature-type">ResolvedObjectTouches</a>, parentObj<span class="tsd-signature-symbol">?: </span><a href="interfaces/timelineresolvedobject.html" class="tsd-signature-type">TimelineResolvedObject</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="interfaces/iterateresolveobjectsresult.html" class="tsd-signature-type">IterateResolveObjectsResult</a></li>
+					<li class="tsd-signature tsd-kind-icon">is<wbr>Resolved<wbr>Good<span class="tsd-signature-symbol">(</span>obj<span class="tsd-signature-symbol">: </span><a href="interfaces/timelineresolvedobject.html" class="tsd-signature-type">TimelineResolvedObject</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/timelineresolvedkeyframe.html" class="tsd-signature-type">TimelineResolvedKeyframe</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L2139">resolver/resolver.ts:2139</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L2008">resolver/resolver.ts:2008</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>obj: <a href="interfaces/timelineresolvedobject.html" class="tsd-signature-type">TimelineResolvedObject</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/timelineresolvedkeyframe.html" class="tsd-signature-type">TimelineResolvedKeyframe</a></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-function tsd-is-external tsd-is-not-exported">
+				<a name="iterateresolveobjects" class="tsd-anchor"></a>
+				<h3>iterate<wbr>Resolve<wbr>Objects</h3>
+				<ul class="tsd-signatures tsd-kind-function tsd-is-external tsd-is-not-exported">
+					<li class="tsd-signature tsd-kind-icon">iterate<wbr>Resolve<wbr>Objects<span class="tsd-signature-symbol">(</span>unresolvedObjectsArray<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="interfaces/timelineobject.html" class="tsd-signature-type">TimelineObject</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="interfaces/iterateresolveobjectsresult.html" class="tsd-signature-type">IterateResolveObjectsResult</a></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L1864">resolver/resolver.ts:1864</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>unresolvedObjectsArray: <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="interfaces/timelineobject.html" class="tsd-signature-type">TimelineObject</a><span class="tsd-signature-symbol">&gt;</span></h5>
-							</li>
-							<li>
-								<h5>resolvedObjects: <a href="interfaces/resolvedobjectsstore.html" class="tsd-signature-type">ResolvedObjectsStore</a></h5>
-							</li>
-							<li>
-								<h5>resolveObjectTouches: <a href="interfaces/resolvedobjecttouches.html" class="tsd-signature-type">ResolvedObjectTouches</a></h5>
-							</li>
-							<li>
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> parentObj: <a href="interfaces/timelineresolvedobject.html" class="tsd-signature-type">TimelineResolvedObject</a></h5>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <a href="interfaces/iterateresolveobjectsresult.html" class="tsd-signature-type">IterateResolveObjectsResult</a></h4>
@@ -1987,7 +2043,7 @@ stateNow = {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L2065">resolver/resolver.ts:2065</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L1827">resolver/resolver.ts:1827</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2004,6 +2060,35 @@ stateNow = {
 				</ul>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-function tsd-is-external tsd-is-not-exported">
+				<a name="nullgetobjectattribute" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagConst">Const</span> null<wbr>Get<wbr>Object<wbr>Attribute</h3>
+				<ul class="tsd-signatures tsd-kind-function tsd-is-external tsd-is-not-exported">
+					<li class="tsd-signature tsd-kind-icon">null<wbr>Get<wbr>Object<wbr>Attribute<span class="tsd-signature-symbol">(</span>_objId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, _hook<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"start"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"end"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"duration"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"parentStart"</span>, _whosAsking<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L150">resolver/resolver.ts:150</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>_objId: <span class="tsd-signature-type">string</span></h5>
+							</li>
+							<li>
+								<h5>_hook: <span class="tsd-signature-type">"start"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"end"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"duration"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"parentStart"</span></h5>
+							</li>
+							<li>
+								<h5>_whosAsking: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-function tsd-is-external tsd-is-not-exported">
 				<a name="printwhosasking" class="tsd-anchor"></a>
 				<h3>print<wbr>Whos<wbr>Asking</h3>
 				<ul class="tsd-signatures tsd-kind-function tsd-is-external tsd-is-not-exported">
@@ -2013,7 +2098,7 @@ stateNow = {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L2298">resolver/resolver.ts:2298</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L1918">resolver/resolver.ts:1918</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2030,13 +2115,13 @@ stateNow = {
 				<a name="resolveexpression" class="tsd-anchor"></a>
 				<h3>resolve<wbr>Expression</h3>
 				<ul class="tsd-signatures tsd-kind-function tsd-is-external tsd-is-not-exported">
-					<li class="tsd-signature tsd-kind-icon">resolve<wbr>Expression<span class="tsd-signature-symbol">(</span>expression0<span class="tsd-signature-symbol">: </span><a href="globals.html#expression" class="tsd-signature-type">Expression</a>, resolvedObjects<span class="tsd-signature-symbol">?: </span><a href="interfaces/resolvedobjectsstore.html" class="tsd-signature-type">ResolvedObjectsStore</a>, ctx<span class="tsd-signature-symbol">?: </span><a href="interfaces/resolveexpressioncontext.html" class="tsd-signature-type">ResolveExpressionContext</a>, whosAsking<span class="tsd-signature-symbol">?: </span><a href="globals.html#whosaskingtrace" class="tsd-signature-type">WhosAskingTrace</a>, resolveObjectTouches0<span class="tsd-signature-symbol">?: </span><a href="interfaces/resolvedobjecttouches.html" class="tsd-signature-type">ResolvedObjectTouches</a>, referencedObjectIds<span class="tsd-signature-symbol">?: </span><a href="globals.html#referencedobjects" class="tsd-signature-type">ReferencedObjects</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></li>
+					<li class="tsd-signature tsd-kind-icon">resolve<wbr>Expression<span class="tsd-signature-symbol">(</span>expression0<span class="tsd-signature-symbol">: </span><a href="globals.html#expression" class="tsd-signature-type">Expression</a>, whosAsking<span class="tsd-signature-symbol">: </span><a href="globals.html#whosaskingtrace" class="tsd-signature-type">WhosAskingTrace</a>, getObjectAttribute<span class="tsd-signature-symbol">: </span><a href="globals.html#objattributefunction" class="tsd-signature-type">objAttributeFunction</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L1142">resolver/resolver.ts:1142</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L1058">resolver/resolver.ts:1058</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2045,19 +2130,10 @@ stateNow = {
 								<h5>expression0: <a href="globals.html#expression" class="tsd-signature-type">Expression</a></h5>
 							</li>
 							<li>
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> resolvedObjects: <a href="interfaces/resolvedobjectsstore.html" class="tsd-signature-type">ResolvedObjectsStore</a></h5>
+								<h5>whosAsking: <a href="globals.html#whosaskingtrace" class="tsd-signature-type">WhosAskingTrace</a></h5>
 							</li>
 							<li>
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> ctx: <a href="interfaces/resolveexpressioncontext.html" class="tsd-signature-type">ResolveExpressionContext</a></h5>
-							</li>
-							<li>
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> whosAsking: <a href="globals.html#whosaskingtrace" class="tsd-signature-type">WhosAskingTrace</a></h5>
-							</li>
-							<li>
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> resolveObjectTouches0: <a href="interfaces/resolvedobjecttouches.html" class="tsd-signature-type">ResolvedObjectTouches</a></h5>
-							</li>
-							<li>
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> referencedObjectIds: <a href="globals.html#referencedobjects" class="tsd-signature-type">ReferencedObjects</a></h5>
+								<h5>getObjectAttribute: <a href="globals.html#objattributefunction" class="tsd-signature-type">objAttributeFunction</a></h5>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span>
@@ -2077,7 +2153,7 @@ stateNow = {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L1293">resolver/resolver.ts:1293</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L1155">resolver/resolver.ts:1155</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2103,13 +2179,13 @@ stateNow = {
 				<a name="resolveobjectduration" class="tsd-anchor"></a>
 				<h3>resolve<wbr>Object<wbr>Duration</h3>
 				<ul class="tsd-signatures tsd-kind-function tsd-is-external tsd-is-not-exported">
-					<li class="tsd-signature tsd-kind-icon">resolve<wbr>Object<wbr>Duration<span class="tsd-signature-symbol">(</span>obj<span class="tsd-signature-symbol">: </span><a href="interfaces/timelineresolvedobject.html" class="tsd-signature-type">TimelineResolvedObject</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/timelineresolvedkeyframe.html" class="tsd-signature-type">TimelineResolvedKeyframe</a>, whosAsking<span class="tsd-signature-symbol">: </span><a href="globals.html#whosaskingtrace" class="tsd-signature-type">WhosAskingTrace</a>, resolvedObjects<span class="tsd-signature-symbol">: </span><a href="interfaces/resolvedobjectsstore.html" class="tsd-signature-type">ResolvedObjectsStore</a>, resolveObjectTouches<span class="tsd-signature-symbol">: </span><a href="interfaces/resolvedobjecttouches.html" class="tsd-signature-type">ResolvedObjectTouches</a>, referencedObjectIds<span class="tsd-signature-symbol">?: </span><a href="globals.html#referencedobjects" class="tsd-signature-type">ReferencedObjects</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="globals.html#duration" class="tsd-signature-type">Duration</a></li>
+					<li class="tsd-signature tsd-kind-icon">resolve<wbr>Object<wbr>Duration<span class="tsd-signature-symbol">(</span>obj<span class="tsd-signature-symbol">: </span><a href="interfaces/timelineresolvedobject.html" class="tsd-signature-type">TimelineResolvedObject</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/timelineresolvedkeyframe.html" class="tsd-signature-type">TimelineResolvedKeyframe</a>, whosAsking<span class="tsd-signature-symbol">: </span><a href="globals.html#whosaskingtrace" class="tsd-signature-type">WhosAskingTrace</a>, getObjectAttribute<span class="tsd-signature-symbol">: </span><a href="globals.html#objattributefunction" class="tsd-signature-type">objAttributeFunction</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="globals.html#duration" class="tsd-signature-type">Duration</a></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L815">resolver/resolver.ts:815</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L783">resolver/resolver.ts:783</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2121,13 +2197,7 @@ stateNow = {
 								<h5>whosAsking: <a href="globals.html#whosaskingtrace" class="tsd-signature-type">WhosAskingTrace</a></h5>
 							</li>
 							<li>
-								<h5>resolvedObjects: <a href="interfaces/resolvedobjectsstore.html" class="tsd-signature-type">ResolvedObjectsStore</a></h5>
-							</li>
-							<li>
-								<h5>resolveObjectTouches: <a href="interfaces/resolvedobjecttouches.html" class="tsd-signature-type">ResolvedObjectTouches</a></h5>
-							</li>
-							<li>
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> referencedObjectIds: <a href="globals.html#referencedobjects" class="tsd-signature-type">ReferencedObjects</a></h5>
+								<h5>getObjectAttribute: <a href="globals.html#objattributefunction" class="tsd-signature-type">objAttributeFunction</a></h5>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <a href="globals.html#duration" class="tsd-signature-type">Duration</a></h4>
@@ -2138,13 +2208,13 @@ stateNow = {
 				<a name="resolveobjectendtime" class="tsd-anchor"></a>
 				<h3>resolve<wbr>Object<wbr>End<wbr>Time</h3>
 				<ul class="tsd-signatures tsd-kind-function tsd-is-external tsd-is-not-exported">
-					<li class="tsd-signature tsd-kind-icon">resolve<wbr>Object<wbr>End<wbr>Time<span class="tsd-signature-symbol">(</span>obj<span class="tsd-signature-symbol">: </span><a href="interfaces/timelineresolvedobject.html" class="tsd-signature-type">TimelineResolvedObject</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/timelineresolvedkeyframe.html" class="tsd-signature-type">TimelineResolvedKeyframe</a>, whosAsking<span class="tsd-signature-symbol">: </span><a href="globals.html#whosaskingtrace" class="tsd-signature-type">WhosAskingTrace</a>, resolvedObjects<span class="tsd-signature-symbol">: </span><a href="interfaces/resolvedobjectsstore.html" class="tsd-signature-type">ResolvedObjectsStore</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span>, resolveObjectTouches<span class="tsd-signature-symbol">: </span><a href="interfaces/resolvedobjecttouches.html" class="tsd-signature-type">ResolvedObjectTouches</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span>, referencedObjectIds<span class="tsd-signature-symbol">?: </span><a href="globals.html#referencedobjects" class="tsd-signature-type">ReferencedObjects</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="globals.html#endtime" class="tsd-signature-type">EndTime</a></li>
+					<li class="tsd-signature tsd-kind-icon">resolve<wbr>Object<wbr>End<wbr>Time<span class="tsd-signature-symbol">(</span>obj<span class="tsd-signature-symbol">: </span><a href="interfaces/timelineresolvedobject.html" class="tsd-signature-type">TimelineResolvedObject</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/timelineresolvedkeyframe.html" class="tsd-signature-type">TimelineResolvedKeyframe</a>, whosAsking<span class="tsd-signature-symbol">: </span><a href="globals.html#whosaskingtrace" class="tsd-signature-type">WhosAskingTrace</a>, getObjectAttribute<span class="tsd-signature-symbol">: </span><a href="globals.html#objattributefunction" class="tsd-signature-type">objAttributeFunction</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="globals.html#endtime" class="tsd-signature-type">EndTime</a></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L927">resolver/resolver.ts:927</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L866">resolver/resolver.ts:866</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2156,13 +2226,7 @@ stateNow = {
 								<h5>whosAsking: <a href="globals.html#whosaskingtrace" class="tsd-signature-type">WhosAskingTrace</a></h5>
 							</li>
 							<li>
-								<h5>resolvedObjects: <a href="interfaces/resolvedobjectsstore.html" class="tsd-signature-type">ResolvedObjectsStore</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></h5>
-							</li>
-							<li>
-								<h5>resolveObjectTouches: <a href="interfaces/resolvedobjecttouches.html" class="tsd-signature-type">ResolvedObjectTouches</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></h5>
-							</li>
-							<li>
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> referencedObjectIds: <a href="globals.html#referencedobjects" class="tsd-signature-type">ReferencedObjects</a></h5>
+								<h5>getObjectAttribute: <a href="globals.html#objattributefunction" class="tsd-signature-type">objAttributeFunction</a></h5>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <a href="globals.html#endtime" class="tsd-signature-type">EndTime</a></h4>
@@ -2173,13 +2237,13 @@ stateNow = {
 				<a name="resolveobjectstarttime" class="tsd-anchor"></a>
 				<h3>resolve<wbr>Object<wbr>Start<wbr>Time</h3>
 				<ul class="tsd-signatures tsd-kind-function tsd-is-external tsd-is-not-exported">
-					<li class="tsd-signature tsd-kind-icon">resolve<wbr>Object<wbr>Start<wbr>Time<span class="tsd-signature-symbol">(</span>obj<span class="tsd-signature-symbol">: </span><a href="interfaces/timelineresolvedobject.html" class="tsd-signature-type">TimelineResolvedObject</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/timelineresolvedkeyframe.html" class="tsd-signature-type">TimelineResolvedKeyframe</a>, whosAsking<span class="tsd-signature-symbol">: </span><a href="globals.html#whosaskingtrace" class="tsd-signature-type">WhosAskingTrace</a>, resolvedObjects<span class="tsd-signature-symbol">: </span><a href="interfaces/resolvedobjectsstore.html" class="tsd-signature-type">ResolvedObjectsStore</a>, resolveObjectTouches<span class="tsd-signature-symbol">: </span><a href="interfaces/resolvedobjecttouches.html" class="tsd-signature-type">ResolvedObjectTouches</a>, referencedObjectIds<span class="tsd-signature-symbol">?: </span><a href="globals.html#referencedobjects" class="tsd-signature-type">ReferencedObjects</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="globals.html#starttime" class="tsd-signature-type">StartTime</a></li>
+					<li class="tsd-signature tsd-kind-icon">resolve<wbr>Object<wbr>Start<wbr>Time<span class="tsd-signature-symbol">(</span>obj<span class="tsd-signature-symbol">: </span><a href="interfaces/timelineresolvedobject.html" class="tsd-signature-type">TimelineResolvedObject</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/timelineresolvedkeyframe.html" class="tsd-signature-type">TimelineResolvedKeyframe</a>, whosAsking<span class="tsd-signature-symbol">: </span><a href="globals.html#whosaskingtrace" class="tsd-signature-type">WhosAskingTrace</a>, getObjectAttribute<span class="tsd-signature-symbol">: </span><a href="globals.html#objattributefunction" class="tsd-signature-type">objAttributeFunction</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="globals.html#starttime" class="tsd-signature-type">StartTime</a></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L750">resolver/resolver.ts:750</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L725">resolver/resolver.ts:725</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2191,13 +2255,7 @@ stateNow = {
 								<h5>whosAsking: <a href="globals.html#whosaskingtrace" class="tsd-signature-type">WhosAskingTrace</a></h5>
 							</li>
 							<li>
-								<h5>resolvedObjects: <a href="interfaces/resolvedobjectsstore.html" class="tsd-signature-type">ResolvedObjectsStore</a></h5>
-							</li>
-							<li>
-								<h5>resolveObjectTouches: <a href="interfaces/resolvedobjecttouches.html" class="tsd-signature-type">ResolvedObjectTouches</a></h5>
-							</li>
-							<li>
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> referencedObjectIds: <a href="globals.html#referencedobjects" class="tsd-signature-type">ReferencedObjects</a></h5>
+								<h5>getObjectAttribute: <a href="globals.html#objattributefunction" class="tsd-signature-type">objAttributeFunction</a></h5>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <a href="globals.html#starttime" class="tsd-signature-type">StartTime</a></h4>
@@ -2214,7 +2272,7 @@ stateNow = {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L1629">resolver/resolver.ts:1629</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L1461">resolver/resolver.ts:1461</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2240,7 +2298,7 @@ stateNow = {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L442">resolver/resolver.ts:442</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L413">resolver/resolver.ts:413</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2266,7 +2324,7 @@ stateNow = {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L2080">resolver/resolver.ts:2080</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L1842">resolver/resolver.ts:1842</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2276,35 +2334,6 @@ stateNow = {
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <a href="interfaces/timelineresolvedobject.html" class="tsd-signature-type">TimelineResolvedObject</a><span class="tsd-signature-symbol">[]</span></h4>
-					</li>
-				</ul>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-function tsd-is-external tsd-is-not-exported">
-				<a name="touchresolveobject" class="tsd-anchor"></a>
-				<h3>touch<wbr>Resolve<wbr>Object</h3>
-				<ul class="tsd-signatures tsd-kind-function tsd-is-external tsd-is-not-exported">
-					<li class="tsd-signature tsd-kind-icon">touch<wbr>Resolve<wbr>Object<span class="tsd-signature-symbol">(</span>key<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, whosAsking<span class="tsd-signature-symbol">: </span><a href="globals.html#whosaskingtrace" class="tsd-signature-type">WhosAskingTrace</a>, resolveObjectTouches<span class="tsd-signature-symbol">?: </span><a href="interfaces/resolvedobjecttouches.html" class="tsd-signature-type">ResolvedObjectTouches</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L2119">resolver/resolver.ts:2119</a></li>
-							</ul>
-						</aside>
-						<h4 class="tsd-parameters-title">Parameters</h4>
-						<ul class="tsd-parameters">
-							<li>
-								<h5>key: <span class="tsd-signature-type">string</span></h5>
-							</li>
-							<li>
-								<h5>whosAsking: <a href="globals.html#whosaskingtrace" class="tsd-signature-type">WhosAskingTrace</a></h5>
-							</li>
-							<li>
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> resolveObjectTouches: <a href="interfaces/resolvedobjecttouches.html" class="tsd-signature-type">ResolvedObjectTouches</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></h5>
-							</li>
-						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 					</li>
 				</ul>
 			</section>
@@ -2318,7 +2347,7 @@ stateNow = {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L2293">resolver/resolver.ts:2293</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/resolver/resolver.ts#L1913">resolver/resolver.ts:1913</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -2340,61 +2369,6 @@ stateNow = {
 					</li>
 				</ul>
 			</section>
-			<section class="tsd-panel tsd-member tsd-kind-function tsd-is-external tsd-is-not-exported">
-				<a name="updatereferralindex" class="tsd-anchor"></a>
-				<h3>update<wbr>Referral<wbr>Index</h3>
-				<ul class="tsd-signatures tsd-kind-function tsd-is-external tsd-is-not-exported">
-					<li class="tsd-signature tsd-kind-icon">update<wbr>Referral<wbr>Index<span class="tsd-signature-symbol">(</span>obj<span class="tsd-signature-symbol">: </span><a href="interfaces/timelineresolvedobject.html" class="tsd-signature-type">TimelineResolvedObject</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/timelineresolvedkeyframe.html" class="tsd-signature-type">TimelineResolvedKeyframe</a>, referralIndex<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L2098">resolver/resolver.ts:2098</a></li>
-							</ul>
-						</aside>
-						<h4 class="tsd-parameters-title">Parameters</h4>
-						<ul class="tsd-parameters">
-							<li>
-								<h5>obj: <a href="interfaces/timelineresolvedobject.html" class="tsd-signature-type">TimelineResolvedObject</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/timelineresolvedkeyframe.html" class="tsd-signature-type">TimelineResolvedKeyframe</a></h5>
-							</li>
-							<li>
-								<h5>referralIndex: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></h5>
-							</li>
-						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-					</li>
-				</ul>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-function tsd-is-external tsd-is-not-exported">
-				<a name="updatereferredobjectids" class="tsd-anchor"></a>
-				<h3>update<wbr>Referred<wbr>Object<wbr>Ids</h3>
-				<ul class="tsd-signatures tsd-kind-function tsd-is-external tsd-is-not-exported">
-					<li class="tsd-signature tsd-kind-icon">update<wbr>Referred<wbr>Object<wbr>Ids<span class="tsd-signature-symbol">(</span>obj<span class="tsd-signature-symbol">: </span><a href="interfaces/timelineresolvedobject.html" class="tsd-signature-type">TimelineResolvedObject</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/timelineresolvedkeyframe.html" class="tsd-signature-type">TimelineResolvedKeyframe</a>, referredObjectIds<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="interfaces/resolvedobjectid.html" class="tsd-signature-type">ResolvedObjectId</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span>, resolvedObjects<span class="tsd-signature-symbol">: </span><a href="interfaces/resolvedobjectsstore.html" class="tsd-signature-type">ResolvedObjectsStore</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/resolver/resolver.ts#L2101">resolver/resolver.ts:2101</a></li>
-							</ul>
-						</aside>
-						<h4 class="tsd-parameters-title">Parameters</h4>
-						<ul class="tsd-parameters">
-							<li>
-								<h5>obj: <a href="interfaces/timelineresolvedobject.html" class="tsd-signature-type">TimelineResolvedObject</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/timelineresolvedkeyframe.html" class="tsd-signature-type">TimelineResolvedKeyframe</a></h5>
-							</li>
-							<li>
-								<h5>referredObjectIds: <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="interfaces/resolvedobjectid.html" class="tsd-signature-type">ResolvedObjectId</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></h5>
-							</li>
-							<li>
-								<h5>resolvedObjects: <a href="interfaces/resolvedobjectsstore.html" class="tsd-signature-type">ResolvedObjectsStore</a></h5>
-							</li>
-						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-					</li>
-				</ul>
-			</section>
 		</section>
 		<section class="tsd-panel-group tsd-member-group tsd-is-external">
 			<h2>Object literals</h2>
@@ -2404,7 +2378,7 @@ stateNow = {
 				<div class="tsd-signature tsd-kind-icon">Enums<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/enums/enums.ts#L26">enums/enums.ts:26</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/enums/enums.ts#L26">enums/enums.ts:26</a></li>
 					</ul>
 				</aside>
 				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal tsd-is-external">
@@ -2413,7 +2387,7 @@ stateNow = {
 					<div class="tsd-signature tsd-kind-icon">Timeline<wbr>Event<wbr>Type<span class="tsd-signature-symbol">:</span> <a href="enums/eventtype.html" class="tsd-signature-type">EventType</a><span class="tsd-signature-symbol"> =&nbsp;EventType</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/enums/enums.ts#L28">enums/enums.ts:28</a></li>
+							<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/enums/enums.ts#L28">enums/enums.ts:28</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -2423,7 +2397,7 @@ stateNow = {
 					<div class="tsd-signature tsd-kind-icon">Trace<wbr>Level<span class="tsd-signature-symbol">:</span> <a href="enums/tracelevel.html" class="tsd-signature-type">TraceLevel</a><span class="tsd-signature-symbol"> =&nbsp;TraceLevel</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/enums/enums.ts#L29">enums/enums.ts:29</a></li>
+							<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/enums/enums.ts#L29">enums/enums.ts:29</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -2433,7 +2407,7 @@ stateNow = {
 					<div class="tsd-signature tsd-kind-icon">Trigger<wbr>Type<span class="tsd-signature-symbol">:</span> <a href="enums/triggertype.html" class="tsd-signature-type">TriggerType</a><span class="tsd-signature-symbol"> =&nbsp;TriggerType</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/8022e2d/src/enums/enums.ts#L27">enums/enums.ts:27</a></li>
+							<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/02238b7/src/enums/enums.ts#L27">enums/enums.ts:27</a></li>
 						</ul>
 					</aside>
 				</section>
