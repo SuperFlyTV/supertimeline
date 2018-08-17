@@ -820,7 +820,9 @@ function resolveObjectDuration (
 					})
 				}
 			} else {
-				throw Error('Cannot resolve group duration, has no own startTime, id: ' + obj.id)
+				if (throwErrors) {
+					throw new Error('Cannot resolve group duration, has no own startTime, id: ' + obj.id)
+				}
 			}
 			innerDuration = (
 				lastEndTime ?
