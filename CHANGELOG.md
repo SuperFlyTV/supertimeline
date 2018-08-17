@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.0.1"></a>
+## [5.0.1](https://github.com/SuperFlyTV/supertimeline/compare/5.0.0...5.0.1) (2018-08-17)
+
+
+### Bug Fixes
+
+* don't throw error ([b35e955](https://github.com/SuperFlyTV/supertimeline/commit/b35e955))
+
+
+
 <a name="5.0.0"></a>
 # [5.0.0](https://github.com/SuperFlyTV/supertimeline/compare/4.0.2...5.0.0) (2018-08-17)
 
