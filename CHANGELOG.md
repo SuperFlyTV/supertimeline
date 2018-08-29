@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.0.2"></a>
+## [5.0.2](https://github.com/SuperFlyTV/supertimeline/compare/5.0.1...5.0.2) (2018-08-29)
+
+
+### Bug Fixes
+
+* bug when capping endTime several parents up ([25e600d](https://github.com/SuperFlyTV/supertimeline/commit/25e600d))
+
+
+
 <a name="5.0.1"></a>
 ## [5.0.1](https://github.com/SuperFlyTV/supertimeline/compare/5.0.0...5.0.1) (2018-08-17)
 
