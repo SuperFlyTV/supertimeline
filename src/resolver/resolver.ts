@@ -656,32 +656,64 @@ function developObj (
 	}
 
 	// cap inside parent:
-	if (parentObj &&
-		parentObj.resolved &&
-		parentObj.resolved.endTime &&
-		returnObj.resolved &&
-		(
-			(returnObj.resolved.endTime || 0) > parentObj.resolved.endTime ||
-			!returnObj.resolved.endTime // infinite
-		)
-	) {
-		returnObj.resolved.endTime = parentObj.resolved.endTime
-	}
+	function getEndTime (obj: TimelineResolvedObject): EndTime {
+		if (obj.parent) {
+			const parentEndTime = getEndTime(obj.parent) || 0
 
-	if (
-		parentObj &&
-		parentObj.resolved.endTime &&
-		parentObj.resolved.startTime &&
-		returnObj.resolved.startTime &&
-		returnObj.resolved.endTime &&
-		(
-			returnObj.resolved.startTime > parentObj.resolved.endTime ||
-			returnObj.resolved.endTime < parentObj.resolved.startTime
-		)
-	) {
-		// we're outside parent, invalidate
-		returnObj.resolved.startTime = null
-		returnObj.resolved.endTime = null
+			if (
+				_.isNull(obj.resolved.endTime) ||
+				_.isUndefined(obj.resolved.endTime)
+			) {
+				if (parentEndTime > 0) {
+					return parentEndTime
+				} else {
+					return obj.resolved.endTime || null
+				}
+			} else {
+				const myEndTime = obj.resolved.endTime as number
+
+				if (parentEndTime > 0) {
+					return Math.min(parentEndTime, myEndTime)
+				} else {
+					return myEndTime
+				}
+			}
+
+		} else {
+			return obj.resolved.endTime || null
+		}
+	}
+	if (parentObj) {
+		const parentEndTime = getEndTime(parentObj)
+		if (parentEndTime &&
+			(
+				(returnObj.resolved.endTime || 0) > parentEndTime ||
+				!returnObj.resolved.endTime // infinite
+			)
+		) {
+			// cap inside parent:
+			returnObj.resolved.endTime = parentEndTime
+		}
+		if (
+			returnObj.resolved.startTime &&
+			returnObj.resolved.endTime &&
+			(
+				(
+					parentEndTime &&
+					parentObj.resolved.startTime &&
+					(
+						returnObj.resolved.startTime > parentEndTime ||
+						parentObj.resolved.startTime > returnObj.resolved.endTime
+					)
+				) || (
+					returnObj.resolved.startTime > returnObj.resolved.endTime
+				)
+			)
+		) {
+			// we're outside parent, invalidate
+			returnObj.resolved.startTime = null
+			returnObj.resolved.endTime = null
+		}
 	}
 
 	log(returnObj,TraceLevel.TRACE)
