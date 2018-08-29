@@ -412,7 +412,7 @@ class Resolver {
 */
 function resolveTimeline (data: UnresolvedTimeline | ResolvedTimeline, filter?: Filter): ResolvedTimeline {
 	if (!filter) filter = {}
-	if (!data) throw Error('resolveFullTimeline: parameter data missing!')
+	if (!data) throw new Error('resolveFullTimeline: parameter data missing!')
 
 	// check: if data is infact a resolved timeline, then just return it:
 	let unresolvedData: UnresolvedTimeline
@@ -438,11 +438,11 @@ function resolveTimeline (data: UnresolvedTimeline | ResolvedTimeline, filter?: 
 	const checkArrayOfObjects = (arrayOfObjects: Array<TimelineObject>) => {
 		_.each(arrayOfObjects,function (obj: TimelineObject) {
 			if (obj) {
-				if (!obj.id) 					throw Error('resolveTimeline: an object is missing its id!')
-				if (!obj.trigger) 				throw Error('resolveTimeline: object "' + obj.id + '" missing "trigger" attribute!')
-				if (!_.has(obj.trigger,'type')) throw Error('resolveTimeline: object "' + obj.id + '" missing "trigger.type" attribute!')
-				if (objectIds[obj.id]) 			throw Error('resolveTimeline: id "' + obj.id + '" is not unique!')
-				if (!_.has(obj,'LLayer')) 		throw Error('resolveTimeline: object "' + obj.id + '" missing "LLayers" attribute!')
+				if (!obj.id) 					throw new Error('resolveTimeline: an object is missing its id!')
+				if (!obj.trigger) 				throw new Error('resolveTimeline: object "' + obj.id + '" missing "trigger" attribute!')
+				if (!_.has(obj.trigger,'type')) throw new Error('resolveTimeline: object "' + obj.id + '" missing "trigger.type" attribute!')
+				if (objectIds[obj.id]) 			throw new Error('resolveTimeline: id "' + obj.id + '" is not unique!')
+				if (!_.has(obj,'LLayer')) 		throw new Error('resolveTimeline: object "' + obj.id + '" missing "LLayers" attribute!')
 
 				objectIds[obj.id] = true
 				if (obj.isGroup && obj.content && obj.content.objects) {
@@ -656,32 +656,64 @@ function developObj (
 	}
 
 	// cap inside parent:
-	if (parentObj &&
-		parentObj.resolved &&
-		parentObj.resolved.endTime &&
-		returnObj.resolved &&
-		(
-			(returnObj.resolved.endTime || 0) > parentObj.resolved.endTime ||
-			!returnObj.resolved.endTime // infinite
-		)
-	) {
-		returnObj.resolved.endTime = parentObj.resolved.endTime
-	}
+	function getEndTime (obj: TimelineResolvedObject): EndTime {
+		if (obj.parent) {
+			const parentEndTime = getEndTime(obj.parent) || 0
 
-	if (
-		parentObj &&
-		parentObj.resolved.endTime &&
-		parentObj.resolved.startTime &&
-		returnObj.resolved.startTime &&
-		returnObj.resolved.endTime &&
-		(
-			returnObj.resolved.startTime > parentObj.resolved.endTime ||
-			returnObj.resolved.endTime < parentObj.resolved.startTime
-		)
-	) {
-		// we're outside parent, invalidate
-		returnObj.resolved.startTime = null
-		returnObj.resolved.endTime = null
+			if (
+				_.isNull(obj.resolved.endTime) ||
+				_.isUndefined(obj.resolved.endTime)
+			) {
+				if (parentEndTime > 0) {
+					return parentEndTime
+				} else {
+					return obj.resolved.endTime || null
+				}
+			} else {
+				const myEndTime = obj.resolved.endTime as number
+
+				if (parentEndTime > 0) {
+					return Math.min(parentEndTime, myEndTime)
+				} else {
+					return myEndTime
+				}
+			}
+
+		} else {
+			return obj.resolved.endTime || null
+		}
+	}
+	if (parentObj) {
+		const parentEndTime = getEndTime(parentObj)
+		if (parentEndTime &&
+			(
+				(returnObj.resolved.endTime || 0) > parentEndTime ||
+				!returnObj.resolved.endTime // infinite
+			)
+		) {
+			// cap inside parent:
+			returnObj.resolved.endTime = parentEndTime
+		}
+		if (
+			returnObj.resolved.startTime &&
+			returnObj.resolved.endTime &&
+			(
+				(
+					parentEndTime &&
+					parentObj.resolved.startTime &&
+					(
+						returnObj.resolved.startTime > parentEndTime ||
+						parentObj.resolved.startTime > returnObj.resolved.endTime
+					)
+				) || (
+					returnObj.resolved.startTime > returnObj.resolved.endTime
+				)
+			)
+		) {
+			// we're outside parent, invalidate
+			returnObj.resolved.startTime = null
+			returnObj.resolved.endTime = null
+		}
 	}
 
 	log(returnObj,TraceLevel.TRACE)
@@ -689,7 +721,7 @@ function developObj (
 	if (returnObj.repeating) {
 		log('Repeating',TraceLevel.TRACE)
 
-		if (!returnObj.resolved.innerDuration) throw Error('Object "#' + returnObj.id + '" is repeating but missing innerDuration!')
+		if (!returnObj.resolved.innerDuration) throw new Error('Object "#' + returnObj.id + '" is repeating but missing innerDuration!')
 
 		log('time: ' + time,TraceLevel.TRACE)
 		log('innerDuration: ' + returnObj.resolved.innerDuration,TraceLevel.TRACE)
@@ -714,7 +746,7 @@ function developObj (
 				developObj(tl2, time, newChild, getObjectAttribute, returnObj)
 			})
 		} else {
-			throw Error('.isGroup is set, but .content.objects is missing!')
+			throw new Error('.isGroup is set, but .content.objects is missing!')
 		}
 
 		tl2.groups.push(returnObj)
@@ -769,7 +801,7 @@ function resolveObjectStartTime (
 		// not resolved here...
 		obj.resolved.startTime = null
 	} else {
-		throw Error('Unknown trigger type: ' + obj.trigger.type + ' in object ' + obj.id + ', asked by ' + printWhosAsking(whosAsking))
+		throw new Error('Unknown trigger type: ' + obj.trigger.type + ' in object ' + obj.id + ', asked by ' + printWhosAsking(whosAsking))
 	}
 
 	let startTime: StartTime = null
@@ -958,15 +990,15 @@ function interpretExpression (strOrExpr: string | number | Expression, isLogical
 
 			const tmp = wrapInnerExpressions(words)
 
-			if (tmp.rest.length) throw Error('interpretExpression: syntax error: parentheses don\'t add up in "' + str + '".')
+			if (tmp.rest.length) throw new Error('interpretExpression: syntax error: parentheses don\'t add up in "' + str + '".')
 
 			const expressionArray = tmp.inner
 
-			if (expressionArray.length % 2 !== 1) throw Error('interpretExpression: operands & operators don\'t add up: "' + expressionArray.join(' ') + '".')
+			if (expressionArray.length % 2 !== 1) throw new Error('interpretExpression: operands & operators don\'t add up: "' + expressionArray.join(' ') + '".')
 
 			const getExpression = function (words: Array<any>) {
 
-				if (!words || !words.length) throw Error('interpretExpression: syntax error: unbalanced expression')
+				if (!words || !words.length) throw new Error('interpretExpression: syntax error: unbalanced expression')
 
 				if (words.length === 1 && _.isArray(words[0])) words = words[0]
 
@@ -993,7 +1025,7 @@ function interpretExpression (strOrExpr: string | number | Expression, isLogical
 					o.r = getExpression(o.r)
 
 					return o
-				} else throw Error('interpretExpression: syntax error: operator not found: "' + (words.join(' ')) + '"')
+				} else throw new Error('interpretExpression: syntax error: operator not found: "' + (words.join(' ')) + '"')
 			}
 
 			expression = getExpression(expressionArray)
@@ -1011,13 +1043,13 @@ function interpretExpression (strOrExpr: string | number | Expression, isLogical
 
 			const expr: ExpressionObj = expr0 as ExpressionObj
 
-			if (!_.has(expr,'l')) throw Error('validateExpression: "+breadcrumbs+".l missing')
-			if (!_.has(expr,'o')) throw Error('validateExpression: "+breadcrumbs+".o missing')
-			if (!_.has(expr,'r')) throw Error('validateExpression: "+breadcrumbs+".r missing')
+			if (!_.has(expr,'l')) throw new Error('validateExpression: "+breadcrumbs+".l missing')
+			if (!_.has(expr,'o')) throw new Error('validateExpression: "+breadcrumbs+".o missing')
+			if (!_.has(expr,'r')) throw new Error('validateExpression: "+breadcrumbs+".r missing')
 
-			if (!_.isString(expr.o)) throw Error('validateExpression: "+breadcrumbs+".o not a string')
+			if (!_.isString(expr.o)) throw new Error('validateExpression: "+breadcrumbs+".o not a string')
 
-			if (!wordIsOperator(expr.o)) throw Error(breadcrumbs + '.o not valid: "' + expr.o + '"')
+			if (!wordIsOperator(expr.o)) throw new Error(breadcrumbs + '.o not valid: "' + expr.o + '"')
 
 			validateExpression(expr.l,breadcrumbs + '.l')
 			validateExpression(expr.r,breadcrumbs + '.r')
@@ -1030,7 +1062,7 @@ function interpretExpression (strOrExpr: string | number | Expression, isLogical
 		}
 	} catch (e) {
 		const errStr = JSON.stringify(expression)
-		throw Error(errStr + ' ' + e)
+		throw new Error(errStr + ' ' + e)
 	}
 
 	log('expression: ',TraceLevel.TRACE)
@@ -1144,7 +1176,7 @@ function resolveExpression (
 				} else if (hook === 'duration') {
 					val = getReferredDuration(objId, whosAsking || [])
 				} else {
-					throw Error('Unknown hook: "' + expression + '"')
+					throw new Error('Unknown hook: "' + expression + '"')
 				}
 				log('val ' + val, TraceLevel.TRACE)
 				return val
@@ -1352,7 +1384,7 @@ function resolveLogicalExpression (
 
 			const expl = explJoin(explRemove,', ',' and ') + ' is playing on ' + explJoin(explAdd,', ',' or ')
 
-			if (err) throw Error('Unknown logical expression: "' + str + '" ("' + err + '")')
+			if (err) throw new Error('Unknown logical expression: "' + str + '" ("' + err + '")')
 
 			// @ts-ignore return string is debug only
 			if (returnExpl) return expl
@@ -1375,7 +1407,7 @@ function resolveLogicalExpression (
 	} else if (_.isBoolean(expressionOrString)) {
 		return expressionOrString
 	}
-	throw Error('resolveLogicalExpression: unknown input: ' + expressionOrString + ' ')
+	throw new Error('resolveLogicalExpression: unknown input: ' + expressionOrString + ' ')
 
 }
 
@@ -1874,7 +1906,7 @@ function iterateResolveObjects (
 	const allObjects: {[id: string]: TimelineResolvedObject} = {}
 
 	const addObjectToAllObjects = (obj: TimelineResolvedObject) => {
-		if (allObjects[obj.id]) throw Error('Object id "' + obj.id + '" is not unique!')
+		if (allObjects[obj.id]) throw new Error('Object id "' + obj.id + '" is not unique!')
 		allObjects[obj.id] = obj
 
 		obj.resolved = {}
@@ -1938,7 +1970,7 @@ function createGetObjectAttribute (allObjects: {[id: string]: any}) {
 		const key = objId + '_' + hook
 		const obj: TimelineResolvedObject = allObjects[objId]
 		if (!obj) {
-			if (throwErrors) throw Error('Unknown object id "' + objId + '"')
+			if (throwErrors) throw new Error('Unknown object id "' + objId + '"')
 			return null
 		}
 		if (!obj.resolved) obj.resolved = {}
@@ -2002,7 +2034,7 @@ function createGetObjectAttribute (allObjects: {[id: string]: any}) {
 			obj.resolved.parentStart = null
 			return obj.resolved.parentStart
 		} else {
-			throw Error('Unknown hook: "' + hook + '"')
+			throw new Error('Unknown hook: "' + hook + '"')
 		}
 	}
 	return getObjectAttribute
