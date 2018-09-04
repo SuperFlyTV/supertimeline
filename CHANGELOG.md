@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.0.4"></a>
+## [5.0.4](https://github.com/SuperFlyTV/supertimeline/compare/5.0.3...5.0.4) (2018-09-04)
+
+
+### Bug Fixes
+
+* nested parentheses bug ([a828cea](https://github.com/SuperFlyTV/supertimeline/commit/a828cea))
+* operator order bug ([00f5186](https://github.com/SuperFlyTV/supertimeline/commit/00f5186))
+
+
+
 <a name="5.0.3"></a>
 ## [5.0.3](https://github.com/SuperFlyTV/supertimeline/compare/5.0.2...5.0.3) (2018-09-04)
 
