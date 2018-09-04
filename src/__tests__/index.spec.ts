@@ -1384,6 +1384,26 @@ const testData = {
 				]
 			}
 		}
+	],
+	'manyParentheses': [
+		{
+			id: 'obj0',
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now + 3000
+			},
+			duration: 0,
+			LLayer: 0
+		},
+		{
+			id: 'obj1',
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now
+			},
+			duration: '((#obj0.start - #.start) - (1000 + (2000 / 2)))',
+			LLayer: 1
+		}
 	]
 }
 let reverseData = false
@@ -2631,6 +2651,21 @@ let tests: Tests = {
 		const state0 = Resolver.getState(data, 5500)
 		expect(state0.LLayers['4']).toBeFalsy()
 		expect(state0.LLayers['6']).toBeFalsy()
+	},
+	'Many parentheses': () => {
+		const data = clone(getTestData('manyParentheses'))
+		const tl = Resolver.getTimelineInWindow(data)
+		expect(tl.unresolved).toHaveLength(0)
+		expect(tl.resolved).toHaveLength(2)
+
+		const obj0: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'obj0' })
+		const obj1: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'obj1' })
+
+		expect(obj0.resolved.startTime).toBe(4000)
+		expect(obj0.resolved.outerDuration).toBe(0)
+
+		expect(obj1.resolved.startTime).toBe(1000)
+		expect(obj1.resolved.outerDuration).toBe(1000)
 	}
 }
 const onlyTests: Tests = {}
