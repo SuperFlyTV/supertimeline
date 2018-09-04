@@ -1384,6 +1384,88 @@ const testData = {
 				]
 			}
 		}
+	],
+	'childEndRelativeParentEnd': [
+		{
+			id: 'group0', // the id must be unique
+
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now
+			},
+			duration: '#group3.start + 600 - #.start',
+			LLayer: 2,
+			isGroup: true,
+			repeating: false,
+			content: {
+				objects: [
+					{
+						id: 'group2', // the id must be unique
+						trigger: {
+							type: TriggerType.TIME_ABSOLUTE,
+							value: 0
+						},
+						duration: '(#group0.end - #.start) - 2000',
+						LLayer: 3,
+						isGroup: true,
+						repeating: false,
+						content: {
+							objects: [
+								{
+									id: 'child1', // the id must be unique
+									trigger: {
+										type: TriggerType.TIME_ABSOLUTE,
+										value: 0 // Relative to parent object
+									},
+									duration: 0,
+									LLayer: 4
+								}
+							]
+						}
+					}
+				]
+			}
+		},
+		{
+			id: 'group1', // the id must be unique
+
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now + 5000
+			},
+			duration: 0,
+			LLayer: 1,
+			isGroup: true,
+			repeating: false,
+			content: {
+				objects: [
+					{
+						id: 'group3', // the id must be unique
+						trigger: {
+							type: TriggerType.TIME_ABSOLUTE,
+							value: 0
+						},
+						duration: 3600,
+						LLayer: 7,
+						isGroup: true,
+						repeating: false,
+						content: {
+							objects: [
+								{
+									id: 'child0', // the id must be unique
+									trigger: {
+										type: TriggerType.TIME_ABSOLUTE,
+										value: 0
+									},
+									duration: 0,
+									LLayer: 8
+								}
+							]
+						}
+					}
+				]
+			}
+		}
 	]
 }
 let reverseData = false
@@ -2631,6 +2713,36 @@ let tests: Tests = {
 		const state0 = Resolver.getState(data, 5500)
 		expect(state0.LLayers['4']).toBeFalsy()
 		expect(state0.LLayers['6']).toBeFalsy()
+	},
+	'Child relative duration before parent end': () => {
+		const data = clone(getTestData('childEndRelativeParentEnd'))
+		const tl = Resolver.getTimelineInWindow(data)
+		expect(tl.unresolved).toHaveLength(0)
+		expect(tl.resolved).toHaveLength(2)
+
+		const group0: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'group0' })
+		const group1: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'group1' })
+
+		expect(group0.resolved.startTime).toBe(1000)
+		expect(group0.resolved.outerDuration).toBe(5600)
+
+		expect(group1.resolved.startTime).toBe(6000)
+		expect(group1.resolved.outerDuration).toBe(0)
+
+		const events = Resolver.getNextEvents(data, 1000)
+		expect(events.length).toEqual(4)
+		expect(events[0].obj.id).toEqual('child1')
+		expect(events[0].time).toEqual(1000)
+		expect(events[1].obj.id).toEqual('child1')
+		expect(events[1].time).toEqual(4600)
+		expect(events[2].obj.id).toEqual('child0')
+		expect(events[2].time).toEqual(6000)
+		expect(events[3].obj.id).toEqual('child0')
+		expect(events[3].time).toEqual(9600)
+
+		const state0 = Resolver.getState(data, 6500)
+		expect(state0.LLayers['4']).toBeFalsy()
+		expect(state0.LLayers['8']).toBeTruthy()
 	}
 }
 const onlyTests: Tests = {}
@@ -2657,9 +2769,5 @@ describe('Tests with reversed data', () => {
 		})
 	})
 })
-
-// TOOD: test group
-
-// TODO: test looping group
 
 // TODO: test .useExternalFunctions
