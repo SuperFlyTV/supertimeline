@@ -989,7 +989,6 @@ function interpretExpression (strOrExpr: string | number | Expression, isLogical
 			}
 
 			const tmp = wrapInnerExpressions(words)
-
 			if (tmp.rest.length) throw new Error('interpretExpression: syntax error: parentheses don\'t add up in "' + str + '".')
 
 			const expressionArray = tmp.inner
@@ -1011,7 +1010,7 @@ function interpretExpression (strOrExpr: string | number | Expression, isLogical
 				// Find the operator with the highest priority:
 				_.each(operatorList,function (operator) {
 					if (operatorI === -1) {
-						operatorI = words.indexOf(operator)
+						operatorI = words.lastIndexOf(operator)
 					}
 				})
 
@@ -1099,7 +1098,8 @@ function resolveExpression (
 
 		const expression: ExpressionObj = expression0 as ExpressionObj
 
-		log('resolveExpression',TraceLevel.TRACE)
+		// @ts-ignore stringify
+		log('resolveExpression' + JSON.stringify(expression0, '', 2), TraceLevel.TRACE)
 
 		const l = resolveExpression(expression.l, whosAsking, getObjectAttribute)
 		const r = resolveExpression(expression.r, whosAsking, getObjectAttribute)
@@ -1116,6 +1116,8 @@ function resolveExpression (
 		if (expression.o === '*') return l * r
 		if (expression.o === '/') return l / r
 	} else {
+
+		log('resolveExpression' + expression0, TraceLevel.TRACE)
 
 		if (isNumeric(expression0)) {
 			if (_.isNumber(expression0)) {
