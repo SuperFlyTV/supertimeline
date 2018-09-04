@@ -974,7 +974,7 @@ function interpretExpression (strOrExpr: string | number | Expression, isLogical
 
 						// insert inner expression and remove tha
 						words[i] = tmp.inner
-						words.splice(i + 1,tmp.inner.length + 1)
+						words.splice(i + 1, 99999, ...tmp.rest)
 					} else if (words[i] === ')') {
 						return {
 							inner: words.slice(0,i),
