@@ -1466,6 +1466,91 @@ const testData = {
 				]
 			}
 		}
+	],
+	'manyParentheses': [
+		{
+			id: 'obj0',
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now + 3000
+			},
+			duration: 0,
+			LLayer: 0
+		},
+		{
+			id: 'obj1',
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now
+			},
+			duration: '((#obj0.start - #.start) - (1000 + (2000 / 2)))',
+			LLayer: 1
+		}
+	],
+	'operatorOrder': [
+		{
+			id: 'obj0',
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now + 3000
+			},
+			duration: 0,
+			LLayer: 0
+		},
+		{
+			id: 'obj1',
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now
+			},
+			duration: '(#obj0.start - #.start) - 2000',
+			LLayer: 1
+		},
+		{
+			id: 'obj2',
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now
+			},
+			duration: '#obj0.start - 2000 - #.start',
+			LLayer: 2
+		},
+		{
+			id: 'obj3',
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now
+			},
+			duration: '#obj0.start - #.start - 2000',
+			LLayer: 3
+		},
+		{
+			id: 'obj4',
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now
+			},
+			duration: '(#obj0.start - #.start) + 2000',
+			LLayer: 4
+		},
+		{
+			id: 'obj5',
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now
+			},
+			duration: '#obj0.start + 2000 - #.start',
+			LLayer: 5
+		},
+		{
+			id: 'obj6',
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now
+			},
+			duration: '#obj0.start - #.start + 2000',
+			LLayer: 6
+		}
 	]
 }
 let reverseData = false
@@ -1953,8 +2038,28 @@ let tests: Tests = {
 		)).toEqual(3)
 
 		expect(Resolver.resolveExpression(
+			Resolver.interpretExpression('5 + 4 - 2 + 1 - 5 + 7')
+		)).toEqual(10)
+
+		expect(Resolver.resolveExpression(
+			Resolver.interpretExpression('5 - 4 - 3')
+		)).toEqual(-2)
+
+		expect(Resolver.resolveExpression(
+			Resolver.interpretExpression('5 - 4 - 3 - 10 + 2')
+		)).toEqual(-10)
+
+		expect(Resolver.resolveExpression(
 			Resolver.interpretExpression('4 * 5.5')
 		)).toEqual(22)
+
+		expect(Resolver.resolveExpression(
+			Resolver.interpretExpression('2 * 3 * 4')
+		)).toEqual(24)
+
+		expect(Resolver.resolveExpression(
+			Resolver.interpretExpression('20 / 4 / 2')
+		)).toEqual(2.5)
 
 		expect(Resolver.resolveExpression(
 			Resolver.interpretExpression('2 * (2 + 3) - 2 * 2')
@@ -2743,6 +2848,56 @@ let tests: Tests = {
 		const state0 = Resolver.getState(data, 6500)
 		expect(state0.LLayers['4']).toBeFalsy()
 		expect(state0.LLayers['8']).toBeTruthy()
+	},
+	'Many parentheses': () => {
+		const data = clone(getTestData('manyParentheses'))
+		const tl = Resolver.getTimelineInWindow(data)
+		expect(tl.unresolved).toHaveLength(0)
+		expect(tl.resolved).toHaveLength(2)
+
+		const obj0: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'obj0' })
+		const obj1: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'obj1' })
+
+		expect(obj0.resolved.startTime).toBe(4000)
+		expect(obj0.resolved.outerDuration).toBe(0)
+
+		expect(obj1.resolved.startTime).toBe(1000)
+		expect(obj1.resolved.outerDuration).toBe(1000)
+	},
+	'Operator order': () => {
+		const data = clone(getTestData('operatorOrder'))
+		const tl = Resolver.getTimelineInWindow(data)
+		expect(tl.unresolved).toHaveLength(0)
+		expect(tl.resolved).toHaveLength(7)
+
+		const obj0: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'obj0' })
+		const obj1: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'obj1' })
+		const obj2: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'obj2' })
+		const obj3: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'obj3' })
+		const obj4: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'obj4' })
+		const obj5: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'obj5' })
+		const obj6: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'obj6' })
+
+		expect(obj0.resolved.startTime).toBe(4000)
+		expect(obj0.resolved.outerDuration).toBe(0)
+
+		expect(obj1.resolved.startTime).toBe(1000)
+		expect(obj1.resolved.outerDuration).toBe(1000)
+
+		expect(obj2.resolved.startTime).toBe(1000)
+		expect(obj2.resolved.outerDuration).toBe(1000)
+
+		expect(obj3.resolved.startTime).toBe(1000)
+		expect(obj3.resolved.outerDuration).toBe(1000)
+
+		expect(obj4.resolved.startTime).toBe(1000)
+		expect(obj4.resolved.outerDuration).toBe(5000)
+
+		expect(obj5.resolved.startTime).toBe(1000)
+		expect(obj5.resolved.outerDuration).toBe(5000)
+
+		expect(obj6.resolved.startTime).toBe(1000)
+		expect(obj6.resolved.outerDuration).toBe(5000)
 	}
 }
 const onlyTests: Tests = {}
