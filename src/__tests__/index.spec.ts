@@ -2770,8 +2770,4 @@ describe('Tests with reversed data', () => {
 	})
 })
 
-// TOOD: test group
-
-// TODO: test looping group
-
 // TODO: test .useExternalFunctions

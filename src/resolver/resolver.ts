@@ -145,8 +145,8 @@ export interface Filter {
 	startTime?: StartTime,
 	endTime?: EndTime,
 }
-type WhosAskingTrace = Array<string>
-type objAttributeFunction = (objId: string, hook: 'start' | 'end' | 'duration' | 'parentStart', whosAsking: WhosAskingTrace) => number | null
+export type WhosAskingTrace = Array<string>
+export type objAttributeFunction = (objId: string, hook: 'start' | 'end' | 'duration' | 'parentStart', whosAsking: WhosAskingTrace) => number | null
 const nullGetObjectAttribute: objAttributeFunction = (_objId, _hook, _whosAsking) => {
 	return null
 }
@@ -841,6 +841,22 @@ function resolveObjectDuration (
 			const startTime = getObjectAttribute(obj.id, 'start', whosAsking)
 
 			log('RESOLVE GROUP DURATION ' + obj.id,TraceLevel.TRACE)
+			const duration = resolveDuration(obj)
+
+			let outerDurationSetFromDuration = false
+			if (
+				duration !== null &&
+				(
+					(duration || 0) > 0 ||
+					duration === 0
+				)
+			) {
+				// The outerDuration is, in this case determined by the duration
+				outerDuration = duration
+				obj.resolved.outerDuration = outerDuration
+				outerDurationSetFromDuration = true
+			}
+
 			let lastEndTime: EndTime = -1
 			if (startTime) {
 				if (obj.content && obj.content.objects) {
@@ -862,13 +878,11 @@ function resolveObjectDuration (
 				0
 			)
 			obj.resolved.innerDuration = innerDuration
-			const duration = resolveDuration(obj)
+
 			if (duration !== null) {
-				outerDuration = (
-					(duration || 0) > 0 || duration === 0 ?
-					duration :
-					(lastEndTime || 0)
-				)
+				if (!outerDurationSetFromDuration) {
+					outerDuration = lastEndTime || 0
+				}
 				obj.resolved.outerDuration = outerDuration
 			}
 			log('GROUP DURATION: ' + obj.resolved.innerDuration + ', ' + obj.resolved.outerDuration,TraceLevel.TRACE)
@@ -2006,6 +2020,7 @@ function createGetObjectAttribute (allObjects: {[id: string]: any}) {
 				throw e
 			} else {
 				// it wasn't possible to determine the startTime
+				log('Already tried, not possible to get', TraceLevel.TRACE)
 				return null
 			}
 		}
