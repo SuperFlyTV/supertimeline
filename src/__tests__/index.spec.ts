@@ -1956,8 +1956,28 @@ let tests: Tests = {
 		)).toEqual(3)
 
 		expect(Resolver.resolveExpression(
+			Resolver.interpretExpression('5 + 4 - 2 + 1 - 5 + 7')
+		)).toEqual(10)
+
+		expect(Resolver.resolveExpression(
+			Resolver.interpretExpression('5 - 4 - 3')
+		)).toEqual(-2)
+
+		expect(Resolver.resolveExpression(
+			Resolver.interpretExpression('5 - 4 - 3 - 10 + 2')
+		)).toEqual(-10)
+
+		expect(Resolver.resolveExpression(
 			Resolver.interpretExpression('4 * 5.5')
 		)).toEqual(22)
+
+		expect(Resolver.resolveExpression(
+			Resolver.interpretExpression('2 * 3 * 4')
+		)).toEqual(24)
+
+		expect(Resolver.resolveExpression(
+			Resolver.interpretExpression('20 / 4 / 2')
+		)).toEqual(2.5)
 
 		expect(Resolver.resolveExpression(
 			Resolver.interpretExpression('2 * (2 + 3) - 2 * 2')
