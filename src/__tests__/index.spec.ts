@@ -1551,6 +1551,42 @@ const testData = {
 			duration: '#obj0.start - #.start + 2000',
 			LLayer: 6
 		}
+	],
+	'childWithStartBeforeParent': [
+		{
+			id: 'group0', // the id must be unique
+
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now + 5000
+			},
+			duration: 0,
+			LLayer: 1,
+			isGroup: true,
+			repeating: false,
+			content: {
+				objects: [
+					{
+						id: 'child0',
+						trigger: {
+							type: TriggerType.TIME_ABSOLUTE,
+							value: -1000 // Relative to parent object
+						},
+						duration: 0,
+						LLayer: 2
+					},
+					{
+						id: 'child1',
+						trigger: {
+							type: TriggerType.TIME_RELATIVE,
+							value: '#group0.start - 1000'
+						},
+						duration: 0,
+						LLayer: 3
+					}
+				]
+			}
+		}
 	]
 }
 let reverseData = false
@@ -2898,6 +2934,24 @@ let tests: Tests = {
 
 		expect(obj6.resolved.startTime).toBe(1000)
 		expect(obj6.resolved.outerDuration).toBe(5000)
+	},
+	'Child with a start before parent': () => {
+		const data = clone(getTestData('childWithStartBeforeParent'))
+		const tl = Resolver.getTimelineInWindow(data)
+		expect(tl.unresolved).toHaveLength(0)
+		expect(tl.resolved).toHaveLength(1)
+
+		const group0: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'group0' })
+
+		expect(group0.resolved.startTime).toBe(6000)
+		expect(group0.resolved.outerDuration).toBe(0)
+
+		const events = Resolver.getNextEvents(data, 1000)
+		expect(events.length).toEqual(2)
+		expect(events[0].obj.id).toEqual('child1')
+		expect(events[0].time).toEqual(6000)
+		expect(events[1].obj.id).toEqual('child0')
+		expect(events[1].time).toEqual(6000)
 	}
 }
 const onlyTests: Tests = {}
