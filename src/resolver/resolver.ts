@@ -315,6 +315,9 @@ class Resolver {
 			if (a.type > b.type) return -1
 			if (a.type < b.type) return 1
 
+			if (a.obj.id > b.obj.id) return -1
+			if (a.obj.id < b.obj.id) return 1
+
 			return 0
 		})
 
