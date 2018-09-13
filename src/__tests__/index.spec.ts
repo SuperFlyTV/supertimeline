@@ -3054,7 +3054,7 @@ let tests: Tests = {
 		const group0: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'group0' })
 
 		expect(group0.resolved.startTime).toBe(6000)
-		expect(group0.resolved.outerDuration).toBe(0)
+		expect(group0.resolved.outerDuration).toBe(Infinity)
 
 		const events = Resolver.getNextEvents(data, 1000)
 		expect(events.length).toEqual(2)

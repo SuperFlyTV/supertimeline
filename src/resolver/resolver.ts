@@ -690,17 +690,62 @@ function developObj (
 			return obj.resolved.endTime || null
 		}
 	}
+	function getStartTime (obj: TimelineResolvedObject): StartTime {
+		if (obj.parent) {
+			const parentStartTime = getStartTime(obj.parent) || 0
+
+			if (
+				_.isNull(obj.resolved.startTime) ||
+				_.isUndefined(obj.resolved.startTime)
+			) {
+				if (parentStartTime > 0) {
+					return parentStartTime
+				} else {
+					return obj.resolved.startTime || null
+				}
+			} else {
+				const myStartTime = obj.resolved.startTime as number
+
+				if (parentStartTime > 0) {
+					return Math.max(parentStartTime, myStartTime)
+				} else {
+					return myStartTime
+				}
+			}
+
+		} else {
+			return obj.resolved.startTime || null
+		}
+	}
 	if (parentObj) {
 		const parentEndTime = getEndTime(parentObj)
 		if (parentEndTime &&
 			(
 				(returnObj.resolved.endTime || 0) > parentEndTime ||
-				!returnObj.resolved.endTime // infinite
+				returnObj.resolved.endTime === Infinity
 			)
 		) {
-			// cap inside parent:
+			// cap end time inside parent:
 			returnObj.resolved.endTime = parentEndTime
 		}
+
+		const parentStartTime = getStartTime(parentObj)
+		if (parentStartTime &&
+			(
+				(returnObj.resolved.startTime || 0) < parentStartTime &&
+				returnObj.resolved.startTime
+			)
+		) {
+			// cap start time inside parent:
+			const diff = parentStartTime - returnObj.resolved.startTime
+			if (diff) {
+				returnObj.resolved.startTime += diff
+				if (returnObj.resolved.outerDuration) {
+					returnObj.resolved.outerDuration -= diff
+				}
+			}
+		}
+
 		if (
 			returnObj.resolved.startTime &&
 			returnObj.resolved.endTime &&
