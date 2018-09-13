@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.0.6"></a>
+## [5.0.6](https://github.com/SuperFlyTV/supertimeline/compare/5.0.5...5.0.6) (2018-09-13)
+
+
+### Bug Fixes
+
+* TimelineObject duration can be a string ([edf3ae3](https://github.com/SuperFlyTV/supertimeline/commit/edf3ae3))
+
+
+
 <a name="5.0.5"></a>
 ## [5.0.5](https://github.com/SuperFlyTV/supertimeline/compare/5.0.4...5.0.5) (2018-09-13)
 
