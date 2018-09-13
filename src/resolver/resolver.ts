@@ -11,7 +11,7 @@ export interface TimelineObject {
 		type: TriggerType,
 		value: number | string // unix timestamp
 	},
-	duration: number, // seconds
+	duration?: number, // seconds
 	LLayer: string | number,
 	content: {
 		objects?: Array<TimelineObject>,
@@ -53,7 +53,7 @@ export interface TimelineKeyframe {
 		type: TriggerType,
 		value: number | string // unix timestamp
 	},
-	duration: number, // seconds
+	duration?: number, // seconds
 	content?: {
 
 		// templateData?: any,
