@@ -2720,7 +2720,7 @@ let tests: Tests = {
 		expect(child0.resolved.startTime).toBe(1000)
 		expect(child0.resolved.endTime).toBe(1150)
 		expect(child1.resolved.startTime).toBe(1150)
-		expect(child1.resolved.endTime).toBe(0)
+		expect(child1.resolved.endTime).toBe(Infinity)
 
 		const events = Resolver.getNextEvents(data, 1000)
 		expect(events.length).toEqual(3)
@@ -2844,7 +2844,7 @@ let tests: Tests = {
 		const trans0: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'trans0' })
 
 		expect(group0.resolved.startTime).toBe(1000)
-		expect(group0.resolved.outerDuration).toBe(0)
+		expect(group0.resolved.outerDuration).toBe(Infinity)
 
 		expect(trans0.resolved.startTime).toBe(1000)
 		expect(trans0.resolved.outerDuration).toBe(2500)
@@ -2856,10 +2856,10 @@ let tests: Tests = {
 		const child1: TimelineResolvedObject = _.findWhere(tld.resolved, { id: 'child1' })
 
 		expect(child0.resolved.startTime).toBe(2500)
-		expect(child0.resolved.outerDuration).toBe(0)
+		expect(child0.resolved.outerDuration).toBe(Infinity)
 
 		expect(child1.resolved.startTime).toBe(1000)
-		expect(child1.resolved.outerDuration).toBe(0)
+		expect(child1.resolved.outerDuration).toBe(Infinity)
 
 		const state0 = Resolver.getState(data, 1500)
 		expect(state0.LLayers['3']).toBeTruthy()
@@ -2886,7 +2886,7 @@ let tests: Tests = {
 		expect(group0.resolved.outerDuration).toBe(3100)
 
 		expect(group1.resolved.startTime).toBe(4000)
-		expect(group1.resolved.outerDuration).toBe(0)
+		expect(group1.resolved.outerDuration).toBe(Infinity)
 
 		const events = Resolver.getNextEvents(data, 1000)
 		expect(events.length).toEqual(3)
@@ -2914,7 +2914,7 @@ let tests: Tests = {
 		expect(group0.resolved.outerDuration).toBe(5600)
 
 		expect(group1.resolved.startTime).toBe(6000)
-		expect(group1.resolved.outerDuration).toBe(0)
+		expect(group1.resolved.outerDuration).toBe(Infinity)
 
 		const events = Resolver.getNextEvents(data, 1000)
 		expect(events.length).toEqual(4)
@@ -2941,17 +2941,19 @@ let tests: Tests = {
 		const group1: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'group1' })
 
 		expect(group0.resolved.startTime).toBe(1000)
-		expect(group0.resolved.outerDuration).toBe(0)
+		expect(group0.resolved.outerDuration).toBe(Infinity)
 
 		expect(group1.resolved.startTime).toBe(1000)
-		expect(group1.resolved.outerDuration).toBe(0)
+		expect(group1.resolved.outerDuration).toBe(Infinity)
 
 		const events = Resolver.getNextEvents(data, 1000)
-		expect(events.length).toEqual(2)
-		expect(events[0].obj.id).toEqual('child1')
+		expect(events.length).toEqual(3)
+		expect(events[0].obj.id).toEqual('child0')
 		expect(events[0].time).toEqual(1000)
-		expect(events[1].obj.id).toEqual('child0')
+		expect(events[1].obj.id).toEqual('child1')
 		expect(events[1].time).toEqual(1000)
+		expect(events[2].obj.id).toEqual('child0')
+		expect(events[2].time).toEqual(1000)
 
 		const state0 = Resolver.getState(data, 1500)
 		expect(state0.LLayers['3']).toBeTruthy()
@@ -2967,7 +2969,7 @@ let tests: Tests = {
 		const obj1: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'obj1' })
 
 		expect(obj0.resolved.startTime).toBe(4000)
-		expect(obj0.resolved.outerDuration).toBe(0)
+		expect(obj0.resolved.outerDuration).toBe(Infinity)
 
 		expect(obj1.resolved.startTime).toBe(1000)
 		expect(obj1.resolved.outerDuration).toBe(1000)
@@ -2987,7 +2989,7 @@ let tests: Tests = {
 		const obj6: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'obj6' })
 
 		expect(obj0.resolved.startTime).toBe(4000)
-		expect(obj0.resolved.outerDuration).toBe(0)
+		expect(obj0.resolved.outerDuration).toBe(Infinity)
 
 		expect(obj1.resolved.startTime).toBe(1000)
 		expect(obj1.resolved.outerDuration).toBe(1000)
