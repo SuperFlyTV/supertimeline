@@ -11,7 +11,7 @@ export interface TimelineObject {
 		type: TriggerType,
 		value: number | string // unix timestamp
 	},
-	duration?: number, // seconds
+	duration?: number | string,
 	LLayer: string | number,
 	content: {
 		objects?: Array<TimelineObject>,
@@ -475,7 +475,7 @@ function resolveTimeline (data: UnresolvedTimeline | ResolvedTimeline, filter?: 
 		return obj
 	})
 
-	const getClone = (obj: TimelineObject) => {
+	const getClone = (obj: TimelineObject): TimelineObject => {
 		const c = _.clone(obj)
 
 		if (c.content) {
@@ -484,6 +484,7 @@ function resolveTimeline (data: UnresolvedTimeline | ResolvedTimeline, filter?: 
 				c.content.objects = _.map(c.content.objects, getClone)
 			}
 			if (c.content.keyframes) {
+				// @ts-ignore Wrong inferred typing on _.map
 				c.content.keyframes = _.map(c.content.keyframes, getClone)
 			}
 		}
