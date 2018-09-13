@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.0.5"></a>
+## [5.0.5](https://github.com/SuperFlyTV/supertimeline/compare/5.0.4...5.0.5) (2018-09-13)
+
+
+### Bug Fixes
+
+* cap startTime within parent group ([4e913ba](https://github.com/SuperFlyTV/supertimeline/commit/4e913ba))
+* changed duration interpretation to support Infinite duration properly ([489fc4e](https://github.com/SuperFlyTV/supertimeline/commit/489fc4e))
+* duration can be undefined ([bc278d6](https://github.com/SuperFlyTV/supertimeline/commit/bc278d6))
+
+
+
 <a name="5.0.4"></a>
 ## [5.0.4](https://github.com/SuperFlyTV/supertimeline/compare/5.0.3...5.0.4) (2018-09-04)
 
