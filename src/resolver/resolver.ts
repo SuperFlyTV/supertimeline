@@ -11,7 +11,7 @@ export interface TimelineObject {
 		type: TriggerType,
 		value: number | string // unix timestamp
 	},
-	duration: number, // seconds
+	duration?: number, // seconds
 	LLayer: string | number,
 	content: {
 		objects?: Array<TimelineObject>,
@@ -53,7 +53,7 @@ export interface TimelineKeyframe {
 		type: TriggerType,
 		value: number | string // unix timestamp
 	},
-	duration: number, // seconds
+	duration?: number, // seconds
 	content?: {
 
 		// templateData?: any,
@@ -146,8 +146,8 @@ export interface Filter {
 	endTime?: EndTime,
 }
 export type WhosAskingTrace = Array<string>
-export type objAttributeFunction = (objId: string, hook: 'start' | 'end' | 'duration' | 'parentStart', whosAsking: WhosAskingTrace) => number | null
-const nullGetObjectAttribute: objAttributeFunction = (_objId, _hook, _whosAsking) => {
+export type objAttributeFunction = (objId: string, hook: 'start' | 'end' | 'duration' | 'parentStart', whosAsking: WhosAskingTrace, supressAlreadyAskedWarning?: boolean) => number | null
+const nullGetObjectAttribute: objAttributeFunction = (_objId, _hook, _whosAsking, _supressAlreadyAskedWarning) => {
 	return null
 }
 class Resolver {
@@ -239,11 +239,12 @@ class Resolver {
 		_.each(tld.resolved, (obj: TimelineResolvedObject) => {
 
 			if (
-				(obj.resolved.endTime || 0) >= time || // the object has not already finished
-				obj.resolved.endTime === 0 // the object has no endTime
+				(obj.resolved.endTime || 0) >= time // the object has not already finished
+				// || obj.resolved.endTime === 0 // the object has no endTime
 			 ) {
 				if (
 					obj.resolved.startTime &&
+					obj.resolved.startTime !== Infinity &&
 					(obj.resolved.startTime || 0) >= time) { // the object has not started yet
 					nextEvents.push({
 						type: EventType.START,
@@ -251,7 +252,10 @@ class Resolver {
 						obj: obj
 					})
 				}
-				if (obj.resolved.endTime) {
+				if (
+					obj.resolved.endTime &&
+					obj.resolved.endTime !== Infinity
+				) {
 
 					nextEvents.push({
 						type: EventType.END,
@@ -314,6 +318,9 @@ class Resolver {
 
 			if (a.type > b.type) return -1
 			if (a.type < b.type) return 1
+
+			if (a.obj.id > b.obj.id) return -1
+			if (a.obj.id < b.obj.id) return 1
 
 			return 0
 		})
@@ -831,9 +838,15 @@ function resolveObjectDuration (
 
 		const resolveDuration = (obj: TimelineResolvedObject | TimelineResolvedKeyframe): Duration => {
 			if (_.isString(obj.duration)) {
-				return decipherTimeRelativeValue(obj.duration + '', unshiftAndReturn(whosAsking, obj.id), getObjectAttribute)
+				const d = decipherTimeRelativeValue(obj.duration + '', unshiftAndReturn(whosAsking, obj.id), getObjectAttribute)
+				log('resolved duration: ' + d, TraceLevel.TRACE)
+				return d
 			}
-			return obj.duration || 0
+			if (
+				obj.duration === 0 ||
+				obj.duration === undefined
+			) return Infinity
+			return obj.duration
 		}
 
 		// @ts-ignore check if object is a group
@@ -845,19 +858,16 @@ function resolveObjectDuration (
 
 			let outerDurationSetFromDuration = false
 			if (
-				duration !== null &&
-				(
-					(duration || 0) > 0 ||
-					duration === 0
-				)
+				obj.duration ||
+				obj.duration === 0
 			) {
-				// The outerDuration is, in this case determined by the duration
+				// The outerDuration is, in this case, determined by the duration
 				outerDuration = duration
 				obj.resolved.outerDuration = outerDuration
 				outerDurationSetFromDuration = true
 			}
 
-			let lastEndTime: EndTime = -1
+			let lastEndTime: EndTime = 0
 			if (startTime) {
 				if (obj.content && obj.content.objects) {
 					_.each(obj.content.objects, (child: TimelineResolvedObject) => {
@@ -874,38 +884,41 @@ function resolveObjectDuration (
 			}
 			innerDuration = (
 				lastEndTime ?
-				(lastEndTime || 0) - (startTime || 0) :
+				Math.max(0, (lastEndTime || 0) - (startTime || 0)) || 0 :
 				0
 			)
 			obj.resolved.innerDuration = innerDuration
 
 			if (duration !== null) {
 				if (!outerDurationSetFromDuration) {
-					outerDuration = lastEndTime || 0
+					// outerDuration = lastEndTime || 0
+					outerDuration = innerDuration
 				}
 				obj.resolved.outerDuration = outerDuration
 			}
-			log('GROUP DURATION: ' + obj.resolved.innerDuration + ', ' + obj.resolved.outerDuration,TraceLevel.TRACE)
+			log('GROUP ' + obj.id + ' DURATION: ' + obj.resolved.innerDuration + ', ' + obj.resolved.outerDuration,TraceLevel.TRACE)
 		} else {
 
-			const contentDuration = (obj.content || {}).duration // todo: deprecate this?
+			let contentDuration = (obj.content || {}).duration // todo: deprecate this?
+			if (contentDuration === 0) contentDuration = Infinity
+
 			const duration = resolveDuration(obj)
 			outerDuration = (
-				(duration || 0) > 0 || duration === 0 ?
+				(duration || 0) > 0 ?
 				duration :
 				contentDuration
 			)
 			obj.resolved.outerDuration = outerDuration
 
 			innerDuration = (
-				contentDuration > 0 || contentDuration === 0 ?
+				contentDuration > 0 ?
 				contentDuration :
 				duration
 			)
 			obj.resolved.innerDuration = innerDuration
 		}
-		log('Duration ' + outerDuration + ', ' + innerDuration, TraceLevel.TRACE)
-		getObjectAttribute(obj.id, 'end', whosAsking)
+		log('Duration ' + obj.id + ': ' + outerDuration + ', ' + innerDuration, TraceLevel.TRACE)
+		getObjectAttribute(obj.id, 'end', whosAsking, true)
 	}
 	return outerDuration
 
@@ -925,11 +938,12 @@ function resolveObjectEndTime (
 		startTime !== null &&
 		outerDuration !== null
 	) {
-		if (outerDuration) {
-			endTime = (startTime || 0) + outerDuration
-		} else {
-			endTime = 0 // infinite
-		}
+		endTime = (startTime || 0) + outerDuration
+		// if (outerDuration) {
+		// 		endTime = (startTime || 0) + outerDuration
+		// } else {
+		//  	endTime = 0 // infinite
+		// }
 		obj.resolved.endTime = endTime
 	}
 	return endTime
@@ -1508,7 +1522,7 @@ function decipherLogicalValue (
 
 }
 
-function resolveState (tld: DevelopedTimeline,time: SomeTime): TimelineState {
+function resolveState (tld: DevelopedTimeline, time: SomeTime): TimelineState {
 
 	log('resolveState',TraceLevel.TRACE)
 	const LLayers: {[layerId: string]: TimelineResolvedObject} = {}
@@ -1525,8 +1539,8 @@ function resolveState (tld: DevelopedTimeline,time: SomeTime): TimelineState {
 		log(obj,TraceLevel.TRACE)
 		if (
 			(
-				(obj.resolved.endTime || 0) > time ||
-				obj.resolved.endTime === 0
+				(obj.resolved.endTime || 0) > time
+				// || obj.resolved.endTime === 0
 			) &&
 			(obj.resolved.startTime || 0) <= time &&
 			!obj.resolved.disabled
@@ -1981,7 +1995,8 @@ function createGetObjectAttribute (allObjects: {[id: string]: any}) {
 	const getObjectAttribute: objAttributeFunction = (
 		objId,
 		hook,
-		whosAsking
+		whosAsking,
+		supressAlreadyAskedWarning
 	) => {
 		const key = objId + '_' + hook
 		const obj: TimelineResolvedObject = allObjects[objId]
@@ -2022,7 +2037,9 @@ function createGetObjectAttribute (allObjects: {[id: string]: any}) {
 				throw e
 			} else {
 				// it wasn't possible to determine the startTime
-				log('Already tried, not possible to get', TraceLevel.TRACE)
+				if (!supressAlreadyAskedWarning) {
+					log('Already tried, not possible to get', TraceLevel.TRACE)
+				}
 				return null
 			}
 		}
@@ -2061,8 +2078,10 @@ function isResolvedGood (obj: TimelineResolvedObject | TimelineResolvedKeyframe)
 		const startTime = obj.resolved.startTime
 
 		const startTimeIsOk = (
-			(obj.parent && startTime !== null) || // inside a group, 0 is okay too
-			startTime
+			startTime !== Infinity && (
+				(obj.parent && startTime !== null) || // inside a group, 0 is okay too
+				startTime
+			)
 		)
 
 		const durationIsOk = (
