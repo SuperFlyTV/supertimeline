@@ -3,7 +3,8 @@
 
 The SuperFly-Timeline is a collection of rules as well as a resolver for placing objects on a virtual timeline. It uses the concept of timing objects in sequences -– absolute or relative timings -– which resolves recursively in nested structures. This means it supports grouping, combinations of timing between groups, and objects within groups. It also supports logical conditions instead of timed conditions.
 
-Licence: MIT
+It is used in the [**Sofie** TV News Studio Automation System](https://github.com/nrkno/Sofie-TV-automation/).
+
 
 ## Installation
 ### NodeJS
