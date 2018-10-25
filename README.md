@@ -26,7 +26,7 @@ myObjects.push({
 	id: 'obj0', // the id must be unique
 
 	trigger: {
-		type: Timeline.enums.TriggerType.TIME_ABSOLUTE, 
+		type: Timeline.Enums.TriggerType.TIME_ABSOLUTE, 
 		value: Date.now()/1000 - 10 // 10 seconds ago
 	},
 	duration: 60, // 1 minute long
@@ -38,7 +38,7 @@ myObjects.push({
 	id: 'obj1', // the id must be unique
 
 	trigger: {
-		type: Timeline.enums.TriggerType.TIME_RELATIVE, 
+		type: Timeline.Enums.TriggerType.TIME_RELATIVE, 
 		value: '#obj0.end'
 	},
 	duration: 60, // 1 minute long
@@ -46,10 +46,10 @@ myObjects.push({
 });
 
 // By resolving the timeline, the times of the objects are calculated:
-var tl = Timeline.resolver.getTimelineInWindow(myObjects);
+var tl = Timeline.Resolver.getTimelineInWindow(myObjects);
 
 // To see whats on right now, we fetch the State:
-var stateNow = Timeline.resolver.getState(tl, Date.now()/1000);
+var stateNow = Timeline.Resolver.getState(tl, Date.now()/1000);
 //
 /*
 stateNow = {
@@ -77,7 +77,7 @@ stateNow = {
 }
 */
 // To see what will be on in a minute, we fetch the state for that time:
-var stateInAMinute = Timeline.resolver.getState(tl, Date.now()/1000 + 60);
+var stateInAMinute = Timeline.Resolver.getState(tl, Date.now()/1000 + 60);
 /*
 stateNow = {
 	time: 1511009749,
@@ -180,7 +180,7 @@ Example:
 | Attribute        | Description           | Examples  |
 | ------------- |:-------------:| -----:|
 | id | The id must be unique | 'obj0' |
-| trigger.type  | See "Trigger types" above | enums.TriggerType.TIME_ABSOLUTE, TIME_RELATIVE, LOGICAL |
+| trigger.type  | See "Trigger types" above | Enums.TriggerType.TIME_ABSOLUTE, TIME_RELATIVE, LOGICAL |
 | trigger.value | See "Trigger types" above | For TIME_ABSOLUTE: Date.now()/1000, TIME_RELATIVE: "#obj1.end", LOGICAL: "#obj1" |
 | duration | The duration of the object (0 is infinite) | 60 |
 | LLayer | See "Layers" above | 1 |
@@ -201,7 +201,7 @@ It is possible to add keyframes to an object, which works the same way as normal
 	id: 'obj0',
 	duration: 50,
 	trigger: {
-		type: Timeline.enums.TriggerType.TIME_ABSOLUTE, 
+		type: Timeline.Enums.TriggerType.TIME_ABSOLUTE, 
 		value: 1000,
 	},
 	LLayer: 1,
@@ -217,7 +217,7 @@ It is possible to add keyframes to an object, which works the same way as normal
 				id: 'K0', // id must be unique
 				duration: 5, // duration of keyframe
 				trigger: {
-					type: Timeline.enums.TriggerType.TIME_ABSOLUTE,
+					type: Timeline.Enums.TriggerType.TIME_ABSOLUTE,
 					value: 5 // Abslute time means "relative to parent start time" for a keyframe
 				},
 				content: {
