@@ -1368,10 +1368,6 @@ function resolveLogicalExpression (
 					const m = add.val.match(/([GL])(.*)/i)
 					if (m) {
 
-						if (!isNumeric(m[2])) {
-							err = m[2]
-						}
-
 						if ((m[1] || '').match(/L/i)) { // LLayer
 							const LLayer = (
 								m[2] ?
