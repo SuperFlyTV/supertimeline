@@ -1669,6 +1669,155 @@ const testData = {
 				]
 			}
 		}
+	],
+	'logicalTriggers': [
+		{
+			id: 'obj0', // The default state of llayer0
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now
+			},
+			duration: 0,
+			LLayer: 'layer0'
+		},
+		{
+			id: 'obj1', // The object we will trigger on
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now + 3000
+			},
+			duration: 0,
+			LLayer: 'layer1', // This ensures it works with string layer names
+			classes: ['class0']
+		},
+		{
+			id: 'obj2',
+			trigger: {
+				type: TriggerType.LOGICAL,
+				value: '#obj1' // Obj1 is playing
+			},
+			duration: 0,
+			priority: 1, // Needs to be more important than obj0
+			LLayer: 'layer0'
+		},
+		{
+			id: 'obj3',
+			trigger: {
+				type: TriggerType.LOGICAL,
+				value: '$Llayer1' // Something exists on layer1
+			},
+			duration: 0,
+			LLayer: 'layer3'
+		},
+		{
+			id: 'obj4',
+			trigger: {
+				type: TriggerType.LOGICAL,
+				value: '$Llayer1.class0' // layer1 has object with class
+			},
+			duration: 0,
+			LLayer: 'layer4'
+		},
+		{
+			id: 'obj5',
+			trigger: {
+				type: TriggerType.LOGICAL,
+				value: '$Llayer1.class1' // layer 1 has object with class
+			},
+			duration: 0,
+			LLayer: 'layer5'
+		},
+		{
+			id: 'obj6',
+			trigger: {
+				type: TriggerType.LOGICAL,
+				value: '!$Llayer1.class0' // layer 1 does not have object with class
+			},
+			duration: 0,
+			LLayer: 'layer6'
+		},
+		{
+			id: 'obj7',
+			trigger: {
+				type: TriggerType.LOGICAL,
+				value: '!$Llayer1.class1' // layer 1 does not have object with class
+			},
+			duration: 0,
+			LLayer: 'layer7'
+		}
+	],
+	'logicalTriggers2': [
+		{
+			id: 'obj0', // The default state of llayer0
+			trigger: {
+				type: TriggerType.LOGICAL,
+				value: '1'
+			},
+			duration: 0,
+			LLayer: 'layer0'
+		},
+		{
+			id: 'group0', // the id must be unique
+
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now + 1000
+			},
+			duration: 0,
+			LLayer: 'layer1',
+			isGroup: true,
+			repeating: false,
+			content: {
+				objects: [
+					{ // We can't trigger on a group, but we can on objects inside
+						id: 'group0_first', // the id must be unique
+
+						trigger: {
+							type: TriggerType.TIME_ABSOLUTE,
+							value: 0 // Relative to parent object
+						},
+						duration: 0,
+						LLayer: 'layer1_first'
+					},
+					{
+						id: 'obj1', // the id must be unique
+
+						trigger: {
+							type: TriggerType.TIME_ABSOLUTE,
+							value: 0 // Relative to parent object
+						},
+						duration: 0,
+						LLayer: 'layer0'
+					}
+				]
+			}
+		},
+		{
+			id: 'group1', // the id must be unique
+
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now + 1000
+			},
+			duration: 0,
+			LLayer: 'layer2',
+			isGroup: true,
+			repeating: false,
+			content: {
+				objects: [
+					{
+						id: 'obj2',
+						trigger: {
+							type: TriggerType.LOGICAL,
+							value: '$Llayer1_first' // Obj1 is playing
+						},
+						duration: 1000,
+						priority: 10, // Needs to be more important than obj0
+						LLayer: 'layer0'
+					}
+				]
+			}
+		}
 	]
 }
 let reverseData = false
@@ -3062,6 +3211,72 @@ let tests: Tests = {
 		expect(events[0].time).toEqual(6000)
 		expect(events[1].obj.id).toEqual('child0')
 		expect(events[1].time).toEqual(6000)
+	},
+	'Logical triggers': () => {
+		const data = clone(getTestData('logicalTriggers'))
+		const tl = Resolver.getTimelineInWindow(data)
+		expect(tl.unresolved).toHaveLength(6)
+		expect(tl.resolved).toHaveLength(2)
+
+		const obj0: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'obj0' })
+		const obj1: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'obj1' })
+
+		expect(obj0.resolved.startTime).toBe(1000)
+		expect(obj0.resolved.outerDuration).toBe(Infinity)
+
+		expect(obj1.resolved.startTime).toBe(4000)
+		expect(obj1.resolved.outerDuration).toBe(Infinity)
+
+		expect(_.findWhere(tl.unresolved, { id: 'obj2' })).toBeTruthy()
+		expect(_.findWhere(tl.unresolved, { id: 'obj3' })).toBeTruthy()
+		expect(_.findWhere(tl.unresolved, { id: 'obj4' })).toBeTruthy()
+		expect(_.findWhere(tl.unresolved, { id: 'obj5' })).toBeTruthy()
+		expect(_.findWhere(tl.unresolved, { id: 'obj6' })).toBeTruthy()
+		expect(_.findWhere(tl.unresolved, { id: 'obj7' })).toBeTruthy()
+
+		// Sample before logical trigger is true
+		const state0 = Resolver.getState(data, 1500)
+		expect(state0.LLayers['layer0']).toBeTruthy()
+		expect(state0.LLayers['layer0'].id).toEqual('obj0')
+		expect(state0.LLayers['layer1']).toBeFalsy()
+		expect(state0.LLayers['layer3']).toBeFalsy()
+		expect(state0.LLayers['layer4']).toBeFalsy()
+		expect(state0.LLayers['layer5']).toBeFalsy()
+		expect(state0.LLayers['layer6']).toBeTruthy()
+		expect(state0.LLayers['layer6'].id).toEqual('obj6')
+		expect(state0.LLayers['layer7']).toBeTruthy()
+		expect(state0.LLayers['layer7'].id).toEqual('obj7')
+
+		// Sample after logical trigger is true
+		const state1 = Resolver.getState(data, 4500)
+		expect(state1.LLayers['layer0']).toBeTruthy()
+		expect(state1.LLayers['layer0'].id).toEqual('obj2')
+		expect(state1.LLayers['layer1']).toBeTruthy()
+		expect(state1.LLayers['layer1'].id).toEqual('obj1')
+		expect(state1.LLayers['layer3']).toBeTruthy()
+		expect(state1.LLayers['layer3'].id).toEqual('obj3')
+		expect(state1.LLayers['layer4']).toBeTruthy()
+		expect(state1.LLayers['layer4'].id).toEqual('obj4')
+		expect(state1.LLayers['layer5']).toBeFalsy()
+		expect(state1.LLayers['layer6']).toBeFalsy()
+		expect(state1.LLayers['layer7']).toBeTruthy()
+		expect(state1.LLayers['layer7'].id).toEqual('obj7')
+	},
+	'Logical triggers 2': () => {
+		const data = clone(getTestData('logicalTriggers2'))
+
+		// Sample before logical trigger is true
+		const state0 = Resolver.getState(data, 1500)
+		expect(state0.LLayers['layer0']).toBeTruthy()
+		expect(state0.LLayers['layer0'].id).toEqual('obj0')
+		expect(state0.LLayers['layer1_first']).toBeFalsy()
+
+		// Sample after logical trigger is true
+		const state1 = Resolver.getState(data, 2500)
+		expect(state1.LLayers['layer0']).toBeTruthy()
+		expect(state1.LLayers['layer0'].id).toEqual('obj2')
+		expect(state1.LLayers['layer1_first']).toBeTruthy()
+		expect(state1.LLayers['layer1_first'].id).toEqual('group0_first')
 	}
 }
 const onlyTests: Tests = {}
