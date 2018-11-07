@@ -5,12 +5,13 @@ import { TriggerType, TraceLevel, EventType } from '../enums/enums'
 
 let traceLevel: TraceLevel = TraceLevel.ERRORS // 0
 const throwErrors: boolean = false
+export interface TimelineTrigger {
+	type: TriggerType,
+	value: number | string
+}
 export interface TimelineObject {
 	id: ObjectId,
-	trigger: {
-		type: TriggerType,
-		value: number | string
-	},
+	trigger: TimelineTrigger,
 	duration?: number | string,
 	LLayer: string | number,
 	content: {
