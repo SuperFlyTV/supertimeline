@@ -1,2 +1,3 @@
-export * from './enums/enums'
-export * from './resolver/resolver'
+export * from './api/enums'
+export { Resolver } from './resolver/resolver'
+export { Resolver as LegacyResolver } from './resolver/legacy'
