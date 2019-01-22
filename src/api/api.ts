@@ -1,3 +1,5 @@
+import { EventType } from './enums'
+
 /** Unix timestamp */
 export type Time = number
 /** Duration */
@@ -95,7 +97,16 @@ export interface ResolvedExpressionObj {
 }
 export interface TimelineState {
 	time: Time,
-	Layers: {
-		[layer: string]: ResolvedTimelineObject
-	}
+	layers: {
+		[layer: string]: ResolvedTimelineObjectInstance
+	},
+	nextEvents: Array<NextEvent>
+}
+export interface ResolvedTimelineObjectInstance extends ResolvedTimelineObject {
+	instance: TimelineObjectInstance
+}
+export interface NextEvent {
+	type: EventType,
+	time: Time,
+	objId: string
 }

@@ -1,6 +1,7 @@
 import { lookupExpression, Resolver } from '../resolver'
 import { ResolvedTimeline, TimelineObject } from '../../api/api'
 import { interpretExpression } from '../expression'
+import { EventType } from '../../api/enums'
 
 describe('resolver', () => {
 	test('expression: basic math', () => {
@@ -39,7 +40,8 @@ describe('resolver', () => {
 					content: {},
 					resolved: {
 						resolved: false,
-						instances: []
+						instances: [],
+						resolving: false
 					}
 				},
 				'second': {
@@ -52,7 +54,8 @@ describe('resolver', () => {
 					content: {},
 					resolved: {
 						resolved: false,
-						instances: []
+						instances: [],
+						resolving: false
 					}
 				},
 				'third': {
@@ -65,7 +68,8 @@ describe('resolver', () => {
 					content: {},
 					resolved: {
 						resolved: false,
-						instances: []
+						instances: [],
+						resolving: false
 					}
 				},
 				'fourth': {
@@ -78,7 +82,8 @@ describe('resolver', () => {
 					content: {},
 					resolved: {
 						resolved: false,
-						instances: []
+						instances: [],
+						resolving: false
 					}
 				},
 				'middle': {
@@ -91,7 +96,8 @@ describe('resolver', () => {
 					content: {},
 					resolved: {
 						resolved: false,
-						instances: []
+						instances: [],
+						resolving: false
 					}
 				}
 			}
@@ -192,5 +198,70 @@ describe('resolver', () => {
 			resolved: true,
 			instances: [{ start: 30, end: 45 }]
 		})
+
+		const state0 = Resolver.getState(resolved, 5)
+		expect(state0.time).toEqual(5)
+		expect(state0.layers).toMatchObject({
+			'0': {
+				id: 'video'
+			}
+		})
+		expect(state0.layers['1']).toBeFalsy()
+
+		expect(Resolver.getState(resolved, 15)).toMatchObject({
+			layers: {
+				'0': {
+					id: 'video'
+				},
+				'1': {
+					id: 'graphic0'
+				}
+			},
+			nextEvents: [
+				{
+					time: 20,
+					type: EventType.END,
+					objId: 'graphic0'
+				},
+				{
+					time: 30,
+					type: EventType.START,
+					objId: 'graphic1'
+				},
+				{
+					time: 45,
+					type: EventType.END,
+					objId: 'graphic1'
+				},
+				{
+					time: 100,
+					type: EventType.END,
+					objId: 'video'
+				}
+			]
+		})
+		const state1 = Resolver.getState(resolved, 21)
+		expect(state1.layers).toMatchObject({
+			'0': {
+				id: 'video'
+			}
+		})
+		expect(state1.layers['1']).toBeFalsy()
+
+		expect(Resolver.getState(resolved, 31).layers).toMatchObject({
+			'0': {
+				id: 'video'
+			},
+			'1': {
+				id: 'graphic1'
+			}
+		})
+		const state2 = Resolver.getState(resolved, 46)
+		expect(state2.layers).toMatchObject({
+			'0': {
+				id: 'video'
+			}
+		})
+		expect(state2.layers['1']).toBeFalsy()
 	})
 })

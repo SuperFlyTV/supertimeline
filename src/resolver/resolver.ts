@@ -15,6 +15,7 @@ import {
 	TimelineState
  } from '../api/api'
 import { interpretExpression } from './expression'
+import { getState } from './state'
 
 export class Resolver {
 
@@ -53,13 +54,12 @@ export class Resolver {
 		return resolvedTimeline
 	}
 
-	static getState (resolved: ResolvedTimeline, time: Time): TimelineState {
-		
+	static getState (resolved: ResolvedTimeline, time: Time, eventLimit?: number): TimelineState {
+		return getState(resolved, time, eventLimit)
 	}
 
-	static getNextEvents (resolved: ResolvedTimeline, time: Time, limit: number = 10) {
-		
-	}
+	// static getNextEvents (resolved: ResolvedTimeline, time: Time, limit: number = 10): NextEvents {
+	// }
 }
 
 function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: ResolvedTimelineObject) {

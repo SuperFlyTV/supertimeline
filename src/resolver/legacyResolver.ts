@@ -1,7 +1,7 @@
 
 import * as _ from 'underscore'
 
-import { TriggerType, TraceLevel, EventType } from '../api/enums'
+import { TriggerType, TraceLevel, EventType } from '../api/legacyEnums'
 import {
 	TimelineObject,
 	TimelineGroup,
@@ -25,7 +25,7 @@ import {
 	WhosAskingTrace,
 	Duration,
 	UnresolvedLogicObject
- } from '../api/api'
+ } from '../api/legacy'
 
 let traceLevel: TraceLevel = TraceLevel.ERRORS // 0
 const throwErrors: boolean = false
