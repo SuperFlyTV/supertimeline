@@ -19,7 +19,18 @@ export function getState (resolved: ResolvedTimeline, time: Time, eventLimit: nu
 		nextEvents: []
 	}
 	if (!resolved.objects) throw new Error('getState: input data missing .objects attribute')
-	_.each(resolved.objects, (obj: ResolvedTimelineObject) => {
+
+	const resolvedObjects = _.values(resolved.objects)
+
+	// Sort to make sure parent groups are evaluated before their children:
+	resolvedObjects.sort((a, b) => {
+		if ((a.resolved.levelDeep || 0) > (b.resolved.levelDeep || 0)) return 1
+		if ((a.resolved.levelDeep || 0) < (b.resolved.levelDeep || 0)) return -1
+		return 0
+	})
+	const activeObjIds: {[id: string]: ResolvedTimelineObjectInstance} = {}
+	const eventObjectTimes: {[time: string]: EventType} = {}
+	_.each(resolvedObjects, (obj: ResolvedTimelineObject) => {
 		if (
 			!obj.disabled &&
 			obj.resolved.resolved &&
@@ -35,25 +46,53 @@ export function getState (resolved: ResolvedTimeline, time: Time, eventLimit: nu
 					) &&
 					instance.start <= time
 				) {
-					const clone: ResolvedTimelineObjectInstance = extendMandadory<ResolvedTimelineObject, ResolvedTimelineObjectInstance>(_.clone(obj),{
-						instance: _.clone(instance)
-					})
-					clone.content = JSON.parse(JSON.stringify(clone.content))
+					if (obj.layer) { // if layer is empty, don't put in state
 
-					if (!state.layers[obj.layer]) {
-						state.layers[obj.layer] = clone
-					} else {
-						// Priority:
-						const existingObj = state.layers[obj.layer]
+						const parentObj = (
+							obj.resolved.parentId ?
+							resolved.objects[obj.resolved.parentId] :
+							null
+						)
+						// If object has a parent, only set if parent is on layer (if layer is set for parent)
 						if (
+							!obj.resolved.parentId ||
 							(
-								(obj.priority || 0) > (existingObj.priority || 0) 		// obj has higher priority => replaces existingObj
-							) || (
-								(obj.priority || 0) === (existingObj.priority || 0) &&
-								(instance.start || 0) > (existingObj.instance.start || 0)	// obj starts later => replaces existingObj
+								parentObj &&
+								(
+									!parentObj.layer ||
+									activeObjIds[parentObj.id]
+								)
 							)
 						) {
-							state.layers[obj.layer] = clone
+							const clone: ResolvedTimelineObjectInstance = extendMandadory<ResolvedTimelineObject, ResolvedTimelineObjectInstance>(_.clone(obj),{
+								instance: _.clone(instance)
+							})
+							clone.content = JSON.parse(JSON.stringify(clone.content))
+							let setObj: boolean = false
+							const existingObj = state.layers[obj.layer]
+							if (!existingObj) {
+								setObj = true
+							} else {
+								// Priority:
+								if (
+									(
+										(obj.priority || 0) > (existingObj.priority || 0) 		// obj has higher priority => replaces existingObj
+									) || (
+										(obj.priority || 0) === (existingObj.priority || 0) &&
+										(instance.start || 0) > (existingObj.instance.start || 0)	// obj starts later => replaces existingObj
+									)
+								) {
+									setObj = true
+								}
+							}
+							if (setObj) {
+								if (existingObj) {
+									// replace object on layer:
+									delete activeObjIds[existingObj.id]
+								}
+								state.layers[obj.layer] = clone
+								activeObjIds[clone.id] = clone
+							}
 						}
 					}
 				}
@@ -65,6 +104,7 @@ export function getState (resolved: ResolvedTimeline, time: Time, eventLimit: nu
 						time: instance.start,
 						objId: obj.id
 					})
+					eventObjectTimes['' + instance.start] = EventType.START
 				}
 				if (
 					instance.end !== null &&
@@ -75,14 +115,15 @@ export function getState (resolved: ResolvedTimeline, time: Time, eventLimit: nu
 						time: instance.end,
 						objId: obj.id
 					})
+					eventObjectTimes['' + instance.end] = EventType.END
 				}
 			})
 		}
 	})
-	const activeObjIds: {[id: string]: ResolvedTimelineObjectInstance} = {}
-	_.each(state.layers, (obj) => {
-		activeObjIds[obj.id] = obj
-	})
+
+	// _.each(state.layers, (obj) => {
+	// 	activeObjIds[obj.id] = obj
+	// })
 
 	// Keyframes:
 	const keyframes: ResolvedTimelineObjectInstance[] = []
@@ -99,22 +140,28 @@ export function getState (resolved: ResolvedTimeline, time: Time, eventLimit: nu
 				})
 				keyframes.push(kf)
 
-				if (instance.start > time) {
+				if (
+					instance.start > time &&
+					eventObjectTimes['' + instance.start] === undefined // no need to put a keyframe event if there's already another event
+				) {
 					state.nextEvents.push({
 						type: EventType.KEYFRAME,
 						time: instance.start,
 						objId: obj.id
 					})
+					eventObjectTimes['' + instance.start] = EventType.KEYFRAME
 				}
 				if (
 					instance.end !== null &&
-					instance.end > time
+					instance.end > time &&
+					eventObjectTimes['' + instance.end] === undefined // no need to put a keyframe event if there's already another event
 				) {
 					state.nextEvents.push({
 						type: EventType.KEYFRAME,
 						time: instance.end,
 						objId: obj.id
 					})
+					eventObjectTimes['' + instance.end] = EventType.KEYFRAME
 				}
 			})
 		}

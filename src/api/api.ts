@@ -50,10 +50,17 @@ export interface ResolvedTimelineObjects {
 }
 export interface ResolvedTimelineObject extends TimelineObject {
 	resolved: {
+		/** Is set to true when object has been resolved */
 		resolved: boolean
+		/** Is set to true while object is resolved (to prevent circular references) */
 		resolving: boolean
+		/** Instances of the object on the timeline */
 		instances: Array<TimelineObjectInstance>
+		/** Increases the more levels inside of a group the objects is */
+		levelDeep?: number
+		/** Id of the parent object */
 		parentId?: string
+		/** True if object is a keyframe */
 		isKeyframe?: boolean
 	}
 }
@@ -69,7 +76,7 @@ export interface InstanceEvent<T = any> {
 
 export interface TimelineObject {
 	id: ObjectId
-	trigger: TimelineTrigger
+	enable: TimelineEnable
 
 	layer: string | number
 	/** Group children */
@@ -86,7 +93,18 @@ export interface TimelineObject {
 export type Content = {
 	[key: string]: any
 }
-export interface TimelineTrigger {
+export interface TimelineEnable {
+	/**
+	 * Examples of references:
+	 * #objectId
+	 * #objectId.start
+	 * #objectId.end
+	 * #objectId.duration
+	 * .className
+	 * .className.start + 5
+	 * $layerName
+	 */
+
 	/** (Optional) The start time of the object. (Cannot be combined with .while) */
 	start?: Expression
 	/** (Optional) The end time of the object (Cannot be combined with .while or .duration) */
@@ -100,12 +118,13 @@ export interface TimelineTrigger {
 }
 export interface TimelineKeyframe {
 	id: string
-	trigger: TimelineTrigger
+	enable: TimelineEnable
 	duration?: number | string
 	classes?: Array<string>
 	content: Content
 	disabled?: boolean
 }
+
 export interface TimelineObjectKeyframe extends TimelineObject, TimelineKeyframe {
 }
 

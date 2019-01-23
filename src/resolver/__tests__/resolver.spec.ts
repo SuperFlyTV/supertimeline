@@ -27,7 +27,7 @@ describe('resolver', () => {
 	const stdObj: TimelineObject = {
 		id: 'obj0',
 		layer: '10',
-		trigger: {},
+		enable: {},
 		content: {}
 	}
 	test('expression: basic math', () => {
@@ -166,7 +166,7 @@ describe('resolver', () => {
 				'first': {
 					id: 'first',
 					layer: '0',
-					trigger: {
+					enable: {
 						start: 0,
 						end: 100
 					},
@@ -180,7 +180,7 @@ describe('resolver', () => {
 				'second': {
 					id: 'second',
 					layer: '1',
-					trigger: {
+					enable: {
 						start: 20,
 						end: 120
 					},
@@ -194,7 +194,7 @@ describe('resolver', () => {
 				'third': {
 					id: 'third',
 					layer: '2',
-					trigger: {
+					enable: {
 						start: 40,
 						end: 130
 					},
@@ -208,7 +208,7 @@ describe('resolver', () => {
 				'fourth': {
 					id: 'fourth',
 					layer: '3',
-					trigger: {
+					enable: {
 						start: 40,
 						end: null // never-ending
 					},
@@ -222,7 +222,7 @@ describe('resolver', () => {
 				'middle': {
 					id: 'middle',
 					layer: '4',
-					trigger: {
+					enable: {
 						start: 25,
 						end: 35
 					},
@@ -239,7 +239,7 @@ describe('resolver', () => {
 		const obj: TimelineObject = {
 			id: 'obj0',
 			layer: '10',
-			trigger: {},
+			enable: {},
 			content: {}
 		}
 
@@ -293,7 +293,7 @@ describe('resolver', () => {
 			{
 				id: 'video',
 				layer: '0',
-				trigger: {
+				enable: {
 					start: 0,
 					end: 100
 				},
@@ -302,7 +302,7 @@ describe('resolver', () => {
 			{
 				id: 'graphic0',
 				layer: '1',
-				trigger: {
+				enable: {
 					start: '#video.start + 10', // 10
 					duration: 10
 				},
@@ -311,7 +311,7 @@ describe('resolver', () => {
 			{
 				id: 'graphic1',
 				layer: '1',
-				trigger: {
+				enable: {
 					start: '#graphic0.end + 10', // 30
 					duration: 15
 				},
@@ -402,14 +402,13 @@ describe('resolver', () => {
 		expect(state2.layers['1']).toBeFalsy()
 	})
 	// todo test: different triggers, start, end, duration, while
-	// todo test: classes (multiple object with same class)
-	// todo test: keyframes in repeating objects
+	// If object has a parent, only set if parent is on layer (if layer is set for parent)
 	test('repeating object', () => {
 		const timeline: TimelineObject[] = [
 			{
 				id: 'video',
 				layer: '0',
-				trigger: {
+				enable: {
 					start: 0,
 					end: 40,
 					repeating: 50
@@ -419,7 +418,7 @@ describe('resolver', () => {
 			{
 				id: 'graphic0',
 				layer: '1',
-				trigger: {
+				enable: {
 					start: '#video.start + 20', // 20
 					duration: 19 // 39
 				},
@@ -557,7 +556,7 @@ describe('resolver', () => {
 			{
 				id: 'group',
 				layer: '0',
-				trigger: {
+				enable: {
 					start: 10,
 					end: 100
 				},
@@ -567,7 +566,7 @@ describe('resolver', () => {
 					{
 						id: 'child0',
 						layer: '1',
-						trigger: {
+						enable: {
 							start: '5', // 15
 							duration: 10
 						},
@@ -576,7 +575,7 @@ describe('resolver', () => {
 					{
 						id: 'child1',
 						layer: '1',
-						trigger: {
+						enable: {
 							start: '#child0.end', // 25
 							duration: 10
 						},
@@ -637,7 +636,7 @@ describe('resolver', () => {
 			{
 				id: 'video',
 				layer: '0',
-				trigger: {
+				enable: {
 					start: 0,
 					end: 100
 				},
@@ -646,7 +645,7 @@ describe('resolver', () => {
 			{
 				id: 'graphic0',
 				layer: '1',
-				trigger: {
+				enable: {
 					start: '#video.start + 10', // 10
 					duration: 50
 				},
@@ -659,7 +658,7 @@ describe('resolver', () => {
 				keyframes: [
 					{
 						id: 'kf0',
-						trigger: {
+						enable: {
 							start: 3 // 13
 						},
 						content: {
@@ -669,7 +668,7 @@ describe('resolver', () => {
 					},
 					{
 						id: 'kf1',
-						trigger: {
+						enable: {
 							start: '#kf0 + 7', // 20
 							duration: '5' // 25
 						},
@@ -682,7 +681,7 @@ describe('resolver', () => {
 			}
 		]
 
-		const resolved = Resolver.resolveTimeline(timeline, { time: 0 })
+		const resolved = Resolver.resolveTimeline(timeline, { time: 0, limitTime: 50 })
 
 		expect(resolved.statistics.resolvedObjectCount).toEqual(2)
 		expect(resolved.statistics.resolvedKeyframeCount).toEqual(2)
@@ -695,7 +694,7 @@ describe('resolver', () => {
 
 		expect(resolved.objects['kf0'].resolved.instances).toMatchObject([{
 			start: 13,
-			end: null
+			end: 60 // capped by parent
 		}])
 		expect(resolved.objects['kf1'].resolved.instances).toMatchObject([{
 			start: 20,
@@ -781,7 +780,7 @@ describe('resolver', () => {
 			{
 				id: 'video0',
 				layer: '0',
-				trigger: {
+				enable: {
 					start: 0,
 					end: 10,
 					repeating: 50
@@ -792,7 +791,7 @@ describe('resolver', () => {
 			{
 				id: 'video1',
 				layer: '0',
-				trigger: {
+				enable: {
 					start: '#video0.end + 15', // 25
 					duration: 10,
 					repeating: 50
@@ -803,7 +802,7 @@ describe('resolver', () => {
 			{
 				id: 'graphic0',
 				layer: '1',
-				trigger: {
+				enable: {
 					while: '.class0'
 				},
 				content: {}
@@ -811,7 +810,7 @@ describe('resolver', () => {
 			{
 				id: 'graphic1',
 				layer: '2',
-				trigger: {
+				enable: {
 					while: '.class1 + 1'
 				},
 				content: {}
@@ -902,5 +901,190 @@ describe('resolver', () => {
 				id: 'graphic1'
 			}
 		})
+	})
+	test('etheral groups', () => {
+		// "etheral groups" are groups without a layer
+		const timeline: TimelineObject[] = [
+			{
+				id: 'group0',
+				layer: '',
+				enable: {
+					start: 10,
+					end: 100
+				},
+				content: {},
+				isGroup: true,
+				children: [
+					{
+						id: 'child0',
+						layer: '1',
+						enable: {
+							start: '5' // 15
+						},
+						content: {}
+					}
+				]
+			},
+			{
+				id: 'group1',
+				layer: '',
+				enable: {
+					start: 50,
+					end: 100
+				},
+				content: {},
+				isGroup: true,
+				children: [
+					{
+						id: 'child1',
+						layer: '2',
+						enable: {
+							start: '5' // 55
+						},
+						content: {}
+					}
+				]
+			}
+		]
+
+		const resolved = Resolver.resolveTimeline(timeline, { time: 0 })
+
+		expect(resolved.statistics.resolvedObjectCount).toEqual(4)
+		expect(resolved.statistics.unresolvedCount).toEqual(0)
+
+		expect(resolved.objects['group0']).toBeTruthy()
+		expect(resolved.objects['child0']).toBeTruthy()
+		expect(resolved.objects['group1']).toBeTruthy()
+		expect(resolved.objects['child1']).toBeTruthy()
+
+		expect(resolved.objects['group0'].resolved).toMatchObject({
+			resolved: true,
+			instances: [{ start: 10, end: 100 }]
+		})
+		expect(resolved.objects['child0'].resolved).toMatchObject({
+			resolved: true,
+			instances: [{ start: 15, end: 100 }]
+		})
+		expect(resolved.objects['group1'].resolved).toMatchObject({
+			resolved: true,
+			instances: [{ start: 50, end: 100 }]
+		})
+		expect(resolved.objects['child1'].resolved).toMatchObject({
+			resolved: true,
+			instances: [{ start: 55, end: 100 }]
+		})
+
+		expect(Resolver.getState(resolved, 16).layers).toMatchObject({
+			'1': {
+				id: 'child0'
+			}
+		})
+		expect(Resolver.getState(resolved, 56).layers).toMatchObject({
+			'1': {
+				id: 'child0'
+			},
+			'2': {
+				id: 'child1'
+			}
+		})
+
+		// objects should be capped inside their parent:
+		const state0 = Resolver.getState(resolved, 120)
+		expect(state0.layers['1']).toBeFalsy()
+		expect(state0.layers['2']).toBeFalsy()
+	})
+	test('solid groups', () => {
+		// "solid groups" are groups with a layer
+		const timeline: TimelineObject[] = [
+			{
+				id: 'group0',
+				layer: 'g0',
+				enable: {
+					start: 10,
+					end: 100
+				},
+				content: {},
+				isGroup: true,
+				children: [
+					{
+						id: 'child0',
+						layer: '1',
+						enable: {
+							start: '5' // 15
+						},
+						content: {}
+					}
+				]
+			},
+			{
+				id: 'group1',
+				layer: 'g0',
+				enable: {
+					start: 50,
+					end: 100
+				},
+				content: {},
+				isGroup: true,
+				children: [
+					{
+						id: 'child1',
+						layer: '2',
+						enable: {
+							start: '5' // 55
+						},
+						content: {}
+					}
+				]
+			}
+		]
+
+		const resolved = Resolver.resolveTimeline(timeline, { time: 0 })
+
+		expect(resolved.statistics.resolvedObjectCount).toEqual(4)
+		expect(resolved.statistics.unresolvedCount).toEqual(0)
+
+		expect(resolved.objects['group0']).toBeTruthy()
+		expect(resolved.objects['child0']).toBeTruthy()
+		expect(resolved.objects['group1']).toBeTruthy()
+		expect(resolved.objects['child1']).toBeTruthy()
+
+		expect(resolved.objects['group0'].resolved).toMatchObject({
+			resolved: true,
+			instances: [{ start: 10, end: 100 }]
+		})
+		expect(resolved.objects['child0'].resolved).toMatchObject({
+			resolved: true,
+			instances: [{ start: 15, end: 100 }]
+		})
+		expect(resolved.objects['group1'].resolved).toMatchObject({
+			resolved: true,
+			instances: [{ start: 50, end: 100 }]
+		})
+		expect(resolved.objects['child1'].resolved).toMatchObject({
+			resolved: true,
+			instances: [{ start: 55, end: 100 }]
+		})
+
+		expect(Resolver.getState(resolved, 16).layers).toMatchObject({
+			'g0': {
+				id: 'group0'
+			},
+			'1': {
+				id: 'child0'
+			}
+		})
+		const state0 = Resolver.getState(resolved, 56)
+		expect(state0.layers).toMatchObject({
+			'g0': {
+				id: 'group1'
+			},
+			'2': {
+				id: 'child1'
+			}
+		})
+		const state1 = Resolver.getState(resolved, 120)
+		expect(state1.layers['g0']).toBeFalsy()
+		expect(state1.layers['1']).toBeFalsy()
+		expect(state1.layers['2']).toBeFalsy()
 	})
 })

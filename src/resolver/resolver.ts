@@ -17,7 +17,7 @@ import {
  } from '../api/api'
 import { interpretExpression } from './expression'
 import { getState } from './state'
-import { extendMandadory } from '../lib'
+import { extendMandadory, operateOnArrays, isNumeric, applyRepeatingInstances, sortEvents, cleanInstances, invertInstances, capInstances } from '../lib'
 
 export class Resolver {
 
@@ -39,14 +39,20 @@ export class Resolver {
 			}
 		}
 		// Step 1: pre-populate resolvedTimeline with objects
-		const addToResolvedTimeline = (obj: TimelineObject, parentId?: string, isKeyframe?: boolean) => {
+		const addToResolvedTimeline = (
+			obj: TimelineObject,
+			levelDeep: number,
+			parentId?: string,
+			isKeyframe?: boolean
+		) => {
 			if (resolvedTimeline.objects[obj.id]) throw Error(`All timelineObjects must be unique! (duplicate: "${obj.id}")`)
 
 			const o: ResolvedTimelineObject = extendMandadory<TimelineObject, ResolvedTimelineObject>(_.clone(obj), {
 				resolved: {
 					resolved: false,
 					resolving: false,
-					instances: []
+					instances: [],
+					levelDeep: levelDeep
 				}
 			})
 			if (parentId) o.resolved.parentId = parentId
@@ -64,7 +70,7 @@ export class Resolver {
 
 			if (obj.isGroup && obj.children) {
 				_.each(obj.children, (child) => {
-					addToResolvedTimeline(child, obj.id)
+					addToResolvedTimeline(child, levelDeep + 1, obj.id)
 				})
 			}
 			if (obj.keyframes) {
@@ -72,12 +78,12 @@ export class Resolver {
 					const kf2: TimelineObjectKeyframe = extendMandadory<TimelineKeyframe, TimelineObjectKeyframe>(_.clone(keyframe), {
 						layer: ''
 					})
-					addToResolvedTimeline(kf2, obj.id, true)
+					addToResolvedTimeline(kf2, levelDeep + 1, obj.id, true)
 				})
 			}
 		}
 		_.each(timeline, (obj: TimelineObject) => {
-			addToResolvedTimeline(obj)
+			addToResolvedTimeline(obj, 0)
 		})
 		// Step 2: go though and resolve the objects
 		_.each(resolvedTimeline.objects, (obj: ResolvedTimelineObject) => {
@@ -102,8 +108,8 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 	let instances: Array<TimelineObjectInstance> = []
 
 	const repeatingExpr: Expression | null = (
-		obj.trigger.repeating !== undefined ?
-		interpretExpression(obj.trigger.repeating) :
+		obj.enable.repeating !== undefined ?
+		interpretExpression(obj.enable.repeating) :
 		null
 	)
 	const lookedupRepeating = lookupExpression(resolvedTimeline, obj, repeatingExpr, 'duration')
@@ -112,10 +118,10 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 	}
 
 	const start: Expression = (
-		obj.trigger.while !== undefined ?
-			obj.trigger.while :
-		obj.trigger.start !== undefined ?
-			obj.trigger.start :
+		obj.enable.while !== undefined ?
+			obj.enable.while :
+		obj.enable.start !== undefined ?
+			obj.enable.start :
 		''
 	)
 	const startExpr: ExpressionObj | number | null = interpretExpression(start)
@@ -144,7 +150,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 	if (useParent) {
 		lookedupStarts = applyParentInstances(lookedupStarts)
 	}
-	if (obj.trigger.while) {
+	if (obj.enable.while) {
 
 		if (_.isArray(lookedupStarts)) {
 			instances = lookedupStarts
@@ -171,8 +177,8 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 			})
 		}
 
-		if (obj.trigger.end !== undefined) {
-			const endExpr: ExpressionObj | number | null = interpretExpression(obj.trigger.end)
+		if (obj.enable.end !== undefined) {
+			const endExpr: ExpressionObj | number | null = interpretExpression(obj.enable.end)
 			// lookedupEnds will contain an inverted list of instances. Therefore .start means an end
 			let lookedupEnds = (
 				endExpr ?
@@ -197,8 +203,8 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 					value: false
 				})
 			}
-		} else if (obj.trigger.duration !== undefined) {
-			const durationExpr: ExpressionObj | number | null = interpretExpression(obj.trigger.duration)
+		} else if (obj.enable.duration !== undefined) {
+			const durationExpr: ExpressionObj | number | null = interpretExpression(obj.enable.duration)
 			const lookedupDuration = lookupExpression(resolvedTimeline, obj, durationExpr, 'duration')
 
 			if (_.isArray(lookedupDuration)) {
@@ -232,6 +238,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 			}
 		})
 	}
+	instances = capInstances(instances, parentInstances)
 
 	obj.resolved.resolved = true
 	obj.resolved.resolving = false
@@ -356,14 +363,13 @@ export function lookupExpression (
 					}
 				})
 				if (returnInstances.length) {
-					returnInstances.sort((a, b) => {
-						return a.start - b.start
-					})
 
 					if (invert) {
 						returnInstances = invertInstances(
 							returnInstances
 						)
+					} else {
+						returnInstances = cleanInstances(returnInstances, false)
 					}
 					if (ignoreFirstIfZero) {
 						const first = _.first(returnInstances)
@@ -490,163 +496,4 @@ export function lookupExpression (
 		}
 	}
 	return null
-}
-function isNumeric (str: string | number | null | any): boolean {
-	if (str === null) return false
-	if (_.isNumber(str)) return true
-	if (_.isString(str)) return !!(str.match(/^[0-9\.\-]+$/) && !_.isNaN(parseFloat(str)))
-	return false
-}
-function sortEvents<T extends InstanceEvent> (events: Array<T>): Array<T> {
-	return events.sort((a: InstanceEvent, b: InstanceEvent) => {
-		if (a.time > b.time) return 1
-		if (a.time < b.time) return -1
-
-		if (a.value && !b.value) return -1
-		if (!a.value && b.value) return 1
-		return 0
-	})
-}
-function invertInstances (instances: Array<TimelineObjectInstance>): Array<TimelineObjectInstance> {
-
-	if (instances.length) {
-		const invertedInstances: Array<TimelineObjectInstance> = []
-		if (instances[0].start !== 0) {
-			invertedInstances.push({
-				isFirst: true,
-				start: 0,
-				end: null
-			})
-		}
-		_.each(instances, (instance) => {
-			const last = _.last(invertedInstances)
-			if (last) {
-				last.end = instance.start
-			}
-			if (instance.end !== null) {
-				invertedInstances.push({
-					start: instance.end,
-					end: null
-				})
-			}
-		})
-		return invertedInstances
-	} else {
-		return [{
-			isFirst: true,
-			start: 0,
-			end: null
-		}]
-	}
-}
-function operateOnArrays (
-	array0: Array<TimelineObjectInstance> | number | null,
-	array1: Array<TimelineObjectInstance> | number | null,
-	operate: (a: number | null, b: number | null) => number | null
-): Array<TimelineObjectInstance> | number | null {
-	if (
-		array0 === null ||
-		array1 === null
-	) return null
-
-	if (
-		_.isNumber(array0) &&
-		_.isNumber(array1)
-	) {
-		return operate(array0, array1)
-	}
-
-	const result: Array<TimelineObjectInstance> = []
-
-	const minLength = Math.min(
-		_.isArray(array0) ? array0.length : Infinity,
-		_.isArray(array1) ? array1.length : Infinity
-	)
-	for (let i = 0; i < minLength; i++) {
-		const a: TimelineObjectInstance = (
-			_.isArray(array0) ?
-			array0[i] :
-			{ start: array0, end: array0 }
-		)
-		const b: TimelineObjectInstance = (
-			_.isArray(array1) ?
-			array1[i] :
-			{ start: array1, end: array1 }
-		)
-		const start = (
-			a.isFirst ?
-				a.start :
-			b.isFirst ?
-				b.start :
-			operate(a.start, b.start)
-		)
-		const end = (
-			a.isFirst ?
-				a.end :
-			b.isFirst ?
-				b.end :
-			operate(a.end, b.end)
-		)
-		if (start !== null) {
-			result.push({
-				start: start,
-				end: end
-			})
-		}
-	}
-	return result
-}
-// function makeNumber (num: string | number) {
-// 	a.start
-// }
-function applyRepeatingInstances (
-	instances: number | TimelineObjectInstance[] | null,
-	repeatTime0: number | null,
-	options: ResolveOptions
-): number | TimelineObjectInstance[] | null {
-	if (
-		repeatTime0 === null ||
-		instances === null ||
-		!repeatTime0
-	) return instances
-
-	const repeatTime: Duration = repeatTime0
-
-	if (_.isNumber(instances)) {
-		instances = [{
-			start: instances,
-			end: null
-		}]
-	}
-	const repeatedInstances: TimelineObjectInstance[] = []
-	_.each(instances, (instance) => {
-		let startTime = Math.max(
-			options.time - (options.time - instance.start) % repeatTime,
-			instance.start
-		)
-		let endTime: Time | null = (
-			instance.end === null ?
-			null :
-			instance.end + (startTime - instance.start)
-		)
-
-		const limit = options.limitCount || 2
-		for (let i = 0; i < limit; i++) {
-			if (
-				!options.limitTime ||
-				startTime < options.limitTime
-			) {
-				repeatedInstances.push({
-					start: startTime,
-					end: endTime
-				})
-			} else {
-				break
-			}
-
-			startTime += repeatTime
-			if (endTime !== null) endTime += repeatTime
-		}
-	})
-	return repeatedInstances
 }
