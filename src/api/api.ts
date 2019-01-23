@@ -27,10 +27,19 @@ export interface ResolvedTimeline {
 	options: ResolveOptions
 	objects: ResolvedTimelineObjects
 	statistics: {
-		unresolvedObjectCount: number
-		resolvedObjectCount: number
+		/** Number of objects that were unable to resolve */
+		unresolvedCount: number
+		/** Number of objects that were resolved */
+		resolvedCount: number
+
+		/** Number of resolved instances */
 		resolvedInstanceCount: number
-		groupCount: number
+		/** Number of resolved objects */
+		resolvedObjectCount: number
+		/** Number of resolved groups */
+		resolvedGroupCount: number
+		/** Number of resolved keyframes */
+		resolvedKeyframeCount: number
 	}
 }
 export interface ResolvedTimelineObjects {
@@ -42,6 +51,7 @@ export interface ResolvedTimelineObject extends TimelineObject {
 		resolving: boolean
 		instances: Array<TimelineObjectInstance>
 		parentId?: string
+		isKeyframe?: boolean
 	}
 }
 export interface TimelineObjectInstance {
@@ -70,7 +80,7 @@ export interface TimelineObject {
 	// externalFunction?: string // TODO: implement hooks
 	content: Content
 }
-type Content = {
+export type Content = {
 	[key: string]: any
 }
 export interface TimelineTrigger {
@@ -91,6 +101,9 @@ export interface TimelineKeyframe {
 	duration?: number | string
 	classes?: Array<string>
 	content: Content
+	disabled?: boolean
+}
+export interface TimelineObjectKeyframe extends TimelineObject, TimelineKeyframe {
 }
 
 export type Expression = number | string | ExpressionObj

@@ -1,6 +1,4 @@
-
 import * as _ from 'underscore'
-
 import {
 	TimelineObject,
 	ResolvedTimeline,
@@ -13,10 +11,13 @@ import {
 	TimelineObjectInstance,
 	Time,
 	TimelineState,
-	Duration
+	Duration,
+	TimelineKeyframe,
+	TimelineObjectKeyframe
  } from '../api/api'
 import { interpretExpression } from './expression'
 import { getState } from './state'
+import { extendMandadory } from '../lib'
 
 export class Resolver {
 
@@ -28,28 +29,40 @@ export class Resolver {
 			options: _.clone(options),
 			objects: {},
 			statistics: {
-				unresolvedObjectCount: 0,
-				resolvedObjectCount: 0,
+				unresolvedCount: 0,
+				resolvedCount: 0,
 				resolvedInstanceCount: 0,
-				groupCount: 0
+				resolvedObjectCount: 0,
+				resolvedGroupCount: 0,
+				resolvedKeyframeCount: 0
 			}
 		}
 		// Step 1: pre-populate resolvedTimeline with objects
-		const addToResolvedTimeline = (obj: TimelineObject, parentId?: string) => {
+		const addToResolvedTimeline = (obj: TimelineObject, parentId?: string, isKeyframe?: boolean) => {
 			if (resolvedTimeline.objects[obj.id]) throw Error(`All timelineObjects must be unique! (duplicate: "${obj.id}")`)
 
-			const o: ResolvedTimelineObject = _.extend({
+			const o: ResolvedTimelineObject = extendMandadory<TimelineObject, ResolvedTimelineObject>(_.clone(obj), {
 				resolved: {
 					resolved: false,
-					instances: [],
-					parentId: parentId
+					resolving: false,
+					instances: []
 				}
-			}, obj)
+			})
+			if (parentId) o.resolved.parentId = parentId
+			if (isKeyframe) o.resolved.isKeyframe = true
 			resolvedTimeline.objects[obj.id] = o
 
 			if (obj.isGroup && obj.children) {
 				_.each(obj.children, (child) => {
 					addToResolvedTimeline(child, obj.id)
+				})
+			}
+			if (obj.keyframes) {
+				_.each(obj.keyframes, (keyframe) => {
+					const kf2: TimelineObjectKeyframe = extendMandadory<TimelineKeyframe, TimelineObjectKeyframe>(_.clone(keyframe), {
+						layer: ''
+					})
+					addToResolvedTimeline(kf2, obj.id, true)
 				})
 			}
 		}
@@ -71,7 +84,7 @@ export class Resolver {
 	// }
 }
 
-function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: ResolvedTimelineObject) {
+export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: ResolvedTimelineObject) {
 	if (obj.resolved.resolved) return
 	if (obj.resolved.resolving) throw new Error(`Circular dependency when trying to resolve "${obj.id}"`)
 	obj.resolved.resolving = true
@@ -216,12 +229,17 @@ function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: ResolvedTi
 
 	if (instances.length) {
 		resolvedTimeline.statistics.resolvedInstanceCount += instances.length
-		resolvedTimeline.statistics.resolvedObjectCount += 1
+
+		if (obj.isGroup) {
+			resolvedTimeline.statistics.resolvedGroupCount += 1
+		}
+		if (obj.resolved.isKeyframe) {
+			resolvedTimeline.statistics.resolvedKeyframeCount += 1
+		} else {
+			resolvedTimeline.statistics.resolvedObjectCount += 1
+		}
 	} else {
-		resolvedTimeline.statistics.unresolvedObjectCount += 1
-	}
-	if (obj.isGroup) {
-		resolvedTimeline.statistics.groupCount += 1
+		resolvedTimeline.statistics.unresolvedCount += 1
 	}
 
 }

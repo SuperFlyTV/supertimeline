@@ -12,10 +12,12 @@ describe('resolver', () => {
 			objects: {
 			},
 			statistics: {
-				unresolvedObjectCount: 0,
-				resolvedObjectCount: 0,
+				unresolvedCount: 0,
+				resolvedCount: 0,
 				resolvedInstanceCount: 0,
-				groupCount: 0
+				resolvedObjectCount: 0,
+				resolvedGroupCount: 0,
+				resolvedKeyframeCount: 0
 			}
 		}
 		const obj: TimelineObject = {
@@ -36,10 +38,12 @@ describe('resolver', () => {
 				time: 1000
 			},
 			statistics: {
-				unresolvedObjectCount: 0,
-				resolvedObjectCount: 0,
+				unresolvedCount: 0,
+				resolvedCount: 0,
 				resolvedInstanceCount: 0,
-				groupCount: 0
+				resolvedObjectCount: 0,
+				resolvedGroupCount: 0,
+				resolvedKeyframeCount: 0
 			},
 			objects: {
 				'first': {
@@ -200,7 +204,7 @@ describe('resolver', () => {
 		const resolved = Resolver.resolveTimeline(timeline, { time: 0 })
 
 		expect(resolved.statistics.resolvedObjectCount).toEqual(3)
-		expect(resolved.statistics.unresolvedObjectCount).toEqual(0)
+		expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 		expect(resolved.objects['video']).toBeTruthy()
 		expect(resolved.objects['graphic0']).toBeTruthy()
@@ -281,6 +285,7 @@ describe('resolver', () => {
 	})
 	// todo test: different triggers, start, end, duration, while
 	// todo test: classes (multiple object with same class)
+	// todo test: keyframes in repeating objects
 	test('repeating object', () => {
 		const timeline: TimelineObject[] = [
 			{
@@ -307,7 +312,7 @@ describe('resolver', () => {
 		const resolved = Resolver.resolveTimeline(timeline, { time: 0, limitCount: 99, limitTime: 145 })
 
 		expect(resolved.statistics.resolvedObjectCount).toEqual(2)
-		expect(resolved.statistics.unresolvedObjectCount).toEqual(0)
+		expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 		expect(resolved.objects['video']).toBeTruthy()
 		expect(resolved.objects['graphic0']).toBeTruthy()
@@ -466,7 +471,7 @@ describe('resolver', () => {
 		const resolved = Resolver.resolveTimeline(timeline, { time: 0 })
 
 		expect(resolved.statistics.resolvedObjectCount).toEqual(3)
-		expect(resolved.statistics.unresolvedObjectCount).toEqual(0)
+		expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 		expect(resolved.objects['group']).toBeTruthy()
 		expect(resolved.objects['child0']).toBeTruthy()
@@ -509,7 +514,6 @@ describe('resolver', () => {
 			}
 		})
 	})
-	/*
 	test('simple keyframes', () => {
 		const timeline: TimelineObject[] = [
 			{
@@ -529,7 +533,10 @@ describe('resolver', () => {
 					duration: 50
 				},
 				content: {
-					attr0: 'base'
+					attr0: 'base',
+					attr1: 'base',
+					attr2: 'base',
+					attr3: 'base'
 				},
 				keyframes: [
 					{
@@ -538,7 +545,8 @@ describe('resolver', () => {
 							start: 3 // 13
 						},
 						content: {
-							attr0: 'kf0'
+							attr0: 'kf0',
+							attr1: 'kf0'
 						}
 					},
 					{
@@ -548,9 +556,10 @@ describe('resolver', () => {
 							duration: '5' // 25
 						},
 						content: {
-							attr0: 'kf1'
+							attr0: 'kf1',
+							attr2: 'kf1'
 						}
-					},
+					}
 				]
 			}
 		]
@@ -558,34 +567,49 @@ describe('resolver', () => {
 		const resolved = Resolver.resolveTimeline(timeline, { time: 0 })
 
 		expect(resolved.statistics.resolvedObjectCount).toEqual(2)
-		expect(resolved.statistics.unresolvedObjectCount).toEqual(0)
+		expect(resolved.statistics.resolvedKeyframeCount).toEqual(2)
+		expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 		expect(resolved.objects['video']).toBeTruthy()
 		expect(resolved.objects['graphic0']).toBeTruthy()
+		expect(resolved.objects['kf0']).toBeTruthy()
+		expect(resolved.objects['kf1']).toBeTruthy()
+
+		expect(resolved.objects['kf0'].resolved.instances).toMatchObject([{
+			start: 13,
+			end: null
+		}])
+		expect(resolved.objects['kf1'].resolved.instances).toMatchObject([{
+			start: 20,
+			end: 25
+		}])
 
 		expect(Resolver.getState(resolved, 11)).toMatchObject({
 			layers: {
 				'1': {
 					id: 'graphic0',
 					content: {
-						attr0: 'base'
+						attr0: 'base',
+						attr1: 'base',
+						attr2: 'base',
+						attr3: 'base'
 					}
 				}
 			},
 			nextEvents: [
 				{
 					time: 13,
-					type: EventType.KEYFRAME_START,
+					type: EventType.KEYFRAME,
 					objId: 'kf0'
 				},
 				{
 					time: 20,
-					type: EventType.KEYFRAME_START,
+					type: EventType.KEYFRAME,
 					objId: 'kf1'
 				},
 				{
 					time: 25,
-					type: EventType.KEYFRAME_END,
+					type: EventType.KEYFRAME,
 					objId: 'kf1'
 				},
 				{
@@ -597,14 +621,17 @@ describe('resolver', () => {
 					time: 100,
 					type: EventType.END,
 					objId: 'video'
-				},
+				}
 			]
 		})
 		expect(Resolver.getState(resolved, 13).layers).toMatchObject({
 			'1': {
 				id: 'graphic0',
 				content: {
-					attr0: 'kf0'
+					attr0: 'kf0',
+					attr1: 'kf0',
+					attr2: 'base',
+					attr3: 'base'
 				}
 			}
 		})
@@ -612,7 +639,10 @@ describe('resolver', () => {
 			'1': {
 				id: 'graphic0',
 				content: {
-					attr0: 'kf1'
+					attr0: 'kf1',
+					attr1: 'kf0',
+					attr2: 'kf1',
+					attr3: 'base'
 				}
 			}
 		})
@@ -620,10 +650,12 @@ describe('resolver', () => {
 			'1': {
 				id: 'graphic0',
 				content: {
-					attr0: 'kf0'
+					attr0: 'kf0',
+					attr1: 'kf0',
+					attr2: 'base',
+					attr3: 'base'
 				}
 			}
 		})
 	})
-	*/
 })
