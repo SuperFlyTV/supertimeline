@@ -25,7 +25,10 @@ export interface ResolveOptions {
 export interface ResolvedTimeline {
 	/** The options used to resolve the timeline */
 	options: ResolveOptions
+	/** Map of all objects on timeline */
 	objects: ResolvedTimelineObjects
+	/** Map of all classes on timeline, maps className to object ids */
+	classes: {[className: string]: Array<string>}
 	statistics: {
 		/** Number of objects that were unable to resolve */
 		unresolvedCount: number

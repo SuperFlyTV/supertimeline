@@ -9,8 +9,8 @@ describe('resolver', () => {
 			options: {
 				time: 1000
 			},
-			objects: {
-			},
+			objects: {},
+			classes: {},
 			statistics: {
 				unresolvedCount: 0,
 				resolvedCount: 0,
@@ -116,7 +116,8 @@ describe('resolver', () => {
 						resolving: false
 					}
 				}
-			}
+			},
+			classes: {}
 		}
 		const obj: TimelineObject = {
 			id: 'obj0',
@@ -655,6 +656,133 @@ describe('resolver', () => {
 					attr2: 'base',
 					attr3: 'base'
 				}
+			}
+		})
+	})
+	test('classes', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'video0',
+				layer: '0',
+				trigger: {
+					start: 0,
+					end: 10,
+					repeating: 50
+				},
+				content: {},
+				classes: ['class0']
+			},
+			{
+				id: 'video1',
+				layer: '0',
+				trigger: {
+					start: '#video0.end + 15', // 25
+					duration: 10,
+					repeating: 50
+				},
+				content: {},
+				classes: ['class0', 'class1']
+			},
+			{
+				id: 'graphic0',
+				layer: '1',
+				trigger: {
+					while: '.class0'
+				},
+				content: {}
+			},
+			{
+				id: 'graphic1',
+				layer: '2',
+				trigger: {
+					while: '.class1 + 1'
+				},
+				content: {}
+			}
+		]
+
+		const resolved = Resolver.resolveTimeline(timeline, { time: 0, limitTime: 100 })
+
+		expect(resolved.statistics.resolvedObjectCount).toEqual(4)
+		expect(resolved.statistics.unresolvedCount).toEqual(0)
+
+		expect(resolved.objects['video0']).toBeTruthy()
+		expect(resolved.objects['video1']).toBeTruthy()
+		expect(resolved.objects['graphic0']).toBeTruthy()
+		expect(resolved.objects['graphic1']).toBeTruthy()
+
+		expect(resolved.objects['video0'].resolved).toMatchObject({
+			resolved: true,
+			instances: [
+				{ start: 0, end: 10 },
+				{ start: 50, end: 60 }
+			]
+		})
+		expect(resolved.objects['video1'].resolved).toMatchObject({
+			resolved: true,
+			instances: [
+				{ start: 25, end: 35 },
+				{ start: 75, end: 85 }
+			]
+		})
+		expect(resolved.objects['graphic0'].resolved).toMatchObject({
+			resolved: true,
+			instances: [
+				{ start: 0, end: 10 },
+				{ start: 25, end: 35 },
+				{ start: 50, end: 60 },
+				{ start: 75, end: 85 }
+			]
+		})
+		expect(resolved.objects['graphic1'].resolved).toMatchObject({
+			resolved: true,
+			instances: [
+				{ start: 26, end: 36 },
+				{ start: 76, end: 86 }
+			]
+		})
+
+		const state0 = Resolver.getState(resolved, 5)
+		expect(state0.layers['2']).toBeFalsy()
+		expect(state0.layers).toMatchObject({
+			'0': {
+				id: 'video0'
+			},
+			'1': {
+				id: 'graphic0'
+			}
+		})
+		const state1 = Resolver.getState(resolved, 25)
+		expect(state1.layers['2']).toBeFalsy()
+		expect(state1.layers).toMatchObject({
+			'0': {
+				id: 'video1'
+			},
+			'1': {
+				id: 'graphic0'
+			}
+		})
+		expect(Resolver.getState(resolved, 26).layers).toMatchObject({
+			'0': {
+				id: 'video1'
+			},
+			'1': {
+				id: 'graphic0'
+			},
+			'2': {
+				id: 'graphic1'
+			}
+		})
+
+		expect(Resolver.getState(resolved, 76).layers).toMatchObject({
+			'0': {
+				id: 'video1'
+			},
+			'1': {
+				id: 'graphic0'
+			},
+			'2': {
+				id: 'graphic1'
 			}
 		})
 	})

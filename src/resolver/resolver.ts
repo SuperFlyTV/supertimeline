@@ -28,6 +28,7 @@ export class Resolver {
 		const resolvedTimeline: ResolvedTimeline = {
 			options: _.clone(options),
 			objects: {},
+			classes: {},
 			statistics: {
 				unresolvedCount: 0,
 				resolvedCount: 0,
@@ -51,6 +52,15 @@ export class Resolver {
 			if (parentId) o.resolved.parentId = parentId
 			if (isKeyframe) o.resolved.isKeyframe = true
 			resolvedTimeline.objects[obj.id] = o
+
+			if (obj.classes) {
+				_.each(obj.classes, (className: string) => {
+					if (className) {
+						if (!resolvedTimeline.classes[className]) resolvedTimeline.classes[className] = []
+						resolvedTimeline.classes[className].push(obj.id)
+					}
+				})
+			}
 
 			if (obj.isGroup && obj.children) {
 				_.each(obj.children, (child) => {
@@ -259,36 +269,78 @@ export function lookupExpression (
 	} else if (_.isNumber(expr)) {
 		return expr
 	} else if (_.isString(expr)) {
+		expr = expr.trim()
 		// Look up string
 		let invert: boolean = false
 		let ignoreFirstIfZero: boolean = false
-		const m = expr.match(/(!)?\W*#([^.]+)(.*)/)
+		const referencedObjs: ResolvedTimelineObject[] = []
+		let ref: ObjectRefType = context
+		let rest: string = ''
+
+		// Match id, example: "#objectId.start"
+		const m = expr.match(/^(!)?\W*#([^.]+)(.*)/)
 		if (m) {
 			const exclamation = m[1]
 			const id = m[2]
-			const rest = m[3]
+			rest = m[3]
 			if (exclamation === '!') invert = !invert
 
-			let ref: ObjectRefType = context
+			const obj = resolvedTimeline.objects[id]
+			if (obj) {
+				referencedObjs.push(obj)
+			}
+		} else {
+			// Match class, example: ".className.start"
+			const m = expr.match(/^(!)?\W*\.([^.]+)(.*)/)
+			if (m) {
+				const exclamation = m[1]
+				const className = m[2]
+				rest = m[3]
+				if (exclamation === '!') invert = !invert
+
+				const objIds: string[] = resolvedTimeline.classes[className] || []
+
+				_.each(objIds, (objId: string) => {
+					const obj = resolvedTimeline.objects[objId]
+					if (obj) {
+						referencedObjs.push(obj)
+					}
+				})
+			}
+		}
+
+		if (referencedObjs.length) {
 			if (rest.match(/start/)) ref = 'start'
 			if (rest.match(/end/)) ref = 'end'
 			if (rest.match(/duration/)) ref = 'duration'
 
-			const referencedObj = resolvedTimeline.objects[id]
-
-			if (referencedObj) {
-				resolveTimelineObj(resolvedTimeline, referencedObj)
-				if (referencedObj.resolved.resolved) {
-
-					if (ref === 'duration') {
-						// Duration refers to the first object on the resolved timeline
+			if (ref === 'duration') {
+				// Duration refers to the first object on the resolved timeline
+				const instanceDurations: Array<number> = []
+				_.each(referencedObjs, (referencedObj: ResolvedTimelineObject) => {
+					resolveTimelineObj(resolvedTimeline, referencedObj)
+					if (referencedObj.resolved.resolved) {
 						const firstInstance = _.first(referencedObj.resolved.instances)
-						return (
+						const duration: number | null = (
 							firstInstance && firstInstance.end !== null ?
 							firstInstance.end - firstInstance.start :
 							null
 						)
-					} else {
+						if (duration !== null) {
+							instanceDurations.push(duration)
+						}
+					}
+				})
+				let firstDuration: number | null = null
+				_.each(instanceDurations, (d) => {
+					if (firstDuration === null || d < firstDuration) firstDuration = d
+				})
+				return firstDuration
+			} else {
+				let returnInstances: TimelineObjectInstance[] = []
+				_.each(referencedObjs, (referencedObj: ResolvedTimelineObject) => {
+					resolveTimelineObj(resolvedTimeline, referencedObj)
+					if (referencedObj.resolved.resolved) {
 						let instances: Array<TimelineObjectInstance> = referencedObj.resolved.instances
 						if (ref === 'start') {
 							// nothing
@@ -296,7 +348,6 @@ export function lookupExpression (
 							invert = !invert
 							ignoreFirstIfZero = true
 						} else throw Error(`Unknown ref: "${ref}"`)
-
 						if (invert) {
 							instances = invertInstances(
 								referencedObj.resolved.instances
@@ -308,14 +359,20 @@ export function lookupExpression (
 								instances.splice(0, 1)
 							}
 						}
-						return instances
+						returnInstances = returnInstances.concat(instances)
 					}
+				})
+				if (returnInstances.length) {
+					returnInstances.sort((a, b) => {
+						return a.start - b.start
+					})
+					return returnInstances
 				} else {
 					return null
 				}
-			} else {
-				return null
 			}
+		} else {
+			return null
 		}
 	} else {
 		if (expr) {
