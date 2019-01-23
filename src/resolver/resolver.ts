@@ -261,6 +261,7 @@ export function lookupExpression (
 	context: ObjectRefType
 ): Array<TimelineObjectInstance> | number | null {
 	if (expr === null) return null
+
 	if (
 		_.isString(expr) &&
 		isNumeric(expr)
@@ -338,27 +339,19 @@ export function lookupExpression (
 				return firstDuration
 			} else {
 				let returnInstances: TimelineObjectInstance[] = []
+
+				if (ref === 'start') {
+					// nothing
+				} else if (ref === 'end') {
+					invert = !invert
+					ignoreFirstIfZero = true
+				} else throw Error(`Unknown ref: "${ref}"`)
+
 				_.each(referencedObjs, (referencedObj: ResolvedTimelineObject) => {
 					resolveTimelineObj(resolvedTimeline, referencedObj)
 					if (referencedObj.resolved.resolved) {
-						let instances: Array<TimelineObjectInstance> = referencedObj.resolved.instances
-						if (ref === 'start') {
-							// nothing
-						} else if (ref === 'end') {
-							invert = !invert
-							ignoreFirstIfZero = true
-						} else throw Error(`Unknown ref: "${ref}"`)
-						if (invert) {
-							instances = invertInstances(
-								referencedObj.resolved.instances
-							)
-						}
-						if (ignoreFirstIfZero) {
-							const first = _.first(instances)
-							if (first && first.start === 0) {
-								instances.splice(0, 1)
-							}
-						}
+						const instances: Array<TimelineObjectInstance> = referencedObj.resolved.instances
+
 						returnInstances = returnInstances.concat(instances)
 					}
 				})
@@ -366,6 +359,18 @@ export function lookupExpression (
 					returnInstances.sort((a, b) => {
 						return a.start - b.start
 					})
+
+					if (invert) {
+						returnInstances = invertInstances(
+							returnInstances
+						)
+					}
+					if (ignoreFirstIfZero) {
+						const first = _.first(returnInstances)
+						if (first && first.start === 0) {
+							returnInstances.splice(0, 1)
+						}
+					}
 					return returnInstances
 				} else {
 					return null
@@ -489,7 +494,7 @@ export function lookupExpression (
 function isNumeric (str: string | number | null | any): boolean {
 	if (str === null) return false
 	if (_.isNumber(str)) return true
-	if (_.isString(str)) return !!(str.match(/^[0-9\.]+$/) && !_.isNaN(parseFloat(str)))
+	if (_.isString(str)) return !!(str.match(/^[0-9\.\-]+$/) && !_.isNaN(parseFloat(str)))
 	return false
 }
 function sortEvents<T extends InstanceEvent> (events: Array<T>): Array<T> {
