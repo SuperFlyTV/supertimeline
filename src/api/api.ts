@@ -18,12 +18,20 @@ export interface ResolveOptions {
 	/** Limits the number of repeating objects in the future.
 	 * Defaults to 2, which means that the current one and the next will be resolved.
 	 */
-	limit?: number
+	limitCount?: number
+	/** Limits the repeating objects to a time in the future */
+	limitTime?: Time
 }
 export interface ResolvedTimeline {
 	/** The options used to resolve the timeline */
 	options: ResolveOptions
 	objects: ResolvedTimelineObjects
+	statistics: {
+		unresolvedObjectCount: number
+		resolvedObjectCount: number
+		resolvedInstanceCount: number
+		groupCount: number
+	}
 }
 export interface ResolvedTimelineObjects {
 	[id: string]: ResolvedTimelineObject
@@ -58,20 +66,24 @@ export interface TimelineObject {
 	classes?: Array<string>
 	disabled?: boolean
 	isGroup?: boolean
-	repeating?: boolean
 	priority?: number
 	// externalFunction?: string // TODO: implement hooks
-
 	content: Content
 }
 type Content = {
 	[key: string]: any
 }
 export interface TimelineTrigger {
-	while?: Expression
+	/** (Optional) The start time of the object. (Cannot be combined with .while) */
 	start?: Expression
+	/** (Optional) The end time of the object (Cannot be combined with .while or .duration) */
 	end?: Expression
+	/** (Optional) Enables the object WHILE expression is true (ie sets both the start and end). (Cannot be combined with .start, .end or .duration ) */
+	while?: Expression
+	/** (Optional) The duration of an object */
 	duration?: Expression
+	/** (Optional) Makes the object repeat with given interval */
+	repeating?: Expression
 }
 export interface TimelineKeyframe {
 	id: string

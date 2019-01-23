@@ -10,6 +10,12 @@ describe('resolver', () => {
 				time: 1000
 			},
 			objects: {
+			},
+			statistics: {
+				unresolvedObjectCount: 0,
+				resolvedObjectCount: 0,
+				resolvedInstanceCount: 0,
+				groupCount: 0
 			}
 		}
 		const obj: TimelineObject = {
@@ -28,6 +34,12 @@ describe('resolver', () => {
 		const rtl: ResolvedTimeline = {
 			options: {
 				time: 1000
+			},
+			statistics: {
+				unresolvedObjectCount: 0,
+				resolvedObjectCount: 0,
+				resolvedInstanceCount: 0,
+				groupCount: 0
 			},
 			objects: {
 				'first': {
@@ -187,6 +199,9 @@ describe('resolver', () => {
 
 		const resolved = Resolver.resolveTimeline(timeline, { time: 0 })
 
+		expect(resolved.statistics.resolvedObjectCount).toEqual(3)
+		expect(resolved.statistics.unresolvedObjectCount).toEqual(0)
+
 		expect(resolved.objects['video']).toBeTruthy()
 		expect(resolved.objects['graphic0']).toBeTruthy()
 		expect(resolved.objects['graphic1']).toBeTruthy()
@@ -264,4 +279,351 @@ describe('resolver', () => {
 		})
 		expect(state2.layers['1']).toBeFalsy()
 	})
+	// todo test: different triggers, start, end, duration, while
+	// todo test: classes (multiple object with same class)
+	test('repeating object', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'video',
+				layer: '0',
+				trigger: {
+					start: 0,
+					end: 40,
+					repeating: 50
+				},
+				content: {}
+			},
+			{
+				id: 'graphic0',
+				layer: '1',
+				trigger: {
+					start: '#video.start + 20', // 20
+					duration: 19 // 39
+				},
+				content: {}
+			}
+		]
+
+		const resolved = Resolver.resolveTimeline(timeline, { time: 0, limitCount: 99, limitTime: 145 })
+
+		expect(resolved.statistics.resolvedObjectCount).toEqual(2)
+		expect(resolved.statistics.unresolvedObjectCount).toEqual(0)
+
+		expect(resolved.objects['video']).toBeTruthy()
+		expect(resolved.objects['graphic0']).toBeTruthy()
+		expect(resolved.objects['video'].resolved).toMatchObject({
+			resolved: true,
+			instances: [
+				{ start: 0, end: 40 },
+				{ start: 50, end: 90 },
+				{ start: 100, end: 140 }
+			]
+		})
+		expect(resolved.objects['graphic0'].resolved).toMatchObject({
+			resolved: true,
+			instances: [
+				{ start: 20, end: 39 },
+				{ start: 70, end: 89 },
+				{ start: 120, end: 139 }
+			]
+		})
+		const state0 = Resolver.getState(resolved, 15)
+		expect(state0.layers['1']).toBeFalsy()
+		expect(state0).toMatchObject({
+			layers: {
+				'0': {
+					id: 'video'
+				}
+			},
+			nextEvents: [
+				{
+					time: 20,
+					type: EventType.START,
+					objId: 'graphic0'
+				},
+				{
+					time: 39,
+					type: EventType.END,
+					objId: 'graphic0'
+				},
+				{
+					time: 40,
+					type: EventType.END,
+					objId: 'video'
+				},
+				// next repeat:
+				{
+					time: 50,
+					type: EventType.START,
+					objId: 'video'
+				},
+				{
+					time: 70,
+					type: EventType.START,
+					objId: 'graphic0'
+				},
+				{
+					time: 89,
+					type: EventType.END,
+					objId: 'graphic0'
+				},
+				{
+					time: 90,
+					type: EventType.END,
+					objId: 'video'
+				},
+
+				{
+					time: 100,
+					type: EventType.START,
+					objId: 'video'
+				},
+				{
+					time: 120,
+					type: EventType.START,
+					objId: 'graphic0'
+				},
+				{
+					time: 139,
+					type: EventType.END,
+					objId: 'graphic0'
+				},
+				{
+					time: 140,
+					type: EventType.END,
+					objId: 'video'
+				}
+			]
+		})
+
+		expect(Resolver.getState(resolved, 21).layers).toMatchObject({
+			'0': {
+				id: 'video'
+			},
+			'1': {
+				id: 'graphic0'
+			}
+		})
+		const state1 = Resolver.getState(resolved, 39)
+		expect(state1.layers['1']).toBeFalsy()
+		expect(state1).toMatchObject({
+			layers: {
+				'0': {
+					id: 'video'
+				}
+			}
+		})
+
+		expect(Resolver.getState(resolved, 51).layers).toMatchObject({
+			'0': {
+				id: 'video'
+			}
+		})
+
+		expect(Resolver.getState(resolved, 72).layers).toMatchObject({
+			'0': {
+				id: 'video'
+			},
+			'1': {
+				id: 'graphic0'
+			}
+		})
+	})
+	test('simple group', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'group',
+				layer: '0',
+				trigger: {
+					start: 10,
+					end: 100
+				},
+				content: {},
+				isGroup: true,
+				children: [
+					{
+						id: 'child0',
+						layer: '1',
+						trigger: {
+							start: '5', // 15
+							duration: 10
+						},
+						content: {}
+					},
+					{
+						id: 'child1',
+						layer: '1',
+						trigger: {
+							start: '#child0.end', // 25
+							duration: 10
+						},
+						content: {}
+					}
+				]
+			}
+		]
+
+		const resolved = Resolver.resolveTimeline(timeline, { time: 0 })
+
+		expect(resolved.statistics.resolvedObjectCount).toEqual(3)
+		expect(resolved.statistics.unresolvedObjectCount).toEqual(0)
+
+		expect(resolved.objects['group']).toBeTruthy()
+		expect(resolved.objects['child0']).toBeTruthy()
+		expect(resolved.objects['child1']).toBeTruthy()
+		expect(resolved.objects['child0'].resolved).toMatchObject({
+			resolved: true,
+			instances: [{ start: 15, end: 25 }]
+		})
+		expect(resolved.objects['child1'].resolved).toMatchObject({
+			resolved: true,
+			instances: [{ start: 25, end: 35 }]
+		})
+
+		const state0 = Resolver.getState(resolved, 11)
+		expect(state0.layers).toMatchObject({
+			'0': {
+				id: 'group'
+			}
+		})
+		expect(state0.layers['1']).toBeFalsy()
+
+		expect(Resolver.getState(resolved, 15)).toMatchObject({
+			layers: {
+				'0': {
+					id: 'group'
+				},
+				'1': {
+					id: 'child0'
+				}
+			}
+		})
+		expect(Resolver.getState(resolved, 30)).toMatchObject({
+			layers: {
+				'0': {
+					id: 'group'
+				},
+				'1': {
+					id: 'child1'
+				}
+			}
+		})
+	})
+	/*
+	test('simple keyframes', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'video',
+				layer: '0',
+				trigger: {
+					start: 0,
+					end: 100
+				},
+				content: {}
+			},
+			{
+				id: 'graphic0',
+				layer: '1',
+				trigger: {
+					start: '#video.start + 10', // 10
+					duration: 50
+				},
+				content: {
+					attr0: 'base'
+				},
+				keyframes: [
+					{
+						id: 'kf0',
+						trigger: {
+							start: 3 // 13
+						},
+						content: {
+							attr0: 'kf0'
+						}
+					},
+					{
+						id: 'kf1',
+						trigger: {
+							start: '#kf0 + 7', // 20
+							duration: '5' // 25
+						},
+						content: {
+							attr0: 'kf1'
+						}
+					},
+				]
+			}
+		]
+
+		const resolved = Resolver.resolveTimeline(timeline, { time: 0 })
+
+		expect(resolved.statistics.resolvedObjectCount).toEqual(2)
+		expect(resolved.statistics.unresolvedObjectCount).toEqual(0)
+
+		expect(resolved.objects['video']).toBeTruthy()
+		expect(resolved.objects['graphic0']).toBeTruthy()
+
+		expect(Resolver.getState(resolved, 11)).toMatchObject({
+			layers: {
+				'1': {
+					id: 'graphic0',
+					content: {
+						attr0: 'base'
+					}
+				}
+			},
+			nextEvents: [
+				{
+					time: 13,
+					type: EventType.KEYFRAME_START,
+					objId: 'kf0'
+				},
+				{
+					time: 20,
+					type: EventType.KEYFRAME_START,
+					objId: 'kf1'
+				},
+				{
+					time: 25,
+					type: EventType.KEYFRAME_END,
+					objId: 'kf1'
+				},
+				{
+					time: 60,
+					type: EventType.END,
+					objId: 'graphic0'
+				},
+				{
+					time: 100,
+					type: EventType.END,
+					objId: 'video'
+				},
+			]
+		})
+		expect(Resolver.getState(resolved, 13).layers).toMatchObject({
+			'1': {
+				id: 'graphic0',
+				content: {
+					attr0: 'kf0'
+				}
+			}
+		})
+		expect(Resolver.getState(resolved, 21).layers).toMatchObject({
+			'1': {
+				id: 'graphic0',
+				content: {
+					attr0: 'kf1'
+				}
+			}
+		})
+		expect(Resolver.getState(resolved, 26).layers).toMatchObject({
+			'1': {
+				id: 'graphic0',
+				content: {
+					attr0: 'kf0'
+				}
+			}
+		})
+	})
+	*/
 })

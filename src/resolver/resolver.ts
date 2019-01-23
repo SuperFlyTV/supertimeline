@@ -12,7 +12,8 @@ import {
 	ResolvedTimelineObject,
 	TimelineObjectInstance,
 	Time,
-	TimelineState
+	TimelineState,
+	Duration
  } from '../api/api'
 import { interpretExpression } from './expression'
 import { getState } from './state'
@@ -20,10 +21,18 @@ import { getState } from './state'
 export class Resolver {
 
 	static resolveTimeline (timeline: Array<TimelineObject>, options: ResolveOptions): ResolvedTimeline {
+		if (!_.isArray(timeline)) throw new Error('resolveTimeline: parameter timeline missing')
+		if (!options) throw new Error('resolveTimeline: parameter options missing')
 
 		const resolvedTimeline: ResolvedTimeline = {
 			options: _.clone(options),
-			objects: {}
+			objects: {},
+			statistics: {
+				unresolvedObjectCount: 0,
+				resolvedObjectCount: 0,
+				resolvedInstanceCount: 0,
+				groupCount: 0
+			}
 		}
 		// Step 1: pre-populate resolvedTimeline with objects
 		const addToResolvedTimeline = (obj: TimelineObject, parentId?: string) => {
@@ -66,9 +75,19 @@ function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: ResolvedTi
 	if (obj.resolved.resolved) return
 	if (obj.resolved.resolving) throw new Error(`Circular dependency when trying to resolve "${obj.id}"`)
 	obj.resolved.resolving = true
-	// console.log('resolveTimelineObj', obj)
 
 	let instances: Array<TimelineObjectInstance> = []
+
+	const repeatingExpr: Expression | null = (
+		obj.trigger.repeating !== undefined ?
+		interpretExpression(obj.trigger.repeating) :
+		null
+	)
+	const lookedupRepeating = lookupExpression(resolvedTimeline, obj, repeatingExpr, 'duration')
+	if (_.isArray(lookedupRepeating)) {
+		throw new Error(`lookupExpression should never return an array for .duration lookup`) // perhaps tmp? maybe revisit this at some point
+	}
+
 	const start: Expression = (
 		obj.trigger.while !== undefined ?
 			obj.trigger.while :
@@ -98,10 +117,10 @@ function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: ResolvedTi
 	}
 
 	let lookedupStarts = lookupExpression(resolvedTimeline, obj, startExpr, 'start')
+	lookedupStarts = applyRepeatingInstances(lookedupStarts, lookedupRepeating, resolvedTimeline.options)
 	if (useParent) {
 		lookedupStarts = applyParentInstances(lookedupStarts)
 	}
-	// console.log('lookedupStarts', startExpr, lookedupStarts)
 	if (obj.trigger.while) {
 
 		if (_.isArray(lookedupStarts)) {
@@ -137,10 +156,10 @@ function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: ResolvedTi
 				lookupExpression(resolvedTimeline, obj, endExpr, 'end') :
 				null
 			)
+			lookedupEnds = applyRepeatingInstances(lookedupEnds, lookedupRepeating, resolvedTimeline.options)
 			if (useParent && isNumeric(endExpr)) {
 				lookedupEnds = applyParentInstances(lookedupEnds)
 			}
-			// console.log('lookedupEnds', startExpr, lookedupEnds)
 
 			if (_.isArray(lookedupEnds)) {
 				_.each(lookedupEnds, (instance) => {
@@ -158,7 +177,7 @@ function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: ResolvedTi
 		} else if (obj.trigger.duration !== undefined) {
 			const durationExpr: ExpressionObj | number | null = interpretExpression(obj.trigger.duration)
 			const lookedupDuration = lookupExpression(resolvedTimeline, obj, durationExpr, 'duration')
-			// console.log('lookedupDuration', durationExpr, lookedupDuration)
+
 			if (_.isArray(lookedupDuration)) {
 				throw new Error(`lookupExpression should never return an array for .duration lookup`) // perhaps tmp? maybe revisit this at some point
 			} else if (lookedupDuration !== null) {
@@ -173,7 +192,6 @@ function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: ResolvedTi
 			}
 		}
 		events = sortEvents(events)
-		// console.log('events', events)
 
 		_.each(events, (e) => {
 			const last = _.last(instances)
@@ -196,6 +214,16 @@ function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: ResolvedTi
 	obj.resolved.resolving = false
 	obj.resolved.instances = instances
 
+	if (instances.length) {
+		resolvedTimeline.statistics.resolvedInstanceCount += instances.length
+		resolvedTimeline.statistics.resolvedObjectCount += 1
+	} else {
+		resolvedTimeline.statistics.unresolvedObjectCount += 1
+	}
+	if (obj.isGroup) {
+		resolvedTimeline.statistics.groupCount += 1
+	}
+
 }
 type ObjectRefType = 'start' | 'end' | 'duration'
 export function lookupExpression (
@@ -204,7 +232,6 @@ export function lookupExpression (
 	expr: Expression | null,
 	context: ObjectRefType
 ): Array<TimelineObjectInstance> | number | null {
-	// console.log('----lookupExpression', expr)
 	if (expr === null) return null
 	if (
 		_.isString(expr) &&
@@ -214,7 +241,6 @@ export function lookupExpression (
 	} else if (_.isNumber(expr)) {
 		return expr
 	} else if (_.isString(expr)) {
-		// console.log('string ', expr)
 		// Look up string
 		let invert: boolean = false
 		let ignoreFirstIfZero: boolean = false
@@ -232,12 +258,9 @@ export function lookupExpression (
 
 			const referencedObj = resolvedTimeline.objects[id]
 
-			// console.log('referencedObj', referencedObj)
 			if (referencedObj) {
 				resolveTimelineObj(resolvedTimeline, referencedObj)
-				// console.log('resolved', referencedObj.resolved.resolved)
 				if (referencedObj.resolved.resolved) {
-					// console.log(referencedObj.resolved.instances)
 
 					if (ref === 'duration') {
 						// Duration refers to the first object on the resolved timeline
@@ -284,7 +307,6 @@ export function lookupExpression (
 				o: expr.o,
 				r: lookupExpression(resolvedTimeline, obj, expr.r, context)
 			}
-			// console.log('lookupExpr', lookupExpr)
 			if (
 				_.isNull(lookupExpr.l) ||
 				_.isNull(lookupExpr.r)
@@ -320,7 +342,6 @@ export function lookupExpression (
 				if (_.isArray(lookupExpr.r)) addEvents(lookupExpr.r, false)
 
 				events = sortEvents(events)
-				// console.log('events', events)
 
 				const calcResult: (left: any, right: any) => boolean = (
 					lookupExpr.o === '&' ?
@@ -332,11 +353,9 @@ export function lookupExpression (
 				let leftValue: boolean = (!_.isArray(lookupExpr.l) ? !!lookupExpr.l : false)
 				let rightValue: boolean = (!_.isArray(lookupExpr.r) ? !!lookupExpr.r : false)
 				let resultValue: boolean = calcResult(leftValue, rightValue)
-				// console.log('resultValue', resultValue)
 
 				const instances: Array<TimelineObjectInstance> = []
 				const updateInstance = (time: Time, value: boolean) => {
-					// console.log('updateInstance', time, resultValue)
 					if (value) {
 						instances.push({
 							start: time,
@@ -357,11 +376,8 @@ export function lookupExpression (
 					if (e.left) leftValue = e.value
 					else rightValue = e.value
 
-					// console.log(e.time, leftValue, rightValue)
-
 					if (!next || next.time !== e.time) {
 						const newResultValue = calcResult(leftValue, rightValue)
-						// console.log('newResultValue', newResultValue)
 
 						if (newResultValue !== resultValue) {
 							updateInstance(e.time, newResultValue)
@@ -369,7 +385,6 @@ export function lookupExpression (
 						}
 					}
 				}
-				// console.log('instances', instances)
 				return instances
 			} else {
 				const operateInner: (a: number, b: number) => number | null = (
@@ -390,7 +405,6 @@ export function lookupExpression (
 					return operateInner(a, b)
 				}
 				const result = operateOnArrays(lookupExpr.l, lookupExpr.r, operate)
-				// console.log('result', result)
 				return result
 			}
 		}
@@ -505,3 +519,54 @@ function operateOnArrays (
 // function makeNumber (num: string | number) {
 // 	a.start
 // }
+function applyRepeatingInstances (
+	instances: number | TimelineObjectInstance[] | null,
+	repeatTime0: number | null,
+	options: ResolveOptions
+): number | TimelineObjectInstance[] | null {
+	if (
+		repeatTime0 === null ||
+		instances === null ||
+		!repeatTime0
+	) return instances
+
+	const repeatTime: Duration = repeatTime0
+
+	if (_.isNumber(instances)) {
+		instances = [{
+			start: instances,
+			end: null
+		}]
+	}
+	const repeatedInstances: TimelineObjectInstance[] = []
+	_.each(instances, (instance) => {
+		let startTime = Math.max(
+			options.time - (options.time - instance.start) % repeatTime,
+			instance.start
+		)
+		let endTime: Time | null = (
+			instance.end === null ?
+			null :
+			instance.end + (startTime - instance.start)
+		)
+
+		const limit = options.limitCount || 2
+		for (let i = 0; i < limit; i++) {
+			if (
+				!options.limitTime ||
+				startTime < options.limitTime
+			) {
+				repeatedInstances.push({
+					start: startTime,
+					end: endTime
+				})
+			} else {
+				break
+			}
+
+			startTime += repeatTime
+			if (endTime !== null) endTime += repeatTime
+		}
+	})
+	return repeatedInstances
+}
