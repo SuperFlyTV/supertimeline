@@ -5,30 +5,47 @@ import {
 	ResolveOptions,
 	Expression,
 	ExpressionObj,
-	InstanceEvent,
 	ExpressionEvent,
 	ResolvedTimelineObject,
 	TimelineObjectInstance,
 	Time,
 	TimelineState,
-	Duration,
 	TimelineKeyframe,
 	TimelineObjectKeyframe
  } from '../api/api'
+import {
+	extendMandadory,
+	operateOnArrays,
+	isNumeric,
+	applyRepeatingInstances,
+	sortEvents,
+	cleanInstances,
+	invertInstances,
+	capInstances
+} from '../lib'
+import { validateTimeline } from './validate'
 import { interpretExpression } from './expression'
 import { getState } from './state'
-import { extendMandadory, operateOnArrays, isNumeric, applyRepeatingInstances, sortEvents, cleanInstances, invertInstances, capInstances } from '../lib'
 
 export class Resolver {
 
+	/**
+	 * Go through all objects on the timeline and calculate all the timings.
+	 * Returns a ResolvedTimeline which can be piped into Resolver.getState()
+	 * @param timeline Array of timeline objects
+	 * @param options Resolve options
+	 */
 	static resolveTimeline (timeline: Array<TimelineObject>, options: ResolveOptions): ResolvedTimeline {
 		if (!_.isArray(timeline)) throw new Error('resolveTimeline: parameter timeline missing')
 		if (!options) throw new Error('resolveTimeline: parameter options missing')
+
+		validateTimeline(timeline, false)
 
 		const resolvedTimeline: ResolvedTimeline = {
 			options: _.clone(options),
 			objects: {},
 			classes: {},
+			layers: {},
 			statistics: {
 				unresolvedCount: 0,
 				resolvedCount: 0,
@@ -67,6 +84,10 @@ export class Resolver {
 					}
 				})
 			}
+			if (obj.layer) {
+				if (!resolvedTimeline.layers[obj.layer]) resolvedTimeline.layers[obj.layer] = []
+				resolvedTimeline.layers[obj.layer].push(obj.id)
+			}
 
 			if (obj.isGroup && obj.children) {
 				_.each(obj.children, (child) => {
@@ -92,6 +113,12 @@ export class Resolver {
 		return resolvedTimeline
 	}
 
+	/**
+	 * Calculate the state at a given point in time. Using a ResolvedTimeline calculated by Resolver.resolveTimeline.
+	 * @param resolved ResolvedTimeline calculated by Resolver.resolveTimeline.
+	 * @param time The point in time where to calculate the state
+	 * @param eventLimit (Optional) Limits the number of returned upcoming events.
+	 */
 	static getState (resolved: ResolvedTimeline, time: Time, eventLimit?: number): TimelineState {
 		return getState(resolved, time, eventLimit)
 	}
@@ -104,7 +131,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 	if (obj.resolved.resolved) return
 	if (obj.resolved.resolving) throw new Error(`Circular dependency when trying to resolve "${obj.id}"`)
 	obj.resolved.resolving = true
-
+	console.log('resolveTimelineObj', obj.id)
 	let instances: Array<TimelineObjectInstance> = []
 
 	const repeatingExpr: Expression | null = (
@@ -125,18 +152,26 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 		''
 	)
 	const startExpr: ExpressionObj | number | null = interpretExpression(start)
-
+	console.log('parentId', obj.resolved.parentId)
 	let parentInstances: TimelineObjectInstance[] | null | number = null
-	let useParent: boolean = false
-	if (obj.resolved.parentId && isNumeric(startExpr)) {
-		useParent = true
+	let hasParent: boolean = false
+	let referToParent: boolean = false
+	if (obj.resolved.parentId) {
+		hasParent = true
 		parentInstances = lookupExpression(
 			resolvedTimeline,
 			obj,
 			interpretExpression(`#${obj.resolved.parentId}`),
 			'start'
 		)
+		if (isNumeric(startExpr)) {
+			// Only use parent if the expression resolves to a number (ie doesn't contain any references)
+			referToParent = true
+		}
 	}
+	let lookedupStarts = lookupExpression(resolvedTimeline, obj, startExpr, 'start')
+	console.log('referToParent', referToParent)
+	console.log('parentInstances', parentInstances)
 	const applyParentInstances = (value: TimelineObjectInstance[] | null | number): TimelineObjectInstance[] | null | number => {
 		const operate = (a: number | null, b: number | null): number | null => {
 			if (a === null || b === null) return null
@@ -144,12 +179,13 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 		}
 		return operateOnArrays(parentInstances, value, operate)
 	}
-
-	let lookedupStarts = lookupExpression(resolvedTimeline, obj, startExpr, 'start')
-	lookedupStarts = applyRepeatingInstances(lookedupStarts, lookedupRepeating, resolvedTimeline.options)
-	if (useParent) {
+	if (referToParent) {
 		lookedupStarts = applyParentInstances(lookedupStarts)
 	}
+
+	lookedupStarts = applyRepeatingInstances(lookedupStarts, lookedupRepeating, resolvedTimeline.options)
+	console.log('lookedupStarts after', lookedupStarts)
+
 	if (obj.enable.while) {
 
 		if (_.isArray(lookedupStarts)) {
@@ -186,7 +222,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 				null
 			)
 			lookedupEnds = applyRepeatingInstances(lookedupEnds, lookedupRepeating, resolvedTimeline.options)
-			if (useParent && isNumeric(endExpr)) {
+			if (referToParent && isNumeric(endExpr)) {
 				lookedupEnds = applyParentInstances(lookedupEnds)
 			}
 
@@ -205,15 +241,22 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 			}
 		} else if (obj.enable.duration !== undefined) {
 			const durationExpr: ExpressionObj | number | null = interpretExpression(obj.enable.duration)
-			const lookedupDuration = lookupExpression(resolvedTimeline, obj, durationExpr, 'duration')
+			let lookedupDuration = lookupExpression(resolvedTimeline, obj, durationExpr, 'duration')
 
 			if (_.isArray(lookedupDuration)) {
 				throw new Error(`lookupExpression should never return an array for .duration lookup`) // perhaps tmp? maybe revisit this at some point
 			} else if (lookedupDuration !== null) {
+
+				if (
+					lookedupRepeating !== null &&
+					lookedupDuration > lookedupRepeating
+				) lookedupDuration = lookedupRepeating
+
+				const tmpLookedupDuration: number = lookedupDuration // cast type
 				_.each(events, (e) => {
 					if (e.value) {
 						events.push({
-							time: e.time + lookedupDuration,
+							time: e.time + tmpLookedupDuration,
 							value: false
 						})
 					}
@@ -238,7 +281,11 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 			}
 		})
 	}
-	instances = capInstances(instances, parentInstances)
+	console.log('capInstances', instances, parentInstances)
+	if (hasParent) {
+		instances = capInstances(instances, parentInstances)
+	}
+	console.log('result', instances)
 
 	obj.resolved.resolved = true
 	obj.resolved.resolving = false
@@ -246,6 +293,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 
 	if (instances.length) {
 		resolvedTimeline.statistics.resolvedInstanceCount += instances.length
+		resolvedTimeline.statistics.resolvedCount += 1
 
 		if (obj.isGroup) {
 			resolvedTimeline.statistics.resolvedGroupCount += 1
@@ -314,6 +362,24 @@ export function lookupExpression (
 						referencedObjs.push(obj)
 					}
 				})
+			} else {
+				// Match layer, example: "$layer"
+				const m = expr.match(/^(!)?\W*\$([^.]+)(.*)/)
+				if (m) {
+					const exclamation = m[1]
+					const layer = m[2]
+					rest = m[3]
+					if (exclamation === '!') invert = !invert
+
+					const objIds: string[] = resolvedTimeline.layers[layer] || []
+
+					_.each(objIds, (objId: string) => {
+						const obj = resolvedTimeline.objects[objId]
+						if (obj) {
+							referencedObjs.push(obj)
+						}
+					})
+				}
 			}
 		}
 

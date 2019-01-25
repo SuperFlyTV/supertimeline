@@ -5,7 +5,9 @@ import {
 	cleanInstances,
 	invertInstances,
 	operateOnArrays,
-	applyRepeatingInstances
+	applyRepeatingInstances,
+	capInstances,
+	operateOnArraysMulti
 } from '../lib'
 
 describe('lib', () => {
@@ -36,13 +38,13 @@ describe('lib', () => {
 			{ time: 1, value: true }
 		])).toEqual([
 			{ time: 1, value: true },
-			{ time: 2, value: true },
 			{ time: 2, value: false },
+			{ time: 2, value: true },
 			{ time: 3, value: true },
-			{ time: 20, value: true },
 			{ time: 20, value: false },
-			{ time: 100, value: true },
+			{ time: 20, value: true },
 			{ time: 100, value: false },
+			{ time: 100, value: true },
 			{ time: 300, value: true }
 		])
 	})
@@ -67,6 +69,22 @@ describe('lib', () => {
 		], true)).toEqual([
 			{ start: 10, end: 70 }
 		])
+
+		expect(cleanInstances([
+			{ start: 10, end: 50 },
+			{ start: 50, end: 70 }
+		], true, true)).toEqual([ // allow zero-width gaps
+			{ start: 10, end: 50 },
+			{ start: 50, end: 70 }
+		])
+
+		expect(cleanInstances([
+			{ start: 10, end: 60 },
+			{ start: 50, end: 70 }
+		], true, true)).toEqual([ // allow zero-width gaps
+			{ start: 10, end: 70 }
+		])
+
 		expect(cleanInstances([
 			{ start: 10, end: 50 },
 			{ start: 50, end: null }
@@ -130,6 +148,7 @@ describe('lib', () => {
 		])
 	})
 	test('invertInstances', () => {
+
 		expect(invertInstances([
 			{ start: 10, end: 50 },
 			{ start: 100, end: 110 }
@@ -154,6 +173,16 @@ describe('lib', () => {
 			{ start: 100, end: 110 }
 		])).toEqual([
 			{ start: 0, end: 10, isFirst: true },
+			{ start: 100, end: 100 },
+			{ start: 110, end: null }
+		])
+
+		expect(invertInstances([
+			{ start: 10, end: 50 },
+			{ start: 50, end: 110 }
+		])).toEqual([
+			{ start: 0, end: 10, isFirst: true },
+			{ start: 50, end: 50 }, // zero-width gap
 			{ start: 110, end: null }
 		])
 	})
@@ -193,6 +222,33 @@ describe('lib', () => {
 			{ start: 10, end: 50 },
 			{ start: 50, end: 100 },
 			{ start: 101, end: 115 }
+		])
+
+	})
+	test('operateOnArraysMulti', () => {
+		const plus = (a: number | null, b: number | null): number | null => {
+			if (a === null || b === null) return null
+			return a + b
+		}
+
+		expect(operateOnArraysMulti(
+			[
+				{ start: 1, end: 3 },
+				{ start: 5, end: 7 }
+			],
+			[
+				{ start: 10, end: 20 },
+				{ start: 50, end: 60 },
+				{ start: 60, end: 70 }
+			],
+			plus
+		)).toEqual([
+			{ start: 11, end: 13 },
+			{ start: 15, end: 17 },
+			{ start: 51, end: 53 },
+			{ start: 55, end: 57 },
+			{ start: 61, end: 63 },
+			{ start: 65, end: 67 }
 		])
 
 	})
@@ -249,5 +305,25 @@ describe('lib', () => {
 			// { start: 700, end: 705 },
 		])
 
+	})
+	test('capInstances', () => {
+
+		expect(capInstances([
+			{ start: 10, end: 20 },
+			{ start: 30, end: 40 },
+			{ start: 50, end: 60 },
+			{ start: 70, end: 80 },
+			{ start: 90, end: 100 }
+		], [
+			{ start: 25, end: 55 },
+			{ start: 60, end: 65 },
+			{ start: 75, end: 95 }
+		])).toEqual([
+			{ start: 30, end: 40 },
+			{ start: 50, end: 55 }, // capped
+			// { start: 60, end: 60 }, // ?
+			{ start: 75, end: 80 }, // capped
+			{ start: 90, end: 95 } // capped
+		])
 	})
 })

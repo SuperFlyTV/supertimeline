@@ -29,6 +29,7 @@ export interface ResolvedTimeline {
 	objects: ResolvedTimelineObjects
 	/** Map of all classes on timeline, maps className to object ids */
 	classes: {[className: string]: Array<string>}
+	layers: {[layer: string]: Array<string>}
 	statistics: {
 		/** Number of objects that were unable to resolve */
 		unresolvedCount: number

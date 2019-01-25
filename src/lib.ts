@@ -43,8 +43,8 @@ export function sortEvents<T extends InstanceEvent> (events: Array<T>): Array<T>
 		if (a.time > b.time) return 1
 		if (a.time < b.time) return -1
 
-		if (a.value && !b.value) return -1
-		if (!a.value && b.value) return 1
+		if (a.value && !b.value) return 1
+		if (!a.value && b.value) return -1
 		return 0
 	})
 }
@@ -52,7 +52,11 @@ export function sortEvents<T extends InstanceEvent> (events: Array<T>): Array<T>
  * Clean up instances, join overlapping etc..
  * @param instances
  */
-export function cleanInstances (instances: Array<TimelineObjectInstance>, allowMerge: boolean): Array<TimelineObjectInstance> {
+export function cleanInstances (
+	instances: Array<TimelineObjectInstance>,
+	allowMerge: boolean,
+	allowZeroGaps: boolean = false
+): Array<TimelineObjectInstance> {
 
 	if (allowMerge) {
 		const events: Array<InstanceEvent<{id: string, value: boolean}>> = []
@@ -83,21 +87,26 @@ export function cleanInstances (instances: Array<TimelineObjectInstance>, allowM
 			}
 			const lastInstance = _.last(returnInstances)
 			if (_.keys(activeInstances).length) {
+				// Instance is active
 				if (
+					!allowZeroGaps &&
 					lastInstance &&
 					lastInstance.end === event.time
 				) {
+					// resume previous instance:
 					lastInstance.end = null
 				} else if (
 					!lastInstance ||
 					lastInstance.end !== null
 				) {
+					// Start a new instance:
 					returnInstances.push({
 						start: event.time,
 						end: null
 					})
 				}
 			} else {
+				// No instances are active
 				if (lastInstance) {
 					lastInstance.end = event.time
 				}
@@ -146,10 +155,12 @@ export function cleanInstances (instances: Array<TimelineObjectInstance>, allowM
 	}
 
 }
-export function invertInstances (instances: Array<TimelineObjectInstance>): Array<TimelineObjectInstance> {
+export function invertInstances (
+	instances: Array<TimelineObjectInstance>
+): Array<TimelineObjectInstance> {
 
 	if (instances.length) {
-		instances = cleanInstances(instances, true)
+		instances = cleanInstances(instances, true, true)
 		const invertedInstances: Array<TimelineObjectInstance> = []
 		if (instances[0].start !== 0) {
 			invertedInstances.push({
@@ -170,10 +181,7 @@ export function invertInstances (instances: Array<TimelineObjectInstance>): Arra
 				})
 			}
 		})
-		return _.compact(_.map(invertedInstances, (instance) => {
-			if (instance.end === instance.start) return null
-			return instance
-		}))
+		return invertedInstances
 	} else {
 		return [{
 			isFirst: true,
@@ -182,6 +190,12 @@ export function invertInstances (instances: Array<TimelineObjectInstance>): Arra
 		}]
 	}
 }
+/**
+ * Perform an action on 2 arrays. Behaves somewhat like the ".*"-operator in Matlab
+ * @param array0
+ * @param array1
+ * @param operate
+ */
 export function operateOnArrays (
 	array0: Array<TimelineObjectInstance> | number | null,
 	array1: Array<TimelineObjectInstance> | number | null,
@@ -238,6 +252,41 @@ export function operateOnArrays (
 		}
 	}
 	return cleanInstances(result, false)
+}
+/**
+ * Like operateOnArrays, but will multiply the number of elements in array0, with the number of elements in array1
+ * @param array0
+ * @param array1
+ * @param operate
+ */
+export function operateOnArraysMulti (
+	array0: Array<TimelineObjectInstance> | number | null,
+	array1: Array<TimelineObjectInstance> | number | null,
+	operate: (a: number | null, b: number | null) => number | null
+) {
+	if (array0 === null) return null
+
+	if (_.isArray(array1)) {
+		let resultArray: Array<TimelineObjectInstance> = []
+		_.each(array1, (array1Val) => {
+			const result = operateOnArrays(array0, array1Val.start, operate)
+			if (_.isArray(result)) {
+				resultArray = resultArray.concat(result)
+			} else if (result !== null) {
+				resultArray.push({
+					start: result,
+					end: (
+						array1Val.end !== null ?
+						result + (array1Val.end - array1Val.start) :
+						null
+					)
+				})
+			}
+		})
+		return resultArray
+	} else {
+		return operateOnArrays(array0, array1, operate)
+	}
 }
 export function applyRepeatingInstances (
 	instances: number | TimelineObjectInstance[] | null,
@@ -315,6 +364,21 @@ export function capInstances (instances: TimelineObjectInstance[], parentInstanc
 				}
 			}
 		})
+		if (!parent) {
+			_.each(parentInstances, (p) => {
+				if (
+					(instance.end || Infinity) > p.start &&
+					(instance.end || Infinity) <= (p.end || Infinity)
+				) {
+					if (
+						parent === null ||
+						(p.end || Infinity) < (parent.end || Infinity)
+					) {
+						parent = p
+					}
+				}
+			})
+		}
 		if (parent) {
 			const i2 = _.clone(instance)
 			if (
@@ -323,6 +387,10 @@ export function capInstances (instances: TimelineObjectInstance[], parentInstanc
 			) {
 				i2.end = parent.end
 			}
+			if ((i2.start || Infinity) < parent.start) {
+				i2.start = parent.start
+			}
+
 			returnInstances.push(i2)
 		}
 	})

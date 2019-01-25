@@ -5,7 +5,6 @@ import {
 	ResolvedTimelineObject,
 	TimelineObjectInstance,
 	ResolvedTimelineObjectInstance,
-	TimelineKeyframe,
 	Content
 } from '../api/api'
 import * as _ from 'underscore'
@@ -38,15 +37,15 @@ export function getState (resolved: ResolvedTimeline, time: Time, eventLimit: nu
 		) {
 			_.each(obj.resolved.instances, (instance: TimelineObjectInstance) => {
 
-				if (
-					// object instance is active:
-					(
-						instance.end === null ||
-						instance.end > time
-					) &&
-					instance.start <= time
-				) {
-					if (obj.layer) { // if layer is empty, don't put in state
+				if (obj.layer) { // if layer is empty, don't put in state
+					if (
+						// object instance is active:
+						(
+							instance.end === null ||
+							instance.end > time
+						) &&
+						instance.start <= time
+					) {
 
 						const parentObj = (
 							obj.resolved.parentId ?
@@ -95,28 +94,28 @@ export function getState (resolved: ResolvedTimeline, time: Time, eventLimit: nu
 							}
 						}
 					}
+					if (instance.start > time) {
+
+						state.nextEvents.push({
+							type: EventType.START,
+							time: instance.start,
+							objId: obj.id
+						})
+						eventObjectTimes['' + instance.start] = EventType.START
+					}
+					if (
+						instance.end !== null &&
+						instance.end > time
+					) {
+						state.nextEvents.push({
+							type: EventType.END,
+							time: instance.end,
+							objId: obj.id
+						})
+						eventObjectTimes['' + instance.end] = EventType.END
+					}
 				}
 
-				if (instance.start > time) {
-
-					state.nextEvents.push({
-						type: EventType.START,
-						time: instance.start,
-						objId: obj.id
-					})
-					eventObjectTimes['' + instance.start] = EventType.START
-				}
-				if (
-					instance.end !== null &&
-					instance.end > time
-				) {
-					state.nextEvents.push({
-						type: EventType.END,
-						time: instance.end,
-						objId: obj.id
-					})
-					eventObjectTimes['' + instance.end] = EventType.END
-				}
 			})
 		}
 	})
@@ -209,8 +208,8 @@ export function getState (resolved: ResolvedTimeline, time: Time, eventLimit: nu
 		if (a.type > b.type) return -1
 		if (a.type < b.type) return 1
 
-		if (a.objId > b.objId) return -1
-		if (a.objId < b.objId) return 1
+		if (a.objId < b.objId) return -1
+		if (a.objId > b.objId) return 1
 
 		return 0
 	})
