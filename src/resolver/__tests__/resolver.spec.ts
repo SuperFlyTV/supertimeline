@@ -1,7 +1,8 @@
 import { lookupExpression, Resolver } from '../resolver'
-import { ResolvedTimeline, TimelineObject } from '../../api/api'
+import { ResolvedTimeline, TimelineObject, TimelineObjectInstance } from '../../api/api'
 import { interpretExpression } from '../expression'
 import { EventType } from '../../api/enums'
+import { resetId } from '../../lib'
 
 const clone0 = require('fast-clone')
 function clone<T> (o: T): T {
@@ -9,6 +10,9 @@ function clone<T> (o: T): T {
 }
 
 describe('resolver', () => {
+	beforeEach(() => {
+		resetId()
+	})
 	const rtl: ResolvedTimeline = {
 		options: {
 			time: 1000
@@ -32,11 +36,11 @@ describe('resolver', () => {
 		content: {}
 	}
 	test('expression: basic math', () => {
-		expect(lookupExpression(rtl, stdObj, interpretExpression('1+2'), 'start'))		.toEqual(1 + 2)
-		expect(lookupExpression(rtl, stdObj, interpretExpression('123-23'), 'start'))	.toEqual(123 - 23)
-		expect(lookupExpression(rtl, stdObj, interpretExpression('4*5'), 'start'))		.toEqual(4 * 5)
-		expect(lookupExpression(rtl, stdObj, interpretExpression('20/4'), 'start'))	.toEqual(20 / 4)
-		expect(lookupExpression(rtl, stdObj, interpretExpression('24%5'), 'start'))	.toEqual(24 % 5)
+		expect(lookupExpression(rtl, stdObj, interpretExpression('1+2'), 'start'))		.toEqual({ value: 1 + 2, references: [] })
+		expect(lookupExpression(rtl, stdObj, interpretExpression('123-23'), 'start'))	.toEqual({ value: 123 - 23, references: [] })
+		expect(lookupExpression(rtl, stdObj, interpretExpression('4*5'), 'start'))		.toEqual({ value: 4 * 5, references: [] })
+		expect(lookupExpression(rtl, stdObj, interpretExpression('20/4'), 'start'))		.toEqual({ value: 20 / 4, references: [] })
+		expect(lookupExpression(rtl, stdObj, interpretExpression('24%5'), 'start'))		.toEqual({ value: 24 % 5, references: [] })
 	})
 	test('expressions', () => {
 		expect(interpretExpression('1 + 2')).toMatchObject({
@@ -47,51 +51,51 @@ describe('resolver', () => {
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('1 + 2')
-		,'start')).toEqual(3)
+		,'start')).toEqual({ value: 3, references: [] })
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('5 + 4 - 2 + 1 - 5 + 7')
-		,'start')).toEqual(10)
+		,'start')).toEqual({ value: 10, references: [] })
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('5 - 4 - 3')
-		,'start')).toEqual(-2)
+		,'start')).toEqual({ value: -2, references: [] })
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('5 - 4 - 3 - 10 + 2')
-		,'start')).toEqual(-10)
+		,'start')).toEqual({ value: -10, references: [] })
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('4 * 5.5')
-		,'start')).toEqual(22)
+		,'start')).toEqual({ value: 22, references: [] })
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('2 * 3 * 4')
-		,'start')).toEqual(24)
+		,'start')).toEqual({ value: 24, references: [] })
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('20 / 4 / 2')
-		,'start')).toEqual(2.5)
+		,'start')).toEqual({ value: 2.5, references: [] })
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('2 * (2 + 3) - 2 * 2')
-		,'start')).toEqual(6)
+		,'start')).toEqual({ value: 6, references: [] })
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('2 * 2 + 3 - 2 * 2')
-		,'start')).toEqual(3)
+		,'start')).toEqual({ value: 3, references: [] })
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('2 * 2 + 3 - 2 * 2')
-		,'start')).toEqual(3)
+		,'start')).toEqual({ value: 3, references: [] })
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('5 + -3')
-		,'start')).toEqual(2)
+		,'start')).toEqual({ value: 2, references: [] })
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('5 + - 3')
-		,'start')).toEqual(2)
+		,'start')).toEqual({ value: 2, references: [] })
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('')
@@ -110,26 +114,26 @@ describe('resolver', () => {
 				interpretExpression('5 * '), 'start') // unbalanced expression
 		}).toThrowError()
 
-		const TRUE_EXPR = [{ start: 0, end: null }]
+		const TRUE_EXPR = [{ start: 0, end: null, references: [] }]
 		const FALSE_EXPR = []
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('1 | 0'), 'start'
-		)).toEqual(TRUE_EXPR)
+		)).toMatchObject(TRUE_EXPR)
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('1 & 0'), 'start'
-		)).toEqual(FALSE_EXPR)
+		)).toMatchObject(FALSE_EXPR)
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('1 | 0 & 0'), 'start'
-		)).toEqual(FALSE_EXPR)
+		)).toMatchObject(FALSE_EXPR)
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('0 & 1 | 1'), 'start'
-		)).toEqual(FALSE_EXPR)
+		)).toMatchObject(FALSE_EXPR)
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('(0 & 1) | 1'), 'start'
-		)).toEqual(TRUE_EXPR)
+		)).toMatchObject(TRUE_EXPR)
 
 		expect(() => {
 			lookupExpression(rtl, stdObj,
@@ -246,25 +250,25 @@ describe('resolver', () => {
 		}
 
 		expect(lookupExpression(rtl, obj, interpretExpression('#unknown'), 'start')).toEqual(null)
-		expect(lookupExpression(rtl, obj, interpretExpression('#first'), 'start')).toEqual([{
+		expect(lookupExpression(rtl, obj, interpretExpression('#first'), 'start')).toMatchObject([{
 			start: 0,
 			end: 100
 		}])
-		expect(lookupExpression(rtl, obj, interpretExpression('#first.start'), 'start')).toEqual([{
+		expect(lookupExpression(rtl, obj, interpretExpression('#first.start'), 'start')).toMatchObject([{
 			start: 0,
 			end: 100
 		}])
 
-		expect(lookupExpression(rtl, obj, interpretExpression('#first & #second'), 'start')).toEqual([{
+		expect(lookupExpression(rtl, obj, interpretExpression('#first & #second'), 'start')).toMatchObject([{
 			start: 20,
 			end: 100
 		}])
 
-		expect(lookupExpression(rtl, obj, interpretExpression('(#first & #second) | #third'), 'start')).toEqual([{
+		expect(lookupExpression(rtl, obj, interpretExpression('(#first & #second) | #third'), 'start')).toMatchObject([{
 			start: 20,
 			end: 130
 		}])
-		expect(lookupExpression(rtl, obj, interpretExpression('#first & #second & !#middle'), 'start')).toEqual([
+		expect(lookupExpression(rtl, obj, interpretExpression('#first & #second & !#middle'), 'start')).toMatchObject([
 			{
 				start: 20,
 				end: 25
@@ -275,11 +279,11 @@ describe('resolver', () => {
 			}
 		])
 
-		expect(lookupExpression(rtl, obj, interpretExpression('#first + 5'), 'start')).toEqual([{
+		expect(lookupExpression(rtl, obj, interpretExpression('#first + 5'), 'start')).toMatchObject([{
 			start: 5,
 			end: 105
 		}])
-		expect(lookupExpression(rtl, obj, interpretExpression('((#first & !#second) | #middle) + 1'), 'start')).toEqual([
+		expect(lookupExpression(rtl, obj, interpretExpression('((#first & !#second) | #middle) + 1'), 'start')).toMatchObject([
 			{
 				start: 1,
 				end: 21
@@ -1120,7 +1124,7 @@ describe('resolver', () => {
 				layer: 'g0',
 				enable: {
 					start: 0,
-					duration: 100,
+					duration: 80,
 					repeating: 100
 				},
 				content: {},

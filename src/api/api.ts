@@ -66,13 +66,26 @@ export interface ResolvedTimelineObject extends TimelineObject {
 	}
 }
 export interface TimelineObjectInstance {
+	id: string
 	isFirst?: boolean // if true, starts from the beginning
 	start: Time
 	end: Time | null // null = infinite
+	references: Array<string> // array of the id of the referenced objects
+	caps?: Array<Cap> // If set, tells the cap of the parent
+}
+export interface Cap {
+	id: string // id of the parent
+	start: Time
+	end: Time | null
+}
+export interface Reference {
+	value: number
+	references: Array<string>
 }
 export interface InstanceEvent<T = any> {
 	time: Time
 	value: T
+	references: Array<string>
 }
 
 export interface TimelineObject {

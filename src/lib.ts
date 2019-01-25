@@ -4,7 +4,9 @@ import {
 	TimelineObjectInstance,
 	ResolveOptions,
 	Duration,
-	Time
+	Time,
+	Reference,
+	Cap
 } from './api/api'
 
 /**
@@ -58,102 +60,146 @@ export function cleanInstances (
 	allowZeroGaps: boolean = false
 ): Array<TimelineObjectInstance> {
 
-	if (allowMerge) {
-		const events: Array<InstanceEvent<{id: string, value: boolean}>> = []
+	// if (!allowMerge) throw new Error(`TODO: cleanInstances: allowMerge is temorarily removed`)
 
-		let i: number = 1
-		_.each(instances, (instance) => {
-			const id = 'i' + (i++)
+	const events: Array<EventForInstance> = []
+
+	// let i: number = 1
+	_.each(instances, (instance) => {
+		// const id = 'i' + (i++)
+		events.push({
+			time: instance.start,
+			value: { instance: instance, value: true },
+			references: instance.references
+		})
+		if (instance.end !== null) {
 			events.push({
-				time: instance.start,
-				value: { id: id, value: true }
+				time: instance.end,
+				value: { instance: instance, value: false },
+				references: instance.references
 			})
-			if (instance.end !== null) {
-				events.push({
-					time: instance.end,
-					value: { id: id, value: false }
+		}
+	})
+	return convertEventsToInstances(events, allowMerge, allowZeroGaps)
+}
+export type EventForInstance = InstanceEvent<{instance: TimelineObjectInstance, value: boolean}>
+export function convertEventsToInstances (
+	events: Array<EventForInstance>,
+	allowMerge: boolean,
+	allowZeroGaps: boolean = false
+): Array<TimelineObjectInstance> {
+
+	sortEvents(events)
+
+	const activeInstances: {[id: string]: InstanceEvent} = {}
+	let activeInstanceId: string | null = null
+	let previousActive: boolean = false
+	const returnInstances: Array<TimelineObjectInstance> = []
+	_.each(events, (event) => {
+		const lastInstance = _.last(returnInstances)
+		if (event.value.value) {
+			activeInstances[event.value.instance.id] = event
+		} else {
+			delete activeInstances[event.value.instance.id]
+		}
+		if (_.keys(activeInstances).length) {
+			// There is an active instance
+			previousActive = true
+			if (
+				!allowMerge &&
+				event.value.value &&
+				lastInstance &&
+				lastInstance.end === null &&
+				activeInstanceId !== null &&
+				activeInstanceId !== event.value.instance.id
+			) {
+				// Start a new instance:
+				lastInstance.end = event.time
+				returnInstances.push({
+					id: getId(),
+					start: event.time,
+					end: null,
+					references: event.references
 				})
-			}
-		})
-		sortEvents(events)
+				activeInstanceId = event.value.instance.id
+			} else if (
+				!allowMerge &&
+				!event.value.value &&
+				lastInstance &&
+				activeInstanceId === event.value.instance.id
+			) {
+				// The active instance stopped playing, but another is still playing
+				const latestInstance: {event: InstanceEvent, id: string} | null = _.reduce(
+					activeInstances,
+					(memo, event, id) => {
+						if (
+							memo === null ||
+							memo.event.time < event.time
+						) {
+							return {
+								event: event,
+								id: id
+							}
+						}
+						return memo
+					},
+					null as ({event: InstanceEvent, id: string} | null)
+				)
 
-		const activeInstances: {[id: string]: true} = {}
-		const returnInstances: Array<TimelineObjectInstance> = []
-		_.each(events, (event) => {
-			if (event.value.value) {
-				activeInstances[event.value.id] = true
-			} else {
-				delete activeInstances[event.value.id]
-			}
-			const lastInstance = _.last(returnInstances)
-			if (_.keys(activeInstances).length) {
-				// Instance is active
-				if (
-					!allowZeroGaps &&
-					lastInstance &&
-					lastInstance.end === event.time
-				) {
-					// resume previous instance:
-					lastInstance.end = null
-				} else if (
-					!lastInstance ||
-					lastInstance.end !== null
-				) {
-					// Start a new instance:
-					returnInstances.push({
-						start: event.time,
-						end: null
-					})
-				}
-			} else {
-				// No instances are active
-				if (lastInstance) {
+				if (latestInstance) {
+					// Restart that instance now:
 					lastInstance.end = event.time
+					returnInstances.push({
+						id: event.value.instance.id + '_' + getId(),
+						start: event.time,
+						end: null,
+						references: latestInstance.event.references
+					})
+					activeInstanceId = latestInstance.id
 				}
+			} else if (
+				allowMerge &&
+				!allowZeroGaps &&
+				lastInstance &&
+				lastInstance.end === event.time
+			) {
+				// The previously running ended just now
+				// resume previous instance:
+				lastInstance.end = null
+				lastInstance.references = joinReferences(lastInstance.references, event.references)
+				lastInstance.caps = joinCaps(lastInstance.caps, event.value.instance.caps)
+			} else if (
+				!lastInstance ||
+				lastInstance.end !== null
+			) {
+				// There is no previously running instance
+				// Start a new instance:
+				returnInstances.push({
+					id: event.value.instance.id,
+					start: event.time,
+					end: null,
+					references: event.references,
+					caps: event.value.instance.caps
+				})
+				activeInstanceId = event.value.instance.id
+			} else {
+				// There is already a running instance
+				lastInstance.references = joinReferences(lastInstance.references, event.references)
+				lastInstance.caps = joinCaps(lastInstance.caps, event.value.instance.caps)
 			}
-		})
-		return returnInstances
-	} else {
-
-		instances.sort((a, b) => {
-			if (a.start > b.start) return 1
-			if (a.start < b.start) return -1
-
-			return 0
-		})
-		const returnInstances: Array<TimelineObjectInstance> = []
-		let previousInstance: TimelineObjectInstance | null = null
-		_.each(instances, (instance) => {
-			let skip: boolean = false
-			if (previousInstance !== null) {
-				if (
-					previousInstance.end !== null &&
-					previousInstance.end > instance.start &&
-					previousInstance.start < instance.start &&
-					previousInstance.end < (instance.end || Infinity)
-				) {
-					previousInstance.end = instance.start
-				}
-
-				if (
-					previousInstance.start === instance.start
-				) {
-
-					if ((previousInstance.end || Infinity) < (instance.end || Infinity)) {
-						returnInstances.splice(returnInstances.length - 1, 1)
-					} else {
-						skip = true
-					}
-				}
+			if (lastInstance && lastInstance.caps && !lastInstance.caps.length) delete lastInstance.caps
+		} else {
+			// No instances are active
+			if (
+				lastInstance &&
+				previousActive
+			) {
+				lastInstance.end = event.time
 			}
-			if (!skip) {
-				returnInstances.push(instance)
-				previousInstance = instance
-			}
-		})
-		return returnInstances
-	}
-
+			previousActive = false
+		}
+	})
+	return returnInstances
 }
 export function invertInstances (
 	instances: Array<TimelineObjectInstance>
@@ -164,9 +210,11 @@ export function invertInstances (
 		const invertedInstances: Array<TimelineObjectInstance> = []
 		if (instances[0].start !== 0) {
 			invertedInstances.push({
+				id: getId(),
 				isFirst: true,
 				start: 0,
-				end: null
+				end: null,
+				references: joinReferences(instances[0].references, instances[0].id)
 			})
 		}
 		_.each(instances, (instance) => {
@@ -176,17 +224,22 @@ export function invertInstances (
 			}
 			if (instance.end !== null) {
 				invertedInstances.push({
+					id: getId(),
 					start: instance.end,
-					end: null
+					end: null,
+					references: joinReferences(instance.references, instance.id),
+					caps: instance.caps
 				})
 			}
 		})
 		return invertedInstances
 	} else {
 		return [{
+			id: getId(),
 			isFirst: true,
 			start: 0,
-			end: null
+			end: null,
+			references: []
 		}]
 	}
 }
@@ -197,18 +250,18 @@ export function invertInstances (
  * @param operate
  */
 export function operateOnArrays (
-	array0: Array<TimelineObjectInstance> | number | null,
-	array1: Array<TimelineObjectInstance> | number | null,
-	operate: (a: number | null, b: number | null) => number | null
-): Array<TimelineObjectInstance> | number | null {
+	array0: Array<TimelineObjectInstance> | Reference | null,
+	array1: Array<TimelineObjectInstance> | Reference | null,
+	operate: (a: Reference | null, b: Reference | null) => Reference | null
+): Array<TimelineObjectInstance> | Reference | null {
 	if (
 		array0 === null ||
 		array1 === null
 	) return null
 
 	if (
-		_.isNumber(array0) &&
-		_.isNumber(array1)
+		isReference(array0) &&
+		isReference(array1)
 	) {
 		return operate(array0, array1)
 	}
@@ -223,34 +276,46 @@ export function operateOnArrays (
 		const a: TimelineObjectInstance = (
 			_.isArray(array0) ?
 			array0[i] :
-			{ start: array0, end: array0 }
+			{ id: '', start: array0.value, end: array0.value, references: array0.references }
 		)
 		const b: TimelineObjectInstance = (
 			_.isArray(array1) ?
 			array1[i] :
-			{ start: array1, end: array1 }
+			{ id: '', start: array1.value, end: array1.value, references: array1.references }
 		)
-		const start = (
+
+		const start: Reference | null = (
 			a.isFirst ?
-				a.start :
+				{ value: a.start, references: a.references } :
 			b.isFirst ?
-				b.start :
-			operate(a.start, b.start)
+				{ value: b.start, references: b.references } :
+			operate(
+				{ value: a.start, references: joinReferences(a.id, a.references) },
+				{ value: b.start, references: joinReferences(b.id, b.references) }
+			)
 		)
-		const end = (
+		const end: Reference | null = (
 			a.isFirst ?
-				a.end :
+				(a.end !== null ? { value: a.end, references: a.references } : null) :
 			b.isFirst ?
-				b.end :
-			operate(a.end, b.end)
+				(b.end !== null ? { value: b.end, references: b.references } : null) :
+			operate(
+				a.end !== null ? { value: a.end, references: joinReferences(a.id, a.references) } : null,
+				b.end !== null ? { value: b.end, references: joinReferences(b.id, b.references) } : null
+			)
 		)
+
 		if (start !== null) {
 			result.push({
-				start: start,
-				end: end
+				id: getId(),
+				start: start.value,
+				end: end === null ? null : end.value,
+				references: joinReferences(start.references, end !== null ? end.references : []),
+				caps: joinCaps(a.caps, b.caps)
 			})
 		}
 	}
+
 	return cleanInstances(result, false)
 }
 /**
@@ -259,27 +324,29 @@ export function operateOnArrays (
  * @param array1
  * @param operate
  */
-export function operateOnArraysMulti (
-	array0: Array<TimelineObjectInstance> | number | null,
-	array1: Array<TimelineObjectInstance> | number | null,
-	operate: (a: number | null, b: number | null) => number | null
+/*export function operateOnArraysMulti (
+	array0: Array<TimelineObjectInstance> | Reference | null,
+	array1: Array<TimelineObjectInstance> | Reference | null,
+	operate: (a: Reference | null, b: Reference | null) => Reference | null
 ) {
 	if (array0 === null) return null
 
 	if (_.isArray(array1)) {
 		let resultArray: Array<TimelineObjectInstance> = []
 		_.each(array1, (array1Val) => {
-			const result = operateOnArrays(array0, array1Val.start, operate)
+			const result = operateOnArrays(array0, { value: array1Val.start, references: array1Val.references } , operate)
 			if (_.isArray(result)) {
 				resultArray = resultArray.concat(result)
 			} else if (result !== null) {
 				resultArray.push({
-					start: result,
+					id: getId(),
+					start: result.value,
 					end: (
 						array1Val.end !== null ?
-						result + (array1Val.end - array1Val.start) :
+						result.value + (array1Val.end - array1Val.start) :
 						null
-					)
+					),
+					references: result.references
 				})
 			}
 		})
@@ -288,23 +355,26 @@ export function operateOnArraysMulti (
 		return operateOnArrays(array0, array1, operate)
 	}
 }
+*/
 export function applyRepeatingInstances (
-	instances: number | TimelineObjectInstance[] | null,
-	repeatTime0: number | null,
+	instances: Reference | TimelineObjectInstance[] | null,
+	repeatTime0: Reference | null,
 	options: ResolveOptions
-): number | TimelineObjectInstance[] | null {
+): Reference | TimelineObjectInstance[] | null {
 	if (
-		repeatTime0 === null ||
 		instances === null ||
-		!repeatTime0
+		repeatTime0 === null ||
+		!repeatTime0.value
 	) return instances
 
-	const repeatTime: Duration = repeatTime0
+	const repeatTime: Duration = repeatTime0.value
 
-	if (_.isNumber(instances)) {
+	if (isReference(instances)) {
 		instances = [{
-			start: instances,
-			end: null
+			id: '',
+			start: instances.value,
+			end: null,
+			references: instances.references
 		}]
 	}
 	const repeatedInstances: TimelineObjectInstance[] = []
@@ -326,8 +396,10 @@ export function applyRepeatingInstances (
 				startTime < options.limitTime
 			) {
 				repeatedInstances.push({
+					id: getId(),
 					start: startTime,
-					end: endTime
+					end: endTime,
+					references: joinReferences(instance.id, instance.references, repeatTime0.references)
 				})
 			} else {
 				break
@@ -339,9 +411,12 @@ export function applyRepeatingInstances (
 	})
 	return cleanInstances(repeatedInstances, false)
 }
-export function capInstances (instances: TimelineObjectInstance[], parentInstances: number | TimelineObjectInstance[] | null): TimelineObjectInstance[] {
+export function capInstances (
+	instances: TimelineObjectInstance[],
+	parentInstances: Reference | TimelineObjectInstance[] | null
+): TimelineObjectInstance[] {
 	if (
-		_.isNumber(parentInstances) ||
+		isReference(parentInstances) ||
 		parentInstances === null
 	) return instances
 
@@ -396,3 +471,53 @@ export function capInstances (instances: TimelineObjectInstance[], parentInstanc
 	})
 	return returnInstances
 }
+export function isReference (ref: any): ref is Reference {
+	return (
+		_.isObject(ref) &&
+		!_.isArray(ref) &&
+		ref.value !== undefined &&
+		_.isArray(ref.references) &&
+		ref !== null
+	)
+}
+export function joinReferences (...references: Array<Array<string> | string>): Array<string> {
+	return _.compact(
+		_.uniq(
+			_.reduce(references, (memo, ref) => {
+				if (_.isString(ref)) return memo.concat([ref])
+				else return memo.concat(ref)
+			},[] as Array<string>)
+		)
+	).sort((a, b) => {
+		if (a > b) return 1
+		if (a < b) return -1
+		return 0
+	})
+}
+export function joinCaps (...caps: Array<Array<Cap> | undefined>): Array<Cap> {
+	return (
+		_.uniq(
+			_.compact(
+				_.reduce(caps, (memo, cap) => {
+					if (cap !== undefined) {
+						return (memo || []).concat(cap)
+					} else return memo
+				},[] as Array<Cap>)
+			),
+			false,
+			(cap) => {
+				return cap.id
+			}
+		)
+	)
+}
+/**
+ * Returns a unique id
+ */
+export function getId (): string {
+	return '@' + (i++).toString(36)
+}
+export function resetId (): void {
+	i = 0
+}
+let i: number = 0

@@ -7,10 +7,21 @@ import {
 	operateOnArrays,
 	applyRepeatingInstances,
 	capInstances,
-	operateOnArraysMulti
+	joinReferences,
+	resetId,
+	getId
 } from '../lib'
+import { Reference } from '../api/api'
 
 describe('lib', () => {
+	beforeEach(() => {
+		resetId()
+	})
+	const plus = (a: Reference | null, b: Reference | null): Reference | null => {
+		if (a === null || b === null) return null
+		return { value: a.value + b.value, references: joinReferences(a.references, b.references) }
+	}
+
 	test('extendMandadory', () => {
 		expect(extendMandadory<any, any>(
 			{ a: 1 },
@@ -27,303 +38,308 @@ describe('lib', () => {
 	})
 	test('sortEvents', () => {
 		expect(sortEvents([
-			{ time: 300, value: true },
-			{ time: 2, value: false },
-			{ time: 100, value: true },
-			{ time: 3, value: true },
-			{ time: 20, value: false },
-			{ time: 2, value: true },
-			{ time: 100, value: false },
-			{ time: 20, value: true },
-			{ time: 1, value: true }
+			{ time: 300, value: true, 	references: ['a'] },
+			{ time: 2, value: false, 	references: ['a'] },
+			{ time: 100, value: true, 	references: ['a'] },
+			{ time: 3, value: true, 	references: ['a'] },
+			{ time: 20, value: false, 	references: ['a'] },
+			{ time: 2, value: true, 	references: ['a'] },
+			{ time: 100, value: false, 	references: ['a'] },
+			{ time: 20, value: true, 	references: ['a'] },
+			{ time: 1, value: true, 	references: ['a'] }
 		])).toEqual([
-			{ time: 1, value: true },
-			{ time: 2, value: false },
-			{ time: 2, value: true },
-			{ time: 3, value: true },
-			{ time: 20, value: false },
-			{ time: 20, value: true },
-			{ time: 100, value: false },
-			{ time: 100, value: true },
-			{ time: 300, value: true }
+			{ time: 1, value: true, 	references: ['a'] },
+			{ time: 2, value: false, 	references: ['a'] },
+			{ time: 2, value: true, 	references: ['a'] },
+			{ time: 3, value: true, 	references: ['a'] },
+			{ time: 20, value: false, 	references: ['a'] },
+			{ time: 20, value: true, 	references: ['a'] },
+			{ time: 100, value: false, 	references: ['a'] },
+			{ time: 100, value: true, 	references: ['a'] },
+			{ time: 300, value: true, 	references: ['a'] }
 		])
 	})
 	test('cleanInstances', () => {
+
 		expect(cleanInstances([
-			{ start: 10, end: 50 },
-			{ start: 20, end: 30 }
+			{ id: '%a', start: 10, end: 20, references: ['a'], caps: [{ id: 'p0', start: 0, end: 50 }] },
+			{ id: '%b', start: 50, end: 70, references: ['b'], caps: [{ id: 'p1', start: 50, end: 100 }] }
 		], true)).toEqual([
-			{ start: 10, end: 50 }
+			{ id: '%a', start: 10, end: 20, references: ['a'], caps: [{ id: 'p0', start: 0, end: 50 }] },
+			{ id: '%b', start: 50, end: 70, references: ['b'], caps: [{ id: 'p1', start: 50, end: 100 }] }
 		])
 
 		expect(cleanInstances([
-			{ start: 20, end: 70 },
-			{ start: 10, end: 50 }
+			{ id: '%a', start: 10, end: 50, references: ['a'], caps: [{ id: 'p0', start: 0, end: 75 }] },
+			{ id: '%b', start: 20, end: 30, references: ['b'], caps: [{ id: 'p1', start: 0, end: 75 }] }
 		], true)).toEqual([
-			{ start: 10, end: 70 }
+			{ id: '%a', start: 10, end: 50, references: ['a', 'b'], caps: [{ id: 'p0', start: 0, end: 75 }, { id: 'p1', start: 0, end: 75 }] }
 		])
 
 		expect(cleanInstances([
-			{ start: 10, end: 50 },
-			{ start: 50, end: 70 }
+			{ id: '%a', start: 20, end: 70, references: ['b'] },
+			{ id: '%b', start: 10, end: 50, references: ['a'] }
 		], true)).toEqual([
-			{ start: 10, end: 70 }
+			{ id: '%b', start: 10, end: 70, references: ['a', 'b'] }
 		])
 
 		expect(cleanInstances([
-			{ start: 10, end: 50 },
-			{ start: 50, end: 70 }
+			{ id: '%a', start: 10, end: 50, references: ['a'] },
+			{ id: '%b', start: 50, end: 70, references: ['b'] }
+		], true)).toEqual([
+			{ id: '%a', start: 10, end: 70, references: ['a', 'b'] }
+		])
+
+		expect(cleanInstances([
+			{ id: '%a', start: 10, end: 50, references: ['a'] },
+			{ id: '%b', start: 50, end: 70, references: ['b'] }
 		], true, true)).toEqual([ // allow zero-width gaps
-			{ start: 10, end: 50 },
-			{ start: 50, end: 70 }
+			{ id: '%a', start: 10, end: 50, references: ['a'] },
+			{ id: '%b', start: 50, end: 70, references: ['b'] }
 		])
 
 		expect(cleanInstances([
-			{ start: 10, end: 60 },
-			{ start: 50, end: 70 }
+			{ id: '%a', start: 10, end: 60, references: ['a'] },
+			{ id: '%b', start: 50, end: 70, references: ['b'] }
 		], true, true)).toEqual([ // allow zero-width gaps
-			{ start: 10, end: 70 }
+			{ id: '%a', start: 10, end: 70, references: ['a', 'b'] }
 		])
 
 		expect(cleanInstances([
-			{ start: 10, end: 50 },
-			{ start: 50, end: null }
+			{ id: '%a', start: 10, end: 50, references: ['a'] },
+			{ id: '%b', start: 50, end: null, references: ['b'] }
 		], true)).toEqual([
-			{ start: 10, end: null }
+			{ id: '%a', start: 10, end: null, references: ['a', 'b'] }
 		])
 
 		expect(cleanInstances([
-			{ start: 10, end: 50 },
-			{ start: 20, end: 92 },
-			{ start: 100, end: 120 },
-			{ start: 110, end: null }
+			{ id: '%a', start: 10, end: 50, references: ['a'] },
+			{ id: '%b', start: 20, end: 92, references: ['b'] },
+			{ id: '%c', start: 100, end: 120, references: ['c'] },
+			{ id: '%d', start: 110, end: null, references: ['d'] }
 		], true)).toEqual([
-			{ start: 10, end: 92 },
-			{ start: 100, end: null }
+			{ id: '%a', start: 10, end: 92, references: ['a', 'b'] },
+			{ id: '%c', start: 100, end: null, references: ['c', 'd'] }
 		])
 
 		// no merge:
 
 		expect(cleanInstances([
-			{ start: 10, end: 50 },
-			{ start: 20, end: 30 }
+			{ id: '%a', start: 10, end: 50, references: ['a'] },
+			{ id: '%b', start: 20, end: 30, references: ['b'] }
 		], false)).toEqual([
-			{ start: 10, end: 50 },
-			{ start: 20, end: 30 }
+			{ id: '%a', start: 10, end: 20, references: ['a'] },
+			{ id: '@0', start: 20, end: 30, references: ['b'] },
+			{ id: '%b_@1', start: 30, end: 50, references: ['a'] }
 		])
 
 		expect(cleanInstances([
-			{ start: 20, end: 70 },
-			{ start: 10, end: 50 }
+			{ id: '%a', start: 10, end: 50, references: ['a'] },
+			{ id: '%b', start: 20, end: 70, references: ['b'] }
 		], false)).toEqual([
-			{ start: 10, end: 20 },
-			{ start: 20, end: 70 }
+			{ id: '%a', start: 10, end: 20, references: ['a'] },
+			{ id: '@2', start: 20, end: 70, references: ['a', 'b'] }
 		])
 
 		expect(cleanInstances([
-			{ start: 10, end: 50 },
-			{ start: 50, end: 70 }
+			{ id: '%a', start: 10, end: 50, references: ['a'] },
+			{ id: '%b', start: 50, end: 70, references: ['b'] }
 		], false)).toEqual([
-			{ start: 10, end: 50 },
-			{ start: 50, end: 70 }
+			{ id: '%a', start: 10, end: 50, references: ['a'] },
+			{ id: '%b', start: 50, end: 70, references: ['b'] }
 		])
 		expect(cleanInstances([
-			{ start: 10, end: 50 },
-			{ start: 50, end: null }
+			{ id: '%a', start: 10, end: 50, references: ['a'] },
+			{ id: '%b', start: 50, end: null, references: ['b'] }
 		], false)).toEqual([
-			{ start: 10, end: 50 },
-			{ start: 50, end: null }
+			{ id: '%a', start: 10, end: 50, references: ['a'] },
+			{ id: '%b', start: 50, end: null, references: ['b'] }
 		])
 
 		expect(cleanInstances([
-			{ start: 10, end: 50 },
-			{ start: 20, end: 92 },
-			{ start: 100, end: 120 },
-			{ start: 110, end: null }
+			{ id: '%a', start: 10, end: 50, references: ['a'] },
+			{ id: '%b', start: 20, end: 92, references: ['b'] },
+			{ id: '%c', start: 100, end: 120, references: ['c'] },
+			{ id: '%d', start: 110, end: null, references: ['d'] }
 		], false)).toEqual([
-			{ start: 10, end: 20 },
-			{ start: 20, end: 92 },
-			{ start: 100, end: 110 },
-			{ start: 110, end: null }
+			{ id: '%a', start: 10, end: 20, references: ['a'] },
+			{ id: '@3', start: 20, end: 92, references: ['a', 'b'] },
+			{ id: '%c', start: 100, end: 110, references: ['c'] },
+			{ id: '@4', start: 110, end: null, references: ['c', 'd'] }
 		])
 	})
 	test('invertInstances', () => {
-
+		// Normal:
 		expect(invertInstances([
-			{ start: 10, end: 50 },
-			{ start: 100, end: 110 }
-		])).toEqual([
-			{ start: 0, end: 10, isFirst: true },
-			{ start: 50, end: 100 },
-			{ start: 110, end: null }
+			{ id: '%a', start: 10, end: 50, references: ['a'], caps: [{ id: 'p0', start: 0, end: 75 }] },
+			{ id: '%b', start: 100, end: 110, references: ['b'], caps: [{ id: 'p1', start: 75, end: 200 }] }
+		])).toMatchObject([
+			{ start: 0, end: 10, isFirst: true, references: ['%a', 'a'] },
+			{ start: 50, end: 100, references: ['%a', 'a'], caps: [{ id: 'p0', start: 0, end: 75 }] },
+			{ start: 110, end: null, references: ['%b', 'b'], caps: [{ id: 'p1', start: 75, end: 200 }] }
+		])
+		// Empty
+		expect(invertInstances([
+		])).toMatchObject([
+			{ start: 0, end: null, isFirst: true, references: [] }
+		])
+		// Overlapping:
+		expect(invertInstances([
+			{ id: '%a', start: 10, end: 50, references: ['a'] },
+			{ id: '%b', start: 30, end: 70, references: ['b'] },
+			{ id: '%c', start: 100, end: null, references: ['c'] }
+		])).toMatchObject([
+			{ start: 0, end: 10, isFirst: true, references: ['%a', 'a', 'b'] },
+			{ start: 70, end: 100, references: ['%a', 'a', 'b'] }
+		])
+		// Adjacent:
+		expect(invertInstances([
+			{ id: '%a', start: 10, end: 50, references: ['a'] },
+			{ id: '%b', start: 50, end: 110, references: ['b'] }
+		])).toMatchObject([
+			{ start: 0, end: 10, isFirst: true, references: ['%a', 'a'] },
+			{ start: 50, end: 50, references: ['%a', 'a'] }, // zero-width gap
+			{ start: 110, end: null, references: ['%b', 'b'] }
 		])
 
+		// Overlapping, then adjacent:
 		expect(invertInstances([
-			{ start: 30, end: 70 },
-			{ start: 100, end: null },
-			{ start: 10, end: 50 }
-		])).toEqual([
-			{ start: 0, end: 10, isFirst: true },
-			{ start: 70, end: 100 }
-		])
-
-		expect(invertInstances([
-			{ start: 30, end: 100 },
-			{ start: 10, end: 50 },
-			{ start: 100, end: 110 }
-		])).toEqual([
-			{ start: 0, end: 10, isFirst: true },
-			{ start: 100, end: 100 },
-			{ start: 110, end: null }
-		])
-
-		expect(invertInstances([
-			{ start: 10, end: 50 },
-			{ start: 50, end: 110 }
-		])).toEqual([
-			{ start: 0, end: 10, isFirst: true },
-			{ start: 50, end: 50 }, // zero-width gap
-			{ start: 110, end: null }
+			{ id: '%a', start: 10, end: 50, references: ['a'] },
+			{ id: '%b', start: 30, end: 100, references: ['b'] },
+			{ id: '%c', start: 100, end: 110, references: ['c'] }
+		])).toMatchObject([
+			{ start: 0, end: 10, isFirst: true, references: ['%a', 'a', 'b'] },
+			{ start: 100, end: 100, references: ['%a', 'a', 'b'] },
+			{ start: 110, end: null, references: ['%c', 'c'] }
 		])
 	})
 	test('operateOnArrays', () => {
-		const plus = (a: number | null, b: number | null): number | null => {
-			if (a === null || b === null) return null
-			return a + b
-		}
-
 		expect(operateOnArrays(
 			[
-				{ start: 30, end: 90 },
-				{ start: 10, end: 50 },
-				{ start: 100, end: 110 }
+				{ id: '%a', start: 10, end: 50, references: ['a'] },
+				{ id: '%b', start: 30, end: 90, references: ['b'] },
+				{ id: '%c', start: 100, end: 110, references: ['c'] }
 			],
-			1,
+			{ value: 1, references: ['x'] },
 			plus
-		)).toEqual([
-			{ start: 11, end: 31 },
-			{ start: 31, end: 91 },
-			{ start: 101, end: 111 }
+		)).toMatchObject([
+			{ start: 11, end: 31, references: ['%a', 'a', 'x'] },
+			{ start: 31, end: 91, references: ['%a', '%b', 'a', 'b', 'x'] },
+			{ start: 101, end: 111, references: ['%c', 'c', 'x'] }
 		])
 
 		expect(operateOnArrays(
 			[
-				{ start: 10, end: 30 },
-				{ start: 50, end: 70 },
-				{ start: 100, end: 110 }
+				{ id: '%a', start: 10, end: 30, references: ['a'] },
+				{ id: '%b', start: 50, end: 70, references: ['b'] },
+				{ id: '%c', start: 100, end: 110, references: ['c'] }
 			],
 			[
-				{ start: 0, end: 25 },
-				{ start: 0, end: 30 },
-				{ start: 1, end: 5 }
+				{ id: '%x', start: 0, end: 25, references: ['x'] },
+				{ id: '%y', start: 0, end: 30, references: ['y'] },
+				{ id: '%z', start: 1, end: 5, references: ['z'] }
 			],
 			plus
-		)).toEqual([
-			{ start: 10, end: 50 },
-			{ start: 50, end: 100 },
-			{ start: 101, end: 115 }
+		)).toMatchObject([
+			{ start: 10, end: 50, references: ['%a','%x', 'a','x'] },
+			{ start: 50, end: 100, references: ['%a','%b','%x','%y', 'a','b','x','y'] },
+			{ start: 101, end: 115, references: ['%c','%z', 'c','z'] }
 		])
 
 	})
-	test('operateOnArraysMulti', () => {
-		const plus = (a: number | null, b: number | null): number | null => {
-			if (a === null || b === null) return null
-			return a + b
-		}
+	/*test('operateOnArraysMulti', () => {
 
 		expect(operateOnArraysMulti(
 			[
-				{ start: 1, end: 3 },
-				{ start: 5, end: 7 }
+				{ id: '%a', start: 1, end: 3, references: ['a'] },
+				{ id: '%b', start: 5, end: 7, references: ['b'] }
 			],
 			[
-				{ start: 10, end: 20 },
-				{ start: 50, end: 60 },
-				{ start: 60, end: 70 }
+				{ id: '%x', start: 10, end: 20, references: ['x'] },
+				{ id: '%y', start: 50, end: 60, references: ['y'] },
+				{ id: '%z', start: 60, end: 70, references: ['z'] }
 			],
 			plus
-		)).toEqual([
-			{ start: 11, end: 13 },
-			{ start: 15, end: 17 },
-			{ start: 51, end: 53 },
-			{ start: 55, end: 57 },
-			{ start: 61, end: 63 },
-			{ start: 65, end: 67 }
+		)).toMatchObject([
+			{ start: 11, end: 13, references: ['%a', '%x', 'a', 'x'] },
+			{ start: 15, end: 17, references: ['%b', '%x', 'b', 'x'] },
+			{ start: 51, end: 53, references: ['%a', '%y', 'a', 'y'] },
+			{ start: 55, end: 57, references: ['%b', '%y', 'b', 'y'] },
+			{ start: 61, end: 63, references: ['%a', '%z', 'a', 'z'] },
+			{ start: 65, end: 67, references: ['%b', '%z', 'b', 'z'] }
 		])
-
-	})
+	})*/
 	test('applyRepeatingInstances', () => {
 		expect(applyRepeatingInstances(
 			[
-				{ start: 20, end: 30 },
-				{ start: 60, end: 90 },
-				{ start: 100, end: 110 }
+				{ id: '%a', start: 20, end: 30, references: ['a'] },
+				{ id: '%b', start: 60, end: 90, references: ['b'] },
+				{ id: '%c', start: 100, end: 110, references: ['c'] }
 			],
-			100,
+			{ value: 100, references: ['x'] },
 			{
 				time: 500,
 				limitTime: 700,
 				limitCount: 999
 			}
-		)).toEqual([
-			{ start: 420, end: 430 },
-			{ start: 460, end: 490 },
-			{ start: 500, end: 510 },
+		)).toMatchObject([
+			{ start: 420, end: 430, references: ['%a', 'a', 'x'] },
+			{ start: 460, end: 490, references: ['%b', 'b', 'x'] },
+			{ start: 500, end: 510, references: ['%c', 'c', 'x'] },
 
-			{ start: 520, end: 530 },
-			{ start: 560, end: 590 },
-			{ start: 600, end: 610 },
+			{ start: 520, end: 530, references: ['%a', 'a', 'x'] },
+			{ start: 560, end: 590, references: ['%b', 'b', 'x'] },
+			{ start: 600, end: 610, references: ['%c', 'c', 'x'] },
 
-			{ start: 620, end: 630 },
-			{ start: 660, end: 690 }
-			// { start: 700, end: 710 },
+			{ start: 620, end: 630, references: ['%a', 'a', 'x'] },
+			{ start: 660, end: 690, references: ['%b', 'b', 'x'] }
+			// { start: 700, end: 710, references: ['%c', 'c', 'x'] },
 		])
-
 		expect(applyRepeatingInstances(
 			[
-				{ start: 5, end: 30 },
-				{ start: 20, end: 90 },
-				{ start: 100, end: 110 }
+				{ id: '%a', start: 5, end: 30, references: ['a'] },
+				{ id: '%b', start: 20, end: 90, references: ['b'] },
+				{ id: '%c', start: 100, end: 110, references: ['c'] }
 			],
-			100,
+			{ value: 100, references: ['x'] },
 			{
 				time: 500,
 				limitTime: 700,
 				limitCount: 999
 			}
-		)).toEqual([
-			{ start: 405, end: 420 },
-			{ start: 420, end: 490 },
-			{ start: 500, end: 505 },
+		)).toMatchObject([
+			{ start: 405, end: 420, references: ['%a', 'a', 'x'] },
+			{ start: 420, end: 490, references: ['%a', '%b', 'a', 'b', 'x'] },
+			{ start: 500, end: 505, references: ['%c', 'c', 'x'] },
 
-			{ start: 505, end: 520 },
-			{ start: 520, end: 590 },
-			{ start: 600, end: 605 },
+			{ start: 505, end: 520, references: ['%a', '%c', 'a', 'c', 'x'] },
+			{ start: 520, end: 590, references: ['%a', '%b', 'a', 'b', 'x'] },
+			{ start: 600, end: 605, references: ['%c', 'c', 'x'] },
 
-			{ start: 605, end: 620 },
-			{ start: 620, end: 690 }
-			// { start: 700, end: 705 },
+			{ start: 605, end: 620, references: ['%a', '%c', 'a', 'c', 'x'] },
+			{ start: 620, end: 690, references: ['%a', '%b', 'a', 'b', 'x'] }
+			// { start: 700, end: 705, references: ['%c', 'c', 'x'] },
 		])
 
 	})
 	test('capInstances', () => {
 
 		expect(capInstances([
-			{ start: 10, end: 20 },
-			{ start: 30, end: 40 },
-			{ start: 50, end: 60 },
-			{ start: 70, end: 80 },
-			{ start: 90, end: 100 }
+			{ id: '%a', start: 10, end: 20, references: [''] },
+			{ id: '%b', start: 30, end: 40, references: [''] },
+			{ id: '%c', start: 50, end: 60, references: [''] },
+			{ id: '%d', start: 70, end: 80, references: [''] },
+			{ id: '%e', start: 90, end: 100, references: [''] }
 		], [
-			{ start: 25, end: 55 },
-			{ start: 60, end: 65 },
-			{ start: 75, end: 95 }
-		])).toEqual([
-			{ start: 30, end: 40 },
-			{ start: 50, end: 55 }, // capped
-			// { start: 60, end: 60 }, // ?
-			{ start: 75, end: 80 }, // capped
-			{ start: 90, end: 95 } // capped
+			{ id: '%x', start: 25, end: 55, references: [''] },
+			{ id: '%y', start: 60, end: 65, references: [''] },
+			{ id: '%z', start: 75, end: 95, references: [''] }
+		])).toMatchObject([
+			{ id: '%b', start: 30, end: 40, references: [''] },
+			{ id: '%c', start: 50, end: 55, references: [''] }, // capped
+			// { id: '%d', start: 60, end: 60, references: [''] }, // ?
+			{ id: '%d', start: 75, end: 80, references: [''] }, // capped
+			{ id: '%e', start: 90, end: 95, references: [''] } // capped
 		])
 	})
 })

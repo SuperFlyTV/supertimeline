@@ -27,6 +27,7 @@ import {
 } from '../resolver/resolver'
 
 import * as _ from 'underscore'
+import { resetId } from '../lib';
 // let assert = require('assert')
 const clone0 = require('fast-clone')
 function clone<T> (o: T): T {
@@ -2850,7 +2851,7 @@ let tests: Tests = {
 		})
 		expect(data).toEqual(getTestData('repeatinggroup')) // Make sure the original data is unmodified
 	},
-	'repeating group in repeating group': () => {
+	'only: repeating group in repeating group': () => {
 
 		const data = clone(getTestData('repeatinggroupinrepeatinggroup'))
 		const tl = Resolver.resolveTimeline(data, _.extend(stdOpts, { limitCount: 99, limitTime: 1150 }))
@@ -2882,6 +2883,19 @@ let tests: Tests = {
 			{ start: 1147, end: null } // 1172
 			// { start: 1172, end: 1197 } // capped in parent
 		])
+		/*
+		[
+		"start": 1030, {"end": 1055, "references": []},
+		"start": 1055, "end": 1080, "references": []},
+		"start": 1080, "end": 1092, "references": []},
+
+		"start": 1105, "end": 1122, "references": []},
+		"start": 1122, "end": 1130, "references": []},
+		"start": 1130, "end": 1147, "references": []},
+		"start": 1147, "end": 1172, "references": []}
+		]
+		*/
+
 		expect(tl.objects['child1'].resolved.instances).toMatchObject([
 			{ start: 1030, end: 1040 },
 			{ start: 1055, end: 1065 },
@@ -3650,6 +3664,9 @@ _.each(tests, (t, key: string) => {
 if (!_.isEmpty(onlyTests)) tests = onlyTests
 
 describe('All tests', () => {
+	beforeEach(() => {
+		resetId()
+	})
 	_.each(tests, (t, key) => {
 		test(key, () => {
 			reverseData = false
