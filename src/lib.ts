@@ -111,7 +111,6 @@ export function convertEventsToInstances (
 	allowMerge: boolean,
 	allowZeroGaps: boolean = false
 ): Array<TimelineObjectInstance> {
-	const debug = false
 	sortEvents(events)
 
 	const activeInstances: {[id: string]: InstanceEvent} = {}
@@ -120,7 +119,6 @@ export function convertEventsToInstances (
 	const returnInstances: Array<TimelineObjectInstance> = []
 	_.each(events, (event) => {
 		const eventId = event.data.id || event.data.instance.id
-		if (debug) console.log('event', event)
 		const lastInstance = _.last(returnInstances)
 		if (event.value) {
 			activeInstances[eventId] = event
@@ -138,7 +136,6 @@ export function convertEventsToInstances (
 				activeInstanceId !== null &&
 				activeInstanceId !== eventId
 			) {
-				if (debug) console.log('start new')
 				// Start a new instance:
 				lastInstance.end = event.time
 				returnInstances.push({
@@ -154,7 +151,6 @@ export function convertEventsToInstances (
 				lastInstance &&
 				activeInstanceId === eventId
 			) {
-				if (debug) console.log('stopped, restart')
 				// The active instance stopped playing, but another is still playing
 				const latestInstance: {event: InstanceEvent, id: string} | null = _.reduce(
 					activeInstances,
@@ -190,7 +186,6 @@ export function convertEventsToInstances (
 				lastInstance &&
 				lastInstance.end === event.time
 			) {
-				if (debug) console.log('resume')
 				// The previously running ended just now
 				// resume previous instance:
 				lastInstance.end = null
@@ -200,7 +195,6 @@ export function convertEventsToInstances (
 				!lastInstance ||
 				lastInstance.end !== null
 			) {
-				if (debug) console.log('start')
 				// There is no previously running instance
 				// Start a new instance:
 				returnInstances.push({
@@ -212,20 +206,17 @@ export function convertEventsToInstances (
 				})
 				activeInstanceId = eventId
 			} else {
-				if (debug) console.log('alreaady running')
 				// There is already a running instance
 				lastInstance.references = joinReferences(lastInstance.references, event.references)
 				lastInstance.caps = joinCaps(lastInstance.caps, event.data.instance.caps)
 			}
 			if (lastInstance && lastInstance.caps && !lastInstance.caps.length) delete lastInstance.caps
 		} else {
-			if (debug) console.log('no active')
 			// No instances are active
 			if (
 				lastInstance &&
 				previousActive
 			) {
-				if (debug) console.log('end')
 				lastInstance.end = event.time
 			}
 			previousActive = false

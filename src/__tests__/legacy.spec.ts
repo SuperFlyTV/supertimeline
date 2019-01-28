@@ -1,11 +1,11 @@
 /**
  * Note: The tests in this file where originally created for version 1, but has been converted to apply for version 2
  */
-import { TriggerType, EventType } from '../api/legacyEnums'
+import { TriggerType, EventType } from './legacyEnums.spec'
 import {
 	TimelineObject,
 	TimelineKeyframe
-} from '../api/legacy'
+} from './legacyAPI.spec'
 import {
 	ResolvedTimelineObject as NewResolvedTimelineObject,
 	TimelineObject as NewTimelineObject,
