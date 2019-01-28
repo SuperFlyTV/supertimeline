@@ -22,6 +22,59 @@ export interface ResolveOptions {
 	/** Limits the repeating objects to a time in the future */
 	limitTime?: Time
 }
+export interface TimelineObject {
+	id: ObjectId
+	enable: TimelineEnable
+
+	layer: string | number
+	/** Group children */
+	children?: Array<TimelineObject>
+	/** Keyframes can be used to modify the content of an object */
+	keyframes?: Array<TimelineKeyframe>
+	classes?: Array<string>
+	disabled?: boolean
+	isGroup?: boolean
+	priority?: number
+	// externalFunction?: string // TODO: implement hooks
+	content: Content
+}
+export type Content = {
+	[key: string]: any
+}
+export interface TimelineEnable {
+	/**
+	 * Examples of references:
+	 * #objectId
+	 * #objectId.start
+	 * #objectId.end
+	 * #objectId.duration
+	 * .className
+	 * .className.start + 5
+	 * $layerName
+	 */
+
+	/** (Optional) The start time of the object. (Cannot be combined with .while) */
+	start?: Expression
+	/** (Optional) The end time of the object (Cannot be combined with .while or .duration) */
+	end?: Expression
+	/** (Optional) Enables the object WHILE expression is true (ie sets both the start and end). (Cannot be combined with .start, .end or .duration ) */
+	while?: Expression
+	/** (Optional) The duration of an object */
+	duration?: Expression
+	/** (Optional) Makes the object repeat with given interval */
+	repeating?: Expression
+}
+export interface TimelineKeyframe {
+	id: string
+	enable: TimelineEnable
+	duration?: number | string
+	classes?: Array<string>
+	content: Content
+	disabled?: boolean
+}
+
+export interface TimelineObjectKeyframe extends TimelineObject, TimelineKeyframe {
+}
 export interface ResolvedTimeline {
 	/** The options used to resolve the timeline */
 	options: ResolveOptions
@@ -88,61 +141,6 @@ export interface InstanceEvent<T = any> {
 	references: Array<string>
 	data: T
 }
-
-export interface TimelineObject {
-	id: ObjectId
-	enable: TimelineEnable
-
-	layer: string | number
-	/** Group children */
-	children?: Array<TimelineObject>
-	/** Keyframes can be used to modify the content of an object */
-	keyframes?: Array<TimelineKeyframe>
-	classes?: Array<string>
-	disabled?: boolean
-	isGroup?: boolean
-	priority?: number
-	// externalFunction?: string // TODO: implement hooks
-	content: Content
-}
-export type Content = {
-	[key: string]: any
-}
-export interface TimelineEnable {
-	/**
-	 * Examples of references:
-	 * #objectId
-	 * #objectId.start
-	 * #objectId.end
-	 * #objectId.duration
-	 * .className
-	 * .className.start + 5
-	 * $layerName
-	 */
-
-	/** (Optional) The start time of the object. (Cannot be combined with .while) */
-	start?: Expression
-	/** (Optional) The end time of the object (Cannot be combined with .while or .duration) */
-	end?: Expression
-	/** (Optional) Enables the object WHILE expression is true (ie sets both the start and end). (Cannot be combined with .start, .end or .duration ) */
-	while?: Expression
-	/** (Optional) The duration of an object */
-	duration?: Expression
-	/** (Optional) Makes the object repeat with given interval */
-	repeating?: Expression
-}
-export interface TimelineKeyframe {
-	id: string
-	enable: TimelineEnable
-	duration?: number | string
-	classes?: Array<string>
-	content: Content
-	disabled?: boolean
-}
-
-export interface TimelineObjectKeyframe extends TimelineObject, TimelineKeyframe {
-}
-
 export type Expression = number | string | ExpressionObj
 export interface ExpressionObj {
 	l: Expression,

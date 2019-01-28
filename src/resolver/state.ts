@@ -141,6 +141,7 @@ export function getState (resolved: ResolvedTimeline, time: Time, eventLimit: nu
 
 				if (
 					instance.start > time &&
+					// tslint:disable-next-line
 					eventObjectTimes['' + instance.start] === undefined // no need to put a keyframe event if there's already another event
 				) {
 					state.nextEvents.push({
@@ -153,6 +154,7 @@ export function getState (resolved: ResolvedTimeline, time: Time, eventLimit: nu
 				if (
 					instance.end !== null &&
 					instance.end > time &&
+					// tslint:disable-next-line
 					eventObjectTimes['' + instance.end] === undefined // no need to put a keyframe event if there's already another event
 				) {
 					state.nextEvents.push({

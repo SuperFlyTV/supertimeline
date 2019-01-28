@@ -1,13 +1,8 @@
 import { lookupExpression, Resolver } from '../resolver'
-import { ResolvedTimeline, TimelineObject, TimelineObjectInstance } from '../../api/api'
+import { ResolvedTimeline, TimelineObject } from '../../api/api'
 import { interpretExpression } from '../expression'
 import { EventType } from '../../api/enums'
 import { resetId } from '../../lib'
-
-const clone0 = require('fast-clone')
-function clone<T> (o: T): T {
-	return clone0(o)
-}
 
 describe('resolver', () => {
 	beforeEach(() => {

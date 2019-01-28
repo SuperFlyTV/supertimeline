@@ -470,8 +470,7 @@ export function capInstances (
 	const returnInstances: TimelineObjectInstance[] = []
 	_.each(instances, (instance) => {
 
-		// @ts-ignore
-		let parent: TimelineObjectInstance = null
+		let parent: TimelineObjectInstance | null = null
 
 		_.each(parentInstances, (p) => {
 			if (
@@ -502,15 +501,16 @@ export function capInstances (
 			})
 		}
 		if (parent) {
+			const parent2: TimelineObjectInstance = parent // cast type
 			const i2 = _.clone(instance)
 			if (
-				parent.end !== null &&
-				(i2.end || Infinity) > parent.end
+				parent2.end !== null &&
+				(i2.end || Infinity) > parent2.end
 			) {
-				i2.end = parent.end
+				i2.end = parent2.end
 			}
-			if ((i2.start || Infinity) < parent.start) {
-				i2.start = parent.start
+			if ((i2.start || Infinity) < parent2.start) {
+				i2.start = parent2.start
 			}
 
 			returnInstances.push(i2)
@@ -558,6 +558,7 @@ export function joinCaps (...caps: Array<Array<Cap> | undefined>): Array<Cap> {
 		)
 	)
 }
+let i: number = 0
 /**
  * Returns a unique id
  */
@@ -567,4 +568,3 @@ export function getId (): string {
 export function resetId (): void {
 	i = 0
 }
-let i: number = 0

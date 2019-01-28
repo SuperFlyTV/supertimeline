@@ -1,33 +1,23 @@
 /**
  * Note: The tests in this file where originally created for version 1, but has been converted to apply for version 2
  */
-import { TriggerType, EventType, TraceLevel } from '../api/legacyEnums'
+import { TriggerType, EventType } from '../api/legacyEnums'
 import {
-	TimelineResolvedObject,
-	TimelineState,
-	DevelopedTimeline,
-	ExternalFunctions,
 	TimelineObject,
 	TimelineKeyframe
 } from '../api/legacy'
 import {
 	ResolvedTimelineObject as NewResolvedTimelineObject,
-	TimelineState as NewTimelineState,
-	// DevelopedTimeline as NewDevelopedTimeline,
-	// ExternalFunctions as NewExternalFunctions,
 	TimelineObject as NewTimelineObject,
 	TimelineKeyframe as NewTimelineKeyframe,
 	ResolveOptions
 } from '../api/api'
 import {
-	Resolver as LegacyResolver
-} from '../resolver/legacy'
-import {
 	Resolver
 } from '../resolver/resolver'
 
 import * as _ from 'underscore'
-import { resetId } from '../lib';
+import { resetId } from '../lib'
 // let assert = require('assert')
 const clone0 = require('fast-clone')
 function clone<T> (o: T): T {

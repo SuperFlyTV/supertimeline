@@ -131,27 +131,14 @@ export class Resolver {
 	static getState (resolved: ResolvedTimeline, time: Time, eventLimit?: number): TimelineState {
 		return getState(resolved, time, eventLimit)
 	}
-
-	// static getNextEvents (resolved: ResolvedTimeline, time: Time, limit: number = 10): NextEvents {
-	// }
 }
 
 export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: ResolvedTimelineObject) {
 	if (obj.resolved.resolved) return
 	if (obj.resolved.resolving) throw new Error(`Circular dependency when trying to resolve "${obj.id}"`)
+
 	obj.resolved.resolving = true
-	const debug = (
-		// obj.id === 'video0' ||
-		// obj.id === 'video' ||
-		// obj.id === 'group0' ||
-		// obj.id === 'child0' ||
-		// obj.id === 'group1' ||
-		// obj.id === 'child1' ||
-		// obj.id === 'group1_1' ||
-		0
-	)
-	if (debug) console.log('==============================================================')
-	if (debug) console.log('resolveTimelineObj', obj.id)
+
 	let instances: Array<TimelineObjectInstance> = []
 
 	const repeatingExpr: Expression | null = (
@@ -178,7 +165,6 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 	}
 
 	const startExpr: ExpressionObj | number | null = interpretExpression(start)
-	if (debug) console.log('parentId', obj.resolved.parentId)
 	let parentInstances: TimelineObjectInstance[] | null | Reference = null
 	let hasParent: boolean = false
 	let referToParent: boolean = false
@@ -196,9 +182,6 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 		}
 	}
 	let lookedupStarts = lookupExpression(resolvedTimeline, obj, startExpr, 'start')
-	if (debug) console.log('lookedupStarts', JSON.stringify(lookedupStarts, '', 3))
-	if (debug) console.log('referToParent', referToParent)
-	if (debug) console.log('parentInstances', parentInstances)
 	const applyParentInstances = (value: TimelineObjectInstance[] | null | Reference): TimelineObjectInstance[] | null | Reference => {
 		const operate = (a: Reference | null, b: Reference | null): Reference | null => {
 			if (a === null || b === null) return null
@@ -212,16 +195,6 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 	if (referToParent) {
 		lookedupStarts = applyParentInstances(lookedupStarts)
 	}
-
-	if (debug) console.log('lookedupRepeating', lookedupRepeating)
-	if (debug) console.log('lookedupStarts before', lookedupStarts)
-	// lookedupStarts = applyRepeatingInstances(
-	// 	lookedupStarts,
-	// 	lookedupRepeating,
-	// 	obj.resolved.parentId || null,
-	// 	resolvedTimeline.options
-	// )
-	// if (debug) console.log('lookedupStarts after', lookedupStarts)
 
 	if (obj.enable.while) {
 
@@ -265,11 +238,9 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 				lookupExpression(resolvedTimeline, obj, endExpr, 'end') :
 				null
 			)
-			// lookedupEnds = applyRepeatingInstances(lookedupEnds, lookedupRepeating, resolvedTimeline.options)
 			if (referToParent && isConstant(endExpr)) {
 				lookedupEnds = applyParentInstances(lookedupEnds)
 			}
-			if (debug) console.log('lookedupEnds', lookedupEnds)
 			if (_.isArray(lookedupEnds)) {
 				_.each(lookedupEnds, (instance) => {
 					events.push({
@@ -299,14 +270,6 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 			}
 
 			if (_.isArray(lookedupDuration)) {
-				console.log('lookedupDuration', lookedupDuration)
-				console.log('.')
-				console.log('.')
-				console.log('.')
-				console.log('.')
-				console.log('.')
-				console.log('.')
-				console.log('.')
 				throw new Error(`lookupExpression should never return an array for .duration lookup`) // perhaps tmp? maybe revisit this at some point
 			} else if (lookedupDuration !== null) {
 
@@ -314,8 +277,6 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 					lookedupRepeating !== null &&
 					lookedupDuration.value > lookedupRepeating.value
 				) lookedupDuration.value = lookedupRepeating.value
-
-				// if (debug) console.log('lookedupRepeating', lookedupRepeating)
 
 				const tmpLookedupDuration: Reference = lookedupDuration // cast type
 				_.each(events, (e) => {
@@ -333,30 +294,9 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 			}
 		}
 
-		if (debug) console.log('events', events)
 		instances = convertEventsToInstances(events, false)
-		/*events = sortEvents(events)
-		_.each(events, (e) => {
-			const last = _.last(instances)
-			if (e.value) {
-				if (!last || last.end !== null) {
-					instances.push({
-						start: e.time,
-						end: null,
-						references: e.references
-					})
-				}
-			} else {
-				if (last && last.end === null) {
-					last.end = e.time
-					// don't update reference on end
-				}
-			}
-		})*/
 	}
 	if (hasParent) {
-		if (debug) console.log('capInstances', instances)
-		if (debug) console.log('parentInstances', parentInstances)
 		// figure out what parent-instance the instances are tied to, and cap them
 
 		const cappedInstances: TimelineObjectInstance[] = []
@@ -365,7 +305,6 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 				const parentInstance = _.find(parentInstances, (parentInstance) => {
 					return instance.references.indexOf(parentInstance.id) !== -1
 				})
-				if (debug) console.log('found parentInstance', parentInstance)
 
 				const cappedInstance = (
 					parentInstance ?
@@ -385,22 +324,14 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 				}
 			}
 		})
-		if (debug) console.log('cappedInstances', JSON.stringify(cappedInstances,'', 3))
 
 		instances = cappedInstances
-		// instances = capInstances(instances, parentInstances)
 	}
-	if (debug) console.log('parentId', obj.resolved.parentId)
-	if (debug) console.log('result before repeat', JSON.stringify(instances,'', 3))
 	instances = applyRepeatingInstances(
 		instances,
 		lookedupRepeating,
 		resolvedTimeline.options
 	)
-
-	if (debug) console.log('result', JSON.stringify(instances,'', 3))
-	if (debug) console.log('.')
-	if (debug) console.log('.')
 
 	// filter out zero-length instances:
 	instances = _.filter(instances, (instance) => {
@@ -424,7 +355,6 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 			resolvedTimeline.statistics.resolvedObjectCount += 1
 		}
 	} else {
-		// console.log('not resolved:', obj)
 		resolvedTimeline.statistics.unresolvedCount += 1
 	}
 
@@ -552,7 +482,6 @@ export function lookupExpression (
 				_.each(instanceDurations, (d) => {
 					if (firstDuration === null || d.value < firstDuration.value) firstDuration = d
 				})
-				// console.log(firstDuration)
 				return firstDuration
 			} else {
 				let returnInstances: TimelineObjectInstance[] = []
@@ -565,23 +494,11 @@ export function lookupExpression (
 				} else throw Error(`Unknown ref: "${ref}"`)
 
 				_.each(referencedObjs, (referencedObj: ResolvedTimelineObject) => {
-					// console.log('referencedObj', referencedObj)
 					resolveTimelineObj(resolvedTimeline, referencedObj)
 					if (referencedObj.resolved.resolved) {
-
 						returnInstances = returnInstances.concat(referencedObj.resolved.instances)
-						// _.each(referencedObj.resolved.instances, (instance) => {
-						// 	returnInstances.push({
-						// 		id: getId(),
-						// 		start: instance.start,
-						// 		end: instance.end,
-						// 		isFirst: instance.isFirst,
-						// 		references: joinReferences(instance.id, instance.references, referencedObj.id)
-						// 	})
-						// })
 					}
 				})
-				// console.log('returnInstances', returnInstances)
 				if (returnInstances.length) {
 
 					if (invert) {
@@ -597,7 +514,6 @@ export function lookupExpression (
 							returnInstances.splice(0, 1)
 						}
 					}
-					// console.log('returnInstances', returnInstances)
 					return returnInstances
 				} else {
 					return null
@@ -666,8 +582,6 @@ export function lookupExpression (
 				let leftValue: boolean = (isReference(lookupExpr.l) ? !!lookupExpr.l.value : false)
 				let rightValue: boolean = (isReference(lookupExpr.r) ? !!lookupExpr.r.value : false)
 
-				// let lefteference: Array<string> | null = null
-				// let rightReference: Array<string> | null = null
 				let leftInstance: TimelineObjectInstance | null = null
 				let rightInstance: TimelineObjectInstance | null = null
 

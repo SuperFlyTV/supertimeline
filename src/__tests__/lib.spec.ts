@@ -9,7 +9,6 @@ import {
 	capInstances,
 	joinReferences,
 	resetId,
-	getId,
 	convertEventsToInstances
 } from '../lib'
 import { Reference } from '../api/api'

@@ -1,3 +1,4 @@
+/* tslint:disable:strict-type-predicates */
 import {
 	TimelineObject, TimelineKeyframe
 } from '../api/api'
@@ -24,6 +25,7 @@ function validateObject0 (obj: TimelineObject, strict?: boolean, uniqueIds?: Ids
 	if (uniqueIds[obj.id]) throw new Error(`Object id "${obj.id}" is not unique`)
 	uniqueIds[obj.id] = true
 
+	// @ts-ignore
 	if (obj.layer === undefined) throw new Error(`Object "${obj.id}": "layer" attribute is undefined`)
 
 	if (!obj.content) throw new Error(`Object "${obj.id}": "content" attribute must be set`)
