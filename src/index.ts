@@ -7,5 +7,3 @@ export {
 	validateObject,
 	validateKeyframe
 } from './resolver/validate'
-
-export { Resolver as LegacyResolver } from './resolver/legacy'

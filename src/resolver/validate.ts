@@ -7,12 +7,6 @@ import _ = require('underscore')
 interface Ids {
 	[id: string]: true
 }
-export function validateObject (obj: TimelineObject, strict?: boolean): void {
-	validateObject0(obj, strict)
-}
-export function validateKeyframe (keyframe: TimelineKeyframe, strict?: boolean): void {
-	validateKeyframe0(keyframe, strict)
-}
 function validateObject0 (obj: TimelineObject, strict?: boolean, uniqueIds?: Ids): void {
 	if (!uniqueIds) uniqueIds = {}
 
@@ -114,9 +108,30 @@ function validateKeyframe0 (keyframe: TimelineKeyframe, strict?: boolean, unique
 	}
 }
 
-export function validateTimeline (timeline: Array<TimelineObject>, strict?: boolean) {
+/**
+ * Validates all objects in the timeline. Throws an error if something's wrong
+ * @param timeline The timeline to validate
+ * @param strict Set to true to enable some strict rules (rules that can possibly be ignored)
+ */
+export function validateTimeline (timeline: Array<TimelineObject>, strict?: boolean): void {
 	const uniqueIds: {[id: string]: true} = {}
 	_.each(timeline, (obj) => {
 		validateObject0(obj, strict, uniqueIds)
 	})
+}
+/**
+ * Validates a Timeline-object. Throws an error if something's wrong
+ * @param timeline The timeline to validate
+ * @param strict Set to true to enable some strict rules (rules that can possibly be ignored)
+ */
+export function validateObject (obj: TimelineObject, strict?: boolean): void {
+	validateObject0(obj, strict)
+}
+/**
+ * Validates a Timeline-keyframe. Throws an error if something's wrong
+ * @param timeline The timeline to validate
+ * @param strict Set to true to enable some strict rules (rules that can possibly be ignored)
+ */
+export function validateKeyframe (keyframe: TimelineKeyframe, strict?: boolean): void {
+	validateKeyframe0(keyframe, strict)
 }
