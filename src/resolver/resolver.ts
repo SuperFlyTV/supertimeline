@@ -147,6 +147,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 		// obj.id === 'child0' ||
 		// obj.id === 'group1' ||
 		// obj.id === 'child1' ||
+		// obj.id === 'group1_1' ||
 		0
 	)
 	if (debug) console.log('==============================================================')

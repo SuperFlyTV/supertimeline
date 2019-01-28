@@ -9,7 +9,8 @@ import {
 	capInstances,
 	joinReferences,
 	resetId,
-	getId
+	getId,
+	convertEventsToInstances
 } from '../lib'
 import { Reference } from '../api/api'
 
@@ -181,6 +182,28 @@ describe('lib', () => {
 			{ id: '@b', start: 1122, end: 1147, references: [ '@2', 'a0', 'a1' ] },
 			{ id: '@c', start: 1147, end: 1172, references: [ '@2', 'a0', 'a1' ] },
 			{ id: '@d', start: 1172, end: 1184, references: [ '@2', 'a0', 'a1' ] }
+		])
+	})
+	test('convertEventsToInstances', () => {
+		expect(convertEventsToInstances([
+			{
+				time: 1000,
+				value: true,
+				data: { instance: { id: 'a0', start: 1000, end: null, references: [] }, id: 'a0' },
+				references: [ 'a0' ]
+			},
+			{
+				time: 1000,
+				value: false,
+				data: { instance: { id: 'a0', start: 1000, end: null, references: [] }, id: 'a0' },
+				references: [ 'a0' ] }
+		], false)).toEqual([
+			{
+				id: 'a0',
+				start: 1000,
+				end: 1000,
+				references: ['a0']
+			}
 		])
 	})
 	test('invertInstances', () => {

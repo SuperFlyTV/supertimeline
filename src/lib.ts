@@ -57,6 +57,14 @@ export function sortEvents<T extends InstanceEvent> (events: Array<T>): Array<T>
 		if (a.time > b.time) return 1
 		if (a.time < b.time) return -1
 
+		const aId = a.data && (a.data.id || (a.data.instance && a.data.instance.id))
+		const bId = b.data && (b.data.id || (b.data.instance && b.data.instance.id))
+
+		if (aId && bId && aId === bId) {
+			// If the event refer to the same ID, let the ending event be first:
+			if (a.value && !b.value) return -1
+			if (!a.value && b.value) return 1
+		}
 		if (a.value && !b.value) return 1
 		if (!a.value && b.value) return -1
 
