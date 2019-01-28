@@ -84,8 +84,9 @@ export interface Reference {
 }
 export interface InstanceEvent<T = any> {
 	time: Time
-	value: T
+	value: boolean
 	references: Array<string>
+	data: T
 }
 
 export interface TimelineObject {

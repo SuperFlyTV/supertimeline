@@ -327,12 +327,16 @@ describe('resolver', () => {
 
 		const resolved = Resolver.resolveTimeline(timeline, { time: 0 })
 
-		expect(resolved.statistics.resolvedObjectCount).toEqual(3)
-		expect(resolved.statistics.unresolvedCount).toEqual(0)
-
 		expect(resolved.objects['video']).toBeTruthy()
 		expect(resolved.objects['graphic0']).toBeTruthy()
 		expect(resolved.objects['graphic1']).toBeTruthy()
+
+		expect(resolved.statistics.resolvedObjectCount).toEqual(3)
+		expect(resolved.statistics.unresolvedCount).toEqual(0)
+		expect(resolved.objects['video'].resolved).toMatchObject({
+			resolved: true,
+			instances: [{ start: 0, end: 100 }]
+		})
 		expect(resolved.objects['graphic0'].resolved).toMatchObject({
 			resolved: true,
 			instances: [{ start: 10, end: 20 }]

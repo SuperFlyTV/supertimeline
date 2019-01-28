@@ -34,6 +34,18 @@ export function extendMandadory<A, B extends A> (original: A, extendObj: Differe
 	return _.extend(original, extendObj)
 }
 
+export function isConstant (str: string | number | null | any): boolean {
+	return !!(
+		isNumeric(str) ||
+		(
+			_.isString(str) &&
+			(
+				str.match(/^true$/) ||
+				str.match(/^false$/)
+			)
+		)
+	)
+}
 export function isNumeric (str: string | number | null | any): boolean {
 	if (str === null) return false
 	if (_.isNumber(str)) return true
@@ -47,6 +59,7 @@ export function sortEvents<T extends InstanceEvent> (events: Array<T>): Array<T>
 
 		if (a.value && !b.value) return 1
 		if (!a.value && b.value) return -1
+
 		return 0
 	})
 }
@@ -69,26 +82,28 @@ export function cleanInstances (
 		// const id = 'i' + (i++)
 		events.push({
 			time: instance.start,
-			value: { instance: instance, value: true },
+			value: true,
+			data: { instance: instance },
 			references: instance.references
 		})
 		if (instance.end !== null) {
 			events.push({
 				time: instance.end,
-				value: { instance: instance, value: false },
+				value: false,
+				data: { instance: instance },
 				references: instance.references
 			})
 		}
 	})
 	return convertEventsToInstances(events, allowMerge, allowZeroGaps)
 }
-export type EventForInstance = InstanceEvent<{instance: TimelineObjectInstance, value: boolean}>
+export type EventForInstance = InstanceEvent<{id?: string, instance: TimelineObjectInstance}>
 export function convertEventsToInstances (
 	events: Array<EventForInstance>,
 	allowMerge: boolean,
 	allowZeroGaps: boolean = false
 ): Array<TimelineObjectInstance> {
-
+	const debug = false
 	sortEvents(events)
 
 	const activeInstances: {[id: string]: InstanceEvent} = {}
@@ -96,23 +111,26 @@ export function convertEventsToInstances (
 	let previousActive: boolean = false
 	const returnInstances: Array<TimelineObjectInstance> = []
 	_.each(events, (event) => {
+		const eventId = event.data.id || event.data.instance.id
+		if (debug) console.log('event', event)
 		const lastInstance = _.last(returnInstances)
-		if (event.value.value) {
-			activeInstances[event.value.instance.id] = event
+		if (event.value) {
+			activeInstances[eventId] = event
 		} else {
-			delete activeInstances[event.value.instance.id]
+			delete activeInstances[eventId]
 		}
 		if (_.keys(activeInstances).length) {
 			// There is an active instance
 			previousActive = true
 			if (
 				!allowMerge &&
-				event.value.value &&
+				event.value &&
 				lastInstance &&
 				lastInstance.end === null &&
 				activeInstanceId !== null &&
-				activeInstanceId !== event.value.instance.id
+				activeInstanceId !== eventId
 			) {
+				if (debug) console.log('start new')
 				// Start a new instance:
 				lastInstance.end = event.time
 				returnInstances.push({
@@ -121,13 +139,14 @@ export function convertEventsToInstances (
 					end: null,
 					references: event.references
 				})
-				activeInstanceId = event.value.instance.id
+				activeInstanceId = eventId
 			} else if (
 				!allowMerge &&
-				!event.value.value &&
+				!event.value &&
 				lastInstance &&
-				activeInstanceId === event.value.instance.id
+				activeInstanceId === eventId
 			) {
+				if (debug) console.log('stopped, restart')
 				// The active instance stopped playing, but another is still playing
 				const latestInstance: {event: InstanceEvent, id: string} | null = _.reduce(
 					activeInstances,
@@ -150,7 +169,7 @@ export function convertEventsToInstances (
 					// Restart that instance now:
 					lastInstance.end = event.time
 					returnInstances.push({
-						id: event.value.instance.id + '_' + getId(),
+						id: eventId + '_' + getId(),
 						start: event.time,
 						end: null,
 						references: latestInstance.event.references
@@ -163,37 +182,42 @@ export function convertEventsToInstances (
 				lastInstance &&
 				lastInstance.end === event.time
 			) {
+				if (debug) console.log('resume')
 				// The previously running ended just now
 				// resume previous instance:
 				lastInstance.end = null
 				lastInstance.references = joinReferences(lastInstance.references, event.references)
-				lastInstance.caps = joinCaps(lastInstance.caps, event.value.instance.caps)
+				lastInstance.caps = joinCaps(lastInstance.caps, event.data.instance.caps)
 			} else if (
 				!lastInstance ||
 				lastInstance.end !== null
 			) {
+				if (debug) console.log('start')
 				// There is no previously running instance
 				// Start a new instance:
 				returnInstances.push({
-					id: event.value.instance.id,
+					id: eventId,
 					start: event.time,
 					end: null,
 					references: event.references,
-					caps: event.value.instance.caps
+					caps: event.data.instance.caps
 				})
-				activeInstanceId = event.value.instance.id
+				activeInstanceId = eventId
 			} else {
+				if (debug) console.log('alreaady running')
 				// There is already a running instance
 				lastInstance.references = joinReferences(lastInstance.references, event.references)
-				lastInstance.caps = joinCaps(lastInstance.caps, event.value.instance.caps)
+				lastInstance.caps = joinCaps(lastInstance.caps, event.data.instance.caps)
 			}
 			if (lastInstance && lastInstance.caps && !lastInstance.caps.length) delete lastInstance.caps
 		} else {
+			if (debug) console.log('no active')
 			// No instances are active
 			if (
 				lastInstance &&
 				previousActive
 			) {
+				if (debug) console.log('end')
 				lastInstance.end = event.time
 			}
 			previousActive = false
@@ -357,12 +381,11 @@ export function operateOnArrays (
 }
 */
 export function applyRepeatingInstances (
-	instances: Reference | TimelineObjectInstance[] | null,
+	instances: TimelineObjectInstance[],
 	repeatTime0: Reference | null,
 	options: ResolveOptions
-): Reference | TimelineObjectInstance[] | null {
+): TimelineObjectInstance[] {
 	if (
-		instances === null ||
 		repeatTime0 === null ||
 		!repeatTime0.value
 	) return instances
@@ -389,20 +412,36 @@ export function applyRepeatingInstances (
 			instance.end + (startTime - instance.start)
 		)
 
+		const cap: Cap | null = (
+			instance.caps ?
+			_.find(instance.caps, (cap) => instance.references.indexOf(cap.id) !== -1)
+			: null
+		) || null
+
 		const limit = options.limitCount || 2
 		for (let i = 0; i < limit; i++) {
 			if (
-				!options.limitTime ||
-				startTime < options.limitTime
-			) {
+				options.limitTime &&
+				startTime >= options.limitTime
+			) break
+
+			const cappedStartTime: Time = (
+				cap ?
+				Math.max(cap.start, startTime) :
+				startTime
+			)
+			const cappedEndTime: Time | null = (
+				cap && cap.end !== null && endTime !== null ?
+				Math.min(cap.end, endTime) :
+				endTime
+			)
+			if ((cappedEndTime || Infinity) > cappedStartTime) {
 				repeatedInstances.push({
 					id: getId(),
-					start: startTime,
-					end: endTime,
+					start: cappedStartTime,
+					end: cappedEndTime,
 					references: joinReferences(instance.id, instance.references, repeatTime0.references)
 				})
-			} else {
-				break
 			}
 
 			startTime += repeatTime

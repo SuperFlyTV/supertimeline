@@ -38,25 +38,25 @@ describe('lib', () => {
 	})
 	test('sortEvents', () => {
 		expect(sortEvents([
-			{ time: 300, value: true, 	references: ['a'] },
-			{ time: 2, value: false, 	references: ['a'] },
-			{ time: 100, value: true, 	references: ['a'] },
-			{ time: 3, value: true, 	references: ['a'] },
-			{ time: 20, value: false, 	references: ['a'] },
-			{ time: 2, value: true, 	references: ['a'] },
-			{ time: 100, value: false, 	references: ['a'] },
-			{ time: 20, value: true, 	references: ['a'] },
-			{ time: 1, value: true, 	references: ['a'] }
+			{ time: 300, value: true, 	references: ['a'], data: {} },
+			{ time: 2, value: false, 	references: ['a'], data: {} },
+			{ time: 100, value: true, 	references: ['a'], data: {} },
+			{ time: 3, value: true, 	references: ['a'], data: {} },
+			{ time: 20, value: false, 	references: ['a'], data: {} },
+			{ time: 2, value: true, 	references: ['a'], data: {} },
+			{ time: 100, value: false, 	references: ['a'], data: {} },
+			{ time: 20, value: true, 	references: ['a'], data: {} },
+			{ time: 1, value: true, 	references: ['a'], data: {} }
 		])).toEqual([
-			{ time: 1, value: true, 	references: ['a'] },
-			{ time: 2, value: false, 	references: ['a'] },
-			{ time: 2, value: true, 	references: ['a'] },
-			{ time: 3, value: true, 	references: ['a'] },
-			{ time: 20, value: false, 	references: ['a'] },
-			{ time: 20, value: true, 	references: ['a'] },
-			{ time: 100, value: false, 	references: ['a'] },
-			{ time: 100, value: true, 	references: ['a'] },
-			{ time: 300, value: true, 	references: ['a'] }
+			{ time: 1, value: true, 	references: ['a'], data: {} },
+			{ time: 2, value: false, 	references: ['a'], data: {} },
+			{ time: 2, value: true, 	references: ['a'], data: {} },
+			{ time: 3, value: true, 	references: ['a'], data: {} },
+			{ time: 20, value: false, 	references: ['a'], data: {} },
+			{ time: 20, value: true, 	references: ['a'], data: {} },
+			{ time: 100, value: false, 	references: ['a'], data: {} },
+			{ time: 100, value: true, 	references: ['a'], data: {} },
+			{ time: 300, value: true, 	references: ['a'], data: {} }
 		])
 	})
 	test('cleanInstances', () => {
@@ -166,6 +166,21 @@ describe('lib', () => {
 			{ id: '@3', start: 20, end: 92, references: ['a', 'b'] },
 			{ id: '%c', start: 100, end: 110, references: ['c'] },
 			{ id: '@4', start: 110, end: null, references: ['c', 'd'] }
+		])
+		expect(cleanInstances([
+			{ id: '@8', start: 1030, end: 1055, references: [ '@1', 'a0' ] },
+			{ id: '@e', start: 1055, end: 1080, references: [ '@1', 'a0' ] },
+			{ id: '@a', start: 1080, end: 1092, references: [ '@1', 'a0' ] },
+			{ id: '@b', start: 1122, end: 1147, references: [ '@2', 'a0', 'a1' ] },
+			{ id: '@c', start: 1147, end: 1172, references: [ '@2', 'a0', 'a1' ] },
+			{ id: '@d', start: 1172, end: 1184, references: [ '@2', 'a0', 'a1' ] }
+		], true, true)).toEqual([
+			{ id: '@8', start: 1030, end: 1055, references: [ '@1', 'a0' ] },
+			{ id: '@e', start: 1055, end: 1080, references: [ '@1', 'a0' ] },
+			{ id: '@a', start: 1080, end: 1092, references: [ '@1', 'a0' ] },
+			{ id: '@b', start: 1122, end: 1147, references: [ '@2', 'a0', 'a1' ] },
+			{ id: '@c', start: 1147, end: 1172, references: [ '@2', 'a0', 'a1' ] },
+			{ id: '@d', start: 1172, end: 1184, references: [ '@2', 'a0', 'a1' ] }
 		])
 	})
 	test('invertInstances', () => {
@@ -319,6 +334,27 @@ describe('lib', () => {
 			{ start: 605, end: 620, references: ['%a', '%c', 'a', 'c', 'x'] },
 			{ start: 620, end: 690, references: ['%a', '%b', 'a', 'b', 'x'] }
 			// { start: 700, end: 705, references: ['%c', 'c', 'x'] },
+		])
+
+		expect(applyRepeatingInstances(
+			[
+				{ id: '%a', start: 0, end: 15, references: ['g0'], caps: [{ id: 'g0', start: 0, end: 50 }] },
+				{ id: '%b', start: 55, end: 65, references: ['g0'], caps: [{ id: 'g0', start: 50, end: 100 }] }
+			],
+			{ value: 20, references: ['x'] },
+			{
+				time: 0,
+				limitTime: 200,
+				limitCount: 999
+			}
+		)).toMatchObject([
+			{ start: 0, end: 15 },
+			{ start: 20, end: 35 },
+			{ start: 40, end: 50 },
+
+			{ start: 55, end: 65 },
+			{ start: 75, end: 85 },
+			{ start: 95, end: 100 }
 		])
 
 	})
