@@ -1947,6 +1947,156 @@ const testDataOld: {
 				]
 			}
 		}
+	],
+	'logical_object_order': [
+		{
+			id: 'obj0',
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now
+			},
+			duration: 10000,
+			LLayer: 'layer0',
+			classes: ['class0'],
+			content: {}
+		},
+		{
+			id: 'obj1',
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now + 5000
+			},
+			duration: 10000,
+			LLayer: 'layer1',
+			classes: ['class1'],
+			content: {}
+		},
+		{
+			id: 'obj2',
+			trigger: {
+				type: TriggerType.LOGICAL,
+				value: '#obj0'
+			},
+			LLayer: 'layer2',
+			content: {}
+		},
+		{
+			id: 'obj3',
+			trigger: {
+				type: TriggerType.LOGICAL,
+				value: '#obj1'
+			},
+			LLayer: 'layer2',
+			content: {}
+		},
+		{
+			id: 'obj4',
+			trigger: {
+				type: TriggerType.LOGICAL,
+				value: '.class0'
+			},
+			LLayer: 'layer3',
+			content: {}
+		},
+		{
+			id: 'obj5',
+			trigger: {
+				type: TriggerType.LOGICAL,
+				value: '.class1'
+			},
+			LLayer: 'layer3',
+			content: {}
+		}
+	],
+	'logical_object_order_grouped': [
+		{
+			id: 'group0',
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now + 1000
+			},
+			duration: 10000,
+			LLayer: 'g0',
+			isGroup: true,
+			repeating: false,
+			content: {
+				objects: [
+					{
+						id: 'obj0',
+						trigger: {
+							type: TriggerType.TIME_ABSOLUTE,
+							value: 0
+						},
+						duration: 0,
+						LLayer: 'layer0',
+						classes: ['class0'],
+						content: {}
+					},
+					{
+						id: 'obj2',
+						trigger: {
+							type: TriggerType.LOGICAL,
+							value: '#obj0'
+						},
+						LLayer: 'layer2',
+						content: {}
+					},
+					{
+						id: 'obj4',
+						trigger: {
+							type: TriggerType.LOGICAL,
+							value: '.class0'
+						},
+						LLayer: 'layer3',
+						content: {}
+					}
+				]
+			}
+		},
+		{
+			id: 'group1',
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now + 5000
+			},
+			duration: 10000,
+			LLayer: 'g1',
+			isGroup: true,
+			repeating: false,
+			content: {
+				objects: [
+					{
+						id: 'obj1',
+						trigger: {
+							type: TriggerType.TIME_ABSOLUTE,
+							value: 0
+						},
+						duration: 0,
+						LLayer: 'layer1',
+						classes: ['class1'],
+						content: {}
+					},
+					{
+						id: 'obj3',
+						trigger: {
+							type: TriggerType.LOGICAL,
+							value: '#obj1'
+						},
+						LLayer: 'layer2',
+						content: {}
+					},
+					{
+						id: 'obj5',
+						trigger: {
+							type: TriggerType.LOGICAL,
+							value: '.class1'
+						},
+						LLayer: 'layer3',
+						content: {}
+					}
+				]
+			}
+		}
 	]
 }
 const testData: {
@@ -3790,6 +3940,114 @@ let tests: Tests = {
 		expect(state1.layers['layer0'].id).toEqual('obj2')
 		expect(state1.layers['layer1_first']).toBeTruthy()
 		expect(state1.layers['layer1_first'].id).toEqual('group0_first')
+	},
+	'Logical object order': () => {
+		const data = clone(getTestData('logical_object_order'))
+		const tl = Resolver.resolveTimeline(data, stdOpts)
+
+		// Sample while first obj is active
+		const state0 = Resolver.getState(tl, 2000)
+		expect(state0.layers['layer0']).toBeTruthy()
+		expect(state0.layers['layer0'].id).toEqual('obj0')
+		expect(state0.layers['layer1']).toBeFalsy()
+		expect(state0.layers['layer2']).toBeTruthy()
+		expect(state0.layers['layer2'].id).toEqual('obj2')
+		expect(state0.layers['layer3']).toBeTruthy()
+		expect(state0.layers['layer3'].id).toEqual('obj4')
+
+		// Sample while both objs are active
+		const state1 = Resolver.getState(tl, 7000)
+		expect(state1.layers['layer0']).toBeTruthy()
+		expect(state1.layers['layer0'].id).toEqual('obj0')
+		expect(state1.layers['layer1']).toBeTruthy()
+		expect(state1.layers['layer1'].id).toEqual('obj1')
+		expect(state1.layers['layer2']).toBeTruthy()
+		expect(state1.layers['layer2'].id).toEqual('obj3')
+		expect(state1.layers['layer3']).toBeTruthy()
+		expect(state1.layers['layer3'].id).toEqual('obj5')
+
+		// Sample while second obj is active
+		const state2 = Resolver.getState(tl, 12000)
+		expect(state2.layers['layer0']).toBeFalsy()
+		expect(state2.layers['layer1']).toBeTruthy()
+		expect(state2.layers['layer1'].id).toEqual('obj1')
+		expect(state2.layers['layer2']).toBeTruthy()
+		expect(state2.layers['layer2'].id).toEqual('obj3')
+		expect(state2.layers['layer3']).toBeTruthy()
+		expect(state2.layers['layer3'].id).toEqual('obj5')
+	},
+	'Logical object order grouped': () => {
+		const data = clone(getTestData('logical_object_order_grouped'))
+		const tl = Resolver.resolveTimeline(data, stdOpts)
+
+		expect(tl.objects['group0'].resolved).toMatchObject({
+			instances: [
+				{ start: 2000, end: 12000 }
+			]
+		})
+		expect(tl.objects['obj0'].resolved).toMatchObject({
+			instances: [
+				{ start: 2000, end: 12000 }
+			]
+		})
+		expect(tl.objects['obj2'].resolved).toMatchObject({
+			instances: [
+				{ start: 2000, end: 12000 }
+			]
+		})
+		expect(tl.objects['obj4'].resolved).toMatchObject({
+			instances: [
+				{ start: 2000, end: 12000 }
+			]
+		})
+		expect(tl.objects['group1'].resolved).toMatchObject({
+			instances: [
+				{ start: 6000, end: 16000 }
+			]
+		})
+		expect(tl.objects['obj1'].resolved).toMatchObject({
+			instances: [
+				{ start: 6000, end: 16000 }
+			]
+		})
+		expect(tl.objects['obj3'].resolved).toMatchObject({
+			instances: [
+				{ start: 6000, end: 16000 }
+			]
+		})
+		expect(tl.objects['obj5'].resolved).toMatchObject({
+			instances: [
+				{ start: 6000, end: 16000 }
+			]
+		})
+
+		// Sample while first obj is active
+		const state0 = Resolver.getState(tl, 2000)
+		expect(state0.layers).toMatchObject({
+			'layer0': { id: 'obj0' },
+			'layer2': { id: 'obj2' },
+			'layer3': { id: 'obj4' }
+		})
+		expect(state0.layers['layer1']).toBeFalsy()
+
+		// Sample while both objs are active
+		const state1 = Resolver.getState(tl, 7000)
+		expect(state1.layers).toMatchObject({
+			'layer0': { id: 'obj0' },
+			'layer1': { id: 'obj1' },
+			'layer2': { id: 'obj3' },
+			'layer3': { id: 'obj5' }
+		})
+
+		// Sample while second obj is active
+		const state2 = Resolver.getState(tl, 12000)
+		expect(state2.layers).toMatchObject({
+			// 'layer0': { id: 'obj0' },
+			'layer1': { id: 'obj1' },
+			'layer2': { id: 'obj3' },
+			'layer3': { id: 'obj5' }
+		})
+		expect(state2.layers['layer0']).toBeFalsy()
 	}
 }
 const onlyTests: Tests = {}
