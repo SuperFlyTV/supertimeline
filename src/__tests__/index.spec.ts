@@ -492,7 +492,7 @@ const testData = {
 						duration: 5, // duration of keyframe
 						trigger: {
 							type: TriggerType.TIME_ABSOLUTE,
-							value: 5 // Abslute time means "relative to parent start time" for a keyframe
+							value: 5 // Abslute time means 'relative to parent start time' for a keyframe
 						},
 						content: {
 							attributes: {
@@ -1817,6 +1817,104 @@ const testData = {
 					}
 				]
 			}
+		}
+	],
+	'logicalTriggers3': [
+		{
+			'id': 'super_default',
+			'trigger': {
+				'type': TriggerType.LOGICAL,
+				'value': '1'
+			},
+			'priority': 0,
+			'duration': 0,
+			'LLayer': 'nora_primary_super',
+			'content': {},
+			'classes': [
+				'nora_super_is_clear'
+			]
+		},
+		{
+			'id': 'head_default',
+			'trigger': {
+				'type': TriggerType.LOGICAL,
+				'value': '1'
+			},
+			'priority': 0,
+			'duration': 0,
+			'LLayer': 'nora_primary_headline',
+			'content': {}
+		},
+		{
+			'id': 'head_force_clear',
+			'trigger': {
+				'type': TriggerType.LOGICAL,
+				'value': '!$Lnora_primary_super.nora_super_is_clear'
+			},
+			'priority': 20,
+			'duration': 0,
+			'LLayer': 'nora_primary_headline',
+			'content': {}
+		},
+		{
+			'id': 'real_head',
+			'trigger': {
+				'type': TriggerType.TIME_ABSOLUTE,
+				'value': now + 200
+			},
+			'priority': 1,
+			'duration': 0,
+			'LLayer': 'nora_primary_headline',
+			'content': {}
+		}
+	],
+	'logicalTriggers3b': [
+		{
+			'id': 'super_default',
+			'trigger': {
+				'type': TriggerType.LOGICAL,
+				'value': '1'
+			},
+			'priority': 0,
+			'duration': 0,
+			'LLayer': 'nora_primary_super',
+			'content': {},
+			'classes': [
+				'nora_super_is_clear'
+			]
+		},
+		// {
+		// 	'id': 'head_default',
+		// 	'trigger': {
+		// 		'type': TriggerType.LOGICAL,
+		// 		'value': '1'
+		// 	},
+		// 	'priority': 0,
+		// 	'duration': 0,
+		// 	'LLayer': 'nora_primary_headline',
+		// 	'content': {}
+		// },
+		{
+			'id': 'head_force_clear',
+			'trigger': {
+				'type': TriggerType.LOGICAL,
+				'value': '!$Lnora_primary_super.nora_super_is_clear'
+			},
+			'priority': 20,
+			'duration': 0,
+			'LLayer': 'nora_primary_headline',
+			'content': {}
+		},
+		{
+			'id': 'real_head',
+			'trigger': {
+				'type': TriggerType.TIME_ABSOLUTE,
+				'value': now + 200
+			},
+			'priority': 1,
+			'duration': 0,
+			'LLayer': 'nora_primary_headline',
+			'content': {}
 		}
 	]
 }
@@ -3277,6 +3375,39 @@ let tests: Tests = {
 		expect(state1.LLayers['layer0'].id).toEqual('obj2')
 		expect(state1.LLayers['layer1_first']).toBeTruthy()
 		expect(state1.LLayers['layer1_first'].id).toEqual('group0_first')
+	},
+	'Logical triggers 3': () => {
+		const data = clone(getTestData('logicalTriggers3'))
+
+		// Sample at base
+		const state0 = Resolver.getState(data, now)
+		expect(state0.LLayers['nora_primary_super']).toBeTruthy()
+		expect(state0.LLayers['nora_primary_super'].id).toEqual('super_default')
+		expect(state0.LLayers['nora_primary_headline']).toBeTruthy()
+		expect(state0.LLayers['nora_primary_headline'].id).toEqual('head_default')
+
+		// Sample after real_head has started
+		const state1 = Resolver.getState(data, now + 350)
+		expect(state1.LLayers['nora_primary_super']).toBeTruthy()
+		expect(state1.LLayers['nora_primary_super'].id).toEqual('super_default')
+		expect(state1.LLayers['nora_primary_headline']).toBeTruthy()
+		expect(state1.LLayers['nora_primary_headline'].id).toEqual('real_head')
+	},
+	'Logical triggers 3b': () => {
+		const data = clone(getTestData('logicalTriggers3b'))
+
+		// Sample at base
+		const state0 = Resolver.getState(data, now)
+		expect(state0.LLayers['nora_primary_super']).toBeTruthy()
+		expect(state0.LLayers['nora_primary_super'].id).toEqual('super_default')
+		expect(state0.LLayers['nora_primary_headline']).toBeFalsy()
+
+		// Sample after real_head has started
+		const state1 = Resolver.getState(data, now + 350)
+		expect(state1.LLayers['nora_primary_super']).toBeTruthy()
+		expect(state1.LLayers['nora_primary_super'].id).toEqual('super_default')
+		expect(state1.LLayers['nora_primary_headline']).toBeTruthy()
+		expect(state1.LLayers['nora_primary_headline'].id).toEqual('real_head')
 	}
 }
 const onlyTests: Tests = {}
