@@ -381,7 +381,7 @@ class Resolver {
 		return interpretExpression(strOrExpr,isLogical)
 	}
 	static resolveExpression (
-		strOrExpr: string | number | Expression,
+		strOrExpr: string | number | Expression | null,
 		getObjectAttribute?: objAttributeFunction
 	) {
 		if (!getObjectAttribute) getObjectAttribute = nullGetObjectAttribute
@@ -1164,7 +1164,7 @@ function interpretExpression (strOrExpr: string | number | Expression, isLogical
 	return expression
 }
 function resolveExpression (
-	expression0: Expression,
+	expression0: Expression | null,
 	whosAsking: WhosAskingTrace,
 	getObjectAttribute: objAttributeFunction
 ): number | null {
