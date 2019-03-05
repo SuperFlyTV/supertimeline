@@ -1831,7 +1831,7 @@ const reverseDataObjs = (objs: Array<any>) => {
 	return objs
 }
 const getTestData = (dataset: string) => {
-	let data = clone(testData[dataset])
+	let data: any = clone((testData as any)[dataset])
 	if (reverseData) {
 		data = reverseDataObjs(data)
 	}
@@ -1969,25 +1969,45 @@ let tests: Tests = {
 
 		const obj1 = _.find(tl.resolved, { id: 'obj1' })
 		expect(obj1).toBeTruthy() // TimelineObject
+		if (!obj1) {
+			fail()
+			return
+		}
 		expect(obj1.resolved.startTime).toBe(1054)
 		expect(obj1.resolved.endTime).toBe(1064)
 
 		const obj2 = _.find(tl.resolved, { id: 'obj2' })
+		if (!obj2) {
+			fail()
+			return
+		}
 		expect(obj2).toBeTruthy() // TimelineObject
 		expect(obj2.resolved.startTime).toBe(1068)
 		expect(obj2.resolved.endTime).toBe(1118)
 
 		const obj3 = _.find(tl.resolved, { id: 'obj3' })
+		if (!obj3) {
+			fail()
+			return
+		}
 		expect(obj3).toBeTruthy() // TimelineObject
 		expect(obj3.resolved.startTime).toBe(1058)
 		expect(obj3.resolved.endTime).toBe(1068)
 
 		const obj4 = _.find(tl.resolved, { id: 'obj4' })
+		if (!obj4) {
+			fail()
+			return
+		}
 		expect(obj4).toBeTruthy() // TimelineObject
 		expect(obj4.resolved.startTime).toBe(1118)
 		expect(obj4.resolved.endTime).toBe(1128)
 
 		const obj5 = _.find(tl.resolved, { id: 'obj5' })
+		if (!obj5) {
+			fail()
+			return
+		}
 		expect(obj5).toBeTruthy() // TimelineObject
 		expect(obj5.resolved.startTime).toBe(1123)
 		expect(obj5.resolved.endTime).toBe(1133)
@@ -2037,6 +2057,10 @@ let tests: Tests = {
 		expect(tl.unresolved).toHaveLength(1)
 
 		const obj2 = _.find(tl.resolved, { id: 'obj2' })
+		if (!obj2) {
+			fail()
+			return
+		}
 		expect(obj2).toBeTruthy() // TimelineObject
 		expect(obj2.resolved.startTime).toBe(965)
 		expect(obj2.resolved.endTime).toBe(1015)
@@ -2058,12 +2082,20 @@ let tests: Tests = {
 		expect(tl.unresolved).toHaveLength(0)
 
 		const obj2 = _.find(tl.resolved, { id: 'obj2' })
+		if (!obj2) {
+			fail()
+			return
+		}
 
 		expect(obj2).toBeTruthy() // TimelineObject
 		expect(obj2.resolved.startTime).toBe(965)
 		expect(obj2.resolved.endTime).toBe(1015)
 
 		const obj3 = _.find(tl.resolved, { id: 'obj3' })
+		if (!obj3) {
+			fail()
+			return
+		}
 
 		expect(obj3).toBeTruthy() // TimelineObject
 		expect(obj3.resolved.startTime).toBe(985)
@@ -2109,7 +2141,10 @@ let tests: Tests = {
 		expect(tl.unresolved).toHaveLength(0)
 
 		const obj0 = _.find(tl.resolved, { id: 'obj0' })
-
+		if (!obj0) {
+			fail()
+			return
+		}
 		expect(obj0).toBeTruthy() // TimelineObject
 		expect(obj0.resolved.startTime).toBe(1000)
 		expect(obj0.resolved.endTime).toBe(1050)
@@ -2271,7 +2306,11 @@ let tests: Tests = {
 		expect(state0.LLayers['1']).toBeTruthy() // TimelineObject
 		expect(state0.LLayers['1'].id).toBe('obj0')
 
-		const obj0: TimelineObject = _.findWhere(data, { id: 'obj0' })
+		const obj0: TimelineObject | undefined = _.findWhere(data, { id: 'obj0' })
+		if (!obj0) {
+			fail()
+			return
+		}
 		obj0.externalFunction = 'ext0'
 
 		const externalFunctions0: ExternalFunctions = {
@@ -2415,7 +2454,11 @@ let tests: Tests = {
 	'disabled objects on timeline': () => {
 
 		const data = clone(getTestData('basic'))
-		const obj0: TimelineObject = _.findWhere(data, { id: 'obj0' })
+		const obj0: TimelineObject | undefined = _.findWhere(data, { id: 'obj0' })
+		if (!obj0) {
+			fail()
+			return
+		}
 		obj0.disabled = true
 
 		const tl = Resolver.getTimelineInWindow(data)
@@ -2489,10 +2532,13 @@ let tests: Tests = {
 		expect(tld.resolved).toHaveLength(3)
 		expect(tld.unresolved).toHaveLength(0)
 
-		const child0: TimelineResolvedObject = _.findWhere(tld.resolved, { id: 'child0' })
-		const child1: TimelineResolvedObject = _.findWhere(tld.resolved, { id: 'child1' })
-		const obj1: TimelineResolvedObject = _.findWhere(tld.resolved, { id: 'obj1' })
-
+		const child0 = _.findWhere(tld.resolved, { id: 'child0' })
+		const child1 = _.findWhere(tld.resolved, { id: 'child1' })
+		const obj1 = _.findWhere(tld.resolved, { id: 'obj1' })
+		if (!child0 || !child1 || !obj1) {
+			fail()
+			return
+		}
 		expect(child0.resolved.startTime).toBe(990)
 		expect(child0.resolved.endTime).toBe(1005)
 		expect(child1.resolved.startTime).toBe(1005)
@@ -2886,7 +2932,11 @@ let tests: Tests = {
 		const tl = Resolver.getTimelineInWindow(data)
 		expect(tl.resolved).toHaveLength(0)
 
-		const obj0: TimelineResolvedObject = _.findWhere(data, { id: 'obj0' })
+		const obj0: TimelineResolvedObject | undefined = _.findWhere(data, { id: 'obj0' })
+		if (!obj0) {
+			fail()
+			return
+		}
 		obj0.duration = 10 // break the circular dependency
 
 		const tl2 = Resolver.getTimelineInWindow(data)
@@ -2899,9 +2949,12 @@ let tests: Tests = {
 		const tld = Resolver.developTimelineAroundTime(tl, now)
 		expect(tld.resolved).toHaveLength(2)
 
-		const child0: TimelineResolvedObject = _.findWhere(tld.resolved, { id: 'child0' })
-		const child1: TimelineResolvedObject = _.findWhere(tld.resolved, { id: 'child1' })
-
+		const child0 = _.findWhere(tld.resolved, { id: 'child0' })
+		const child1 = _.findWhere(tld.resolved, { id: 'child1' })
+		if (!child0 || !child1) {
+			fail()
+			return
+		}
 		expect(child0.resolved.startTime).toBe(1000)
 		expect(child0.resolved.endTime).toBe(1150)
 		expect(child1.resolved.startTime).toBe(1150)
@@ -2928,8 +2981,13 @@ let tests: Tests = {
 		const tl = Resolver.getTimelineInWindow(data)
 		expect(tl.resolved).toHaveLength(2)
 
-		const group0: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'group0' })
-		const group1: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'group1' })
+		const group0 = _.findWhere(tl.resolved, { id: 'group0' })
+		const group1 = _.findWhere(tl.resolved, { id: 'group1' })
+
+		if (!group0 || !group1) {
+			fail()
+			return
+		}
 
 		expect(group0.resolved.startTime).toBe(1000)
 		expect(group1.resolved.startTime).toBe(1030)
@@ -2937,9 +2995,14 @@ let tests: Tests = {
 		const tld = Resolver.developTimelineAroundTime(tl, now)
 		expect(tld.resolved).toHaveLength(3)
 
-		const child0: TimelineResolvedObject = _.findWhere(tld.resolved, { id: 'child0' })
-		const child1: TimelineResolvedObject = _.findWhere(tld.resolved, { id: 'child1' })
-		const child2: TimelineResolvedObject = _.findWhere(tld.resolved, { id: 'child2' })
+		const child0 = _.findWhere(tld.resolved, { id: 'child0' })
+		const child1 = _.findWhere(tld.resolved, { id: 'child1' })
+		const child2 = _.findWhere(tld.resolved, { id: 'child2' })
+
+		if (!child0 || !child1 || !child2) {
+			fail()
+			return
+		}
 
 		expect(child0.resolved.startTime).toBe(1000)
 		expect(child0.resolved.endTime).toBe(1010)
@@ -2976,7 +3039,10 @@ let tests: Tests = {
 
 		const obj0 = _.findWhere(tl.resolved, { id: 'obj0' })
 		const obj1 = _.findWhere(tl.resolved, { id: 'obj1' })
-
+		if (!obj0 || !obj1) {
+			fail()
+			return
+		}
 		expect(obj0.resolved.startTime).toEqual(1000)
 		expect(obj0.resolved.endTime).toEqual(1010)
 
@@ -3025,9 +3091,12 @@ let tests: Tests = {
 		expect(tl.unresolved).toHaveLength(0)
 		expect(tl.resolved).toHaveLength(2)
 
-		const group0: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'group0' })
-		const trans0: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'trans0' })
-
+		const group0 = _.findWhere(tl.resolved, { id: 'group0' })
+		const trans0 = _.findWhere(tl.resolved, { id: 'trans0' })
+		if (!group0 || !trans0) {
+			fail()
+			return
+		}
 		expect(group0.resolved.startTime).toBe(1000)
 		expect(group0.resolved.outerDuration).toBe(Infinity)
 
@@ -3037,8 +3106,13 @@ let tests: Tests = {
 		const tld = Resolver.developTimelineAroundTime(tl, 1500)
 		expect(tld.resolved).toHaveLength(2)
 
-		const child0: TimelineResolvedObject = _.findWhere(tld.resolved, { id: 'child0' })
-		const child1: TimelineResolvedObject = _.findWhere(tld.resolved, { id: 'child1' })
+		const child0 = _.findWhere(tld.resolved, { id: 'child0' })
+		const child1 = _.findWhere(tld.resolved, { id: 'child1' })
+
+		if (!child0 || !child1) {
+			fail()
+			return
+		}
 
 		expect(child0.resolved.startTime).toBe(2500)
 		expect(child0.resolved.outerDuration).toBe(Infinity)
@@ -3064,9 +3138,12 @@ let tests: Tests = {
 		expect(tl.unresolved).toHaveLength(0)
 		expect(tl.resolved).toHaveLength(2)
 
-		const group0: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'group0' })
-		const group1: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'group1' })
-
+		const group0 = _.findWhere(tl.resolved, { id: 'group0' })
+		const group1 = _.findWhere(tl.resolved, { id: 'group1' })
+		if (!group0 || !group1) {
+			fail()
+			return
+		}
 		expect(group0.resolved.startTime).toBe(1000)
 		expect(group0.resolved.outerDuration).toBe(3100)
 
@@ -3092,9 +3169,12 @@ let tests: Tests = {
 		expect(tl.unresolved).toHaveLength(0)
 		expect(tl.resolved).toHaveLength(2)
 
-		const group0: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'group0' })
-		const group1: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'group1' })
-
+		const group0 = _.findWhere(tl.resolved, { id: 'group0' })
+		const group1 = _.findWhere(tl.resolved, { id: 'group1' })
+		if (!group0 || !group1) {
+			fail()
+			return
+		}
 		expect(group0.resolved.startTime).toBe(1000)
 		expect(group0.resolved.outerDuration).toBe(5600)
 
@@ -3122,8 +3202,13 @@ let tests: Tests = {
 		expect(tl.unresolved).toHaveLength(0)
 		expect(tl.resolved).toHaveLength(2)
 
-		const group0: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'group0' })
-		const group1: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'group1' })
+		const group0 = _.findWhere(tl.resolved, { id: 'group0' })
+		const group1 = _.findWhere(tl.resolved, { id: 'group1' })
+
+		if (!group0 || !group1) {
+			fail()
+			return
+		}
 
 		expect(group0.resolved.startTime).toBe(1000)
 		expect(group0.resolved.outerDuration).toBe(Infinity)
@@ -3150,9 +3235,13 @@ let tests: Tests = {
 		expect(tl.unresolved).toHaveLength(0)
 		expect(tl.resolved).toHaveLength(2)
 
-		const obj0: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'obj0' })
-		const obj1: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'obj1' })
+		const obj0 = _.findWhere(tl.resolved, { id: 'obj0' })
+		const obj1 = _.findWhere(tl.resolved, { id: 'obj1' })
 
+		if (!obj0 || !obj1) {
+			fail()
+			return
+		}
 		expect(obj0.resolved.startTime).toBe(4000)
 		expect(obj0.resolved.outerDuration).toBe(Infinity)
 
@@ -3165,14 +3254,18 @@ let tests: Tests = {
 		expect(tl.unresolved).toHaveLength(0)
 		expect(tl.resolved).toHaveLength(7)
 
-		const obj0: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'obj0' })
-		const obj1: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'obj1' })
-		const obj2: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'obj2' })
-		const obj3: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'obj3' })
-		const obj4: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'obj4' })
-		const obj5: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'obj5' })
-		const obj6: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'obj6' })
+		const obj0 = _.findWhere(tl.resolved, { id: 'obj0' })
+		const obj1 = _.findWhere(tl.resolved, { id: 'obj1' })
+		const obj2 = _.findWhere(tl.resolved, { id: 'obj2' })
+		const obj3 = _.findWhere(tl.resolved, { id: 'obj3' })
+		const obj4 = _.findWhere(tl.resolved, { id: 'obj4' })
+		const obj5 = _.findWhere(tl.resolved, { id: 'obj5' })
+		const obj6 = _.findWhere(tl.resolved, { id: 'obj6' })
 
+		if (!obj0 || !obj1 || !obj2 || !obj3 || !obj4 || !obj5 || !obj6) {
+			fail()
+			return
+		}
 		expect(obj0.resolved.startTime).toBe(4000)
 		expect(obj0.resolved.outerDuration).toBe(Infinity)
 
@@ -3200,8 +3293,11 @@ let tests: Tests = {
 		expect(tl.unresolved).toHaveLength(0)
 		expect(tl.resolved).toHaveLength(1)
 
-		const group0: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'group0' })
-
+		const group0 = _.findWhere(tl.resolved, { id: 'group0' })
+		if (!group0) {
+			fail()
+			return
+		}
 		expect(group0.resolved.startTime).toBe(6000)
 		expect(group0.resolved.outerDuration).toBe(Infinity)
 
@@ -3218,9 +3314,13 @@ let tests: Tests = {
 		expect(tl.unresolved).toHaveLength(6)
 		expect(tl.resolved).toHaveLength(2)
 
-		const obj0: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'obj0' })
-		const obj1: TimelineResolvedObject = _.findWhere(tl.resolved, { id: 'obj1' })
+		const obj0 = _.findWhere(tl.resolved, { id: 'obj0' })
+		const obj1 = _.findWhere(tl.resolved, { id: 'obj1' })
 
+		if (!obj0 || !obj1) {
+			fail()
+			return
+		}
 		expect(obj0.resolved.startTime).toBe(1000)
 		expect(obj0.resolved.outerDuration).toBe(Infinity)
 
