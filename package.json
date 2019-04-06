@@ -27,6 +27,8 @@
     "info": "npm-scripts-info",
     "build": "trash dist && yarn build:main",
     "build:main": "tsc -p tsconfig.json",
+    "build-examples": "yarn build && yarn build:examples",
+    "build:examples": "tsc -p tsconfig-examples.json",
     "lint": "tslint --project tsconfig.jest.json --config tslint.json",
     "unit": "jest --forceExit --detectOpenHandles",
     "test": "yarn lint && yarn unit",
