@@ -105,11 +105,12 @@ The logic is set by setting properties in the `.enable` property.
 
 | Property   | Description |
 |--|--|
-| .start             | The start time of the object. (cannot be combined with .while) |
-| .end               | The end time of the object (cannot be combined with .while or .duration). |
-| .while             | Enables the object WHILE expression is true (ie sets both the start and end). (cannot be combined with .start, .end or .duration ) |
-| .duration          | The duration of an object |
-| .repeating         | Makes the object repeat with given interval |
+| `.start`             | The start time of the object. (cannot be combined with `.while`) |
+| `.end`               | The end time of the object (cannot be combined with `.while` or `.duration`). |
+| `.while`             | Enables the object WHILE expression is true (ie sets both the start and end). (cannot be combined with `.start`, `.end` or `.duration` ) |
+| `.duration`          | The duration of an object |
+| `.repeating`         | Makes the object repeat with given interval |
+
 If `.end`, `.duration` or `.while` is not set, the object will run indefinitely.
 
 **Examples**
@@ -169,9 +170,9 @@ All objects will be resolved to a **layer** in the calculated **state**. There a
 ### Reference types
 | Example | Description |
 |--|--|
-| #objId | Reference to the object that has the specified **.id** |
-| .className | Reference to any object that has the class-name in its **.classes** |
-| $layerName | Reference to any object that is on the specified layer (**.layer**)  |
+| `#objId` | Reference to the object that has the specified **.id** |
+| `.className` | Reference to any object that has the class-name in its **.classes** |
+| `$layerName` | Reference to any object that is on the specified layer (**.layer**)  |
 
 #### Reference modifiers
 The references listed above can be modified:
