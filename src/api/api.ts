@@ -141,7 +141,7 @@ export interface InstanceEvent<T = any> {
 	references: Array<string>
 	data: T
 }
-export type Expression = number | string | ExpressionObj
+export type Expression = number | string | ExpressionObj | null
 export interface ExpressionObj {
 	l: Expression,
 	o: string,

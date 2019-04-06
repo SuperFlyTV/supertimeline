@@ -2134,18 +2134,20 @@ function convertTimelineObject (obj: TimelineObject): NewTimelineObject {
 		newObj.enable.end = obj.legacyEndTime
 	}
 	if (obj.content.keyframes) {
-		newObj.keyframes = []
+		const keyframes: NewTimelineKeyframe[] = []
 		_.each(obj.content.keyframes, (kf: TimelineKeyframe) => {
-			newObj.keyframes.push(convertTimelineKeyframe(kf))
+			keyframes.push(convertTimelineKeyframe(kf))
 		})
+		newObj.keyframes = keyframes
 		delete obj.content.keyframes
 	}
 	if (obj.isGroup && obj.content.objects) {
 		newObj.isGroup = true
-		newObj.children = []
+		const children: NewTimelineObject[] = []
 		_.each(obj.content.objects, (obj: TimelineObject) => {
-			newObj.children.push(convertTimelineObject(obj))
+			children.push(convertTimelineObject(obj))
 		})
+		newObj.children = children
 		delete obj.content.objects
 	}
 	return newObj
@@ -2159,7 +2161,7 @@ function convertTimelineKeyframe (obj: TimelineKeyframe): NewTimelineKeyframe {
 		// keyframes?: Array<TimelineKeyframe>
 		classes: obj.classes,
 		// disabled: boolean
-		content: obj.content
+		content: obj.content as any
 	}
 	if (obj.trigger.type === TriggerType.TIME_ABSOLUTE) {
 		newKf.enable.start = obj.trigger.value
@@ -2785,7 +2787,7 @@ let tests: Tests = {
 	'disabled objects on timeline': () => {
 
 		const data = clone(getTestData('basic'))
-		const obj0: NewTimelineObject = _.findWhere(data, { id: 'obj0' })
+		const obj0: NewTimelineObject = _.findWhere(data, { id: 'obj0' }) as NewTimelineObject
 		obj0.disabled = true
 
 		const tl = Resolver.resolveTimeline(data, stdOpts)
@@ -3405,7 +3407,7 @@ let tests: Tests = {
 		// const tl = Resolver.resolveTimeline(data, stdOpts)
 		// expect(tl.statistics.resolvedObjectCount).toEqual(0)
 
-		const obj0: NewTimelineObject = _.findWhere(data, { id: 'obj0' })
+		const obj0: NewTimelineObject = _.findWhere(data, { id: 'obj0' }) as NewTimelineObject
 		obj0.enable.duration = 10 // break the circular dependency
 
 		const tl = Resolver.resolveTimeline(data, stdOpts)

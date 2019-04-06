@@ -110,7 +110,7 @@ describe('resolver', () => {
 		}).toThrowError()
 
 		const TRUE_EXPR = [{ start: 0, end: null, references: [] }]
-		const FALSE_EXPR = []
+		const FALSE_EXPR: any = []
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('1 | 0'), 'start'
