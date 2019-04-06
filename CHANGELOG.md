@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="7.0.0"></a>
+# [7.0.0](https://github.com/SuperFlyTV/supertimeline/compare/6.0.3...7.0.0) (2019-04-06)
+
+
+### Bug Fixes
+
+* minor bugs in expressions ([bcfe44f](https://github.com/SuperFlyTV/supertimeline/commit/bcfe44f))
+* tests and ts3 lint issues ([01a537e](https://github.com/SuperFlyTV/supertimeline/commit/01a537e))
+* use ts 3 and update deps ([0731cba](https://github.com/SuperFlyTV/supertimeline/commit/0731cba))
+
+
+### Features
+
+* add reference breadcrumbs, continued work on capping-in-parent etc.. ([af4380d](https://github.com/SuperFlyTV/supertimeline/commit/af4380d))
+* continued implementation ([296729c](https://github.com/SuperFlyTV/supertimeline/commit/296729c))
+* continued implementation, all (non-deprecated) tests are now ok ([3f90008](https://github.com/SuperFlyTV/supertimeline/commit/3f90008))
+* continued implementation, validation, ([f95b4ce](https://github.com/SuperFlyTV/supertimeline/commit/f95b4ce))
+* implement cap-in-parent, refactoring, rename trigger => enable ([ce656a9](https://github.com/SuperFlyTV/supertimeline/commit/ce656a9))
+* implement classes ([6d1b2e0](https://github.com/SuperFlyTV/supertimeline/commit/6d1b2e0))
+* implement getState & getNextEvents ([c04a269](https://github.com/SuperFlyTV/supertimeline/commit/c04a269))
+* implement getState, groups & repeating trigger ([f1753e1](https://github.com/SuperFlyTV/supertimeline/commit/f1753e1))
+* implement keyframes ([80513ea](https://github.com/SuperFlyTV/supertimeline/commit/80513ea))
+* mixed expressions, initial implementation. Complete rehaul (WIP) ([923b2e2](https://github.com/SuperFlyTV/supertimeline/commit/923b2e2))
+
+
+
 <a name="6.0.3"></a>
 ## [6.0.3](https://github.com/SuperFlyTV/supertimeline/compare/6.0.2...6.0.3) (2018-11-07)
 
