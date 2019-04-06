@@ -1938,6 +1938,104 @@ const testDataOld: {
 			}
 		}
 	],
+	'logicalTriggers3': [
+		{
+			'id': 'super_default',
+			'trigger': {
+				'type': TriggerType.LOGICAL,
+				'value': '1'
+			},
+			'priority': 0,
+			'duration': 0,
+			'LLayer': 'nora_primary_super',
+			'content': {},
+			'classes': [
+				'nora_super_is_clear'
+			]
+		},
+		{
+			'id': 'head_default',
+			'trigger': {
+				'type': TriggerType.LOGICAL,
+				'value': '1'
+			},
+			'priority': 0,
+			'duration': 0,
+			'LLayer': 'nora_primary_headline',
+			'content': {}
+		},
+		{
+			'id': 'head_force_clear',
+			'trigger': {
+				'type': TriggerType.LOGICAL,
+				'value': '!$Lnora_primary_super.nora_super_is_clear'
+			},
+			'priority': 20,
+			'duration': 0,
+			'LLayer': 'nora_primary_headline',
+			'content': {}
+		},
+		{
+			'id': 'real_head',
+			'trigger': {
+				'type': TriggerType.TIME_ABSOLUTE,
+				'value': now + 200
+			},
+			'priority': 1,
+			'duration': 0,
+			'LLayer': 'nora_primary_headline',
+			'content': {}
+		}
+	],
+	'logicalTriggers3b': [
+		{
+			'id': 'super_default',
+			'trigger': {
+				'type': TriggerType.LOGICAL,
+				'value': '1'
+			},
+			'priority': 0,
+			'duration': 0,
+			'LLayer': 'nora_primary_super',
+			'content': {},
+			'classes': [
+				'nora_super_is_clear'
+			]
+		},
+		// {
+		// 	'id': 'head_default',
+		// 	'trigger': {
+		// 		'type': TriggerType.LOGICAL,
+		// 		'value': '1'
+		// 	},
+		// 	'priority': 0,
+		// 	'duration': 0,
+		// 	'LLayer': 'nora_primary_headline',
+		// 	'content': {}
+		// },
+		{
+			'id': 'head_force_clear',
+			'trigger': {
+				'type': TriggerType.LOGICAL,
+				'value': '!$Lnora_primary_super.nora_super_is_clear'
+			},
+			'priority': 20,
+			'duration': 0,
+			'LLayer': 'nora_primary_headline',
+			'content': {}
+		},
+		{
+			'id': 'real_head',
+			'trigger': {
+				'type': TriggerType.TIME_ABSOLUTE,
+				'value': now + 200
+			},
+			'priority': 1,
+			'duration': 0,
+			'LLayer': 'nora_primary_headline',
+			'content': {}
+		}
+	],
 	'logical_object_order': [
 		{
 			id: 'obj0',
@@ -3932,6 +4030,41 @@ let tests: Tests = {
 		expect(state1.layers['layer0'].id).toEqual('obj2')
 		expect(state1.layers['layer1_first']).toBeTruthy()
 		expect(state1.layers['layer1_first'].id).toEqual('group0_first')
+	},
+	'Logical triggers 3': () => {
+		const data = clone(getTestData('logicalTriggers3'))
+		const tl = Resolver.resolveTimeline(data, stdOpts)
+
+ 		// Sample at base
+		const state0 = Resolver.getState(tl, now)
+		expect(state0.layers['nora_primary_super']).toBeTruthy()
+		expect(state0.layers['nora_primary_super'].id).toEqual('super_default')
+		expect(state0.layers['nora_primary_headline']).toBeTruthy()
+		expect(state0.layers['nora_primary_headline'].id).toEqual('head_default')
+
+ 		// Sample after real_head has started
+		const state1 = Resolver.getState(tl, now + 350)
+		expect(state1.layers['nora_primary_super']).toBeTruthy()
+		expect(state1.layers['nora_primary_super'].id).toEqual('super_default')
+		expect(state1.layers['nora_primary_headline']).toBeTruthy()
+		expect(state1.layers['nora_primary_headline'].id).toEqual('real_head')
+	},
+	'Logical triggers 3b': () => {
+		const data = clone(getTestData('logicalTriggers3b'))
+		const tl = Resolver.resolveTimeline(data, stdOpts)
+
+ 		// Sample at base
+		const state0 = Resolver.getState(tl, now)
+		expect(state0.layers['nora_primary_super']).toBeTruthy()
+		expect(state0.layers['nora_primary_super'].id).toEqual('super_default')
+		expect(state0.layers['nora_primary_headline']).toBeFalsy()
+
+ 		// Sample after real_head has started
+		const state1 = Resolver.getState(tl, now + 350)
+		expect(state1.layers['nora_primary_super']).toBeTruthy()
+		expect(state1.layers['nora_primary_super'].id).toEqual('super_default')
+		expect(state1.layers['nora_primary_headline']).toBeTruthy()
+		expect(state1.layers['nora_primary_headline'].id).toEqual('real_head')
 	},
 	'Logical object order': () => {
 		const data = clone(getTestData('logical_object_order'))
