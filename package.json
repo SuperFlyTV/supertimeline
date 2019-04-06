@@ -1,6 +1,6 @@
 {
   "name": "superfly-timeline",
-  "version": "6.0.3",
+  "version": "7.0.0-0",
   "description": "A collection of rules as well as a resolver for placing objects on a virtual timeline.",
   "license": "MIT",
   "author": {
