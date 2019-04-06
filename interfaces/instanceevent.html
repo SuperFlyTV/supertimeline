@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Filter | superfly-timeline</title>
+	<title>InstanceEvent | superfly-timeline</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style type="text/css">/*! normalize.css v1.1.3 | MIT License | git.io/normalize */
@@ -909,14 +909,20 @@ img { max-width: 100%; }
 </header>
 <nav class="tsd-navigation secondary">
 	<ul>
-		<li class="current tsd-kind-interface tsd-is-external">
-			<a href="filter.html" class="tsd-kind-icon">Filter</a>
+		<li class="current tsd-kind-interface tsd-has-type-parameter tsd-is-external">
+			<a href="instanceevent.html" class="tsd-kind-icon">Instance<wbr>Event</a>
 			<ul>
 				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-					<a href="filter.html#endtime" class="tsd-kind-icon">end<wbr>Time</a>
+					<a href="instanceevent.html#data" class="tsd-kind-icon">data</a>
 				</li>
 				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-					<a href="filter.html#starttime" class="tsd-kind-icon">start<wbr>Time</a>
+					<a href="instanceevent.html#references" class="tsd-kind-icon">references</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+					<a href="instanceevent.html#time" class="tsd-kind-icon">time</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+					<a href="instanceevent.html#value" class="tsd-kind-icon">value</a>
 				</li>
 			</ul>
 		</li>
@@ -924,11 +930,19 @@ img { max-width: 100%; }
 </nav>
 <div class="container container-main">
 	<div class="content-wrap">
+		<section class="tsd-panel tsd-type-parameters">
+			<h3>Type parameters</h3>
+			<ul class="tsd-type-parameters">
+				<li>
+					<h4>T</h4>
+				</li>
+			</ul>
+		</section>
 		<section class="tsd-panel tsd-hierarchy">
 			<h3>Hierarchy</h3>
 			<ul class="tsd-hierarchy">
 				<li>
-					<span class="target">Filter</span>
+					<span class="target">InstanceEvent</span>
 				</li>
 			</ul>
 		</section>
@@ -939,8 +953,10 @@ img { max-width: 100%; }
 					<section class="tsd-index-section tsd-is-external">
 						<h3>Properties</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="filter.html#endtime" class="tsd-kind-icon">end<wbr>Time</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="filter.html#starttime" class="tsd-kind-icon">start<wbr>Time</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="instanceevent.html#data" class="tsd-kind-icon">data</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="instanceevent.html#references" class="tsd-kind-icon">references</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="instanceevent.html#time" class="tsd-kind-icon">time</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="instanceevent.html#value" class="tsd-kind-icon">value</a></li>
 						</ul>
 					</section>
 				</div>
@@ -949,22 +965,42 @@ img { max-width: 100%; }
 		<section class="tsd-panel-group tsd-member-group tsd-is-external">
 			<h2>Properties</h2>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-				<a name="endtime" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagOptional">Optional</span> end<wbr>Time</h3>
-				<div class="tsd-signature tsd-kind-icon">end<wbr>Time<span class="tsd-signature-symbol">:</span> <a href="../globals.html#endtime" class="tsd-signature-type">EndTime</a></div>
+				<a name="data" class="tsd-anchor"></a>
+				<h3>data</h3>
+				<div class="tsd-signature tsd-kind-icon">data<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">T</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/f5bf375/src/resolver/resolver.ts#L147">resolver/resolver.ts:147</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/6ef6dff/src/api/api.ts#L142">api/api.ts:142</a></li>
 					</ul>
 				</aside>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-				<a name="starttime" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagOptional">Optional</span> start<wbr>Time</h3>
-				<div class="tsd-signature tsd-kind-icon">start<wbr>Time<span class="tsd-signature-symbol">:</span> <a href="../globals.html#starttime" class="tsd-signature-type">StartTime</a></div>
+				<a name="references" class="tsd-anchor"></a>
+				<h3>references</h3>
+				<div class="tsd-signature tsd-kind-icon">references<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/f5bf375/src/resolver/resolver.ts#L146">resolver/resolver.ts:146</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/6ef6dff/src/api/api.ts#L141">api/api.ts:141</a></li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+				<a name="time" class="tsd-anchor"></a>
+				<h3>time</h3>
+				<div class="tsd-signature tsd-kind-icon">time<span class="tsd-signature-symbol">:</span> <a href="../globals.html#time" class="tsd-signature-type">Time</a></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/6ef6dff/src/api/api.ts#L139">api/api.ts:139</a></li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+				<a name="value" class="tsd-anchor"></a>
+				<h3>value</h3>
+				<div class="tsd-signature tsd-kind-icon">value<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/6ef6dff/src/api/api.ts#L140">api/api.ts:140</a></li>
 					</ul>
 				</aside>
 			</section>

@@ -913,10 +913,10 @@ img { max-width: 100%; }
 			<a href="timelinestate.html" class="tsd-kind-icon">Timeline<wbr>State</a>
 			<ul>
 				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-					<a href="timelinestate.html#glayers" class="tsd-kind-icon">GLayers</a>
+					<a href="timelinestate.html#layers" class="tsd-kind-icon">layers</a>
 				</li>
 				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-					<a href="timelinestate.html#llayers" class="tsd-kind-icon">LLayers</a>
+					<a href="timelinestate.html#nextevents" class="tsd-kind-icon">next<wbr>Events</a>
 				</li>
 				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
 					<a href="timelinestate.html#time" class="tsd-kind-icon">time</a>
@@ -942,8 +942,8 @@ img { max-width: 100%; }
 					<section class="tsd-index-section tsd-is-external">
 						<h3>Properties</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="timelinestate.html#glayers" class="tsd-kind-icon">GLayers</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="timelinestate.html#llayers" class="tsd-kind-icon">LLayers</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="timelinestate.html#layers" class="tsd-kind-icon">layers</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="timelinestate.html#nextevents" class="tsd-kind-icon">next<wbr>Events</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="timelinestate.html#time" class="tsd-kind-icon">time</a></li>
 						</ul>
 					</section>
@@ -953,48 +953,40 @@ img { max-width: 100%; }
 		<section class="tsd-panel-group tsd-member-group tsd-is-external">
 			<h2>Properties</h2>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-				<a name="glayers" class="tsd-anchor"></a>
-				<h3>GLayers</h3>
-				<div class="tsd-signature tsd-kind-icon">GLayers<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
+				<a name="layers" class="tsd-anchor"></a>
+				<h3>layers</h3>
+				<div class="tsd-signature tsd-kind-icon">layers<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/f5bf375/src/resolver/resolver.ts#L116">resolver/resolver.ts:116</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/6ef6dff/src/api/api.ts#L160">api/api.ts:160</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-type-declaration">
 					<h4>Type declaration</h4>
 					<ul class="tsd-parameters">
 						<li class="tsd-parameter-index-signature">
-							<h5><span class="tsd-signature-symbol">[</span>GLayer: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><a href="timelineresolvedobject.html" class="tsd-signature-type">TimelineResolvedObject</a></h5>
+							<h5><span class="tsd-signature-symbol">[</span>layer: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><a href="resolvedtimelineobjectinstance.html" class="tsd-signature-type">ResolvedTimelineObjectInstance</a></h5>
 						</li>
 					</ul>
 				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-				<a name="llayers" class="tsd-anchor"></a>
-				<h3>LLayers</h3>
-				<div class="tsd-signature tsd-kind-icon">LLayers<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
+				<a name="nextevents" class="tsd-anchor"></a>
+				<h3>next<wbr>Events</h3>
+				<div class="tsd-signature tsd-kind-icon">next<wbr>Events<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="nextevent.html" class="tsd-signature-type">NextEvent</a><span class="tsd-signature-symbol">&gt;</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/f5bf375/src/resolver/resolver.ts#L119">resolver/resolver.ts:119</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/6ef6dff/src/api/api.ts#L163">api/api.ts:163</a></li>
 					</ul>
 				</aside>
-				<div class="tsd-type-declaration">
-					<h4>Type declaration</h4>
-					<ul class="tsd-parameters">
-						<li class="tsd-parameter-index-signature">
-							<h5><span class="tsd-signature-symbol">[</span>LLayer: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><a href="timelineresolvedobject.html" class="tsd-signature-type">TimelineResolvedObject</a></h5>
-						</li>
-					</ul>
-				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
 				<a name="time" class="tsd-anchor"></a>
 				<h3>time</h3>
-				<div class="tsd-signature tsd-kind-icon">time<span class="tsd-signature-symbol">:</span> <a href="../globals.html#sometime" class="tsd-signature-type">SomeTime</a></div>
+				<div class="tsd-signature tsd-kind-icon">time<span class="tsd-signature-symbol">:</span> <a href="../globals.html#time" class="tsd-signature-type">Time</a></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/f5bf375/src/resolver/resolver.ts#L115">resolver/resolver.ts:115</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/6ef6dff/src/api/api.ts#L159">api/api.ts:159</a></li>
 					</ul>
 				</aside>
 			</section>
