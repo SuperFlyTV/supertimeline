@@ -1,0 +1,17 @@
+{
+  "extends": "./config/tsconfig.base",
+  "compilerOptions": {
+    "target": "es6",
+    "outDir": "./examples/",
+    "baseUrl": "./",
+    "sourceMap": false,
+    "declaration": false
+  },
+  "include": [
+    "./examples/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules/**",
+    "src/**/*spec.ts"
+  ]
+}

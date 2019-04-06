@@ -1,3 +1,4 @@
+
 # SuperFly-Timeline
 [![CircleCI](https://circleci.com/gh/SuperFlyTV/supertimeline.svg?style=svg)](https://circleci.com/gh/SuperFlyTV/supertimeline)
 
@@ -19,250 +20,254 @@ Can be run in the browser using *browserify* or the like.
 ```javascript
 var Timeline = require("superfly-timeline");
 
-// The input to the timeline is an array of objects
-var myObjects = [];
+// The input to the timeline is an array of objects:
+const myTimeline = [
+    {
+        id: 'video0',
+        layer: 'L1',
+        enable: {
+            start: 10,
+            end: 100
+        },
+        content: {}
+    },
+    { // This object defines a graphic, to be overlaid on the video
+        id: 'graphic0',
+        layer: 'L2',
+        enable: {
+            start: '#video0.start + 10', // 10 after video0 starts
+            duration: 10
+        },
+        content: {},
+        classes: ['graphics']
+    },
+    {
+        id: 'graphic1',
+        layer: 'L2',
+        enable: {
+            start: '#graphic0.end + 10', // 10 after graphic0 ends
+            duration: 15
+        },
+        content: {},
+        classes: ['graphics']
+    },
+    {
+        id: 'graphicBackground',
+        layer: 'L3',
+        enable: {
+            while: '!.graphics' // When no graphics are playing
+        },
+        content: {}
+    }
+];
 
-// Lets add an object to the timeline:
-myObjects.push({
-	id: 'obj0', // the id must be unique
+// When we have a new timeline, the first thing to do is to "Resolve" it.
+// This calculates all timings of the objects in the timeline.
+const options = {
+    time: 0
+};
+const resolvedTimeline = Timeline.Resolver.resolveTimeline(myTimeline, options);
 
-	trigger: {
-		type: Timeline.Enums.TriggerType.TIME_ABSOLUTE, 
-		value: Date.now()/1000 - 10 // 10 seconds ago
-	},
-	duration: 60, // 1 minute long
-	LLayer: 1 // Logical layer
-});
 
-// Lets add another object to the timeline, set to start right after the previous one:
-myObjects.push({
-	id: 'obj1', // the id must be unique
+// Fetch the state at time 10:
+const state0 = Timeline.Resolver.getState(resolvedTimeline, 10);
+console.log(`At the time ${state0.time}, the active objects are "${
+	_.map(state0.layers, (o, l) => `${o.id} at layer ${l}`).join(', ')
+}"`);
 
-	trigger: {
-		type: Timeline.Enums.TriggerType.TIME_RELATIVE, 
-		value: '#obj0.end'
-	},
-	duration: 60, // 1 minute long
-	LLayer: 1 // Logical layer
-});
+// Fetch the state at time 25:
+const state1 = Timeline.Resolver.getState(resolvedTimeline, 25);
+console.log(`At the time ${state1.time}, the active objects are "${
+	_.map(state1.layers, (o, l) => `${o.id} at layer ${l}`).join(', ')
+}"`);
 
-// By resolving the timeline, the times of the objects are calculated:
-var tl = Timeline.Resolver.getTimelineInWindow(myObjects);
 
-// To see whats on right now, we fetch the State:
-var stateNow = Timeline.Resolver.getState(tl, Date.now()/1000);
-//
-/*
-stateNow = {
-	time: 1511009749,
-	GLayers: { 
-		'1': {
-			id: 'obj0',
-			trigger: {},
-			duration: 60,
-			LLayer: 1,
-			content: {},
-			resolved: {} 
-		}
-	},
-	LLayers: {
-		'1': { 
-			id: 'obj0',
-			trigger: {},
-			duration: 60,
-			LLayer: 1,
-			content: {},
-			resolved: {}
-		}
-	}
-}
-*/
-// To see what will be on in a minute, we fetch the state for that time:
-var stateInAMinute = Timeline.Resolver.getState(tl, Date.now()/1000 + 60);
-/*
-stateNow = {
-	time: 1511009749,
-	GLayers: { 
-		'1': {
-			id: 'obj1',
-			trigger: {},
-			duration: 60,
-			LLayer: 1,
-			content: {},
-			resolved: {} 
-		}
-	},
-	LLayers: {
-		'1': { 
-			id: 'obj1',
-			trigger: {},
-			duration: 60,
-			LLayer: 1,
-			content: {},
-			resolved: {}
-		}
-	}
-}
-*/
+console.log(`The object "graphicBackground" will play at [${
+	_.map(resolvedTimeline.objects['graphicBackground'].resolved.instances, (instance) => `${instance.start} to ${instance.end}`).join(', ')
+}]`);
+
+
+const nextEvent = state1.nextEvents[0];
+console.log(`After the time ${state1.time}, the next event to happen will be at time ${nextEvent.time}. The event is related to the object "${nextEvent.objId}"`);
+
+// Output:
+// At the time 10, the active objects are "video0 at layer L1, graphicBackground at layer L3"
+// At the time 25, the active objects are "video0 at layer L1, graphic0 at layer L2"
+// The object "graphicBackground" will play at "0 to 20, 30 to 40, 55 to null"
+// After the time 25, the next event to happen will be at time 30. The event is related to the object "graphic0"
+
 ```
 
-## Features
+# API
 
-### Trigger types
-* **Absolute time** (TIME_ABSOLUTE)
-	The start time of the object is defined as a float number (unix time).
+The logic is set by setting properties in the `.enable` property.
 
-* **Relative time** (TIME_RELATIVE)
-	The start time of the object is defined by an expression, relative to another object.
-    
-	Examples:
-    
-	**"#obj0.end"** The end time of another object
-    
-	**"#obj0.start"** The start time of another object
-    
-	**"#obj0.duration"** The duration of another object
-    
-	It is also possible to use basic math, using +, -, *, /, ()
-    
-	Examples:
-    
-	**"#obj0.end - 2"** 2 seconds before the end of another object
-    
-    **"(#obj0.start + #obj0.end) / 2 "** Half-way in
 
-* **Duraion**
-	The duration of an object can either be an absolute number, or an expresstion (like the Relative time)
+| Property   | Description |
+|--|--|
+| `.start`             | The start time of the object. (cannot be combined with `.while`) |
+| `.end`               | The end time of the object (cannot be combined with `.while` or `.duration`). |
+| `.while`             | Enables the object WHILE expression is true (ie sets both the start and end). (cannot be combined with `.start`, `.end` or `.duration` ) |
+| `.duration`          | The duration of an object |
+| `.repeating`         | Makes the object repeat with given interval |
 
-* **Logical expression** (LOGICAL)
-	Use a logical expression to place an object on the timeline (unlike a time-based expression).
-	When the expression is evaluated to True, the object will be present.
+If `.end`, `.duration` or `.while` is not set, the object will run indefinitely.
 
-	Examples:
-    
-	**"#obj0"** Id of another object (if the other object is playing, this object will be played as well)
-    
-	**"$L1"** Anything on LLayer 1
-    
-    **"$G1"** Anything on GLayer 1
-    
-	**".main"** If any other object with this class is present (read more on classes below)
-    
-	**"#obj0 & .main"** Logical AND
-    
-	**"#obj0 | .main"** Logical OR
-    
-	**"!#obj0"** Logical NOT
-
-#### Expressions as objects
-It is also possible to define expressions as objects, as opposed to the strings explained above.
-The object has a left-hand-side operand, a right-hand-side operand and an operator. The operand can be a number, a reference or another expression.
-
-Example:
-
-**"#obj0.end - 2"** is equivalent to
+**Examples**
 ```javascript
 {
-	r: "#obj0.end"
-	o: "-"
-	l: "2"
+   enable: {
+      start: '#abc.end + 5', // Start 5 seconds after #abc ends
+      duration: '#abc.duration' // Have the same duration as #abc
+   }
+}
+```
+```javascript
+{
+   enable: {
+      while: '#abc', // Enable while #abc is enabled
+   }
 }
 ```
 
-### Layers
-* **Logical layer** (LLayer): 
-	If two objects are on the same LLayer, the latest (or the one with highest priority) will take precedence.
+## State & Layers
+All objects will be resolved to a **layer** in the calculated **state**. There are a few rules:
+* Only **one** object can exist on a layer at the same time.
+* If two (or more) objects fight for the place on a layer:
+	* The one with highest `.priority` will win.
+	* If tied, the one with *latest start time* will win.
 
-* **Graphical layer** (GLayer):
-	The difference between GLayers & LLayers are that while LLayers are used first to find out WHAT to play, WHERE to play it is defined by GLayers. **(For most applications, these two will always be the same.)**
+**Example**
 
-## Object reference 
+```javascript
+{
+	id: 'A',
+	layer: 'L1',
+	enable: {
+		start: 10,
+		end: 100
+	},
+	content: {},
+},
+{
+	id: 'B',
+	layer: 'L1',
+	enable: {
+		start: 50,
+		end: 10
+	},
+	content: {},
+}
+// This will cause the timeline to be:
+// A on layer L1 for 10 - 50
+// B on layer L1 for 50 - 60
+// A on layer L1 for 60 - 100 (since B has stopped)
 
-| Attribute        | Description           | Examples  |
-| ------------- |:-------------:| -----:|
-| id | The id must be unique | 'obj0' |
-| trigger.type  | See "Trigger types" above | Enums.TriggerType.TIME_ABSOLUTE, TIME_RELATIVE, LOGICAL |
-| trigger.value | See "Trigger types" above | For TIME_ABSOLUTE: Date.now()/1000, TIME_RELATIVE: "#obj1.end", LOGICAL: "#obj1" |
-| duration | The duration of the object (0 is infinite) | 60 |
-| LLayer | See "Layers" above | 1 |
-| priority | Objects with higher priority will take precedence | 0 |
-| classes | An array of class-names, that can be referenced from other LOGICAL objects | ['main', 'bug'] |
-| disabled | Disables this object for resolving | true/false |
-| content | This is where you put your specific attributes, to use later in your application | {} |
-| content.keyframes | See keyframes below | [{Keyframe}] |
+```
+
+## References
+
+### Reference types
+| Example | Description |
+|--|--|
+| `#objId` | Reference to the object that has the specified **.id** |
+| `.className` | Reference to any object that has the class-name in its **.classes** |
+| `$layerName` | Reference to any object that is on the specified layer (**.layer**)  |
+
+#### Reference modifiers
+The references listed above can be modified:
+| Example | Description |
+|--|--|
+| #objId.start | Refer to the start of the object |
+| #objId.end| Refer to the end of the object |
+| #objId.duration | Refer to the duration of the object |
+
+### Reference combinations
+The references can be combined using basic math expressions ( + - * / % ) and logical operators ( & | ! )
+
+**Examples**
+```javascript
+{
+   enable: {
+      start: '#abc.start + #abc.duration / 2', // Start halfway in
+   }
+}
+```
+```javascript
+{
+   enable: {
+      while: '#sun & !(#moon | #jupiter ) ', // Enable while #sun (but not #moon or #jupiter) are enabled.
+   }
+}
+```
+
+--------
+
 
 ## Keyframes
-It is possible to add keyframes to an object, which works the same way as normal objects, and their content is added to the object's.
+It is also possible to add keyframes to an object. A keyframe can have the same logics as normal timeline objects, and when "enabled", it applies it's `.content` on its parent object's `.content`.
+**Example**
+```javascript
+{
+	id: 'myObj',
+	layer: 'L1',
+	enable: {
+		start: 10,
+		end: 100
+	},
+	content: {
+		opacity: 100
+	},
+	keyframes: [{
+		id:  'kf0',
+		enable: {
+			start: 5, // relative to parent, so will start at 15
+			duration: 10
+		},
+		content: {
+			opacity: 0
+		}
+	}]
+}
+// This will cause the object to be
+// * Enabled between 10 - 100
+// * Have opacity = 100 between 10 - 15, and 25 - 100
+// * Have opacity = 0 between 15 - 25
+```
+
+## Groups
+It is also possible to add groups that contain other objects as children. The children will always be capped within their parent.
+
+Groups can work in 2 ways:
+* A *"Transparent group"* **does not** have a `.layer` assigned to it (or it's set to ''). A transparent group does not "collide" with other objects, nor be visible in the calculated state. But its children objects will always be put on the timeline.
+* A *"Normal group"* **does** have a `.layer` assigned to it. This means that the group works the same way as normal objects, and can collide with them. The children of the group will only be enabled while the parent is enabled.
+
+**Example**
 
 ```javascript
-// example of an object with keyframes
-
 {
-
-	id: 'obj0',
-	duration: 50,
-	trigger: {
-		type: Timeline.Enums.TriggerType.TIME_ABSOLUTE, 
-		value: 1000,
+	id: 'myGroup',
+	layer: '',
+	enable: {
+		start: 10,
+		duration: 10
+		repeat: 20 // Repeat every 20 seconds, so will start at 10, 30, 50 etc...
 	},
-	LLayer: 1,
-	content: {
-		media: 'AMB',
-		attributes: {
-			positionY: 0,
-			positionX: 0,
-			scale: 1
+	content: {},
+	children: [{
+		id: 'child0',
+		layer: 'L1',
+		enable: {
+			start: 2, // will repeat with parent, so will start at 12, 32, 52 etc...
+			duration: null // Duration not set, but will be capped in parent, so will end at 20, 40, 60 etc...
 		},
-		keyframes: [
-			{
-				id: 'K0', // id must be unique
-				duration: 5, // duration of keyframe
-				trigger: {
-					type: Timeline.Enums.TriggerType.TIME_ABSOLUTE,
-					value: 5 // Abslute time means "relative to parent start time" for a keyframe
-				},
-				content: {
-					attributes: {
-						scale: 0.5
-					}
-				}
-			},
-		]
-	}
-}
-// At the time 1000 the content will be:
-/*
-{
-	media: 'AMB',
-	attributes: {
-		positionY: 0,
-		positionX: 0,
-		scale: 1
-	}
-}
-// At the time 1005 (when the keyframes has started) the content will be:
-/*
-{
-	media: 'AMB',
-	attributes: {
-		positionY: 0,
-		positionX: 0,
-		scale: 1,
-		opacity: 0.5
-	}
-}
-// At the time 1010 (when the keyframe has ended) the content will be:
-/*
-{
-	media: 'AMB',
-	attributes: {
-		positionY: 0,
-		positionX: 0,
-		scale: 1
-	}
+		content: {},
+	}]
+	
 }
 */
 ```
 
-## Todo
-* Add documentation for how to use *groups*
+---
+Please note that in the examples above the times have been defined in seconds.
+This is for readability only, you may use whatever time-base you like (like milliseconds) in your implementation.
