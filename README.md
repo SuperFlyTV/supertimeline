@@ -1,7 +1,8 @@
 
 
 # SuperFly-Timeline
-[![CircleCI](https://circleci.com/gh/SuperFlyTV/supertimeline.svg?style=svg)](https://circleci.com/gh/SuperFlyTV/supertimeline)
+[![CircleCI](https://circleci.com/gh/SuperFlyTV/supertimeline/tree/develop.svg?style=svg)](https://circleci.com/gh/SuperFlyTV/supertimeline/tree/develop)
+[![codecov](https://codecov.io/gh/SuperFlyTV/supertimeline/branch/master/graph/badge.svg)](https://codecov.io/gh/SuperFlyTV/supertimeline)
 
 The SuperFly-Timeline is a collection of rules as well as a resolver for placing objects on a virtual timeline. It uses the concept of timing objects in sequences -– absolute or relative timings -– which resolves recursively in nested structures. This means it supports grouping, combinations of timing between groups, and objects within groups. It also supports logical conditions instead of timed conditions.
 
@@ -276,7 +277,6 @@ Groups can work in 2 ways:
 	}]
 	
 }
-*/
 ```
 [Try it in JSFiddle!](https://jsfiddle.net/nytamin/ydznup0k/)
 
