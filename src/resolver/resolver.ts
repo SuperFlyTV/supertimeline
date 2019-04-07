@@ -29,7 +29,8 @@ import {
 	convertEventsToInstances,
 	EventForInstance,
 	getId,
-	isConstant
+	isConstant,
+	resetId
 } from '../lib'
 import { validateTimeline } from './validate'
 import { interpretExpression } from './expression'
@@ -48,6 +49,7 @@ export class Resolver {
 		if (!options) throw new Error('resolveTimeline: parameter options missing')
 
 		validateTimeline(timeline, false)
+		resetId()
 
 		const resolvedTimeline: ResolvedTimeline = {
 			options: _.clone(options),
