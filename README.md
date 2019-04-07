@@ -1,4 +1,5 @@
 
+
 # SuperFly-Timeline
 [![CircleCI](https://circleci.com/gh/SuperFlyTV/supertimeline.svg?style=svg)](https://circleci.com/gh/SuperFlyTV/supertimeline)
 
@@ -17,6 +18,7 @@ Can be run in the browser using *browserify* or the like.
 
 ## Getting started
 
+[Try it in JSFiddle!](https://jsfiddle.net/nytamin/rztp517u/)
 ```javascript
 var Timeline = require("superfly-timeline");
 
@@ -114,6 +116,7 @@ The logic is set by setting properties in the `.enable` property.
 If `.end`, `.duration` or `.while` is not set, the object will run indefinitely.
 
 **Examples**
+
 ```javascript
 {
    enable: {
@@ -122,6 +125,8 @@ If `.end`, `.duration` or `.while` is not set, the object will run indefinitely.
    }
 }
 ```
+[Try it in JSFiddle!](https://jsfiddle.net/nytamin/kq6wfcov/)
+
 ```javascript
 {
    enable: {
@@ -129,6 +134,7 @@ If `.end`, `.duration` or `.while` is not set, the object will run indefinitely.
    }
 }
 ```
+[Try it in JSFiddle!](https://jsfiddle.net/nytamin/qjw7hL5x/)
 
 ## State & Layers
 All objects will be resolved to a **layer** in the calculated **state**. There are a few rules:
@@ -164,6 +170,7 @@ All objects will be resolved to a **layer** in the calculated **state**. There a
 // A on layer L1 for 60 - 100 (since B has stopped)
 
 ```
+[Try it in JSFiddle!](https://jsfiddle.net/nytamin/excb84ky/)
 
 ## References
 
@@ -193,13 +200,16 @@ The references can be combined using basic math expressions ( + - * / % ) and lo
    }
 }
 ```
+[Try it in JSFiddle!](https://jsfiddle.net/nytamin/2jmsgu6h/)
 ```javascript
 {
    enable: {
-      while: '#sun & !(#moon | #jupiter ) ', // Enable while #sun (but not #moon or #jupiter) are enabled.
+      while: '#sun & #moon & !#jupiter', // Enable while #sun and #moon, but not #jupiter
    }
 }
 ```
+[Try it in JSFiddle!](https://jsfiddle.net/nytamin/nuobkgdw/)
+
 
 --------
 
@@ -250,10 +260,11 @@ Groups can work in 2 ways:
 	layer: '',
 	enable: {
 		start: 10,
-		duration: 10
+		duration: 10,
 		repeat: 20 // Repeat every 20 seconds, so will start at 10, 30, 50 etc...
 	},
 	content: {},
+	isGroup: true,
 	children: [{
 		id: 'child0',
 		layer: 'L1',
@@ -267,6 +278,7 @@ Groups can work in 2 ways:
 }
 */
 ```
+[Try it in JSFiddle!](https://jsfiddle.net/nytamin/ydznup0k/)
 
 ---
 Please note that in the examples above the times have been defined in seconds.
