@@ -110,4 +110,55 @@ describe('index', () => {
 		expect(resolvedTimeline0).toEqual(resolvedTimeline1)
 		expect(state0).toEqual(state1)
 	})
+	test('keyframe content', () => {
+		const timeline: Array<TimelineObject> = [
+			{
+				id: 'video',
+				layer: '0',
+				enable: {
+					start: 0,
+					end: 100
+				},
+				content: {
+					attr1: 0,
+					attr2: 0
+				},
+				keyframes: [{
+					id: 'kf0',
+					enable: {
+						start: 5,
+						end: 20
+					},
+					content: {
+						attr2: 1,
+						attr3: 1
+					}
+				}]
+			}
+		]
+
+		const options: ResolveOptions = {
+			time: 0
+		}
+		// Resolve the timeline
+		const resolvedTimeline = Resolver.resolveTimeline(timeline, options)
+
+		// Calculate the state at a certain time:
+		const state0 = Resolver.getState(resolvedTimeline, 4)
+		const state1 = Resolver.getState(resolvedTimeline, 15)
+		const state2 = Resolver.getState(resolvedTimeline, 21)
+
+		expect(state0.layers[0].content.attr1).toEqual(0)
+		expect(state1.layers[0].content.attr1).toEqual(0)
+		expect(state2.layers[0].content.attr1).toEqual(0)
+
+		expect(state0.layers[0].content.attr2).toEqual(0)
+		expect(state1.layers[0].content.attr2).toEqual(1)
+		expect(state2.layers[0].content.attr2).toEqual(0)
+
+		expect(state0.layers[0].content.attr3).toEqual(undefined)
+		expect(state1.layers[0].content.attr3).toEqual(1)
+		expect(state2.layers[0].content.attr3).toEqual(undefined)
+
+	})
 })
