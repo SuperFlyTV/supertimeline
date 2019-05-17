@@ -13,7 +13,8 @@ import {
 	TimelineObjectKeyframe,
 	Reference,
 	InstanceEvent,
-	Cap
+	Cap,
+	ResolvedStates
  } from '../api/api'
 import {
 	extendMandadory,
@@ -34,7 +35,8 @@ import {
 } from '../lib'
 import { validateTimeline } from './validate'
 import { interpretExpression } from './expression'
-import { getState } from './state'
+import { getState, resolveStates } from './state'
+import { addObjectToResolvedTimeline } from './common'
 
 export class Resolver {
 
@@ -84,20 +86,9 @@ export class Resolver {
 			})
 			if (parentId) o.resolved.parentId = parentId
 			if (isKeyframe) o.resolved.isKeyframe = true
-			resolvedTimeline.objects[obj.id] = o
 
-			if (obj.classes) {
-				_.each(obj.classes, (className: string) => {
-					if (className) {
-						if (!resolvedTimeline.classes[className]) resolvedTimeline.classes[className] = []
-						resolvedTimeline.classes[className].push(obj.id)
-					}
-				})
-			}
-			if (obj.layer) {
-				if (!resolvedTimeline.layers[obj.layer]) resolvedTimeline.layers[obj.layer] = []
-				resolvedTimeline.layers[obj.layer].push(obj.id)
-			}
+			addObjectToResolvedTimeline(resolvedTimeline, o)
+
 			// Add children:
 			if (obj.isGroup && obj.children) {
 				_.each(obj.children, (child) => {
@@ -121,11 +112,17 @@ export class Resolver {
 		_.each(resolvedTimeline.objects, (obj: ResolvedTimelineObject) => {
 			resolveTimelineObj(resolvedTimeline, obj)
 		})
+
 		return resolvedTimeline
 	}
-
+	/** Calculate the state for all points in time.  */
+	static resolveAllStates (resolvedTimeline: ResolvedTimeline): ResolvedStates {
+		return resolveStates(resolvedTimeline)
+	}
 	/**
-	 * Calculate the state at a given point in time. Using a ResolvedTimeline calculated by Resolver.resolveTimeline.
+	 * Calculate the state at a given point in time.
+	 * Using a ResolvedTimeline calculated by Resolver.resolveTimeline() or
+	 * a ResolvedStates calculated by Resolver.resolveAllStates()
 	 * @param resolved ResolvedTimeline calculated by Resolver.resolveTimeline.
 	 * @param time The point in time where to calculate the state
 	 * @param eventLimit (Optional) Limits the number of returned upcoming events.
@@ -361,6 +358,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 	}
 
 }
+
 type ObjectRefType = 'start' | 'end' | 'duration'
 export function lookupExpression (
 	resolvedTimeline: ResolvedTimeline,
