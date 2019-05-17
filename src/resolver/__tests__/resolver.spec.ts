@@ -320,7 +320,9 @@ describe('resolver', () => {
 			}
 		]
 
-		const resolved = Resolver.resolveTimeline(timeline, { time: 0 })
+		const resolved = Resolver.resolveAllStates(
+			Resolver.resolveTimeline(timeline, { time: 0 })
+		)
 
 		expect(resolved.objects['video']).toBeTruthy()
 		expect(resolved.objects['graphic0']).toBeTruthy()
@@ -432,7 +434,9 @@ describe('resolver', () => {
 			}
 		]
 
-		const resolved = Resolver.resolveTimeline(timeline, { time: 0, limitCount: 99, limitTime: 145 })
+		const resolved = Resolver.resolveAllStates(
+			Resolver.resolveTimeline(timeline, { time: 0, limitCount: 99, limitTime: 145 })
+		)
 
 		expect(resolved.statistics.resolvedObjectCount).toEqual(2)
 		expect(resolved.statistics.unresolvedCount).toEqual(0)
@@ -687,7 +691,7 @@ describe('resolver', () => {
 			}
 		]
 
-		const resolved = Resolver.resolveTimeline(timeline, { time: 0, limitTime: 50 })
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitTime: 50 }))
 
 		expect(resolved.statistics.resolvedObjectCount).toEqual(2)
 		expect(resolved.statistics.resolvedKeyframeCount).toEqual(2)
@@ -706,8 +710,8 @@ describe('resolver', () => {
 			start: 20,
 			end: 25
 		}])
-
-		expect(Resolver.getState(resolved, 11)).toMatchObject({
+		const state0 = Resolver.getState(resolved, 11)
+		expect(state0).toMatchObject({
 			layers: {
 				'1': {
 					id: 'graphic0',
@@ -1050,7 +1054,7 @@ describe('resolver', () => {
 			}
 		]
 
-		const resolved = Resolver.resolveTimeline(timeline, { time: 0 })
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0 }))
 
 		expect(resolved.statistics.resolvedObjectCount).toEqual(4)
 		expect(resolved.statistics.unresolvedCount).toEqual(0)
@@ -1062,7 +1066,7 @@ describe('resolver', () => {
 
 		expect(resolved.objects['group0'].resolved).toMatchObject({
 			resolved: true,
-			instances: [{ start: 10, end: 100 }]
+			instances: [{ start: 10, end: 50 }] // because group 1 started
 		})
 		expect(resolved.objects['child0'].resolved).toMatchObject({
 			resolved: true,
@@ -1087,11 +1091,11 @@ describe('resolver', () => {
 				}
 			},
 			nextEvents: [
+				{ objId: 'group0', time: 50, type: EventType.END },
 				{ objId: 'group1', time: 50, type: EventType.START },
 				{ objId: 'child1', time: 55, type: EventType.START },
 				{ objId: 'child0', time: 100, type: EventType.END },
 				{ objId: 'child1', time: 100, type: EventType.END },
-				{ objId: 'group0', time: 100, type: EventType.END },
 				{ objId: 'group1', time: 100, type: EventType.END }
 			]
 		})
@@ -1107,7 +1111,6 @@ describe('resolver', () => {
 			nextEvents: [
 				{ objId: 'child0', time: 100, type: EventType.END },
 				{ objId: 'child1', time: 100, type: EventType.END },
-				{ objId: 'group0', time: 100, type: EventType.END },
 				{ objId: 'group1', time: 100, type: EventType.END }
 			]
 		})
