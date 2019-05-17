@@ -282,10 +282,8 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 
 							// Add to nextEvents:
 							if (
-								prevObj.instance.end !== null && (
-									!onlyForTime ||
-									prevObj.instance.end > onlyForTime
-								)
+								!onlyForTime ||
+								prevObj.instance.end > onlyForTime
 							) {
 								resolvedStates.nextEvents.push({
 									type: EventType.END,
@@ -404,6 +402,7 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 	})
 	// Go through the keyframe events and add them to nextEvents:
 	_.each(keyframeEvents, (keyframeEvent) => {
+		// tslint:disable-next-line
 		if (eventObjectTimes[keyframeEvent.time + ''] === undefined) { // no need to put a keyframe event if there's already another event there
 			resolvedStates.nextEvents.push(keyframeEvent)
 			eventObjectTimes[keyframeEvent.time + ''] = EventType.KEYFRAME
