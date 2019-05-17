@@ -82,6 +82,7 @@ export interface ResolvedTimeline {
 	objects: ResolvedTimelineObjects
 	/** Map of all classes on timeline, maps className to object ids */
 	classes: {[className: string]: Array<string>}
+	/** Map of the object ids, per layer */
 	layers: {[layer: string]: Array<string>}
 	statistics: {
 		/** Number of objects that were unable to resolve */
@@ -143,16 +144,16 @@ export interface InstanceEvent<T = any> {
 }
 export type Expression = number | string | ExpressionObj | null
 export interface ExpressionObj {
-	l: Expression,
-	o: string,
+	l: Expression
+	o: string
 	r: Expression
 }
 
 export type ExpressionEvent = InstanceEvent<boolean>
 export type ResolvedExpression = Array<ExpressionEvent>
 export interface ResolvedExpressionObj {
-	l: ResolvedExpression,
-	o: '+' | '-' | '*' | '/' | '&' | '|' | '!',
+	l: ResolvedExpression
+	o: '+' | '-' | '*' | '/' | '&' | '|' | '!'
 	r: ResolvedExpression
 }
 export interface TimelineState {
@@ -166,7 +167,7 @@ export interface ResolvedTimelineObjectInstance extends ResolvedTimelineObject {
 	instance: TimelineObjectInstance
 }
 export interface NextEvent {
-	type: EventType,
-	time: Time,
+	type: EventType
+	time: Time
 	objId: string
 }
