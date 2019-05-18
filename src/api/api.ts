@@ -21,6 +21,8 @@ export interface ResolveOptions {
 	limitCount?: number
 	/** Limits the repeating objects to a time in the future */
 	limitTime?: Time
+	/** If set to true, the resolver will go through the instances of the objects and fix collisions, so that the instances more closely resembles the end state. */
+	resolveInstanceCollisions?: boolean
 }
 export interface TimelineObject {
 	id: ObjectId
@@ -157,10 +159,12 @@ export interface ResolvedExpressionObj {
 	r: ResolvedExpression
 }
 export interface TimelineState {
-	time: Time,
-	layers: {
-		[layer: string]: ResolvedTimelineObjectInstance
-	},
+	time: Time
+	layers: StateInTime
+	nextEvents: Array<NextEvent>
+}
+export interface ResolvedStates extends ResolvedTimeline {
+	state: AllStates
 	nextEvents: Array<NextEvent>
 }
 export interface ResolvedTimelineObjectInstance extends ResolvedTimelineObject {
@@ -170,4 +174,21 @@ export interface NextEvent {
 	type: EventType
 	time: Time
 	objId: string
+}
+export interface ResolvedTimelineObjectInstanceKeyframe extends ResolvedTimelineObjectInstance {
+	isKeyframe?: boolean
+	keyframeEndTime?: TimeMaybe
+}
+export interface AllStates {
+	[layer: string]: {
+		[time: string]: ResolvedTimelineObjectInstanceKeyframe[] | null
+	}
+}
+export interface StateInTime {
+	[layer: string]: ResolvedTimelineObjectInstance
+}
+export interface TimeEvent {
+	time: number
+	/** true when the event indicate that something starts, false when something ends */
+	enable: boolean
 }
