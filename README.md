@@ -1,7 +1,8 @@
 
 
 # SuperFly-Timeline
-[![CircleCI](https://circleci.com/gh/SuperFlyTV/supertimeline.svg?style=svg)](https://circleci.com/gh/SuperFlyTV/supertimeline)
+[![CircleCI](https://circleci.com/gh/SuperFlyTV/supertimeline/tree/develop.svg?style=svg)](https://circleci.com/gh/SuperFlyTV/supertimeline/tree/develop)
+[![codecov](https://codecov.io/gh/SuperFlyTV/supertimeline/branch/master/graph/badge.svg)](https://codecov.io/gh/SuperFlyTV/supertimeline)
 
 The SuperFly-Timeline is a collection of rules as well as a resolver for placing objects on a virtual timeline. It uses the concept of timing objects in sequences -– absolute or relative timings -– which resolves recursively in nested structures. This means it supports grouping, combinations of timing between groups, and objects within groups. It also supports logical conditions instead of timed conditions.
 
@@ -70,15 +71,17 @@ const options = {
 };
 const resolvedTimeline = Timeline.Resolver.resolveTimeline(myTimeline, options);
 
+// Use the resolved timeline and pre-calculate states, instance collisions, etc.
+const resolvedStates = Timeline.Resolver.resolveAllStates(resolvedTimeline);
 
 // Fetch the state at time 10:
-const state0 = Timeline.Resolver.getState(resolvedTimeline, 10);
+const state0 = Timeline.Resolver.getState(resolvedStates, 10);
 console.log(`At the time ${state0.time}, the active objects are "${
 	_.map(state0.layers, (o, l) => `${o.id} at layer ${l}`).join(', ')
 }"`);
 
 // Fetch the state at time 25:
-const state1 = Timeline.Resolver.getState(resolvedTimeline, 25);
+const state1 = Timeline.Resolver.getState(resolvedStates, 25);
 console.log(`At the time ${state1.time}, the active objects are "${
 	_.map(state1.layers, (o, l) => `${o.id} at layer ${l}`).join(', ')
 }"`);
@@ -276,7 +279,6 @@ Groups can work in 2 ways:
 	}]
 	
 }
-*/
 ```
 [Try it in JSFiddle!](https://jsfiddle.net/nytamin/ydznup0k/)
 
