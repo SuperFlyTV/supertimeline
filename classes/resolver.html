@@ -916,6 +916,9 @@ img { max-width: 100%; }
 					<a href="resolver.html#getstate" class="tsd-kind-icon">get<wbr>State</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external">
+					<a href="resolver.html#resolveallstates" class="tsd-kind-icon">resolve<wbr>All<wbr>States</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external">
 					<a href="resolver.html#resolvetimeline" class="tsd-kind-icon">resolve<wbr>Timeline</a>
 				</li>
 			</ul>
@@ -940,6 +943,7 @@ img { max-width: 100%; }
 						<h3>Methods</h3>
 						<ul class="tsd-index-list">
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external"><a href="resolver.html#getstate" class="tsd-kind-icon">get<wbr>State</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external"><a href="resolver.html#resolveallstates" class="tsd-kind-icon">resolve<wbr>All<wbr>States</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external"><a href="resolver.html#resolvetimeline" class="tsd-kind-icon">resolve<wbr>Timeline</a></li>
 						</ul>
 					</section>
@@ -958,12 +962,14 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/1a87802/src/resolver/resolver.ts#L133">resolver/resolver.ts:133</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/25f4ca7/src/resolver/resolver.ts#L130">resolver/resolver.ts:130</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Calculate the state at a given point in time. Using a ResolvedTimeline calculated by Resolver.resolveTimeline.</p>
+								<p>Calculate the state at a given point in time.
+									Using a ResolvedTimeline calculated by Resolver.resolveTimeline() or
+								a ResolvedStates calculated by Resolver.resolveAllStates()</p>
 							</div>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -992,6 +998,34 @@ img { max-width: 100%; }
 				</ul>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external">
+				<a name="resolveallstates" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagStatic">Static</span> resolve<wbr>All<wbr>States</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external">
+					<li class="tsd-signature tsd-kind-icon">resolve<wbr>All<wbr>States<span class="tsd-signature-symbol">(</span>resolvedTimeline<span class="tsd-signature-symbol">: </span><a href="../interfaces/resolvedtimeline.html" class="tsd-signature-type">ResolvedTimeline</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/resolvedstates.html" class="tsd-signature-type">ResolvedStates</a></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/25f4ca7/src/resolver/resolver.ts#L119">resolver/resolver.ts:119</a></li>
+							</ul>
+						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Calculate the state for all points in time.</p>
+							</div>
+						</div>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>resolvedTimeline: <a href="../interfaces/resolvedtimeline.html" class="tsd-signature-type">ResolvedTimeline</a></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <a href="../interfaces/resolvedstates.html" class="tsd-signature-type">ResolvedStates</a></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external">
 				<a name="resolvetimeline" class="tsd-anchor"></a>
 				<h3><span class="tsd-flag ts-flagStatic">Static</span> resolve<wbr>Timeline</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external">
@@ -1001,7 +1035,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/1a87802/src/resolver/resolver.ts#L47">resolver/resolver.ts:47</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/25f4ca7/src/resolver/resolver.ts#L49">resolver/resolver.ts:49</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
