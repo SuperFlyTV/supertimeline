@@ -5,7 +5,7 @@ import {
 	ResolveOptions,
 	Duration,
 	Time,
-	Reference,
+	ValueWithReference,
 	Cap
 } from './api/api'
 
@@ -273,10 +273,10 @@ export function invertInstances (
  * @param operate
  */
 export function operateOnArrays (
-	array0: Array<TimelineObjectInstance> | Reference | null,
-	array1: Array<TimelineObjectInstance> | Reference | null,
-	operate: (a: Reference | null, b: Reference | null) => Reference | null
-): Array<TimelineObjectInstance> | Reference | null {
+	array0: Array<TimelineObjectInstance> | ValueWithReference | null,
+	array1: Array<TimelineObjectInstance> | ValueWithReference | null,
+	operate: (a: ValueWithReference | null, b: ValueWithReference | null) => ValueWithReference | null
+): Array<TimelineObjectInstance> | ValueWithReference | null {
 	if (
 		array0 === null ||
 		array1 === null
@@ -307,7 +307,7 @@ export function operateOnArrays (
 			{ id: '', start: array1.value, end: array1.value, references: array1.references }
 		)
 
-		const start: Reference | null = (
+		const start: ValueWithReference | null = (
 			a.isFirst ?
 				{ value: a.start, references: a.references } :
 			b.isFirst ?
@@ -317,7 +317,7 @@ export function operateOnArrays (
 				{ value: b.start, references: joinReferences(b.id, b.references) }
 			)
 		)
-		const end: Reference | null = (
+		const end: ValueWithReference | null = (
 			a.isFirst ?
 				(a.end !== null ? { value: a.end, references: a.references } : null) :
 			b.isFirst ?
@@ -381,7 +381,7 @@ export function operateOnArrays (
 */
 export function applyRepeatingInstances (
 	instances: TimelineObjectInstance[],
-	repeatTime0: Reference | null,
+	repeatTime0: ValueWithReference | null,
 	options: ResolveOptions
 ): TimelineObjectInstance[] {
 	if (
@@ -451,7 +451,7 @@ export function applyRepeatingInstances (
 }
 export function capInstances (
 	instances: TimelineObjectInstance[],
-	parentInstances: Reference | TimelineObjectInstance[] | null
+	parentInstances: ValueWithReference | TimelineObjectInstance[] | null
 ): TimelineObjectInstance[] {
 	if (
 		isReference(parentInstances) ||
@@ -509,7 +509,7 @@ export function capInstances (
 	})
 	return returnInstances
 }
-export function isReference (ref: any): ref is Reference {
+export function isReference (ref: any): ref is ValueWithReference {
 	return (
 		_.isObject(ref) &&
 		!_.isArray(ref) &&

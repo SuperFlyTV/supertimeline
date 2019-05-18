@@ -1,7 +1,7 @@
 import _ = require('underscore')
 import { Expression, ExpressionObj } from '../api/api'
 
-export const OPERATORS = ['&', '|', '+', '-', '*', '/', '%']
+export const OPERATORS = ['&', '|', '+', '-', '*', '/', '%', '!']
 
 export function interpretExpression (expr: Expression): ExpressionObj | number | null {
 	if (_.isString(expr)) {
@@ -22,7 +22,6 @@ export function interpretExpression (expr: Expression): ExpressionObj | number |
 				words.splice(i + 1,1)
 			}
 		}
-
 		const innerExpression = wrapInnerExpressions(words)
 		if (innerExpression.rest.length) throw new Error('interpretExpression: syntax error: parentheses don\'t add up in "' + expr + '".')
 		if (innerExpression.inner.length % 2 !== 1) throw new Error('interpretExpression: operands & operators don\'t add up: "' + innerExpression.inner.join(' ') + '".')
@@ -50,7 +49,8 @@ interface InnerExpression {
 	rest: Array<string>
 }
 // Turns ['a', '(', 'b', 'c', ')'] into ['a', ['b', 'c']]
-function wrapInnerExpressions (words: Array<any>): InnerExpression {
+// or ['a', '&', '!', 'b'] into ['a', '&', ['', '!', 'b']]
+export function wrapInnerExpressions (words: Array<any>): InnerExpression {
 	for (let i = 0; i < words.length; i++) {
 
 		if (words[i] === '(') {
@@ -64,6 +64,12 @@ function wrapInnerExpressions (words: Array<any>): InnerExpression {
 				inner: words.slice(0, i),
 				rest: words.slice(i + 1)
 			}
+		} else if (words[i] === '!') {
+			const tmp = wrapInnerExpressions(words.slice(i + 1))
+
+			// insert inner expression after the '!'
+			words[i] = ['', '!'].concat(tmp.inner)
+			words.splice(i + 1, 99999, ...tmp.rest)
 		}
 	}
 	return {

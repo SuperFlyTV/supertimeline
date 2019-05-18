@@ -134,7 +134,7 @@ export interface Cap {
 	start: Time
 	end: Time | null
 }
-export interface Reference {
+export interface ValueWithReference {
 	value: number
 	references: Array<string>
 }

@@ -266,4 +266,55 @@ describe('index', () => {
 			end: 120
 		})
 	})
+	test.only('parenthesis with negation', () => {
+		const timeline: Array<TimelineObject> = [
+			{
+
+				id: 'sun',
+				layer: 'sun',
+				enable: {
+				  start: 40,
+				  end: 100
+				},
+				content: {}
+			  },
+			  {
+				id: 'moon',
+				layer: 'moon',
+				enable: {
+				  start: 10,
+				  end: 80
+				},
+				content: {}
+			  },
+			  {
+				id: 'jupiter',
+				layer: 'jupiter',
+				enable: {
+				  start: 60,
+				  end: 130
+				},
+				content: {}
+			  },
+			  {
+				id: 'myObject',
+				layer: 'L1',
+				enable: {
+				  while: '#sun & !(#moon & #jupiter ) ' // Enable while #sun (but not #moon and #jupiter) are enabled.
+				},
+				content: {}
+			  }
+		]
+
+		const options: ResolveOptions = {
+			time: 0
+		}
+		// Resolve the timeline
+		const resolvedTimeline = Resolver.resolveTimeline(timeline, options)
+
+		expect(resolvedTimeline.objects['myObject'].resolved.instances).toMatchObject([
+			{ start: 40, end: 60 },
+			{ start: 80, end: 100 }
+		])
+	})
 })
