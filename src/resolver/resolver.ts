@@ -216,7 +216,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 				events.push({
 					time: instance.start,
 					value: true,
-					data: { instance: instance, id: 'a' + iStart++ },
+					data: { instance: instance, id: obj.id + '_' + iStart++ },
 					references: instance.references
 				})
 			})
@@ -224,7 +224,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 			events.push({
 				time: lookedupStarts.value,
 				value: true,
-				data: { instance: { id: getId(), start: lookedupStarts.value, end: null, references:  lookedupStarts.references }, id: 'a' + iStart++ },
+				data: { instance: { id: getId(), start: lookedupStarts.value, end: null, references:  lookedupStarts.references }, id: obj.id + '_' + iStart++ },
 				references: lookedupStarts.references
 			})
 		}
@@ -245,7 +245,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 					events.push({
 						time: instance.start,
 						value: false,
-						data: { instance: instance, id: 'a' + iEnd++ },
+						data: { instance: instance, id: obj.id + '_' + iEnd++ },
 						references: instance.references
 					})
 				})
@@ -253,7 +253,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 				events.push({
 					time: lookedupEnds.value,
 					value: false,
-					data: { instance: { id: getId(), start: lookedupEnds.value, end: null, references: lookedupEnds.references }, id: 'a' + iEnd++ },
+					data: { instance: { id: getId(), start: lookedupEnds.value, end: null, references: lookedupEnds.references }, id: obj.id + '_' + iEnd++ },
 					references: lookedupEnds.references
 				})
 			}
@@ -367,7 +367,6 @@ export function lookupExpression (
 	context: ObjectRefType
 ): Array<TimelineObjectInstance> | ValueWithReference | null {
 	if (expr === null) return null
-
 	if (
 		_.isString(expr) &&
 		isNumeric(expr)
