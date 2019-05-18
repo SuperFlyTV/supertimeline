@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="7.1.0"></a>
+# [7.1.0](https://github.com/SuperFlyTV/supertimeline/compare/7.0.2...7.1.0) (2019-05-18)
+
+
+### Bug Fixes
+
+* carefully merging of caps of instances ([4e0dd91](https://github.com/SuperFlyTV/supertimeline/commit/4e0dd91))
+* issue with non-unique instance ids ([f594aa4](https://github.com/SuperFlyTV/supertimeline/commit/f594aa4))
+
+
+### Features
+
+* implement resolveStates ([76a4ec6](https://github.com/SuperFlyTV/supertimeline/commit/76a4ec6))
+* Implement support for negations ("!") together with parentheses ([efe79a6](https://github.com/SuperFlyTV/supertimeline/commit/efe79a6))
+
+
+
 <a name="7.0.2"></a>
 ## [7.0.2](https://github.com/SuperFlyTV/supertimeline/compare/7.0.1...7.0.2) (2019-04-07)
 
