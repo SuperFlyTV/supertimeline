@@ -11,9 +11,10 @@ import {
 	TimelineState,
 	TimelineKeyframe,
 	TimelineObjectKeyframe,
-	Reference,
+	ValueWithReference,
 	InstanceEvent,
-	Cap
+	Cap,
+	ResolvedStates
  } from '../api/api'
 import {
 	extendMandadory,
@@ -34,7 +35,8 @@ import {
 } from '../lib'
 import { validateTimeline } from './validate'
 import { interpretExpression } from './expression'
-import { getState } from './state'
+import { getState, resolveStates } from './state'
+import { addObjectToResolvedTimeline } from './common'
 
 export class Resolver {
 
@@ -84,20 +86,9 @@ export class Resolver {
 			})
 			if (parentId) o.resolved.parentId = parentId
 			if (isKeyframe) o.resolved.isKeyframe = true
-			resolvedTimeline.objects[obj.id] = o
 
-			if (obj.classes) {
-				_.each(obj.classes, (className: string) => {
-					if (className) {
-						if (!resolvedTimeline.classes[className]) resolvedTimeline.classes[className] = []
-						resolvedTimeline.classes[className].push(obj.id)
-					}
-				})
-			}
-			if (obj.layer) {
-				if (!resolvedTimeline.layers[obj.layer]) resolvedTimeline.layers[obj.layer] = []
-				resolvedTimeline.layers[obj.layer].push(obj.id)
-			}
+			addObjectToResolvedTimeline(resolvedTimeline, o)
+
 			// Add children:
 			if (obj.isGroup && obj.children) {
 				_.each(obj.children, (child) => {
@@ -121,11 +112,17 @@ export class Resolver {
 		_.each(resolvedTimeline.objects, (obj: ResolvedTimelineObject) => {
 			resolveTimelineObj(resolvedTimeline, obj)
 		})
+
 		return resolvedTimeline
 	}
-
+	/** Calculate the state for all points in time.  */
+	static resolveAllStates (resolvedTimeline: ResolvedTimeline): ResolvedStates {
+		return resolveStates(resolvedTimeline)
+	}
 	/**
-	 * Calculate the state at a given point in time. Using a ResolvedTimeline calculated by Resolver.resolveTimeline.
+	 * Calculate the state at a given point in time.
+	 * Using a ResolvedTimeline calculated by Resolver.resolveTimeline() or
+	 * a ResolvedStates calculated by Resolver.resolveAllStates()
 	 * @param resolved ResolvedTimeline calculated by Resolver.resolveTimeline.
 	 * @param time The point in time where to calculate the state
 	 * @param eventLimit (Optional) Limits the number of returned upcoming events.
@@ -167,7 +164,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 	}
 
 	const startExpr: ExpressionObj | number | null = interpretExpression(start)
-	let parentInstances: TimelineObjectInstance[] | null | Reference = null
+	let parentInstances: TimelineObjectInstance[] | null | ValueWithReference = null
 	let hasParent: boolean = false
 	let referToParent: boolean = false
 	if (obj.resolved.parentId) {
@@ -184,8 +181,8 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 		}
 	}
 	let lookedupStarts = lookupExpression(resolvedTimeline, obj, startExpr, 'start')
-	const applyParentInstances = (value: TimelineObjectInstance[] | null | Reference): TimelineObjectInstance[] | null | Reference => {
-		const operate = (a: Reference | null, b: Reference | null): Reference | null => {
+	const applyParentInstances = (value: TimelineObjectInstance[] | null | ValueWithReference): TimelineObjectInstance[] | null | ValueWithReference => {
+		const operate = (a: ValueWithReference | null, b: ValueWithReference | null): ValueWithReference | null => {
 			if (a === null || b === null) return null
 			return {
 				value: a.value + b.value,
@@ -268,7 +265,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 				lookedupDuration = {
 					value: lookedupDuration[0].start,
 					references: lookedupDuration[0].references
-				} as Reference
+				} as ValueWithReference
 			}
 
 			if (_.isArray(lookedupDuration)) {
@@ -280,7 +277,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 					lookedupDuration.value > lookedupRepeating.value
 				) lookedupDuration.value = lookedupRepeating.value
 
-				const tmpLookedupDuration: Reference = lookedupDuration // cast type
+				const tmpLookedupDuration: ValueWithReference = lookedupDuration // cast type
 				_.each(events, (e) => {
 					if (e.value) {
 						const time = e.time + tmpLookedupDuration.value
@@ -361,13 +358,14 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 	}
 
 }
+
 type ObjectRefType = 'start' | 'end' | 'duration'
 export function lookupExpression (
 	resolvedTimeline: ResolvedTimeline,
 	obj: TimelineObject,
 	expr: Expression | null,
 	context: ObjectRefType
-): Array<TimelineObjectInstance> | Reference | null {
+): Array<TimelineObjectInstance> | ValueWithReference | null {
 	if (expr === null) return null
 
 	if (
@@ -404,12 +402,10 @@ export function lookupExpression (
 		let rest: string = ''
 
 		// Match id, example: "#objectId.start"
-		const m = expr.match(/^(!)?\W*#([^.]+)(.*)/)
+		const m = expr.match(/^\W*#([^.]+)(.*)/)
 		if (m) {
-			const exclamation = m[1]
-			const id = m[2]
-			rest = m[3]
-			if (exclamation === '!') invert = !invert
+			const id = m[1]
+			rest = m[2]
 
 			const obj = resolvedTimeline.objects[id]
 			if (obj) {
@@ -417,12 +413,10 @@ export function lookupExpression (
 			}
 		} else {
 			// Match class, example: ".className.start"
-			const m = expr.match(/^(!)?\W*\.([^.]+)(.*)/)
+			const m = expr.match(/^\W*\.([^.]+)(.*)/)
 			if (m) {
-				const exclamation = m[1]
-				const className = m[2]
-				rest = m[3]
-				if (exclamation === '!') invert = !invert
+				const className = m[1]
+				rest = m[2]
 
 				const objIds: string[] = resolvedTimeline.classes[className] || []
 
@@ -434,12 +428,10 @@ export function lookupExpression (
 				})
 			} else {
 				// Match layer, example: "$layer"
-				const m = expr.match(/^(!)?\W*\$([^.]+)(.*)/)
+				const m = expr.match(/^\W*\$([^.]+)(.*)/)
 				if (m) {
-					const exclamation = m[1]
-					const layer = m[2]
-					rest = m[3]
-					if (exclamation === '!') invert = !invert
+					const layer = m[1]
+					rest = m[2]
 
 					const objIds: string[] = resolvedTimeline.layers[layer] || []
 
@@ -460,7 +452,7 @@ export function lookupExpression (
 
 			if (ref === 'duration') {
 				// Duration refers to the first object on the resolved timeline
-				const instanceDurations: Array<Reference> = []
+				const instanceDurations: Array<ValueWithReference> = []
 				_.each(referencedObjs, (referencedObj: ResolvedTimelineObject) => {
 					resolveTimelineObj(resolvedTimeline, referencedObj)
 					if (referencedObj.resolved.resolved) {
@@ -480,7 +472,7 @@ export function lookupExpression (
 						}
 					}
 				})
-				let firstDuration: Reference | null = null
+				let firstDuration: ValueWithReference | null = null
 				_.each(instanceDurations, (d) => {
 					if (firstDuration === null || d.value < firstDuration.value) firstDuration = d
 				})
@@ -532,140 +524,154 @@ export function lookupExpression (
 				o: expr.o,
 				r: lookupExpression(resolvedTimeline, obj, expr.r, context)
 			}
-			if (
-				_.isNull(lookupExpr.l) ||
-				_.isNull(lookupExpr.r)
-			) {
-				return null
-			}
-			if (
-				lookupExpr.o === '&' ||
-				lookupExpr.o === '|'
-			) {
-				interface SideEvent extends InstanceEvent<boolean> {
-					left: boolean // true = left, false = right side
-					instance: TimelineObjectInstance
+			if (lookupExpr.o === '!') {
+				// Discard l, invert and return r:
+				if (lookupExpr.r && _.isArray(lookupExpr.r) && lookupExpr.r.length) {
+					return invertInstances(
+						lookupExpr.r
+					)
+				} else {
+					// We can't invert a value
+					return lookupExpr.r
 				}
-				let events: Array<SideEvent> = []
-				const addEvents = (instances: Array<TimelineObjectInstance>, left: boolean) => {
-					_.each(instances, (instance) => {
-						events.push({
-							left: left,
-							time: instance.start,
-							value: true,
-							references: [], // not used
-							data: true,
-							instance: instance
-						})
-						if (instance.end !== null) {
+			} else {
+
+				if (
+					_.isNull(lookupExpr.l) ||
+					_.isNull(lookupExpr.r)
+				) {
+					return null
+				}
+				if (
+					lookupExpr.o === '&' ||
+					lookupExpr.o === '|'
+				) {
+					interface SideEvent extends InstanceEvent<boolean> {
+						left: boolean // true = left, false = right side
+						instance: TimelineObjectInstance
+					}
+					let events: Array<SideEvent> = []
+					const addEvents = (instances: Array<TimelineObjectInstance>, left: boolean) => {
+						_.each(instances, (instance) => {
 							events.push({
 								left: left,
-								time: instance.end,
-								value: false,
+								time: instance.start,
+								value: true,
 								references: [], // not used
-								data: false,
+								data: true,
 								instance: instance
 							})
-						}
-					})
-				}
-				if (_.isArray(lookupExpr.l)) addEvents(lookupExpr.l, true)
-				if (_.isArray(lookupExpr.r)) addEvents(lookupExpr.r, false)
-
-				events = sortEvents(events)
-
-				const calcResult: (left: any, right: any) => boolean = (
-					lookupExpr.o === '&' ?
-						(left: any, right: any): boolean => !!(left && right) :
-					lookupExpr.o === '|' ?
-						(left: any, right: any): boolean => !!(left || right) :
-					() => { return false }
-				)
-				let leftValue: boolean = (isReference(lookupExpr.l) ? !!lookupExpr.l.value : false)
-				let rightValue: boolean = (isReference(lookupExpr.r) ? !!lookupExpr.r.value : false)
-
-				let leftInstance: TimelineObjectInstance | null = null
-				let rightInstance: TimelineObjectInstance | null = null
-
-				let resultValue: boolean = calcResult(leftValue, rightValue)
-				const resultReferences: Array<string> = joinReferences(
-					(isReference(lookupExpr.l) ? lookupExpr.l.references : []),
-					(isReference(lookupExpr.r) ? lookupExpr.r.references : [])
-				)
-
-				const instances: Array<TimelineObjectInstance> = []
-				const updateInstance = (time: Time, value: boolean, references: Array<string>, caps: Array<Cap>) => {
-					if (value) {
-						instances.push({
-							id: getId(),
-							start: time,
-							end: null,
-							references: references,
-							caps: caps
+							if (instance.end !== null) {
+								events.push({
+									left: left,
+									time: instance.end,
+									value: false,
+									references: [], // not used
+									data: false,
+									instance: instance
+								})
+							}
 						})
-					} else {
-						const last = _.last(instances)
-						if (last) {
-							last.end = time
-							// don't update reference on end
+					}
+					if (_.isArray(lookupExpr.l)) addEvents(lookupExpr.l, true)
+					if (_.isArray(lookupExpr.r)) addEvents(lookupExpr.r, false)
+
+					events = sortEvents(events)
+
+					const calcResult: (left: any, right: any) => boolean = (
+						lookupExpr.o === '&' ?
+							(left: any, right: any): boolean => !!(left && right) :
+						lookupExpr.o === '|' ?
+							(left: any, right: any): boolean => !!(left || right) :
+						() => { return false }
+					)
+					let leftValue: boolean = (isReference(lookupExpr.l) ? !!lookupExpr.l.value : false)
+					let rightValue: boolean = (isReference(lookupExpr.r) ? !!lookupExpr.r.value : false)
+
+					let leftInstance: TimelineObjectInstance | null = null
+					let rightInstance: TimelineObjectInstance | null = null
+
+					let resultValue: boolean = calcResult(leftValue, rightValue)
+					const resultReferences: Array<string> = joinReferences(
+						(isReference(lookupExpr.l) ? lookupExpr.l.references : []),
+						(isReference(lookupExpr.r) ? lookupExpr.r.references : [])
+					)
+
+					const instances: Array<TimelineObjectInstance> = []
+					const updateInstance = (time: Time, value: boolean, references: Array<string>, caps: Array<Cap>) => {
+						if (value) {
+							instances.push({
+								id: getId(),
+								start: time,
+								end: null,
+								references: references,
+								caps: caps
+							})
+						} else {
+							const last = _.last(instances)
+							if (last) {
+								last.end = time
+								// don't update reference on end
+							}
 						}
 					}
-				}
-				updateInstance(0, resultValue, resultReferences, [])
-				for (let i = 0; i < events.length; i++) {
-					const e = events[i]
-					const next = events[i + 1]
+					updateInstance(0, resultValue, resultReferences, [])
+					for (let i = 0; i < events.length; i++) {
+						const e = events[i]
+						const next = events[i + 1]
 
-					if (e.left) {
-						leftValue = e.value
-						leftInstance = e.instance
-					} else {
-						rightValue = e.value
-						rightInstance = e.instance
-					}
+						if (e.left) {
+							leftValue = e.value
+							leftInstance = e.instance
+						} else {
+							rightValue = e.value
+							rightInstance = e.instance
+						}
 
-					if (!next || next.time !== e.time) {
-						const newResultValue = calcResult(leftValue, rightValue)
-						const resultReferences: Array<string> = joinReferences(
-							leftInstance ? leftInstance.references : [],
-							rightInstance ? rightInstance.references : []
-						)
-						const resultCaps: Array<Cap> = (
-							(
-								leftInstance ? 	leftInstance.caps 	|| [] : []
-							).concat(
-								rightInstance ? rightInstance.caps 	|| [] : []
+						if (!next || next.time !== e.time) {
+							const newResultValue = calcResult(leftValue, rightValue)
+							const resultReferences: Array<string> = joinReferences(
+								leftInstance ? leftInstance.references : [],
+								rightInstance ? rightInstance.references : []
 							)
-						)
+							const resultCaps: Array<Cap> = (
+								(
+									leftInstance ? 	leftInstance.caps 	|| [] : []
+								).concat(
+									rightInstance ? rightInstance.caps 	|| [] : []
+								)
+							)
 
-						if (newResultValue !== resultValue) {
-							updateInstance(e.time, newResultValue, resultReferences, resultCaps)
-							resultValue = newResultValue
+							if (newResultValue !== resultValue) {
+								updateInstance(e.time, newResultValue, resultReferences, resultCaps)
+								resultValue = newResultValue
+							}
 						}
 					}
+					return instances
+				} else {
+					const operateInner: (a: ValueWithReference, b: ValueWithReference) => ValueWithReference | null = (
+						lookupExpr.o === '+' ?
+						(a, b) => { return { value: a.value + b.value, references: joinReferences(a.references, b.references) } } :
+						lookupExpr.o === '-' ?
+						(a, b) => { return { value: a.value - b.value, references: joinReferences(a.references, b.references) } } :
+						lookupExpr.o === '*' ?
+						(a, b) => { return { value: a.value * b.value, references: joinReferences(a.references, b.references) } } :
+						lookupExpr.o === '/' ?
+						(a, b) => { return { value: a.value / b.value, references: joinReferences(a.references, b.references) } } :
+						lookupExpr.o === '%' ?
+						(a, b) => { return { value: a.value % b.value, references: joinReferences(a.references, b.references) } } :
+						() => null
+					)
+					const operate = (a: ValueWithReference | null, b: ValueWithReference | null): ValueWithReference | null => {
+						if (a === null || b === null) return null
+						return operateInner(a, b)
+					}
+					const result = operateOnArrays(lookupExpr.l, lookupExpr.r, operate)
+					return result
 				}
-				return instances
-			} else {
-				const operateInner: (a: Reference, b: Reference) => Reference | null = (
-					lookupExpr.o === '+' ?
-					(a, b) => { return { value: a.value + b.value, references: joinReferences(a.references, b.references) } } :
-					lookupExpr.o === '-' ?
-					(a, b) => { return { value: a.value - b.value, references: joinReferences(a.references, b.references) } } :
-					lookupExpr.o === '*' ?
-					(a, b) => { return { value: a.value * b.value, references: joinReferences(a.references, b.references) } } :
-					lookupExpr.o === '/' ?
-					(a, b) => { return { value: a.value / b.value, references: joinReferences(a.references, b.references) } } :
-					lookupExpr.o === '%' ?
-					(a, b) => { return { value: a.value % b.value, references: joinReferences(a.references, b.references) } } :
-					() => null
-				)
-				const operate = (a: Reference | null, b: Reference | null): Reference | null => {
-					if (a === null || b === null) return null
-					return operateInner(a, b)
-				}
-				const result = operateOnArrays(lookupExpr.l, lookupExpr.r, operate)
-				return result
 			}
+
 		}
 	}
 	return null

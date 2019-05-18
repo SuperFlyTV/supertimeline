@@ -1,4 +1,4 @@
-import { interpretExpression } from '../expression'
+import { interpretExpression, wrapInnerExpressions } from '../expression'
 
 describe('Expression', () => {
 	test('interpretExpression from string', () => {
@@ -69,6 +69,46 @@ describe('Expression', () => {
 			l: '#first',
 			o: '&',
 			r: '#second'
+		})
+
+		expect(interpretExpression('!thisOne')).toMatchObject({
+			l: '',
+			o: '!',
+			r: 'thisOne'
+		})
+
+		expect(interpretExpression('!thisOne & !(that | !those)')).toMatchObject({
+			l: {
+				l: '',
+				o: '!',
+				r: 'thisOne'
+			},
+			o: '&',
+			r: {
+				l: '',
+				o: '!',
+				r: {
+					l: 'that',
+					o: '|',
+					r: {
+						l: '',
+						o: '!',
+						r: 'those'
+					}
+				}
+			}
+		})
+	})
+	test('wrapInnerExpressions', () => {
+		expect(wrapInnerExpressions(
+			['a', '(', 'b', 'c', ')']
+		)).toEqual({rest: [], inner:
+			['a', ['b', 'c']]
+		})
+		expect(wrapInnerExpressions(
+			['a', '&', '!', 'b']
+		)).toEqual({rest: [], inner:
+			['a', '&', ['', '!', 'b']]
 		})
 	})
 })

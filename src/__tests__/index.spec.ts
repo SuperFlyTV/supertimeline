@@ -6,6 +6,7 @@ import {
 	validateObject,
 	validateTimeline
 } from '../index'
+import * as _ from 'underscore'
 
 describe('index', () => {
 	test('resolve timeline', () => {
@@ -50,8 +51,10 @@ describe('index', () => {
 		// Resolve the timeline
 		const resolvedTimeline = Resolver.resolveTimeline(timeline, options)
 
+		const resolvedStates = Resolver.resolveAllStates(resolvedTimeline)
+
 		// Calculate the state at a certain time:
-		const state0 = Resolver.getState(resolvedTimeline, 15)
+		const state0 = Resolver.getState(resolvedStates, 15)
 
 		expect(state0).toMatchObject({
 			layers: {
@@ -161,69 +164,222 @@ describe('index', () => {
 		expect(state2.layers[0].content.attr3).toEqual(undefined)
 
 	})
-	test('class applies when defined multiple places', () => {
+	test('Resolve all states', () => {
 		const timeline: Array<TimelineObject> = [
 			{
-			   'id': 'o1',
-			   'enable': {
-				  'while': '.some_class'
-			   },
-			   'priority': 1,
-			   'layer': 'layer0',
-			   'content': {}
+				id: 'video0',
+				layer: '0',
+				enable: {
+					start: 0,
+					end: 100
+				},
+				content: {},
+				priority: 5
 			},
 			{
-			   'id': 'o5',
-			   'priority': 0.1,
-			   'enable': {
-				  'start': 1
-			   },
-			   'layer': 'layer1',
-			   'classes': [
-				  'some_class'
-			   ],
-			   'content': {}
+				id: 'video1',
+				layer: '0',
+				enable: {
+					start: 50,
+					end: 70
+				},
+				content: {},
+				priority: 5
 			},
 			{
-			   'id': 'g0',
-			   'enable': {
-				  'start': 500,
-				  'end': 1000
-			   },
-			   'priority': -1,
-			   'layer': '',
-			   'content': {},
-			   'children': [
-				{
-					'id': 'bad0',
-					'priority': 0,
-					'enable': {
-						'start': 0
-					},
-					'layer': 'layer1',
-					'classes': [
-						'some_class'
-					],
-					'content': {}
-				}
-			   ],
-			   'isGroup': true
+				id: 'video2',
+				layer: '0',
+				enable: {
+					start: 65,
+					end: 75
+				},
+				content: {},
+				priority: 5
+			},
+			{
+				id: 'video3',
+				layer: '0',
+				enable: {
+					start: 50,
+					end: 120
+				},
+				content: {},
+				priority: 3 // lower prio
 			}
 		]
 
 		const options: ResolveOptions = {
+			time: 0
+		}
+		// Resolve the timeline
+		const resolvedTimeline = Resolver.resolveTimeline(timeline, options)
+
+		const resolvedStates = Resolver.resolveAllStates(resolvedTimeline)
+
+		// Calculate the state at a certain time:
+		const state0 = Resolver.getState(resolvedStates, 20)
+		const state1 = Resolver.getState(resolvedStates, 60)
+		const state2 = Resolver.getState(resolvedStates, 65)
+		const state3 = Resolver.getState(resolvedStates, 80)
+		const state4 = Resolver.getState(resolvedStates, 110)
+
+		const state0a = Resolver.getState(resolvedTimeline, 20)
+		const state1a = Resolver.getState(resolvedTimeline, 60)
+		const state2a = Resolver.getState(resolvedTimeline, 65)
+		const state3a = Resolver.getState(resolvedTimeline, 80)
+		const state4a = Resolver.getState(resolvedTimeline, 110)
+
+		_.each(state0.layers, (obj, layer) => { expect(obj.id).toEqual(state0a.layers[layer].id) })
+		_.each(state1.layers, (obj, layer) => { expect(obj.id).toEqual(state1a.layers[layer].id) })
+		_.each(state2.layers, (obj, layer) => { expect(obj.id).toEqual(state2a.layers[layer].id) })
+		_.each(state3.layers, (obj, layer) => { expect(obj.id).toEqual(state3a.layers[layer].id) })
+		_.each(state4.layers, (obj, layer) => { expect(obj.id).toEqual(state4a.layers[layer].id) })
+
+		expect(state0.layers[0].id).toEqual('video0')
+		expect(state1.layers[0].id).toEqual('video1')
+		expect(state2.layers[0].id).toEqual('video2')
+		expect(state3.layers[0].id).toEqual('video0')
+		expect(state4.layers[0].id).toEqual('video3')
+
+		expect(resolvedStates.objects['video0'].resolved.instances).toHaveLength(2)
+		expect(resolvedStates.objects['video1'].resolved.instances).toHaveLength(1)
+		expect(resolvedStates.objects['video2'].resolved.instances).toHaveLength(1)
+
+		expect(resolvedStates.objects['video0'].resolved.instances[0]).toMatchObject({
+			start: 0,
+			end: 50
+		})
+		expect(resolvedStates.objects['video1'].resolved.instances[0]).toMatchObject({
+			start: 50,
+			end: 65
+		})
+		expect(resolvedStates.objects['video2'].resolved.instances[0]).toMatchObject({
+			start: 65,
+			end: 75
+		})
+		expect(resolvedStates.objects['video0'].resolved.instances[1]).toMatchObject({
+			start: 75,
+			end: 100
+		})
+		expect(resolvedStates.objects['video3'].resolved.instances[0]).toMatchObject({
+			start: 100,
+			end: 120
+		})
+	})
+	test('parenthesis with negation', () => {
+		const timeline: Array<TimelineObject> = [
+			{
+
+				id: 'sun',
+				layer: 'sun',
+				enable: {
+				  start: 40,
+				  end: 100
+				},
+				content: {}
+			  },
+			  {
+				id: 'moon',
+				layer: 'moon',
+				enable: {
+				  start: 10,
+				  end: 80
+				},
+				content: {}
+			  },
+			  {
+				id: 'jupiter',
+				layer: 'jupiter',
+				enable: {
+				  start: 60,
+				  end: 130
+				},
+				content: {}
+			  },
+			  {
+				id: 'myObject',
+				layer: 'L1',
+				enable: {
+				  while: '#sun & !(#moon & #jupiter ) ' // Enable while #sun (but not #moon and #jupiter) are enabled.
+				},
+				content: {}
+			  }
+		]
+
+		const options: ResolveOptions = {
+			time: 0
+		}
+		// Resolve the timeline
+		const resolvedTimeline = Resolver.resolveTimeline(timeline, options)
+
+		expect(resolvedTimeline.objects['myObject'].resolved.instances).toMatchObject([
+			{ start: 40, end: 60 },
+			{ start: 80, end: 100 }
+		])
+	})
+	test('class applies when defined multiple places', () => {
+		const timeline: Array<TimelineObject> = [
+			{
+				'id': 'o1',
+				'enable': {
+					'while': '.some_class'
+				},
+				'priority': 1,
+				'layer': 'layer0',
+				'content': {}
+			},
+			{
+				'id': 'o5',
+				'priority': 0.1,
+				'enable': {
+					'start': 1
+				},
+				'layer': 'layer1',
+				'classes': [
+					'some_class'
+				],
+				'content': {}
+			},
+			{
+				'id': 'g0',
+				'enable': {
+					'start': 500,
+					'end': 1000
+				},
+				'priority': -1,
+				'layer': '',
+				'content': {},
+				'children': [
+					{
+						'id': 'bad0',
+						'priority': 0,
+						'enable': {
+							'start': 0
+						},
+						'layer': 'layer1',
+						'classes': [
+							'some_class'
+						],
+						'content': {}
+					}
+				],
+				'isGroup': true
+			}
+		]
+
+ 		const options: ResolveOptions = {
 			time: 1500
 		}
 		// Resolve the timeline
 		const resolvedTimeline = Resolver.resolveTimeline(timeline, options)
 
-		// Calculate the state at a certain time:
+ 		// Calculate the state at a certain time:
 		const state0 = Resolver.getState(resolvedTimeline, 1500)
 
-		expect(state0.layers['layer1']).toBeTruthy()
+ 		expect(state0.layers['layer1']).toBeTruthy()
 		expect(state0.layers['layer1'].id).toEqual('o5')
 		expect(state0.layers['layer0']).toBeTruthy()
 		expect(state0.layers['layer0'].id).toEqual('o1')
 
-	})
+ 	})
 })

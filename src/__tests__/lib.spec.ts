@@ -11,13 +11,13 @@ import {
 	resetId,
 	convertEventsToInstances
 } from '../lib'
-import { Reference } from '../api/api'
+import { ValueWithReference } from '../api/api'
 
 describe('lib', () => {
 	beforeEach(() => {
 		resetId()
 	})
-	const plus = (a: Reference | null, b: Reference | null): Reference | null => {
+	const plus = (a: ValueWithReference | null, b: ValueWithReference | null): ValueWithReference | null => {
 		if (a === null || b === null) return null
 		return { value: a.value + b.value, references: joinReferences(a.references, b.references) }
 	}

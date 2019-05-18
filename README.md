@@ -71,15 +71,17 @@ const options = {
 };
 const resolvedTimeline = Timeline.Resolver.resolveTimeline(myTimeline, options);
 
+// Use the resolved timeline and pre-calculate states, instance collisions, etc.
+const resolvedStates = Timeline.Resolver.resolveAllStates(resolvedTimeline);
 
 // Fetch the state at time 10:
-const state0 = Timeline.Resolver.getState(resolvedTimeline, 10);
+const state0 = Timeline.Resolver.getState(resolvedStates, 10);
 console.log(`At the time ${state0.time}, the active objects are "${
 	_.map(state0.layers, (o, l) => `${o.id} at layer ${l}`).join(', ')
 }"`);
 
 // Fetch the state at time 25:
-const state1 = Timeline.Resolver.getState(resolvedTimeline, 25);
+const state1 = Timeline.Resolver.getState(resolvedStates, 25);
 console.log(`At the time ${state1.time}, the active objects are "${
 	_.map(state1.layers, (o, l) => `${o.id} at layer ${l}`).join(', ')
 }"`);
