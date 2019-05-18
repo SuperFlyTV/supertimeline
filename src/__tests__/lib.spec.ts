@@ -73,7 +73,7 @@ describe('lib', () => {
 			{ id: '%a', start: 10, end: 50, references: ['a'], caps: [{ id: 'p0', start: 0, end: 75 }] },
 			{ id: '%b', start: 20, end: 30, references: ['b'], caps: [{ id: 'p1', start: 0, end: 75 }] }
 		], true)).toEqual([
-			{ id: '%a', start: 10, end: 50, references: ['a', 'b'], caps: [{ id: 'p0', start: 0, end: 75 }, { id: 'p1', start: 0, end: 75 }] }
+			{ id: '%a', start: 10, end: 50, references: ['a', 'b'], caps: [{ id: 'p0', start: 0, end: 75 }] }
 		])
 
 		expect(cleanInstances([
