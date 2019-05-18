@@ -404,10 +404,8 @@ export function lookupExpression (
 		// Match id, example: "#objectId.start"
 		const m = expr.match(/^\W*#([^.]+)(.*)/)
 		if (m) {
-			// const exclamation = m[1]
 			const id = m[1]
 			rest = m[2]
-			// if (exclamation === '!') invert = !invert
 
 			const obj = resolvedTimeline.objects[id]
 			if (obj) {
@@ -417,10 +415,8 @@ export function lookupExpression (
 			// Match class, example: ".className.start"
 			const m = expr.match(/^\W*\.([^.]+)(.*)/)
 			if (m) {
-				// const exclamation = m[1]
 				const className = m[1]
 				rest = m[2]
-				// if (exclamation === '!') invert = !invert
 
 				const objIds: string[] = resolvedTimeline.classes[className] || []
 
@@ -434,10 +430,8 @@ export function lookupExpression (
 				// Match layer, example: "$layer"
 				const m = expr.match(/^\W*\$([^.]+)(.*)/)
 				if (m) {
-					// const exclamation = m[1]
 					const layer = m[1]
 					rest = m[2]
-					// if (exclamation === '!') invert = !invert
 
 					const objIds: string[] = resolvedTimeline.layers[layer] || []
 
