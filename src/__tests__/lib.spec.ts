@@ -183,6 +183,14 @@ describe('lib', () => {
 			{ id: '@d', start: 1172, end: 1184, references: [ '@2', 'a0', 'a1' ] }
 		])
 	})
+	test('cleanInstances 2', () => {
+		expect(cleanInstances([
+			{ id: '%a', start: 1, end: null, references: ['a'] },
+			{ id: '%b', start: 500, end: 1000, references: ['b'], caps: [{ id: 'p0', start: 500, end: 1000 }] }
+		], true, true)).toEqual([
+			{ id: '%a', start: 1, end: null, references: ['a', 'b'] }
+		])
+	})
 	test('convertEventsToInstances', () => {
 		expect(convertEventsToInstances([
 			{
