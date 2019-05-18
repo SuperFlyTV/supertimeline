@@ -402,12 +402,12 @@ export function lookupExpression (
 		let rest: string = ''
 
 		// Match id, example: "#objectId.start"
-		const m = expr.match(/^(!)?\W*#([^.]+)(.*)/)
+		const m = expr.match(/^\W*#([^.]+)(.*)/)
 		if (m) {
-			const exclamation = m[1]
-			const id = m[2]
-			rest = m[3]
-			if (exclamation === '!') invert = !invert
+			// const exclamation = m[1]
+			const id = m[1]
+			rest = m[2]
+			// if (exclamation === '!') invert = !invert
 
 			const obj = resolvedTimeline.objects[id]
 			if (obj) {
@@ -415,12 +415,12 @@ export function lookupExpression (
 			}
 		} else {
 			// Match class, example: ".className.start"
-			const m = expr.match(/^(!)?\W*\.([^.]+)(.*)/)
+			const m = expr.match(/^\W*\.([^.]+)(.*)/)
 			if (m) {
-				const exclamation = m[1]
-				const className = m[2]
-				rest = m[3]
-				if (exclamation === '!') invert = !invert
+				// const exclamation = m[1]
+				const className = m[1]
+				rest = m[2]
+				// if (exclamation === '!') invert = !invert
 
 				const objIds: string[] = resolvedTimeline.classes[className] || []
 
@@ -432,12 +432,12 @@ export function lookupExpression (
 				})
 			} else {
 				// Match layer, example: "$layer"
-				const m = expr.match(/^(!)?\W*\$([^.]+)(.*)/)
+				const m = expr.match(/^\W*\$([^.]+)(.*)/)
 				if (m) {
-					const exclamation = m[1]
-					const layer = m[2]
-					rest = m[3]
-					if (exclamation === '!') invert = !invert
+					// const exclamation = m[1]
+					const layer = m[1]
+					rest = m[2]
+					// if (exclamation === '!') invert = !invert
 
 					const objIds: string[] = resolvedTimeline.layers[layer] || []
 
@@ -530,140 +530,154 @@ export function lookupExpression (
 				o: expr.o,
 				r: lookupExpression(resolvedTimeline, obj, expr.r, context)
 			}
-			if (
-				_.isNull(lookupExpr.l) ||
-				_.isNull(lookupExpr.r)
-			) {
-				return null
-			}
-			if (
-				lookupExpr.o === '&' ||
-				lookupExpr.o === '|'
-			) {
-				interface SideEvent extends InstanceEvent<boolean> {
-					left: boolean // true = left, false = right side
-					instance: TimelineObjectInstance
+			if (lookupExpr.o === '!') {
+				// Discard l, invert and return r:
+				if (lookupExpr.r && _.isArray(lookupExpr.r) && lookupExpr.r.length) {
+					return invertInstances(
+						lookupExpr.r
+					)
+				} else {
+					// We can't invert a value
+					return lookupExpr.r
 				}
-				let events: Array<SideEvent> = []
-				const addEvents = (instances: Array<TimelineObjectInstance>, left: boolean) => {
-					_.each(instances, (instance) => {
-						events.push({
-							left: left,
-							time: instance.start,
-							value: true,
-							references: [], // not used
-							data: true,
-							instance: instance
-						})
-						if (instance.end !== null) {
+			} else {
+
+				if (
+					_.isNull(lookupExpr.l) ||
+					_.isNull(lookupExpr.r)
+				) {
+					return null
+				}
+				if (
+					lookupExpr.o === '&' ||
+					lookupExpr.o === '|'
+				) {
+					interface SideEvent extends InstanceEvent<boolean> {
+						left: boolean // true = left, false = right side
+						instance: TimelineObjectInstance
+					}
+					let events: Array<SideEvent> = []
+					const addEvents = (instances: Array<TimelineObjectInstance>, left: boolean) => {
+						_.each(instances, (instance) => {
 							events.push({
 								left: left,
-								time: instance.end,
-								value: false,
+								time: instance.start,
+								value: true,
 								references: [], // not used
-								data: false,
+								data: true,
 								instance: instance
 							})
-						}
-					})
-				}
-				if (_.isArray(lookupExpr.l)) addEvents(lookupExpr.l, true)
-				if (_.isArray(lookupExpr.r)) addEvents(lookupExpr.r, false)
-
-				events = sortEvents(events)
-
-				const calcResult: (left: any, right: any) => boolean = (
-					lookupExpr.o === '&' ?
-						(left: any, right: any): boolean => !!(left && right) :
-					lookupExpr.o === '|' ?
-						(left: any, right: any): boolean => !!(left || right) :
-					() => { return false }
-				)
-				let leftValue: boolean = (isReference(lookupExpr.l) ? !!lookupExpr.l.value : false)
-				let rightValue: boolean = (isReference(lookupExpr.r) ? !!lookupExpr.r.value : false)
-
-				let leftInstance: TimelineObjectInstance | null = null
-				let rightInstance: TimelineObjectInstance | null = null
-
-				let resultValue: boolean = calcResult(leftValue, rightValue)
-				const resultReferences: Array<string> = joinReferences(
-					(isReference(lookupExpr.l) ? lookupExpr.l.references : []),
-					(isReference(lookupExpr.r) ? lookupExpr.r.references : [])
-				)
-
-				const instances: Array<TimelineObjectInstance> = []
-				const updateInstance = (time: Time, value: boolean, references: Array<string>, caps: Array<Cap>) => {
-					if (value) {
-						instances.push({
-							id: getId(),
-							start: time,
-							end: null,
-							references: references,
-							caps: caps
+							if (instance.end !== null) {
+								events.push({
+									left: left,
+									time: instance.end,
+									value: false,
+									references: [], // not used
+									data: false,
+									instance: instance
+								})
+							}
 						})
-					} else {
-						const last = _.last(instances)
-						if (last) {
-							last.end = time
-							// don't update reference on end
+					}
+					if (_.isArray(lookupExpr.l)) addEvents(lookupExpr.l, true)
+					if (_.isArray(lookupExpr.r)) addEvents(lookupExpr.r, false)
+
+					events = sortEvents(events)
+
+					const calcResult: (left: any, right: any) => boolean = (
+						lookupExpr.o === '&' ?
+							(left: any, right: any): boolean => !!(left && right) :
+						lookupExpr.o === '|' ?
+							(left: any, right: any): boolean => !!(left || right) :
+						() => { return false }
+					)
+					let leftValue: boolean = (isReference(lookupExpr.l) ? !!lookupExpr.l.value : false)
+					let rightValue: boolean = (isReference(lookupExpr.r) ? !!lookupExpr.r.value : false)
+
+					let leftInstance: TimelineObjectInstance | null = null
+					let rightInstance: TimelineObjectInstance | null = null
+
+					let resultValue: boolean = calcResult(leftValue, rightValue)
+					const resultReferences: Array<string> = joinReferences(
+						(isReference(lookupExpr.l) ? lookupExpr.l.references : []),
+						(isReference(lookupExpr.r) ? lookupExpr.r.references : [])
+					)
+
+					const instances: Array<TimelineObjectInstance> = []
+					const updateInstance = (time: Time, value: boolean, references: Array<string>, caps: Array<Cap>) => {
+						if (value) {
+							instances.push({
+								id: getId(),
+								start: time,
+								end: null,
+								references: references,
+								caps: caps
+							})
+						} else {
+							const last = _.last(instances)
+							if (last) {
+								last.end = time
+								// don't update reference on end
+							}
 						}
 					}
-				}
-				updateInstance(0, resultValue, resultReferences, [])
-				for (let i = 0; i < events.length; i++) {
-					const e = events[i]
-					const next = events[i + 1]
+					updateInstance(0, resultValue, resultReferences, [])
+					for (let i = 0; i < events.length; i++) {
+						const e = events[i]
+						const next = events[i + 1]
 
-					if (e.left) {
-						leftValue = e.value
-						leftInstance = e.instance
-					} else {
-						rightValue = e.value
-						rightInstance = e.instance
-					}
+						if (e.left) {
+							leftValue = e.value
+							leftInstance = e.instance
+						} else {
+							rightValue = e.value
+							rightInstance = e.instance
+						}
 
-					if (!next || next.time !== e.time) {
-						const newResultValue = calcResult(leftValue, rightValue)
-						const resultReferences: Array<string> = joinReferences(
-							leftInstance ? leftInstance.references : [],
-							rightInstance ? rightInstance.references : []
-						)
-						const resultCaps: Array<Cap> = (
-							(
-								leftInstance ? 	leftInstance.caps 	|| [] : []
-							).concat(
-								rightInstance ? rightInstance.caps 	|| [] : []
+						if (!next || next.time !== e.time) {
+							const newResultValue = calcResult(leftValue, rightValue)
+							const resultReferences: Array<string> = joinReferences(
+								leftInstance ? leftInstance.references : [],
+								rightInstance ? rightInstance.references : []
 							)
-						)
+							const resultCaps: Array<Cap> = (
+								(
+									leftInstance ? 	leftInstance.caps 	|| [] : []
+								).concat(
+									rightInstance ? rightInstance.caps 	|| [] : []
+								)
+							)
 
-						if (newResultValue !== resultValue) {
-							updateInstance(e.time, newResultValue, resultReferences, resultCaps)
-							resultValue = newResultValue
+							if (newResultValue !== resultValue) {
+								updateInstance(e.time, newResultValue, resultReferences, resultCaps)
+								resultValue = newResultValue
+							}
 						}
 					}
+					return instances
+				} else {
+					const operateInner: (a: ValueWithReference, b: ValueWithReference) => ValueWithReference | null = (
+						lookupExpr.o === '+' ?
+						(a, b) => { return { value: a.value + b.value, references: joinReferences(a.references, b.references) } } :
+						lookupExpr.o === '-' ?
+						(a, b) => { return { value: a.value - b.value, references: joinReferences(a.references, b.references) } } :
+						lookupExpr.o === '*' ?
+						(a, b) => { return { value: a.value * b.value, references: joinReferences(a.references, b.references) } } :
+						lookupExpr.o === '/' ?
+						(a, b) => { return { value: a.value / b.value, references: joinReferences(a.references, b.references) } } :
+						lookupExpr.o === '%' ?
+						(a, b) => { return { value: a.value % b.value, references: joinReferences(a.references, b.references) } } :
+						() => null
+					)
+					const operate = (a: ValueWithReference | null, b: ValueWithReference | null): ValueWithReference | null => {
+						if (a === null || b === null) return null
+						return operateInner(a, b)
+					}
+					const result = operateOnArrays(lookupExpr.l, lookupExpr.r, operate)
+					return result
 				}
-				return instances
-			} else {
-				const operateInner: (a: Reference, b: Reference) => Reference | null = (
-					lookupExpr.o === '+' ?
-					(a, b) => { return { value: a.value + b.value, references: joinReferences(a.references, b.references) } } :
-					lookupExpr.o === '-' ?
-					(a, b) => { return { value: a.value - b.value, references: joinReferences(a.references, b.references) } } :
-					lookupExpr.o === '*' ?
-					(a, b) => { return { value: a.value * b.value, references: joinReferences(a.references, b.references) } } :
-					lookupExpr.o === '/' ?
-					(a, b) => { return { value: a.value / b.value, references: joinReferences(a.references, b.references) } } :
-					lookupExpr.o === '%' ?
-					(a, b) => { return { value: a.value % b.value, references: joinReferences(a.references, b.references) } } :
-					() => null
-				)
-				const operate = (a: Reference | null, b: Reference | null): Reference | null => {
-					if (a === null || b === null) return null
-					return operateInner(a, b)
-				}
-				const result = operateOnArrays(lookupExpr.l, lookupExpr.r, operate)
-				return result
 			}
+
 		}
 	}
 	return null
