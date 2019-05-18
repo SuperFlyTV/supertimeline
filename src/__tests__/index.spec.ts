@@ -266,7 +266,7 @@ describe('index', () => {
 			end: 120
 		})
 	})
-	test.only('parenthesis with negation', () => {
+	test('parenthesis with negation', () => {
 		const timeline: Array<TimelineObject> = [
 			{
 
