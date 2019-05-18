@@ -317,4 +317,69 @@ describe('index', () => {
 			{ start: 80, end: 100 }
 		])
 	})
+	test('class applies when defined multiple places', () => {
+		const timeline: Array<TimelineObject> = [
+			{
+				'id': 'o1',
+				'enable': {
+					'while': '.some_class'
+				},
+				'priority': 1,
+				'layer': 'layer0',
+				'content': {}
+			},
+			{
+				'id': 'o5',
+				'priority': 0.1,
+				'enable': {
+					'start': 1
+				},
+				'layer': 'layer1',
+				'classes': [
+					'some_class'
+				],
+				'content': {}
+			},
+			{
+				'id': 'g0',
+				'enable': {
+					'start': 500,
+					'end': 1000
+				},
+				'priority': -1,
+				'layer': '',
+				'content': {},
+				'children': [
+					{
+						'id': 'bad0',
+						'priority': 0,
+						'enable': {
+							'start': 0
+						},
+						'layer': 'layer1',
+						'classes': [
+							'some_class'
+						],
+						'content': {}
+					}
+				],
+				'isGroup': true
+			}
+		]
+
+ 		const options: ResolveOptions = {
+			time: 1500
+		}
+		// Resolve the timeline
+		const resolvedTimeline = Resolver.resolveTimeline(timeline, options)
+
+ 		// Calculate the state at a certain time:
+		const state0 = Resolver.getState(resolvedTimeline, 1500)
+
+ 		expect(state0.layers['layer1']).toBeTruthy()
+		expect(state0.layers['layer1'].id).toEqual('o5')
+		expect(state0.layers['layer0']).toBeTruthy()
+		expect(state0.layers['layer0'].id).toEqual('o1')
+
+ 	})
 })

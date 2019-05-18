@@ -190,7 +190,7 @@ export function convertEventsToInstances (
 				// resume previous instance:
 				lastInstance.end = null
 				lastInstance.references = joinReferences(lastInstance.references, event.references)
-				lastInstance.caps = joinCaps(lastInstance.caps, event.data.instance.caps)
+				addCapsToResuming(lastInstance, event.data.instance.caps)
 			} else if (
 				!lastInstance ||
 				lastInstance.end !== null
@@ -208,7 +208,7 @@ export function convertEventsToInstances (
 			} else {
 				// There is already a running instance
 				lastInstance.references = joinReferences(lastInstance.references, event.references)
-				lastInstance.caps = joinCaps(lastInstance.caps, event.data.instance.caps)
+				addCapsToResuming(lastInstance, event.data.instance.caps)
 			}
 			if (lastInstance && lastInstance.caps && !lastInstance.caps.length) delete lastInstance.caps
 		} else {
@@ -531,6 +531,25 @@ export function joinReferences (...references: Array<Array<string> | string>): A
 		if (a < b) return -1
 		return 0
 	})
+}
+export function addCapsToResuming (instance: TimelineObjectInstance, ...caps: Array<Array<Cap> | undefined>): void {
+
+	const capsToAdd: Cap[] = []
+	_.each(joinCaps(...caps), (cap) => {
+
+		if (
+			cap.end &&
+			instance.end &&
+			cap.end > instance.end
+		) {
+			capsToAdd.push({
+				id: cap.id,
+				start: 0,
+				end: cap.end
+			})
+		}
+	})
+	instance.caps = joinCaps(instance.caps, capsToAdd)
 }
 export function joinCaps (...caps: Array<Array<Cap> | undefined>): Array<Cap> {
 	return (
