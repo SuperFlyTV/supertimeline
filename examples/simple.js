@@ -48,13 +48,15 @@ const options = {
     time: 0
 };
 const resolvedTimeline = Timeline.Resolver.resolveTimeline(myTimeline, options);
+// Use the resolved timeline and pre-calculate states, instance collisions, etc..
+const resolvedStates = Timeline.Resolver.resolveAllStates(resolvedTimeline);
 // Fetch the state at time 10:
-const state0 = Timeline.Resolver.getState(resolvedTimeline, 10);
+const state0 = Timeline.Resolver.getState(resolvedStates, 10);
 console.log(`At the time ${state0.time}, the active objects are "${_.map(state0.layers, (o, l) => `${o.id} at layer ${l}`).join(', ')}"`);
 // Fetch the state at time 25:
-const state1 = Timeline.Resolver.getState(resolvedTimeline, 25);
+const state1 = Timeline.Resolver.getState(resolvedStates, 25);
 console.log(`At the time ${state1.time}, the active objects are "${_.map(state1.layers, (o, l) => `${o.id} at layer ${l}`).join(', ')}"`);
-console.log(`The object "graphicBackground" will play at [${_.map(resolvedTimeline.objects['graphicBackground'].resolved.instances, (instance) => `${instance.start} to ${instance.end}`).join(', ')}]`);
+console.log(`The object "graphicBackground" will play at [${_.map(resolvedStates.objects['graphicBackground'].resolved.instances, (instance) => `${instance.start} to ${instance.end}`).join(', ')}]`);
 const nextEvent = state1.nextEvents[0];
 console.log(`After the time ${state1.time}, the next event to happen will be at time ${nextEvent.time}. The event is related to the object "${nextEvent.objId}"`);
 // Output:

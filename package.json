@@ -97,6 +97,9 @@
     "typedoc": "^0.14.2",
     "typescript": "^3.3.3333"
   },
+  "resolutions": {
+    "typedoc/**/marked": "^0.6.2"
+  },
   "keywords": [
     "broadcast",
     "typescript",

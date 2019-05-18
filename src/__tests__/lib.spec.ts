@@ -11,13 +11,13 @@ import {
 	resetId,
 	convertEventsToInstances
 } from '../lib'
-import { Reference } from '../api/api'
+import { ValueWithReference } from '../api/api'
 
 describe('lib', () => {
 	beforeEach(() => {
 		resetId()
 	})
-	const plus = (a: Reference | null, b: Reference | null): Reference | null => {
+	const plus = (a: ValueWithReference | null, b: ValueWithReference | null): ValueWithReference | null => {
 		if (a === null || b === null) return null
 		return { value: a.value + b.value, references: joinReferences(a.references, b.references) }
 	}
@@ -73,7 +73,7 @@ describe('lib', () => {
 			{ id: '%a', start: 10, end: 50, references: ['a'], caps: [{ id: 'p0', start: 0, end: 75 }] },
 			{ id: '%b', start: 20, end: 30, references: ['b'], caps: [{ id: 'p1', start: 0, end: 75 }] }
 		], true)).toEqual([
-			{ id: '%a', start: 10, end: 50, references: ['a', 'b'], caps: [{ id: 'p0', start: 0, end: 75 }, { id: 'p1', start: 0, end: 75 }] }
+			{ id: '%a', start: 10, end: 50, references: ['a', 'b'], caps: [{ id: 'p0', start: 0, end: 75 }] }
 		])
 
 		expect(cleanInstances([
@@ -181,6 +181,14 @@ describe('lib', () => {
 			{ id: '@b', start: 1122, end: 1147, references: [ '@2', 'a0', 'a1' ] },
 			{ id: '@c', start: 1147, end: 1172, references: [ '@2', 'a0', 'a1' ] },
 			{ id: '@d', start: 1172, end: 1184, references: [ '@2', 'a0', 'a1' ] }
+		])
+	})
+	test('cleanInstances 2', () => {
+		expect(cleanInstances([
+			{ id: '%a', start: 1, end: null, references: ['a'] },
+			{ id: '%b', start: 500, end: 1000, references: ['b'], caps: [{ id: 'p0', start: 500, end: 1000 }] }
+		], true, true)).toEqual([
+			{ id: '%a', start: 1, end: null, references: ['a', 'b'] }
 		])
 	})
 	test('convertEventsToInstances', () => {
