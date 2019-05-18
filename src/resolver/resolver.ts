@@ -11,7 +11,7 @@ import {
 	TimelineState,
 	TimelineKeyframe,
 	TimelineObjectKeyframe,
-	Reference,
+	ValueWithReference,
 	InstanceEvent,
 	Cap,
 	ResolvedStates
@@ -164,7 +164,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 	}
 
 	const startExpr: ExpressionObj | number | null = interpretExpression(start)
-	let parentInstances: TimelineObjectInstance[] | null | Reference = null
+	let parentInstances: TimelineObjectInstance[] | null | ValueWithReference = null
 	let hasParent: boolean = false
 	let referToParent: boolean = false
 	if (obj.resolved.parentId) {
@@ -181,8 +181,8 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 		}
 	}
 	let lookedupStarts = lookupExpression(resolvedTimeline, obj, startExpr, 'start')
-	const applyParentInstances = (value: TimelineObjectInstance[] | null | Reference): TimelineObjectInstance[] | null | Reference => {
-		const operate = (a: Reference | null, b: Reference | null): Reference | null => {
+	const applyParentInstances = (value: TimelineObjectInstance[] | null | ValueWithReference): TimelineObjectInstance[] | null | ValueWithReference => {
+		const operate = (a: ValueWithReference | null, b: ValueWithReference | null): ValueWithReference | null => {
 			if (a === null || b === null) return null
 			return {
 				value: a.value + b.value,
@@ -265,7 +265,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 				lookedupDuration = {
 					value: lookedupDuration[0].start,
 					references: lookedupDuration[0].references
-				} as Reference
+				} as ValueWithReference
 			}
 
 			if (_.isArray(lookedupDuration)) {
@@ -277,7 +277,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 					lookedupDuration.value > lookedupRepeating.value
 				) lookedupDuration.value = lookedupRepeating.value
 
-				const tmpLookedupDuration: Reference = lookedupDuration // cast type
+				const tmpLookedupDuration: ValueWithReference = lookedupDuration // cast type
 				_.each(events, (e) => {
 					if (e.value) {
 						const time = e.time + tmpLookedupDuration.value
@@ -365,7 +365,7 @@ export function lookupExpression (
 	obj: TimelineObject,
 	expr: Expression | null,
 	context: ObjectRefType
-): Array<TimelineObjectInstance> | Reference | null {
+): Array<TimelineObjectInstance> | ValueWithReference | null {
 	if (expr === null) return null
 
 	if (
@@ -458,7 +458,7 @@ export function lookupExpression (
 
 			if (ref === 'duration') {
 				// Duration refers to the first object on the resolved timeline
-				const instanceDurations: Array<Reference> = []
+				const instanceDurations: Array<ValueWithReference> = []
 				_.each(referencedObjs, (referencedObj: ResolvedTimelineObject) => {
 					resolveTimelineObj(resolvedTimeline, referencedObj)
 					if (referencedObj.resolved.resolved) {
@@ -478,7 +478,7 @@ export function lookupExpression (
 						}
 					}
 				})
-				let firstDuration: Reference | null = null
+				let firstDuration: ValueWithReference | null = null
 				_.each(instanceDurations, (d) => {
 					if (firstDuration === null || d.value < firstDuration.value) firstDuration = d
 				})
