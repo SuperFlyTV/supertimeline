@@ -4,7 +4,6 @@ import {
 	ResolvedTimeline,
 	ResolveOptions,
 	Expression,
-	ExpressionObj,
 	ResolvedTimelineObject,
 	TimelineObjectInstance,
 	Time,
@@ -163,7 +162,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 		start = 'false'
 	}
 
-	const startExpr: ExpressionObj | number | null = interpretExpression(start)
+	const startExpr: Expression = interpretExpression(start)
 	let parentInstances: TimelineObjectInstance[] | null | ValueWithReference = null
 	let hasParent: boolean = false
 	let referToParent: boolean = false
@@ -230,7 +229,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 		}
 
 		if (obj.enable.end !== undefined) {
-			const endExpr: ExpressionObj | number | null = interpretExpression(obj.enable.end)
+			const endExpr: Expression = interpretExpression(obj.enable.end)
 			// lookedupEnds will contain an inverted list of instances. Therefore .start means an end
 			let lookedupEnds = (
 				endExpr ?
@@ -258,7 +257,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 				})
 			}
 		} else if (obj.enable.duration !== undefined) {
-			const durationExpr: ExpressionObj | number | null = interpretExpression(obj.enable.duration)
+			const durationExpr: Expression = interpretExpression(obj.enable.duration)
 			let lookedupDuration = lookupExpression(resolvedTimeline, obj, durationExpr, 'duration')
 
 			if (_.isArray(lookedupDuration) && lookedupDuration.length === 1) {
