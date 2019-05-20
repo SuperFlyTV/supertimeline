@@ -127,7 +127,7 @@ export class Resolver {
 	 * @param time The point in time where to calculate the state
 	 * @param eventLimit (Optional) Limits the number of returned upcoming events.
 	 */
-	static getState (resolved: ResolvedTimeline, time: Time, eventLimit?: number): TimelineState {
+	static getState (resolved: ResolvedTimeline | ResolvedStates, time: Time, eventLimit?: number): TimelineState {
 		return getState(resolved, time, eventLimit)
 	}
 }
