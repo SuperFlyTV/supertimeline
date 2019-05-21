@@ -3,6 +3,7 @@ import { ResolvedTimeline, TimelineObject } from '../../api/api'
 import { interpretExpression } from '../expression'
 import { EventType } from '../../api/enums'
 import { resetId } from '../../lib'
+import * as _ from 'underscore'
 
 describe('resolver', () => {
 	beforeEach(() => {
@@ -1241,5 +1242,45 @@ describe('resolver', () => {
 			}
 		})
 		expect(Resolver.getState(resolved, 185).layers).toEqual({})
+	})
+	test('Unique instance ids', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'video0',
+				layer: '0',
+				enable: {
+					start: 0,
+					duration: 80
+				},
+				content: {}
+			},
+			{
+				id: 'video1',
+				layer: '0',
+				enable: {
+					start: 50,
+					duration: 20
+				},
+				content: {}
+			}
+		]
+
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitCount: 99, limitTime: 199 }))
+
+		expect(resolved.statistics.resolvedObjectCount).toEqual(2)
+		expect(resolved.statistics.unresolvedCount).toEqual(0)
+
+		expect(resolved.objects['video0']).toBeTruthy()
+		expect(resolved.objects['video1']).toBeTruthy()
+
+		const instanceIds: {[id: string]: true} = {}
+		_.each(resolved.objects, (obj) => {
+			_.each(obj.resolved.instances, instance => {
+				expect(instanceIds[instance.id]).toBeFalsy()
+				instanceIds[instance.id] = true
+			})
+		})
+
+		expect(_.keys(instanceIds)).toHaveLength(3)
 	})
 })
