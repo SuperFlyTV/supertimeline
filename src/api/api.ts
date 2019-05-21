@@ -122,12 +122,19 @@ export interface ResolvedTimelineObject extends TimelineObject {
 	}
 }
 export interface TimelineObjectInstance {
+	/** id of the instance (unique)  */
 	id: string
-	isFirst?: boolean // if true, starts from the beginning
+	/** if true, the instance starts from the beginning of time */
+	isFirst?: boolean
+	/** The start time of the instance  */
 	start: Time
-	end: Time | null // null = infinite
-	references: Array<string> // array of the id of the referenced objects
-	caps?: Array<Cap> // If set, tells the cap of the parent
+	/** The end time of the instance (null = infinite) */
+	end: Time | null
+	/** array of the id of the referenced objects */
+	references: Array<string>
+	/** If set, tells the cap of the parent */
+	caps?: Array<Cap>
+	/** If the instance was generated from another instance, reference to the original */
 	fromInstanceId?: string
 }
 export interface Cap {
