@@ -128,6 +128,7 @@ export interface TimelineObjectInstance {
 	end: Time | null // null = infinite
 	references: Array<string> // array of the id of the referenced objects
 	caps?: Array<Cap> // If set, tells the cap of the parent
+	fromInstanceId?: string
 }
 export interface Cap {
 	id: string // id of the parent
