@@ -313,12 +313,19 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 							addObjectToResolvedTimeline(resolvedStates, newObj)
 						}
 
-						const newInstance = {
+						const newInstance: TimelineObjectInstance = {
 							...currentOnTopOfLayer.instance,
 							// We're setting new start & end times so they match up with the state:
 							start: time,
-							end: null
+							end: null,
+							fromInstanceId: currentOnTopOfLayer.instance.id
 						}
+						// Make the instance id unique:
+						_.each(newObj.resolved.instances, instance => {
+							if (instance.id === newInstance.id) {
+								newInstance.id = newInstance.id + '_$' + newObj.resolved.instances.length
+							}
+						})
 						newObj.resolved.instances.push(newInstance)
 
 						const newObjInstance = {
