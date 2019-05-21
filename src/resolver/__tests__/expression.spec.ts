@@ -98,6 +98,26 @@ describe('Expression', () => {
 				}
 			}
 		})
+
+		expect(interpretExpression('(!.classA | !$layer.classB) & #obj')).toMatchObject({
+			'l': {
+				'l': {
+					'l': '',
+					'o': '!',
+					'r': '.classA'
+				},
+				'o': '|',
+				'r': {
+					'l': '',
+					'o': '!',
+					'r': '$layer.classB'
+				}
+			},
+			'o': '&',
+			'r': '#obj'
+		})
+
+		expect(interpretExpression('#obj.start')).toEqual('#obj.start')
 	})
 	test('wrapInnerExpressions', () => {
 		expect(wrapInnerExpressions(

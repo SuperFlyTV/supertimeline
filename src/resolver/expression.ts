@@ -3,7 +3,7 @@ import { Expression, ExpressionObj } from '../api/api'
 
 export const OPERATORS = ['&', '|', '+', '-', '*', '/', '%', '!']
 
-export function interpretExpression (expr: Expression): ExpressionObj | number | null {
+export function interpretExpression (expr: Expression): Expression {
 	if (_.isString(expr)) {
 		const operatorList = OPERATORS
 
@@ -77,9 +77,9 @@ export function wrapInnerExpressions (words: Array<any>): InnerExpression {
 		rest: []
 	}
 }
-function words2Expression (operatorList: Array<string>, words: Array<any>): ExpressionObj {
+function words2Expression (operatorList: Array<string>, words: Array<any>): Expression {
 	if (!words || !words.length) throw new Error('words2Expression: syntax error: unbalanced expression')
-	if (words.length === 1 && _.isArray(words[0])) words = words[0]
+	while (words.length === 1 && _.isArray(words[0])) words = words[0]
 	if (words.length === 1) return words[0]
 
 	// Find the operator with the highest priority:
@@ -105,19 +105,20 @@ function words2Expression (operatorList: Array<string>, words: Array<any>): Expr
 function validateExpression (operatorList: Array<string>, expr0: Expression, breadcrumbs?: string) {
 	if (!breadcrumbs) breadcrumbs = 'ROOT'
 
-	if (_.isObject(expr0)) {
-
+	if (_.isObject(expr0) && !_.isArray(expr0)) {
 		const expr: ExpressionObj = expr0 as ExpressionObj
 
-		if (!_.has(expr,'l')) throw new Error('validateExpression: "+breadcrumbs+".l missing')
-		if (!_.has(expr,'o')) throw new Error('validateExpression: "+breadcrumbs+".o missing')
-		if (!_.has(expr,'r')) throw new Error('validateExpression: "+breadcrumbs+".r missing')
+		if (!_.has(expr,'l')) throw new Error(`validateExpression: ${breadcrumbs}.l missing in ${JSON.stringify(expr)}`)
+		if (!_.has(expr,'o')) throw new Error(`validateExpression: ${breadcrumbs}.o missing in ${JSON.stringify(expr)}`)
+		if (!_.has(expr,'r')) throw new Error(`validateExpression: ${breadcrumbs}.r missing in ${JSON.stringify(expr)}`)
 
-		if (!_.isString(expr.o)) throw new Error('validateExpression: "+breadcrumbs+".o not a string')
+		if (!_.isString(expr.o)) throw new Error(`validateExpression: ${breadcrumbs}.o not a string`)
 
 		if (!wordIsOperator(operatorList, expr.o)) throw new Error(breadcrumbs + '.o not valid: "' + expr.o + '"')
 
-		validateExpression(operatorList, expr.l,breadcrumbs + '.l')
-		validateExpression(operatorList, expr.r,breadcrumbs + '.r')
+		validateExpression(operatorList, expr.l, breadcrumbs + '.l')
+		validateExpression(operatorList, expr.r, breadcrumbs + '.r')
+	} else if (!_.isNull(expr0) && !_.isString(expr0) && !_.isNumber(expr0)) {
+		throw new Error(`validateExpression: ${breadcrumbs} is of invalid type`)
 	}
 }
