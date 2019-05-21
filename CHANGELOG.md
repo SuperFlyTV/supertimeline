@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="7.1.1"></a>
+## [7.1.1](https://github.com/SuperFlyTV/supertimeline/compare/7.1.0...7.1.1) (2019-05-21)
+
+
+### Bug Fixes
+
+* make instance ids unique ([3376662](https://github.com/SuperFlyTV/supertimeline/commit/3376662))
+* missing type in getState ([4f86b1b](https://github.com/SuperFlyTV/supertimeline/commit/4f86b1b))
+
+
+
 <a name="7.1.0"></a>
 # [7.1.0](https://github.com/SuperFlyTV/supertimeline/compare/7.0.2...7.1.0) (2019-05-18)
 
