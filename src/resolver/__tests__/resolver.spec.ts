@@ -1249,7 +1249,7 @@ describe('resolver', () => {
 				id: 'video0',
 				layer: '0',
 				enable: {
-					start: 0,
+					start: 10,
 					duration: 80
 				},
 				content: {}
@@ -1258,10 +1258,11 @@ describe('resolver', () => {
 				id: 'video1',
 				layer: '0',
 				enable: {
-					start: 50,
+					start: 10,
 					duration: 20
 				},
-				content: {}
+				content: {},
+				priority: 1
 			}
 		]
 
