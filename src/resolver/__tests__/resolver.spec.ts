@@ -1283,4 +1283,26 @@ describe('resolver', () => {
 
 		expect(_.keys(instanceIds)).toHaveLength(3)
 	})
+	test('Repeating many', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'video0',
+				layer: '0',
+				enable: {
+					start: 0,
+					duration: 8,
+					repeating: 10
+				},
+				content: {}
+			}
+		]
+
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitCount: 100, limitTime: 99999 }))
+
+		expect(resolved.statistics.resolvedObjectCount).toEqual(1)
+		expect(resolved.statistics.unresolvedCount).toEqual(0)
+
+		expect(resolved.objects['video0']).toBeTruthy()
+		expect(resolved.objects['video0'].resolved.instances).toHaveLength(100)
+	})
 })
