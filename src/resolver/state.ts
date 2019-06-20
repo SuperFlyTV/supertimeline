@@ -59,8 +59,8 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 		if ((a.resolved.levelDeep || 0) > (b.resolved.levelDeep || 0)) return 1
 		if ((a.resolved.levelDeep || 0) < (b.resolved.levelDeep || 0)) return -1
 
-		if (a.id > a.id) return 1
-		if (a.id < a.id) return -1
+		if (a.id > b.id) return 1
+		if (a.id < b.id) return -1
 
 		return 0
 	})
