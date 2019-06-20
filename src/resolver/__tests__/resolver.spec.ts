@@ -1306,4 +1306,82 @@ describe('resolver', () => {
 		expect(resolved.objects['video0']).toBeTruthy()
 		expect(resolved.objects['video0'].resolved.instances).toHaveLength(100)
 	})
+	test.only('Content start time in capped object', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'extRef',
+				layer: 'e0',
+				enable: {
+					start: 10,
+					duration: 200
+				},
+				content: {}
+			},
+			{
+				id: 'myGroup',
+				layer: 'g0',
+				enable: {
+					start: 50,
+					end: 100
+				},
+				content: {},
+				isGroup: true,
+				children: [
+
+					{
+						id: 'video',
+						layer: '1',
+						enable: {
+							start: '#extRef',
+							duration: 200
+						},
+						content: {}
+					},
+					{
+						id: 'interrupting',
+						layer: '1',
+						enable: {
+							start: 10, // 60, will interrupt video in the middle of it
+							duration: 10
+						},
+						content: {}
+					}
+				]
+			}
+		]
+
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitCount: 100, limitTime: 99999 }))
+
+		expect(resolved.statistics.resolvedObjectCount).toEqual(4)
+		expect(resolved.statistics.resolvedGroupCount).toEqual(1)
+		expect(resolved.statistics.unresolvedCount).toEqual(0)
+
+		expect(resolved.objects['myGroup']).toBeTruthy()
+		expect(resolved.objects['myGroup'].resolved.instances).toHaveLength(1)
+
+		expect(resolved.objects['interrupting']).toBeTruthy()
+		expect(resolved.objects['interrupting'].resolved.instances).toHaveLength(1)
+
+		expect(resolved.objects['interrupting'].resolved.instances[0]).toMatchObject({
+			start: 60,
+			end: 70
+		})
+
+		expect(resolved.objects['video']).toBeTruthy()
+		expect(resolved.objects['video'].resolved.instances).toHaveLength(2)
+
+		expect(resolved.objects['video'].resolved.instances[0]).toMatchObject({
+			start: 50,
+			end: 60,
+			originalStart: 10,
+			originalEnd: 200
+		})
+		expect(resolved.objects['video'].resolved.instances[1]).toMatchObject({
+			start: 70,
+			end: 100,
+			originalStart: 10,
+			originalEnd: 200
+		})
+
+	})
 })
