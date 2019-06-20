@@ -130,19 +130,11 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 			obj.resolved.parentId
 		) {
 			_.each(obj.resolved.instances, (instance: TimelineObjectInstance) => {
+				const timeEvent: TimeEvent = { time: instance.start, enable: true }
 
-				const timeEvents: Array<TimeEvent> = []
+				if (!pointsInTime[timeEvent.time + '']) pointsInTime[timeEvent.time + ''] = []
+				pointsInTime[timeEvent.time + ''].push({ obj, instance, enable: timeEvent.enable })
 
-				if (instance.start) {
-					timeEvents.push({ time: instance.start, enable: true })
-				} else {
-					timeEvents.push({ time: instance.start, enable: true })
-				}
-
-				_.each(timeEvents, (timeEvent) => {
-					if (!pointsInTime[timeEvent.time + '']) pointsInTime[timeEvent.time + ''] = []
-					pointsInTime[timeEvent.time + ''].push({ obj, instance, enable: timeEvent.enable })
-				})
 			})
 		}
 	})

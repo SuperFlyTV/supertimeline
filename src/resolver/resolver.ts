@@ -399,16 +399,15 @@ export function lookupExpression (
 		let ref: ObjectRefType = context
 		let rest: string = ''
 
+		let objIdsToReference: string[] = []
+
 		// Match id, example: "#objectId.start"
 		const m = expr.match(/^\W*#([^.]+)(.*)/)
 		if (m) {
 			const id = m[1]
 			rest = m[2]
 
-			const obj = resolvedTimeline.objects[id]
-			if (obj) {
-				referencedObjs.push(obj)
-			}
+			objIdsToReference = [id]
 		} else {
 			// Match class, example: ".className.start"
 			const m = expr.match(/^\W*\.([^.]+)(.*)/)
@@ -416,14 +415,7 @@ export function lookupExpression (
 				const className = m[1]
 				rest = m[2]
 
-				const objIds: string[] = resolvedTimeline.classes[className] || []
-
-				_.each(objIds, (objId: string) => {
-					const obj = resolvedTimeline.objects[objId]
-					if (obj) {
-						referencedObjs.push(obj)
-					}
-				})
+				objIdsToReference = resolvedTimeline.classes[className] || []
 			} else {
 				// Match layer, example: "$layer"
 				const m = expr.match(/^\W*\$([^.]+)(.*)/)
@@ -431,17 +423,16 @@ export function lookupExpression (
 					const layer = m[1]
 					rest = m[2]
 
-					const objIds: string[] = resolvedTimeline.layers[layer] || []
-
-					_.each(objIds, (objId: string) => {
-						const obj = resolvedTimeline.objects[objId]
-						if (obj) {
-							referencedObjs.push(obj)
-						}
-					})
+					objIdsToReference = resolvedTimeline.layers[layer] || []
 				}
 			}
 		}
+		_.each(objIdsToReference, (objId: string) => {
+			const obj = resolvedTimeline.objects[objId]
+			if (obj) {
+				referencedObjs.push(obj)
+			}
+		})
 
 		if (referencedObjs.length) {
 			if (rest.match(/start/)) ref = 'start'
@@ -457,7 +448,7 @@ export function lookupExpression (
 						const firstInstance = _.first(referencedObj.resolved.instances)
 						if (firstInstance) {
 							const duration: number | null = (
-								firstInstance && firstInstance.end !== null ?
+								firstInstance.end !== null ?
 								firstInstance.end - firstInstance.start :
 								null
 							)
