@@ -928,6 +928,12 @@ img { max-width: 100%; }
 					<a href="timelineobjectinstance.html#isfirst" class="tsd-kind-icon">is<wbr>First</a>
 				</li>
 				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+					<a href="timelineobjectinstance.html#originalend" class="tsd-kind-icon">original<wbr>End</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+					<a href="timelineobjectinstance.html#originalstart" class="tsd-kind-icon">original<wbr>Start</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
 					<a href="timelineobjectinstance.html#references" class="tsd-kind-icon">references</a>
 				</li>
 				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
@@ -959,6 +965,8 @@ img { max-width: 100%; }
 							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="timelineobjectinstance.html#frominstanceid" class="tsd-kind-icon">from<wbr>Instance<wbr>Id</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="timelineobjectinstance.html#id" class="tsd-kind-icon">id</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="timelineobjectinstance.html#isfirst" class="tsd-kind-icon">is<wbr>First</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="timelineobjectinstance.html#originalend" class="tsd-kind-icon">original<wbr>End</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="timelineobjectinstance.html#originalstart" class="tsd-kind-icon">original<wbr>Start</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="timelineobjectinstance.html#references" class="tsd-kind-icon">references</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="timelineobjectinstance.html#start" class="tsd-kind-icon">start</a></li>
 						</ul>
@@ -974,12 +982,12 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">caps<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="cap.html" class="tsd-signature-type">Cap</a><span class="tsd-signature-symbol">&gt;</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/4c30ed7/src/api/api.ts#L136">api/api.ts:136</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/723c71c/src/api/api.ts#L147">api/api.ts:147</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>If set, tells the cap of the parent</p>
+						<p>If set, tells the cap of the parent. The instance will always be capped inside this.</p>
 					</div>
 				</div>
 			</section>
@@ -989,7 +997,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">end<span class="tsd-signature-symbol">:</span> <a href="../globals.html#time" class="tsd-signature-type">Time</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/4c30ed7/src/api/api.ts#L132">api/api.ts:132</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/723c71c/src/api/api.ts#L132">api/api.ts:132</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -1004,7 +1012,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">from<wbr>Instance<wbr>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/4c30ed7/src/api/api.ts#L138">api/api.ts:138</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/723c71c/src/api/api.ts#L149">api/api.ts:149</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -1019,7 +1027,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/4c30ed7/src/api/api.ts#L126">api/api.ts:126</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/723c71c/src/api/api.ts#L126">api/api.ts:126</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -1034,7 +1042,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">is<wbr>First<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/4c30ed7/src/api/api.ts#L128">api/api.ts:128</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/723c71c/src/api/api.ts#L128">api/api.ts:128</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -1044,12 +1052,44 @@ img { max-width: 100%; }
 				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+				<a name="originalend" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagOptional">Optional</span> original<wbr>End</h3>
+				<div class="tsd-signature tsd-kind-icon">original<wbr>End<span class="tsd-signature-symbol">:</span> <a href="../globals.html#time" class="tsd-signature-type">Time</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/723c71c/src/api/api.ts#L141">api/api.ts:141</a></li>
+					</ul>
+				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>The original end time of the instance (if an instance is split or capped, the original end time is retained in here)
+						If undefined, fallback to .end</p>
+					</div>
+				</div>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+				<a name="originalstart" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagOptional">Optional</span> original<wbr>Start</h3>
+				<div class="tsd-signature tsd-kind-icon">original<wbr>Start<span class="tsd-signature-symbol">:</span> <a href="../globals.html#time" class="tsd-signature-type">Time</a></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/723c71c/src/api/api.ts#L137">api/api.ts:137</a></li>
+					</ul>
+				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>The original start time of the instance (if an instance is split or capped, the original start time is retained in here).
+						If undefined, fallback to .start</p>
+					</div>
+				</div>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
 				<a name="references" class="tsd-anchor"></a>
 				<h3>references</h3>
 				<div class="tsd-signature tsd-kind-icon">references<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/4c30ed7/src/api/api.ts#L134">api/api.ts:134</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/723c71c/src/api/api.ts#L144">api/api.ts:144</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -1064,7 +1104,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">start<span class="tsd-signature-symbol">:</span> <a href="../globals.html#time" class="tsd-signature-type">Time</a></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/4c30ed7/src/api/api.ts#L130">api/api.ts:130</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/723c71c/src/api/api.ts#L130">api/api.ts:130</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
