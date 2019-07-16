@@ -303,7 +303,6 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 				const parentInstance = _.find(parentInstances, (parentInstance) => {
 					return instance.references.indexOf(parentInstance.id) !== -1
 				})
-
 				const cappedInstance = (
 					parentInstance ?
 					capInstances([instance], [parentInstance])[0] :
@@ -322,7 +321,6 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 				}
 			}
 		})
-
 		instances = cappedInstances
 	}
 	instances = applyRepeatingInstances(

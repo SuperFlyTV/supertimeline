@@ -465,8 +465,13 @@ export function capInstances (
 
 		_.each(parentInstances, (p) => {
 			if (
-				instance.start >= p.start &&
-				instance.start < (p.end || Infinity)
+				(
+					instance.start >= p.start &&
+					instance.start < (p.end || Infinity)
+				) || (
+					instance.start < p.start &&
+					(instance.end || Infinity) > (p.end || Infinity)
+				)
 			) {
 				if (
 					parent === null ||
@@ -498,10 +503,10 @@ export function capInstances (
 				parent2.end !== null &&
 				(i2.end || Infinity) > parent2.end
 			) {
-				i2.end = parent2.end
+				setInstanceEndTime(i2, parent2.end)
 			}
 			if ((i2.start || Infinity) < parent2.start) {
-				i2.start = parent2.start
+				setInstanceStartTime(i2, parent2.start)
 			}
 
 			returnInstances.push(i2)
@@ -577,4 +582,20 @@ export function getId (): string {
 }
 export function resetId (): void {
 	i = 0
+}
+export function setInstanceEndTime (instance: TimelineObjectInstance, endTime: number | null) {
+	instance.originalEnd = (
+		instance.originalEnd !== undefined ?
+		instance.originalEnd :
+		instance.end
+	)
+	instance.end = endTime
+}
+export function setInstanceStartTime (instance: TimelineObjectInstance, startTime: number) {
+	instance.originalStart = (
+		instance.originalStart !== undefined ?
+		instance.originalStart :
+		instance.start
+	)
+	instance.start = startTime
 }
