@@ -1,6 +1,23 @@
-# Change Log
+# Changelog
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+## [7.2.0](https://github.com/SuperFlyTV/supertimeline/compare/7.1.2...7.2.0) (2019-07-16)
+
+
+### Bug Fixes
+
+* typo ([f8901b3](https://github.com/SuperFlyTV/supertimeline/commit/f8901b3))
+* update dependencies, due to security issues upstream ([28aa657](https://github.com/SuperFlyTV/supertimeline/commit/28aa657))
+
+
+### Features
+
+* add typings for originalStart & originalEnd ([1f7af78](https://github.com/SuperFlyTV/supertimeline/commit/1f7af78))
+* support for having negative start times in groups ([9a61048](https://github.com/SuperFlyTV/supertimeline/commit/9a61048))
+* support for originalStart & originalEnd in instances ([52b2a9b](https://github.com/SuperFlyTV/supertimeline/commit/52b2a9b))
+
+
 
 <a name="7.1.2"></a>
 ## [7.1.2](https://github.com/SuperFlyTV/supertimeline/compare/7.1.1...7.1.2) (2019-05-21)
