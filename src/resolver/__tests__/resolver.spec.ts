@@ -591,15 +591,25 @@ describe('resolver', () => {
 							duration: 10 // 35
 						},
 						content: {}
+					},
+					{
+						id: 'child2',
+						layer: '2',
+						enable: {
+							start: '-1', // 9, will be capped in parent
+							end: 150 // 160, will be capped in parent
+						},
+						content: {}
 					}
 				]
 			}
 		]
 
 		const resolved = Resolver.resolveTimeline(timeline, { time: 0 })
-		// console.log(JSON.stringify(resolved, '', 3))
-		expect(resolved.statistics.resolvedObjectCount).toEqual(3)
+		// console.log(JSON.stringify(resolved, null, 3))
 		expect(resolved.statistics.unresolvedCount).toEqual(0)
+		expect(resolved.statistics.resolvedObjectCount).toEqual(4)
+		expect(resolved.statistics.resolvedGroupCount).toEqual(1)
 
 		expect(resolved.objects['group']).toBeTruthy()
 		expect(resolved.objects['child0']).toBeTruthy()
@@ -611,6 +621,10 @@ describe('resolver', () => {
 		expect(resolved.objects['child1'].resolved).toMatchObject({
 			resolved: true,
 			instances: [{ start: 25, end: 35 }]
+		})
+		expect(resolved.objects['child2'].resolved).toMatchObject({
+			resolved: true,
+			instances: [{ start: 10, end: 100 }]
 		})
 
 		const state0 = Resolver.getState(resolved, 11)
@@ -628,6 +642,9 @@ describe('resolver', () => {
 				},
 				'1': {
 					id: 'child0'
+				},
+				'2': {
+					id: 'child2'
 				}
 			}
 		})
