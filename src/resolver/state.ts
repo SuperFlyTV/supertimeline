@@ -16,6 +16,7 @@ import {
 import * as _ from 'underscore'
 import { addObjectToResolvedTimeline } from './common'
 import { EventType } from '../api/enums'
+import { setInstanceEndTime } from '../lib'
 
 export function getState (resolved: ResolvedTimeline | ResolvedStates, time: Time, eventLimit: number = 0): TimelineState {
 	const resolvedStates: ResolvedStates = (
@@ -59,12 +60,11 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 		if ((a.resolved.levelDeep || 0) > (b.resolved.levelDeep || 0)) return 1
 		if ((a.resolved.levelDeep || 0) < (b.resolved.levelDeep || 0)) return -1
 
-		if (a.id > a.id) return 1
-		if (a.id < a.id) return -1
+		if (a.id > b.id) return 1
+		if (a.id < b.id) return -1
 
 		return 0
 	})
-
 	// Step 1: Collect all points-of-interest (which points in time we want to evaluate)
 	// and which instances that are interesting
 	const pointsInTime: {
@@ -130,19 +130,11 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 			obj.resolved.parentId
 		) {
 			_.each(obj.resolved.instances, (instance: TimelineObjectInstance) => {
+				const timeEvent: TimeEvent = { time: instance.start, enable: true }
 
-				const timeEvents: Array<TimeEvent> = []
+				if (!pointsInTime[timeEvent.time + '']) pointsInTime[timeEvent.time + ''] = []
+				pointsInTime[timeEvent.time + ''].push({ obj, instance, enable: timeEvent.enable })
 
-				if (instance.start) {
-					timeEvents.push({ time: instance.start, enable: true })
-				} else {
-					timeEvents.push({ time: instance.start, enable: true })
-				}
-
-				_.each(timeEvents, (timeEvent) => {
-					if (!pointsInTime[timeEvent.time + '']) pointsInTime[timeEvent.time + ''] = []
-					pointsInTime[timeEvent.time + ''].push({ obj, instance, enable: timeEvent.enable })
-				})
 			})
 		}
 	})
@@ -275,7 +267,7 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 					if (replaceOldObj || removeOldObj) {
 						if (prevObj) {
 							// Cap the old instance, so it'll end at this point in time:
-							prevObj.instance.end = time
+							setInstanceEndTime(prevObj.instance, time)
 
 							// Update activeObjIds:
 							delete activeObjIds[prevObj.id]
@@ -283,11 +275,11 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 							// Add to nextEvents:
 							if (
 								!onlyForTime ||
-								prevObj.instance.end > onlyForTime
+								time > onlyForTime
 							) {
 								resolvedStates.nextEvents.push({
 									type: EventType.END,
-									time: prevObj.instance.end,
+									time: time,
 									objId: prevObj.id
 								})
 								eventObjectTimes[instance.end + ''] = EventType.END
@@ -312,13 +304,23 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 
 							addObjectToResolvedTimeline(resolvedStates, newObj)
 						}
-
 						const newInstance: TimelineObjectInstance = {
 							...currentOnTopOfLayer.instance,
 							// We're setting new start & end times so they match up with the state:
 							start: time,
 							end: null,
-							fromInstanceId: currentOnTopOfLayer.instance.id
+							fromInstanceId: currentOnTopOfLayer.instance.id,
+
+							originalEnd: (
+								currentOnTopOfLayer.instance.originalEnd !== undefined ?
+								currentOnTopOfLayer.instance.originalEnd :
+								currentOnTopOfLayer.instance.end
+							),
+							originalStart: (
+								currentOnTopOfLayer.instance.originalStart !== undefined ?
+								currentOnTopOfLayer.instance.originalStart :
+								currentOnTopOfLayer.instance.start
+							)
 						}
 						// Make the instance id unique:
 						_.each(newObj.resolved.instances, instance => {
