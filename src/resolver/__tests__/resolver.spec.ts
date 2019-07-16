@@ -1306,7 +1306,7 @@ describe('resolver', () => {
 		expect(resolved.objects['video0']).toBeTruthy()
 		expect(resolved.objects['video0'].resolved.instances).toHaveLength(100)
 	})
-	test.only('Content start time in capped object', () => {
+	test('Content start time in capped object', () => {
 		const timeline: TimelineObject[] = [
 			{
 				id: 'extRef',
@@ -1345,14 +1345,31 @@ describe('resolver', () => {
 							duration: 10
 						},
 						content: {}
+					},
+					{
+						id: 'video2',
+						layer: '2',
+						enable: {
+							start: '-10', // 40
+							duration: 200
+						},
+						content: {}
+					},
+					{
+						id: 'interrupting2',
+						layer: '2',
+						enable: {
+							while: '#interrupting'
+						},
+						content: {}
 					}
 				]
 			}
 		]
+		const resolved0 = Resolver.resolveTimeline(timeline, { time: 0, limitCount: 100, limitTime: 99999 })
+		const resolved = Resolver.resolveAllStates(resolved0)
 
-		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitCount: 100, limitTime: 99999 }))
-
-		expect(resolved.statistics.resolvedObjectCount).toEqual(4)
+		expect(resolved.statistics.resolvedObjectCount).toEqual(6)
 		expect(resolved.statistics.resolvedGroupCount).toEqual(1)
 		expect(resolved.statistics.unresolvedCount).toEqual(0)
 
@@ -1374,14 +1391,28 @@ describe('resolver', () => {
 			start: 50,
 			end: 60,
 			originalStart: 10,
-			originalEnd: 200
+			originalEnd: 210
 		})
 		expect(resolved.objects['video'].resolved.instances[1]).toMatchObject({
 			start: 70,
 			end: 100,
 			originalStart: 10,
-			originalEnd: 200
+			originalEnd: 210
 		})
 
+		expect(resolved.objects['video2']).toBeTruthy()
+		expect(resolved.objects['video2'].resolved.instances).toHaveLength(2)
+		expect(resolved.objects['video2'].resolved.instances[0]).toMatchObject({
+			start: 50,
+			end: 60,
+			originalStart: 40,
+			originalEnd: 240
+		})
+		expect(resolved.objects['video2'].resolved.instances[1]).toMatchObject({
+			start: 70,
+			end: 100,
+			originalStart: 40,
+			originalEnd: 240
+		})
 	})
 })
