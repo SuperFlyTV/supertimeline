@@ -591,15 +591,25 @@ describe('resolver', () => {
 							duration: 10 // 35
 						},
 						content: {}
+					},
+					{
+						id: 'child2',
+						layer: '2',
+						enable: {
+							start: '-1', // 9, will be capped in parent
+							end: 150 // 160, will be capped in parent
+						},
+						content: {}
 					}
 				]
 			}
 		]
 
 		const resolved = Resolver.resolveTimeline(timeline, { time: 0 })
-		// console.log(JSON.stringify(resolved, '', 3))
-		expect(resolved.statistics.resolvedObjectCount).toEqual(3)
+		// console.log(JSON.stringify(resolved, null, 3))
 		expect(resolved.statistics.unresolvedCount).toEqual(0)
+		expect(resolved.statistics.resolvedObjectCount).toEqual(4)
+		expect(resolved.statistics.resolvedGroupCount).toEqual(1)
 
 		expect(resolved.objects['group']).toBeTruthy()
 		expect(resolved.objects['child0']).toBeTruthy()
@@ -611,6 +621,10 @@ describe('resolver', () => {
 		expect(resolved.objects['child1'].resolved).toMatchObject({
 			resolved: true,
 			instances: [{ start: 25, end: 35 }]
+		})
+		expect(resolved.objects['child2'].resolved).toMatchObject({
+			resolved: true,
+			instances: [{ start: 10, end: 100 }]
 		})
 
 		const state0 = Resolver.getState(resolved, 11)
@@ -628,6 +642,9 @@ describe('resolver', () => {
 				},
 				'1': {
 					id: 'child0'
+				},
+				'2': {
+					id: 'child2'
 				}
 			}
 		})
@@ -1305,5 +1322,114 @@ describe('resolver', () => {
 
 		expect(resolved.objects['video0']).toBeTruthy()
 		expect(resolved.objects['video0'].resolved.instances).toHaveLength(100)
+	})
+	test('Content start time in capped object', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'extRef',
+				layer: 'e0',
+				enable: {
+					start: 10,
+					duration: 200
+				},
+				content: {}
+			},
+			{
+				id: 'myGroup',
+				layer: 'g0',
+				enable: {
+					start: 50,
+					end: 100
+				},
+				content: {},
+				isGroup: true,
+				children: [
+
+					{
+						id: 'video',
+						layer: '1',
+						enable: {
+							start: '#extRef',
+							duration: 200
+						},
+						content: {}
+					},
+					{
+						id: 'interrupting',
+						layer: '1',
+						enable: {
+							start: 10, // 60, will interrupt video in the middle of it
+							duration: 10
+						},
+						content: {}
+					},
+					{
+						id: 'video2',
+						layer: '2',
+						enable: {
+							start: '-10', // 40
+							duration: 200
+						},
+						content: {}
+					},
+					{
+						id: 'interrupting2',
+						layer: '2',
+						enable: {
+							while: '#interrupting'
+						},
+						content: {}
+					}
+				]
+			}
+		]
+		const resolved0 = Resolver.resolveTimeline(timeline, { time: 0, limitCount: 100, limitTime: 99999 })
+		const resolved = Resolver.resolveAllStates(resolved0)
+
+		expect(resolved.statistics.resolvedObjectCount).toEqual(6)
+		expect(resolved.statistics.resolvedGroupCount).toEqual(1)
+		expect(resolved.statistics.unresolvedCount).toEqual(0)
+
+		expect(resolved.objects['myGroup']).toBeTruthy()
+		expect(resolved.objects['myGroup'].resolved.instances).toHaveLength(1)
+
+		expect(resolved.objects['interrupting']).toBeTruthy()
+		expect(resolved.objects['interrupting'].resolved.instances).toHaveLength(1)
+
+		expect(resolved.objects['interrupting'].resolved.instances[0]).toMatchObject({
+			start: 60,
+			end: 70
+		})
+
+		expect(resolved.objects['video']).toBeTruthy()
+		expect(resolved.objects['video'].resolved.instances).toHaveLength(2)
+
+		expect(resolved.objects['video'].resolved.instances[0]).toMatchObject({
+			start: 50,
+			end: 60,
+			originalStart: 10,
+			originalEnd: 210
+		})
+		expect(resolved.objects['video'].resolved.instances[1]).toMatchObject({
+			start: 70,
+			end: 100,
+			originalStart: 10,
+			originalEnd: 210
+		})
+
+		expect(resolved.objects['video2']).toBeTruthy()
+		expect(resolved.objects['video2'].resolved.instances).toHaveLength(2)
+		expect(resolved.objects['video2'].resolved.instances[0]).toMatchObject({
+			start: 50,
+			end: 60,
+			originalStart: 40,
+			originalEnd: 240
+		})
+		expect(resolved.objects['video2'].resolved.instances[1]).toMatchObject({
+			start: 70,
+			end: 100,
+			originalStart: 40,
+			originalEnd: 240
+		})
 	})
 })

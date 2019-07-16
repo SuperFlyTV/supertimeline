@@ -2,6 +2,10 @@ import { interpretExpression, wrapInnerExpressions } from '../expression'
 
 describe('Expression', () => {
 	test('interpretExpression from string', () => {
+		expect(interpretExpression('42.5')).toEqual(42.5)
+		expect(interpretExpression('+42.5')).toEqual(42.5)
+		expect(interpretExpression('-42.5')).toEqual(-42.5)
+
 		expect(interpretExpression('1+2')).toMatchObject({
 			l: '1',
 			o: '+',
