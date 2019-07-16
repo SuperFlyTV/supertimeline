@@ -1,10 +1,14 @@
 import _ = require('underscore')
 import { Expression, ExpressionObj } from '../api/api'
+import { isNumeric } from '../lib'
 
 export const OPERATORS = ['&', '|', '+', '-', '*', '/', '%', '!']
 
 export function interpretExpression (expr: Expression): Expression {
-	if (_.isString(expr)) {
+	if (isNumeric(expr)) {
+		return parseFloat(expr as string)
+	} else if (_.isString(expr)) {
+
 		const operatorList = OPERATORS
 
 		const regexpOperators = _.map(operatorList, o => '\\' + o).join('')
@@ -29,13 +33,6 @@ export function interpretExpression (expr: Expression): Expression {
 		const expression = words2Expression(operatorList, innerExpression.inner)
 		validateExpression(operatorList, expression)
 		return expression
-	} else if (_.isNumber(expr)) {
-		return expr
-		// return {
-		// 	l: expr,
-		// 	o: '+',
-		// 	r: 0
-		// }
 	} else {
 		return expr
 	}

@@ -49,7 +49,7 @@ export function isConstant (str: string | number | null | any): boolean {
 export function isNumeric (str: string | number | null | any): boolean {
 	if (str === null) return false
 	if (_.isNumber(str)) return true
-	if (_.isString(str)) return !!(str.match(/^[0-9\.\-]+$/) && !_.isNaN(parseFloat(str)))
+	if (_.isString(str)) return !!(str.match(/^[\-\+]?[0-9\.]+$/) && !_.isNaN(parseFloat(str)))
 	return false
 }
 export function sortEvents<T extends InstanceEvent> (events: Array<T>): Array<T> {
