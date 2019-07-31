@@ -1432,4 +1432,74 @@ describe('resolver', () => {
 			originalEnd: 240
 		})
 	})
+	test('Reference own layer', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'video0',
+				layer: '0',
+				enable: {
+					start: 0,
+					duration: 8,
+					repeating: 10
+				},
+				content: {}
+			},
+			{
+				id: 'video1',
+				layer: '0',
+				enable: {
+					// Play for 2 after each other object on layer '0'
+					start: '$0.end',
+					duration: 2
+				},
+				content: {}
+			}
+		]
+
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitCount: 100, limitTime: 99999 }))
+
+		expect(resolved.statistics.resolvedObjectCount).toEqual(2)
+		expect(resolved.statistics.unresolvedCount).toEqual(0)
+
+		expect(resolved.objects['video0']).toBeTruthy()
+		expect(resolved.objects['video0'].resolved.instances).toHaveLength(100)
+		expect(resolved.objects['video1']).toBeTruthy()
+		expect(resolved.objects['video1'].resolved.instances).toHaveLength(100)
+	})
+	test('Reference own class', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'video0',
+				layer: '0',
+				enable: {
+					start: 0,
+					duration: 8,
+					repeating: 10
+				},
+				content: {},
+				classes: [ 'insert_after' ]
+			},
+			{
+				id: 'video1',
+				layer: '1',
+				enable: {
+					// Play for 2 after each other object with class 'insert_after'
+					start: '.insert_after.end',
+					duration: 2
+				},
+				content: {},
+				classes: [ 'insert_after' ]
+			}
+		]
+
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitCount: 100, limitTime: 99999 }))
+
+		expect(resolved.statistics.resolvedObjectCount).toEqual(2)
+		expect(resolved.statistics.unresolvedCount).toEqual(0)
+
+		expect(resolved.objects['video0']).toBeTruthy()
+		expect(resolved.objects['video0'].resolved.instances).toHaveLength(100)
+		expect(resolved.objects['video1']).toBeTruthy()
+		expect(resolved.objects['video1'].resolved.instances).toHaveLength(100)
+	})
 })
