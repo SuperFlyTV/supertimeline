@@ -1504,7 +1504,7 @@ describe('resolver', () => {
 				id: 'video0',
 				layer: '0',
 				enable: {
-					while: 1
+					start: 1
 				},
 				content: {
 					val: 1
