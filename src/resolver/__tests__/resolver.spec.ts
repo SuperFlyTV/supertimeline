@@ -1143,8 +1143,8 @@ describe('resolver', () => {
 				id: 'group0',
 				layer: 'g0',
 				enable: {
-					start: 0,
-					duration: 80,
+					start: 0, // 0, 100
+					duration: 80, // 80, 180
 					repeating: 100
 				},
 				content: {},
@@ -1154,8 +1154,8 @@ describe('resolver', () => {
 						id: 'child0',
 						layer: '1',
 						enable: {
-							start: '50', // 50
-							duration: 20 // 70
+							start: '50', // 50, 150
+							duration: 20 // 70, 170
 						},
 						content: {}
 					},
@@ -1163,8 +1163,8 @@ describe('resolver', () => {
 						id: 'child1',
 						layer: '2',
 						enable: {
-							start: '#child0.end', // 70
-							duration: 50 // 120, to be capped at 100
+							start: '#child0.end', // 70, 170
+							duration: 50 // 120 (to be capped at 100), 220 (to be capped at 200)
 						},
 						content: {}
 					}
