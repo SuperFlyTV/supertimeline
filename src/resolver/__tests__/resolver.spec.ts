@@ -1,5 +1,5 @@
 import { lookupExpression, Resolver } from '../resolver'
-import { ResolvedTimeline, TimelineObject } from '../../api/api'
+import { ResolvedTimeline, TimelineObject, TimelineObjectInstance } from '../../api/api'
 import { interpretExpression } from '../expression'
 import { EventType } from '../../api/enums'
 import { resetId } from '../../lib'
@@ -1259,6 +1259,72 @@ describe('resolver', () => {
 			}
 		})
 		expect(Resolver.getState(resolved, 185).layers).toEqual({})
+	})
+	test('referencing child in parent group', () => {
+
+		const timeline: TimelineObject[] = [
+			{
+				id: 'group0',
+				layer: 'g0',
+				enable: {
+					start: 0,
+					duration: 80
+				},
+				content: {},
+				isGroup: true,
+				children: [
+					{
+						id: 'child0',
+						layer: '1',
+						enable: {
+							while: '#other'
+						},
+						content: {}
+					}
+				]
+			},
+			{
+				id: 'other',
+				layer: 'other',
+				enable: {
+					while: '1'
+				},
+				content: {}
+			},
+			{
+				id: 'refChild0',
+				layer: '42',
+				enable: {
+					while: '#child0'
+				},
+				content: {}
+			}
+		]
+
+		const resolved0 = Resolver.resolveTimeline(timeline, { time: 0, limitCount: 99, limitTime: 199 })
+
+		// @ts-ignore object is possibly undefined
+		timeline[0].children[0].enable.while = '1' // This shouldn't change the outcome, since it's changing from a reference that resolves to { while: '1' }
+
+		const resolved1 = Resolver.resolveTimeline(timeline, { time: 0, limitCount: 99, limitTime: 199 })
+
+		const states0 = Resolver.getState(resolved0, 90)
+		const states1 = Resolver.getState(resolved1, 90)
+
+		expect(states0.layers['other']).toBeTruthy()
+		expect(states1.layers['other']).toBeTruthy()
+
+		expect(states0.layers['42']).toBeFalsy()
+		expect(states1.layers['42']).toBeFalsy()
+
+		const omitReferences = (instances: TimelineObjectInstance[]) => {
+			return _.map(instances, i => _.omit(i, ['references']))
+		}
+		expect(
+			omitReferences(resolved0.objects['refChild0'].resolved.instances)
+		).toEqual(
+			omitReferences(resolved1.objects['refChild0'].resolved.instances)
+		)
 	})
 	test('Unique instance ids', () => {
 		const timeline: TimelineObject[] = [
