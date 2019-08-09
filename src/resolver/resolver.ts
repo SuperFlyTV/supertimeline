@@ -156,9 +156,9 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 			obj.enable.start :
 		''
 	)
-	if (obj.enable.while === '1') {
+	if (obj.enable.while + '' === '1') {
 		start = 'true'
-	} else if (obj.enable.while === '0') {
+	} else if (obj.enable.while + '' === '0') {
 		start = 'false'
 	}
 
