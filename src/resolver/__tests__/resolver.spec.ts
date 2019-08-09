@@ -1432,4 +1432,114 @@ describe('resolver', () => {
 			originalEnd: 240
 		})
 	})
+	test('Keyframe falsey enable', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'video0',
+				layer: '0',
+				enable: {
+					while: 1
+				},
+				content: {
+					val: 1
+				},
+				keyframes: [
+					{
+						id: 'keyframe0',
+						enable: { while: '!.class0' },
+						content: {
+							val2: 2
+						}
+					}
+				]
+			},
+			{
+				id: 'enabler0',
+				layer: '1',
+				enable: {
+					start: 100
+				},
+				content: {},
+				classes: ['class0']
+			}
+		]
+
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitCount: 10, limitTime: 999 }))
+
+		expect(resolved.statistics.resolvedObjectCount).toEqual(2)
+		expect(resolved.statistics.unresolvedCount).toEqual(0)
+
+		expect(resolved.objects['video0']).toBeTruthy()
+		expect(resolved.objects['video0'].resolved.instances).toHaveLength(1)
+
+		// Before class
+		const state = Resolver.getState(resolved, 10, 10)
+		expect(state.layers['0']).toBeTruthy()
+		expect(state.layers['0'].content).toEqual({
+			val: 1,
+			val2: 2
+		})
+
+		// With class
+		const state2 = Resolver.getState(resolved, 110, 10)
+		expect(state2.layers['0']).toBeTruthy()
+		expect(state2.layers['0'].content).toEqual({
+			val: 1
+		})
+	})
+	test('Keyframe truthy enable', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'video0',
+				layer: '0',
+				enable: {
+					while: 1
+				},
+				content: {
+					val: 1
+				},
+				keyframes: [
+					{
+						id: 'keyframe0',
+						enable: { while: '.class0' },
+						content: {
+							val2: 2
+						}
+					}
+				]
+			},
+			{
+				id: 'enabler0',
+				layer: '1',
+				enable: {
+					start: 100
+				},
+				content: {},
+				classes: ['class0']
+			}
+		]
+
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitCount: 10, limitTime: 999 }))
+
+		expect(resolved.statistics.resolvedObjectCount).toEqual(2)
+		expect(resolved.statistics.unresolvedCount).toEqual(0)
+
+		expect(resolved.objects['video0']).toBeTruthy()
+		expect(resolved.objects['video0'].resolved.instances).toHaveLength(1)
+
+		// Before class
+		const state = Resolver.getState(resolved, 10, 10)
+		expect(state.layers['0']).toBeTruthy()
+		expect(state.layers['0'].content).toEqual({
+			val: 1
+		})
+
+		// With class
+		const state2 = Resolver.getState(resolved, 110, 10)
+		expect(state2.layers['0']).toBeTruthy()
+		expect(state2.layers['0'].content).toEqual({
+			val: 1,
+			val2: 2
+		})
+	})
 })
