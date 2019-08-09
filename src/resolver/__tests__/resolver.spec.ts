@@ -1,5 +1,5 @@
 import { lookupExpression, Resolver } from '../resolver'
-import { ResolvedTimeline, TimelineObject } from '../../api/api'
+import { ResolvedTimeline, TimelineObject, TimelineObjectInstance } from '../../api/api'
 import { interpretExpression } from '../expression'
 import { EventType } from '../../api/enums'
 import { resetId } from '../../lib'
@@ -144,7 +144,7 @@ describe('resolver', () => {
 			lookupExpression(rtl, stdObj,
 				interpretExpression('14 + #badReference.start'), 'start'
 			)
-		).toEqual(null)
+		).toEqual([])
 
 		expect(
 			lookupExpression(rtl, stdObj, interpretExpression('1'), 'start')
@@ -245,7 +245,7 @@ describe('resolver', () => {
 			content: {}
 		}
 
-		expect(lookupExpression(rtl, obj, interpretExpression('#unknown'), 'start')).toEqual(null)
+		expect(lookupExpression(rtl, obj, interpretExpression('#unknown'), 'start')).toEqual([])
 		expect(lookupExpression(rtl, obj, interpretExpression('#first'), 'start')).toMatchObject([{
 			start: 0,
 			end: 100
@@ -1143,8 +1143,8 @@ describe('resolver', () => {
 				id: 'group0',
 				layer: 'g0',
 				enable: {
-					start: 0,
-					duration: 80,
+					start: 0, // 0, 100
+					duration: 80, // 80, 180
 					repeating: 100
 				},
 				content: {},
@@ -1154,8 +1154,8 @@ describe('resolver', () => {
 						id: 'child0',
 						layer: '1',
 						enable: {
-							start: '50', // 50
-							duration: 20 // 70
+							start: '50', // 50, 150
+							duration: 20 // 70, 170
 						},
 						content: {}
 					},
@@ -1163,8 +1163,8 @@ describe('resolver', () => {
 						id: 'child1',
 						layer: '2',
 						enable: {
-							start: '#child0.end', // 70
-							duration: 50 // 120, to be capped at 100
+							start: '#child0.end', // 70, 170
+							duration: 50 // 120 (to be capped at 100), 220 (to be capped at 200)
 						},
 						content: {}
 					}
@@ -1259,6 +1259,72 @@ describe('resolver', () => {
 			}
 		})
 		expect(Resolver.getState(resolved, 185).layers).toEqual({})
+	})
+	test('referencing child in parent group', () => {
+
+		const timeline: TimelineObject[] = [
+			{
+				id: 'group0',
+				layer: 'g0',
+				enable: {
+					start: 0,
+					duration: 80
+				},
+				content: {},
+				isGroup: true,
+				children: [
+					{
+						id: 'child0',
+						layer: '1',
+						enable: {
+							while: '#other'
+						},
+						content: {}
+					}
+				]
+			},
+			{
+				id: 'other',
+				layer: 'other',
+				enable: {
+					while: '1'
+				},
+				content: {}
+			},
+			{
+				id: 'refChild0',
+				layer: '42',
+				enable: {
+					while: '#child0'
+				},
+				content: {}
+			}
+		]
+
+		const resolved0 = Resolver.resolveTimeline(timeline, { time: 0, limitCount: 99, limitTime: 199 })
+
+		// @ts-ignore object is possibly undefined
+		timeline[0].children[0].enable.while = '1' // This shouldn't change the outcome, since it's changing from a reference that resolves to { while: '1' }
+
+		const resolved1 = Resolver.resolveTimeline(timeline, { time: 0, limitCount: 99, limitTime: 199 })
+
+		const states0 = Resolver.getState(resolved0, 90)
+		const states1 = Resolver.getState(resolved1, 90)
+
+		expect(states0.layers['other']).toBeTruthy()
+		expect(states1.layers['other']).toBeTruthy()
+
+		expect(states0.layers['42']).toBeFalsy()
+		expect(states1.layers['42']).toBeFalsy()
+
+		const omitReferences = (instances: TimelineObjectInstance[]) => {
+			return _.map(instances, i => _.omit(i, ['references']))
+		}
+		expect(
+			omitReferences(resolved0.objects['refChild0'].resolved.instances)
+		).toEqual(
+			omitReferences(resolved1.objects['refChild0'].resolved.instances)
+		)
 	})
 	test('Unique instance ids', () => {
 		const timeline: TimelineObject[] = [
@@ -1431,5 +1497,195 @@ describe('resolver', () => {
 			originalStart: 40,
 			originalEnd: 240
 		})
+	})
+	test('Keyframe falsey enable', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'video0',
+				layer: '0',
+				enable: {
+					start: 1
+				},
+				content: {
+					val: 1
+				},
+				keyframes: [
+					{
+						id: 'keyframe0',
+						enable: { while: '!.class0' },
+						content: {
+							val2: 2
+						}
+					}
+				]
+			},
+			{
+				id: 'enabler0',
+				layer: '1',
+				enable: {
+					start: 100
+				},
+				content: {},
+				classes: ['class0']
+			}
+		]
+
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitCount: 10, limitTime: 999 }))
+
+		expect(resolved.statistics.resolvedObjectCount).toEqual(2)
+		expect(resolved.statistics.unresolvedCount).toEqual(0)
+
+		expect(resolved.objects['video0']).toBeTruthy()
+		expect(resolved.objects['video0'].resolved.instances).toHaveLength(1)
+
+		// Before class
+		const state = Resolver.getState(resolved, 10, 10)
+		expect(state.layers['0']).toBeTruthy()
+		expect(state.layers['0'].content).toEqual({
+			val: 1,
+			val2: 2
+		})
+
+		// With class
+		const state2 = Resolver.getState(resolved, 110, 10)
+		expect(state2.layers['0']).toBeTruthy()
+		expect(state2.layers['0'].content).toEqual({
+			val: 1
+		})
+	})
+	test('Keyframe falsey enable2', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'video0',
+				layer: '0',
+				enable: {
+					while: '1'
+				},
+				content: {
+					val: 1
+				},
+				keyframes: [
+					{
+						id: 'keyframe0',
+						enable: { while: '!.class0' },
+						content: {
+							val2: 2
+						}
+					}
+				]
+			},
+			{
+				id: 'enabler0',
+				layer: '1',
+				enable: {
+					start: 100
+				},
+				content: {},
+				classes: ['class0']
+			}
+		]
+
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitCount: 10, limitTime: 999 }))
+
+		expect(resolved.statistics.resolvedObjectCount).toEqual(2)
+		expect(resolved.statistics.unresolvedCount).toEqual(0)
+
+		expect(resolved.objects['video0']).toBeTruthy()
+		expect(resolved.objects['video0'].resolved.instances).toHaveLength(1)
+
+		// Before class
+		const state = Resolver.getState(resolved, 10, 10)
+		expect(state.layers['0']).toBeTruthy()
+		expect(state.layers['0'].content).toEqual({
+			val: 1,
+			val2: 2
+		})
+
+		// With class
+		const state2 = Resolver.getState(resolved, 110, 10)
+		expect(state2.layers['0']).toBeTruthy()
+		expect(state2.layers['0'].content).toEqual({
+			val: 1
+		})
+	})
+	test('Keyframe truthy enable', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'video0',
+				layer: '0',
+				enable: {
+					while: 1
+				},
+				content: {
+					val: 1
+				},
+				keyframes: [
+					{
+						id: 'keyframe0',
+						enable: { while: '.class0' },
+						content: {
+							val2: 2
+						}
+					}
+				]
+			},
+			{
+				id: 'enabler0',
+				layer: '1',
+				enable: {
+					start: 100
+				},
+				content: {},
+				classes: ['class0']
+			}
+		]
+
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitCount: 10, limitTime: 999 }))
+
+		expect(resolved.statistics.resolvedObjectCount).toEqual(2)
+		expect(resolved.statistics.unresolvedCount).toEqual(0)
+
+		expect(resolved.objects['video0']).toBeTruthy()
+		expect(resolved.objects['video0'].resolved.instances).toHaveLength(1)
+
+		// Before class
+		const state = Resolver.getState(resolved, 10, 10)
+		expect(state.layers['0']).toBeTruthy()
+		expect(state.layers['0'].content).toEqual({
+			val: 1
+		})
+
+		// With class
+		const state2 = Resolver.getState(resolved, 110, 10)
+		expect(state2.layers['0']).toBeTruthy()
+		expect(state2.layers['0'].content).toEqual({
+			val: 1,
+			val2: 2
+		})
+	})
+	test('Class not defined', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'video0',
+				layer: '0',
+				priority: 0,
+				enable: {
+					while: '!.class0'
+				},
+				content: {}
+			}
+		]
+
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitCount: 10, limitTime: 999 }))
+
+		expect(resolved.statistics.resolvedObjectCount).toEqual(1)
+		expect(resolved.statistics.unresolvedCount).toEqual(0)
+
+		expect(resolved.objects['video0']).toBeTruthy() // TODO - is this one correct?
+		expect(resolved.objects['video0'].resolved.instances).toHaveLength(1)
+
+		const state = Resolver.getState(resolved, 10, 10)
+		expect(state.layers['0']).toBeTruthy()
+		expect(state.layers['0'].id).toEqual('video0')
 	})
 })

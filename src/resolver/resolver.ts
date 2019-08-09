@@ -156,14 +156,14 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 			obj.enable.start :
 		''
 	)
-	if (obj.enable.while === '1') {
+	if (obj.enable.while + '' === '1') {
 		start = 'true'
-	} else if (obj.enable.while === '0') {
+	} else if (obj.enable.while + '' === '0') {
 		start = 'false'
 	}
 
 	const startExpr: Expression = interpretExpression(start)
-	let parentInstances: TimelineObjectInstance[] | null | ValueWithReference = null
+	let parentInstances: TimelineObjectInstance[] | null = null
 	let hasParent: boolean = false
 	let referToParent: boolean = false
 	if (obj.resolved.parentId) {
@@ -173,13 +173,15 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 			obj,
 			interpretExpression(`#${obj.resolved.parentId}`),
 			'start'
-		)
+		) as TimelineObjectInstance[] | null // a start-reference will always return an array, or null
+
 		if (isConstant(startExpr)) {
 			// Only use parent if the expression resolves to a number (ie doesn't contain any references)
 			referToParent = true
 		}
 	}
 	let lookedupStarts = lookupExpression(resolvedTimeline, obj, startExpr, 'start')
+
 	const applyParentInstances = (value: TimelineObjectInstance[] | null | ValueWithReference): TimelineObjectInstance[] | null | ValueWithReference => {
 		const operate = (a: ValueWithReference | null, b: ValueWithReference | null): ValueWithReference | null => {
 			if (a === null || b === null) return null
@@ -195,7 +197,6 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 	}
 
 	if (obj.enable.while) {
-
 		if (_.isArray(lookedupStarts)) {
 			instances = lookedupStarts
 		} else if (lookedupStarts !== null) {
@@ -296,28 +297,46 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 	}
 	if (hasParent) {
 		// figure out what parent-instance the instances are tied to, and cap them
-
 		const cappedInstances: TimelineObjectInstance[] = []
 		_.each(instances, (instance) => {
-			if (_.isArray(parentInstances)) {
+			if (parentInstances) {
+
 				const parentInstance = _.find(parentInstances, (parentInstance) => {
 					return instance.references.indexOf(parentInstance.id) !== -1
 				})
-				const cappedInstance = (
-					parentInstance ?
-					capInstances([instance], [parentInstance])[0] :
-					instance
-				)
-				if (cappedInstance) {
-					if (parentInstance) {
+
+				if (parentInstance) {
+					// If the child refers to its parent, there should be one specific instance to cap into
+					const cappedInstance = capInstances([instance], [parentInstance])[0]
+
+					if (cappedInstance) {
+
 						if (!cappedInstance.caps) cappedInstance.caps = []
 						cappedInstance.caps.push({
 							id: parentInstance.id,
 							start: parentInstance.start,
 							end: parentInstance.end
 						})
+						cappedInstances.push(cappedInstance)
 					}
-					cappedInstances.push(cappedInstance)
+				} else {
+					// If the child doesn't refer to its parent, it should be capped within all of its parent instances
+					_.each(parentInstances, parentInstance => {
+
+						const cappedInstance = capInstances([instance], [parentInstance])[0]
+
+						if (cappedInstance) {
+							if (parentInstance) {
+								if (!cappedInstance.caps) cappedInstance.caps = []
+								cappedInstance.caps.push({
+									id: parentInstance.id,
+									start: parentInstance.start,
+									end: parentInstance.end
+								})
+							}
+							cappedInstances.push(cappedInstance)
+						}
+					})
 				}
 			}
 		})
@@ -357,6 +376,18 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 }
 
 type ObjectRefType = 'start' | 'end' | 'duration'
+/**
+ * Look up a reference on the timeline
+ * Return values:
+ * Array<TimelineObjectInstance>: Instances on the timeline where the reference expression is true
+ * ValueWithReference: A singular value which can be combined arithmetically with Instances
+ * null: Means "something is invalid", an null-value will always return null when combined with other values
+ *
+ * @param resolvedTimeline
+ * @param obj
+ * @param expr
+ * @param context
+ */
 export function lookupExpression (
 	resolvedTimeline: ResolvedTimeline,
 	obj: TimelineObject,
@@ -399,12 +430,14 @@ export function lookupExpression (
 
 		let objIdsToReference: string[] = []
 
+		let referenceIsOk: boolean = false
 		// Match id, example: "#objectId.start"
 		const m = expr.match(/^\W*#([^.]+)(.*)/)
 		if (m) {
 			const id = m[1]
 			rest = m[2]
 
+			referenceIsOk = true
 			objIdsToReference = [id]
 		} else {
 			// Match class, example: ".className.start"
@@ -413,6 +446,7 @@ export function lookupExpression (
 				const className = m[1]
 				rest = m[2]
 
+				referenceIsOk = true
 				objIdsToReference = resolvedTimeline.classes[className] || []
 			} else {
 				// Match layer, example: "$layer"
@@ -421,6 +455,7 @@ export function lookupExpression (
 					const layer = m[1]
 					rest = m[2]
 
+					referenceIsOk = true
 					objIdsToReference = resolvedTimeline.layers[layer] || []
 				}
 			}
@@ -431,6 +466,7 @@ export function lookupExpression (
 				referencedObjs.push(obj)
 			}
 		})
+		if (!referenceIsOk) return null
 
 		if (referencedObjs.length) {
 			if (rest.match(/start/)) ref = 'start'
@@ -497,11 +533,11 @@ export function lookupExpression (
 					}
 					return returnInstances
 				} else {
-					return null
+					return []
 				}
 			}
 		} else {
-			return null
+			return []
 		}
 	} else {
 		if (expr) {
@@ -513,7 +549,7 @@ export function lookupExpression (
 			}
 			if (lookupExpr.o === '!') {
 				// Discard l, invert and return r:
-				if (lookupExpr.r && _.isArray(lookupExpr.r) && lookupExpr.r.length) {
+				if (lookupExpr.r && _.isArray(lookupExpr.r)) {
 					return invertInstances(
 						lookupExpr.r
 					)
