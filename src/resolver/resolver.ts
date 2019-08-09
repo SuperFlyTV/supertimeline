@@ -357,6 +357,18 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 }
 
 type ObjectRefType = 'start' | 'end' | 'duration'
+/**
+ * Look up a reference on the timeline
+ * Return values:
+ * Array<TimelineObjectInstance>: Instances on the timeline where the reference expression is true
+ * ValueWithReference: A singular value which can be combined arithmetically with Instances
+ * null: Means "something is invalid", an null-value will always return null when combined with other values
+ *
+ * @param resolvedTimeline
+ * @param obj
+ * @param expr
+ * @param context
+ */
 export function lookupExpression (
 	resolvedTimeline: ResolvedTimeline,
 	obj: TimelineObject,
@@ -399,12 +411,14 @@ export function lookupExpression (
 
 		let objIdsToReference: string[] = []
 
+		let referenceIsOk: boolean = false
 		// Match id, example: "#objectId.start"
 		const m = expr.match(/^\W*#([^.]+)(.*)/)
 		if (m) {
 			const id = m[1]
 			rest = m[2]
 
+			referenceIsOk = true
 			objIdsToReference = [id]
 		} else {
 			// Match class, example: ".className.start"
@@ -413,6 +427,7 @@ export function lookupExpression (
 				const className = m[1]
 				rest = m[2]
 
+				referenceIsOk = true
 				objIdsToReference = resolvedTimeline.classes[className] || []
 			} else {
 				// Match layer, example: "$layer"
@@ -421,6 +436,7 @@ export function lookupExpression (
 					const layer = m[1]
 					rest = m[2]
 
+					referenceIsOk = true
 					objIdsToReference = resolvedTimeline.layers[layer] || []
 				}
 			}
@@ -431,6 +447,7 @@ export function lookupExpression (
 				referencedObjs.push(obj)
 			}
 		})
+		if (!referenceIsOk) return null
 
 		if (referencedObjs.length) {
 			if (rest.match(/start/)) ref = 'start'
@@ -497,11 +514,11 @@ export function lookupExpression (
 					}
 					return returnInstances
 				} else {
-					return null
+					return []
 				}
 			}
 		} else {
-			return null
+			return []
 		}
 	} else {
 		if (expr) {
@@ -513,7 +530,7 @@ export function lookupExpression (
 			}
 			if (lookupExpr.o === '!') {
 				// Discard l, invert and return r:
-				if (lookupExpr.r && _.isArray(lookupExpr.r) && lookupExpr.r.length) {
+				if (lookupExpr.r && _.isArray(lookupExpr.r)) {
 					return invertInstances(
 						lookupExpr.r
 					)
