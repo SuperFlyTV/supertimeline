@@ -1968,7 +1968,7 @@ const testDataOld: {
 			'id': 'head_force_clear',
 			'trigger': {
 				'type': TriggerType.LOGICAL,
-				'value': '!$Lnora_primary_super.nora_super_is_clear'
+				'value': '!$nora_primary_super.nora_super_is_clear'
 			},
 			'priority': 20,
 			'duration': 0,
@@ -2017,7 +2017,7 @@ const testDataOld: {
 			'id': 'head_force_clear',
 			'trigger': {
 				'type': TriggerType.LOGICAL,
-				'value': '!$Lnora_primary_super.nora_super_is_clear'
+				'value': '!$nora_primary_super.nora_super_is_clear'
 			},
 			'priority': 20,
 			'duration': 0,
