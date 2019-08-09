@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [7.2.2](https://github.com/SuperFlyTV/supertimeline/compare/7.2.1...7.2.2) (2019-08-09)
+
+
+### Bug Fixes
+
+* Handle keyframes that begin or end outside of their parents ([1eb1f50](https://github.com/SuperFlyTV/supertimeline/commit/1eb1f50))
+* lookupExpression should return [], not null, when a reference yields zero results ([0d6586d](https://github.com/SuperFlyTV/supertimeline/commit/0d6586d))
+* make child in group-behaviour constistent... ([95af8c3](https://github.com/SuperFlyTV/supertimeline/commit/95af8c3))
+* while: 1 and while: '1' should return same result ([7ca9452](https://github.com/SuperFlyTV/supertimeline/commit/7ca9452))
+
 ### [7.2.1](https://github.com/SuperFlyTV/supertimeline/compare/7.2.0...7.2.1) (2019-07-30)
 
 
