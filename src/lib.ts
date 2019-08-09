@@ -449,6 +449,11 @@ export function applyRepeatingInstances (
 	})
 	return cleanInstances(repeatedInstances, false)
 }
+/**
+ * Cap instances so that they are within their parentInstances
+ * @param instances
+ * @param parentInstances
+ */
 export function capInstances (
 	instances: TimelineObjectInstance[],
 	parentInstances: ValueWithReference | TimelineObjectInstance[] | null
