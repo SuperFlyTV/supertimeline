@@ -1597,4 +1597,29 @@ describe('resolver', () => {
 			val2: 2
 		})
 	})
+	test('Class not defined', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'video0',
+				layer: '0',
+				priority: 0,
+				enable: {
+					while: '!.class0'
+				},
+				content: {}
+			}
+		]
+
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitCount: 10, limitTime: 999 }))
+
+		expect(resolved.statistics.resolvedObjectCount).toEqual(1)
+		expect(resolved.statistics.unresolvedCount).toEqual(0)
+
+		expect(resolved.objects['video0']).toBeTruthy() // TODO - is this one correct?
+		expect(resolved.objects['video0'].resolved.instances).toHaveLength(1)
+
+		const state = Resolver.getState(resolved, 10, 10)
+		expect(state.layers['0']).toBeTruthy()
+		expect(state.layers['0'].id).toEqual('video0')
+	})
 })
