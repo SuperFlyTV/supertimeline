@@ -40,7 +40,6 @@ export function getState (resolved: ResolvedTimeline | ResolvedStates, time: Tim
 	return state
 }
 export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): ResolvedStates {
-
 	const resolvedStates: ResolvedStates = {
 		options: resolved.options,
 		statistics: resolved.statistics,
@@ -75,6 +74,15 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 			enable: boolean
 		}>
 	} = {}
+	const addPointInTime = (
+		time: Number,
+		enable: boolean,
+		obj: ResolvedTimelineObject,
+		instance: TimelineObjectInstance
+	) => {
+		if (!pointsInTime[time + '']) pointsInTime[time + ''] = []
+		pointsInTime[time + ''].push({ obj, instance, enable: enable })
+	}
 	const eventObjectTimes: {[time: string]: EventType} = {}
 
 	_.each(resolvedObjects, (obj: ResolvedTimelineObject) => {
@@ -113,8 +121,7 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 						})
 						// Save a reference to this instance on all points in time that could affect it:
 						_.each(timeEvents, (timeEvent) => {
-							if (!pointsInTime[timeEvent.time + '']) pointsInTime[timeEvent.time + ''] = []
-							pointsInTime[timeEvent.time + ''].push({ obj, instance, enable: timeEvent.enable })
+							addPointInTime(timeEvent.time, timeEvent.enable, obj, instance)
 						})
 					}
 				})
@@ -130,10 +137,13 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 			obj.resolved.parentId
 		) {
 			_.each(obj.resolved.instances, (instance: TimelineObjectInstance) => {
-				const timeEvent: TimeEvent = { time: instance.start, enable: true }
+				// Keyframe start time
+				addPointInTime(instance.start, true, obj, instance)
 
-				if (!pointsInTime[timeEvent.time + '']) pointsInTime[timeEvent.time + ''] = []
-				pointsInTime[timeEvent.time + ''].push({ obj, instance, enable: timeEvent.enable })
+				// Keyframe end time
+				if (instance.end !== null) {
+					addPointInTime(instance.end, false, obj, instance)
+				}
 
 			})
 		}
@@ -146,6 +156,8 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 
 	const currentState: StateInTime = {}
 	const activeObjIds: {[id: string]: ResolvedTimelineObjectInstance} = {}
+	const activeKeyframes: {[id: string]: ResolvedTimelineObjectInstance} = {}
+	const activeKeyframesChecked: {[id: string]: true} = {}
 
 	/** The objects in aspiringInstances  */
 	const aspiringInstances: {[layer: string]: Array<{obj: ResolvedTimelineObject, instance: TimelineObjectInstance}>} = {}
@@ -165,9 +177,9 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 
 			if (a.obj.resolved && b.obj.resolved) {
 
-				// Keyframes comes last:
-				if (a.obj.resolved.isKeyframe && !b.obj.resolved.isKeyframe) return 1
-				if (!a.obj.resolved.isKeyframe && b.obj.resolved.isKeyframe) return -1
+				// Keyframes comes first:
+				if (a.obj.resolved.isKeyframe && !b.obj.resolved.isKeyframe) return -1
+				if (!a.obj.resolved.isKeyframe && b.obj.resolved.isKeyframe) return 1
 
 				// Ending events come before starting events:
 				if (a.enable && !b.enable) return 1
@@ -368,45 +380,78 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 					// Add keyframe to resolvedStates.objects:
 					resolvedStates.objects[keyframe.id] = keyframe
 
-					// Check if the keyframe's parent is currently active?
-					if (keyframe.resolved.parentId) {
-						const parentObj = activeObjIds[keyframe.resolved.parentId]
-						if (parentObj && parentObj.layer) {  // keyframe is on an active object
+					const toBeEnabled: boolean = (
+						(instance.start || 0) <= time &&
+						(instance.end || Infinity) > time
+					)
 
-							const parentObjInstance = currentState[parentObj.layer]
-
-							if (parentObjInstance) {
-
-								const keyframeInstance: ResolvedTimelineObjectInstanceKeyframe = {
-									...keyframe,
-									instance: instance,
-									isKeyframe: true,
-									keyframeEndTime: instance.end
-								}
-								// Note: The keyframes are a little bit special, since their contents are applied to their parents.
-								// That application is done in the getStateAtTime function.
-
-								// Add keyframe to the tracking state:
-								addKeyframeAtTime(resolvedStates.state, parentObj.layer + '', time, keyframeInstance)
-
-								// Add keyframe to nextEvents:
-								keyframeEvents.push({
-									type: EventType.KEYFRAME,
-									time: instance.start,
-									objId: keyframe.id
-								})
-								if (instance.end !== null) {
-									keyframeEvents.push({
-										type: EventType.KEYFRAME,
-										time: instance.end,
-										objId: keyframe.id
-									})
-								}
-							}
+					if (toBeEnabled) {
+						const newObjInstance = {
+							...obj,
+							instance: instance
 						}
+						activeKeyframes[obj.id] = newObjInstance
+					} else {
+						delete activeKeyframes[obj.id]
 					}
 				}
 			}
+		})
+		// Go through keyframes:
+		_.each(activeKeyframes, (objInstance: ResolvedTimelineObjectInstance, objId: string) => {
+
+			const keyframe = objInstance
+			const instance = objInstance.instance
+
+			// Check if the keyframe's parent is currently active?
+			if (keyframe.resolved.parentId) {
+				const parentObj = activeObjIds[keyframe.resolved.parentId]
+				if (parentObj && parentObj.layer) {  // keyframe is on an active object
+
+					const parentObjInstance = currentState[parentObj.layer]
+
+					if (parentObjInstance) {
+
+						if (!activeKeyframesChecked[objId]) { // hasn't started before
+							activeKeyframesChecked[objId] = true
+
+							const keyframeInstance: ResolvedTimelineObjectInstanceKeyframe = {
+								...keyframe,
+								instance: instance,
+								isKeyframe: true,
+								keyframeEndTime: instance.end
+							}
+							// Note: The keyframes are a little bit special, since their contents are applied to their parents.
+							// That application is done in the getStateAtTime function.
+
+							// Add keyframe to the tracking state:
+							addKeyframeAtTime(resolvedStates.state, parentObj.layer + '', time, keyframeInstance)
+
+							// Add keyframe to nextEvents:
+							keyframeEvents.push({
+								type: EventType.KEYFRAME,
+								time: instance.start,
+								objId: keyframe.id
+							})
+							if (
+								instance.end !== null && (
+									parentObjInstance.instance.end === null ||
+									instance.end < parentObjInstance.instance.end // Only add the keyframe if it ends before its parent
+								)
+							) {
+								keyframeEvents.push({
+									type: EventType.KEYFRAME,
+									time: instance.end,
+									objId: keyframe.id
+								})
+							}
+						}
+						return
+					}
+				}
+			}
+			// else: the keyframe:s parent isn't active, remove/stop the keyframe then:
+			delete activeKeyframesChecked[objId]
 		})
 	})
 	// Go through the keyframe events and add them to nextEvents:
