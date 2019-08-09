@@ -144,7 +144,7 @@ describe('resolver', () => {
 			lookupExpression(rtl, stdObj,
 				interpretExpression('14 + #badReference.start'), 'start'
 			)
-		).toEqual(null)
+		).toEqual([])
 
 		expect(
 			lookupExpression(rtl, stdObj, interpretExpression('1'), 'start')
@@ -245,7 +245,7 @@ describe('resolver', () => {
 			content: {}
 		}
 
-		expect(lookupExpression(rtl, obj, interpretExpression('#unknown'), 'start')).toEqual(null)
+		expect(lookupExpression(rtl, obj, interpretExpression('#unknown'), 'start')).toEqual([])
 		expect(lookupExpression(rtl, obj, interpretExpression('#first'), 'start')).toMatchObject([{
 			start: 0,
 			end: 100
