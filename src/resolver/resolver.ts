@@ -163,7 +163,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 	}
 
 	const startExpr: Expression = interpretExpression(start)
-	let parentInstances: TimelineObjectInstance[] | null | ValueWithReference = null
+	let parentInstances: TimelineObjectInstance[] | null = null
 	let hasParent: boolean = false
 	let referToParent: boolean = false
 	if (obj.resolved.parentId) {
@@ -173,13 +173,15 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 			obj,
 			interpretExpression(`#${obj.resolved.parentId}`),
 			'start'
-		)
+		) as TimelineObjectInstance[] | null // a start-reference will always return an array, or null
+
 		if (isConstant(startExpr)) {
 			// Only use parent if the expression resolves to a number (ie doesn't contain any references)
 			referToParent = true
 		}
 	}
 	let lookedupStarts = lookupExpression(resolvedTimeline, obj, startExpr, 'start')
+
 	const applyParentInstances = (value: TimelineObjectInstance[] | null | ValueWithReference): TimelineObjectInstance[] | null | ValueWithReference => {
 		const operate = (a: ValueWithReference | null, b: ValueWithReference | null): ValueWithReference | null => {
 			if (a === null || b === null) return null
@@ -195,7 +197,6 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 	}
 
 	if (obj.enable.while) {
-
 		if (_.isArray(lookedupStarts)) {
 			instances = lookedupStarts
 		} else if (lookedupStarts !== null) {
@@ -296,28 +297,46 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 	}
 	if (hasParent) {
 		// figure out what parent-instance the instances are tied to, and cap them
-
 		const cappedInstances: TimelineObjectInstance[] = []
 		_.each(instances, (instance) => {
-			if (_.isArray(parentInstances)) {
+			if (parentInstances) {
+
 				const parentInstance = _.find(parentInstances, (parentInstance) => {
 					return instance.references.indexOf(parentInstance.id) !== -1
 				})
-				const cappedInstance = (
-					parentInstance ?
-					capInstances([instance], [parentInstance])[0] :
-					instance
-				)
-				if (cappedInstance) {
-					if (parentInstance) {
+
+				if (parentInstance) {
+					// If the child refers to its parent, there should be one specific instance to cap into
+					const cappedInstance = capInstances([instance], [parentInstance])[0]
+
+					if (cappedInstance) {
+
 						if (!cappedInstance.caps) cappedInstance.caps = []
 						cappedInstance.caps.push({
 							id: parentInstance.id,
 							start: parentInstance.start,
 							end: parentInstance.end
 						})
+						cappedInstances.push(cappedInstance)
 					}
-					cappedInstances.push(cappedInstance)
+				} else {
+					// If the child doesn't refer to its parent, it should be capped within all of its parent instances
+					_.each(parentInstances, parentInstance => {
+
+						const cappedInstance = capInstances([instance], [parentInstance])[0]
+
+						if (cappedInstance) {
+							if (parentInstance) {
+								if (!cappedInstance.caps) cappedInstance.caps = []
+								cappedInstance.caps.push({
+									id: parentInstance.id,
+									start: parentInstance.start,
+									end: parentInstance.end
+								})
+							}
+							cappedInstances.push(cappedInstance)
+						}
+					})
 				}
 			}
 		})
