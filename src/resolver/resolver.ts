@@ -267,6 +267,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 					references: lookedupDuration[0].references
 				} as ValueWithReference
 			}
+			if (_.isArray(lookedupDuration) && !lookedupDuration.length) lookedupDuration = null
 
 			if (_.isArray(lookedupDuration)) {
 				throw new Error(`lookupExpression should never return an array for .duration lookup`) // perhaps tmp? maybe revisit this at some point
