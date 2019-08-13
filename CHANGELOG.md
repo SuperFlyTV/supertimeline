@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [7.2.3](https://github.com/SuperFlyTV/supertimeline/compare/7.2.2...7.2.3) (2019-08-13)
+
+
+### Bug Fixes
+
+* bug fix: reference duration ([de7b86c](https://github.com/SuperFlyTV/supertimeline/commit/de7b86c))
+
 ### [7.2.2](https://github.com/SuperFlyTV/supertimeline/compare/7.2.1...7.2.2) (2019-08-09)
 
 
