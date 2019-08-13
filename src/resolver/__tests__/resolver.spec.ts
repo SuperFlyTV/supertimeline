@@ -1702,11 +1702,11 @@ describe('resolver', () => {
 			},
 			{
 				id: 'video1',
-				layer: '0',
+				layer: '1',
 				priority: 0,
 				enable: {
 					start: 20,
-					duration: '#video'
+					duration: '#video0'
 				},
 				content: {}
 			}
@@ -1717,8 +1717,9 @@ describe('resolver', () => {
 		expect(resolved.statistics.resolvedObjectCount).toEqual(2)
 		expect(resolved.statistics.unresolvedCount).toEqual(0)
 
-		expect(resolved.objects['video0']).toBeTruthy() // TODO - is this one correct?
-		expect(resolved.objects['video0'].resolved.instances).toMatchObject([
+		expect(resolved.objects['video0']).toBeTruthy()
+		expect(resolved.objects['video1']).toBeTruthy()
+		expect(resolved.objects['video1'].resolved.instances).toMatchObject([
 			{
 				start: 20,
 				end: 110
