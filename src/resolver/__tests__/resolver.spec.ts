@@ -1688,4 +1688,41 @@ describe('resolver', () => {
 		expect(state.layers['0']).toBeTruthy()
 		expect(state.layers['0'].id).toEqual('video0')
 	})
+	test('Reference duration', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'video0',
+				layer: '0',
+				priority: 0,
+				enable: {
+					start: 10,
+					end: 100
+				},
+				content: {}
+			},
+			{
+				id: 'video1',
+				layer: '0',
+				priority: 0,
+				enable: {
+					start: 20,
+					duration: '#video'
+				},
+				content: {}
+			}
+		]
+
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitCount: 10, limitTime: 999 }))
+
+		expect(resolved.statistics.resolvedObjectCount).toEqual(2)
+		expect(resolved.statistics.unresolvedCount).toEqual(0)
+
+		expect(resolved.objects['video0']).toBeTruthy() // TODO - is this one correct?
+		expect(resolved.objects['video0'].resolved.instances).toMatchObject([
+			{
+				start: 20,
+				end: 110
+			}
+		])
+	})
 })
