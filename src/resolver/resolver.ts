@@ -33,7 +33,7 @@ import {
 	resetId
 } from '../lib'
 import { validateTimeline } from './validate'
-import { interpretExpression } from './expression'
+import { interpretExpression, simplifyExpression } from './expression'
 import { getState, resolveStates } from './state'
 import { addObjectToResolvedTimeline } from './common'
 
@@ -162,7 +162,8 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 		start = 'false'
 	}
 
-	const startExpr: Expression = interpretExpression(start)
+	const startExpr: Expression = simplifyExpression(start)
+
 	let parentInstances: TimelineObjectInstance[] | null = null
 	let hasParent: boolean = false
 	let referToParent: boolean = false

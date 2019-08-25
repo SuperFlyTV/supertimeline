@@ -1,4 +1,4 @@
-import { interpretExpression, wrapInnerExpressions } from '../expression'
+import { interpretExpression, wrapInnerExpressions, simplifyExpression } from '../expression'
 
 describe('Expression', () => {
 	test('interpretExpression from string', () => {
@@ -133,6 +133,19 @@ describe('Expression', () => {
 			['a', '&', '!', 'b']
 		)).toEqual({rest: [], inner:
 			['a', '&', ['', '!', 'b']]
+		})
+	})
+	test('simplifyExpression', () => {
+		expect(simplifyExpression('1+2+3'
+		)).toEqual(6)
+
+		expect(simplifyExpression('1+2*2+(4-2)'
+		)).toEqual(7)
+
+		expect(simplifyExpression('40+2+asdf')).toEqual({
+			l: 42,
+			o: '+',
+			r: 'asdf'
 		})
 	})
 })
