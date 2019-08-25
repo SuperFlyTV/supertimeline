@@ -4,6 +4,10 @@ import { isNumeric } from '../lib'
 
 export const OPERATORS = ['&', '|', '+', '-', '*', '/', '%', '!']
 
+export function interpretExpression (expr: null): null
+export function interpretExpression (expr: number): number
+export function interpretExpression (expr: ExpressionObj): ExpressionObj
+export function interpretExpression (expr: string | Expression): Expression
 export function interpretExpression (expr: Expression): Expression {
 	if (isNumeric(expr)) {
 		return parseFloat(expr as string)

@@ -34,7 +34,7 @@ export function extendMandadory<A, B extends A> (original: A, extendObj: Differe
 	return _.extend(original, extendObj)
 }
 
-export function isConstant (str: string | number | null | any): boolean {
+export function isConstant (str: string | number | null | any): str is string | number {
 	return !!(
 		isNumeric(str) ||
 		(
@@ -46,7 +46,7 @@ export function isConstant (str: string | number | null | any): boolean {
 		)
 	)
 }
-export function isNumeric (str: string | number | null | any): boolean {
+export function isNumeric (str: string | number | null | any): str is string | number {
 	if (str === null) return false
 	if (_.isNumber(str)) return true
 	if (_.isString(str)) return !!(str.match(/^[\-\+]?[0-9\.]+$/) && !_.isNaN(parseFloat(str)))
