@@ -1726,4 +1726,76 @@ describe('resolver', () => {
 			}
 		])
 	})
+	test('Parent references', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'parent',
+				layer: 'p0',
+				priority: 0,
+				enable: {
+					start: '100'
+				},
+				content: {},
+				isGroup: true,
+				children: [
+					{
+						id: 'video0',
+						layer: '0',
+						priority: 0,
+						enable: {
+							start: 20 + 30,
+							duration: 10
+						},
+						content: {}
+					},
+					{
+						id: 'video1',
+						layer: '1',
+						priority: 0,
+						enable: {
+							start: '20 + 30',
+							duration: 10
+						},
+						content: {}
+					}
+				]
+			},
+			{
+				id: 'video2',
+				layer: '2',
+				priority: 0,
+				enable: {
+					start: '150',
+					duration: 10
+				},
+				content: {}
+			}
+		]
+
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitCount: 10, limitTime: 999 }))
+
+		expect(resolved.statistics.resolvedObjectCount).toEqual(4)
+
+		// All 3 videos should start at the same time:
+		expect(resolved.objects['video0']).toBeTruthy()
+		expect(resolved.objects['video1']).toBeTruthy()
+		expect(resolved.objects['video2']).toBeTruthy()
+		expect(resolved.objects['video0'].resolved.instances).toHaveLength(1)
+		expect(resolved.objects['video1'].resolved.instances).toHaveLength(1)
+		expect(resolved.objects['video2'].resolved.instances).toHaveLength(1)
+
+		expect(resolved.objects['video0'].resolved.instances[0]).toMatchObject({
+			start: 150,
+			end: 160
+		})
+		expect(resolved.objects['video1'].resolved.instances[0]).toMatchObject({
+			start: 150,
+			end: 160
+		})
+		expect(resolved.objects['video2'].resolved.instances[0]).toMatchObject({
+			start: 150,
+			end: 160
+		})
+
+	})
 })

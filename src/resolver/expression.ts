@@ -1,9 +1,13 @@
 import _ = require('underscore')
 import { Expression, ExpressionObj } from '../api/api'
-import { isNumeric } from '../lib'
+import { isNumeric, isConstant } from '../lib'
 
 export const OPERATORS = ['&', '|', '+', '-', '*', '/', '%', '!']
 
+export function interpretExpression (expr: null): null
+export function interpretExpression (expr: number): number
+export function interpretExpression (expr: ExpressionObj): ExpressionObj
+export function interpretExpression (expr: string | Expression): Expression
 export function interpretExpression (expr: Expression): Expression {
 	if (isNumeric(expr)) {
 		return parseFloat(expr as string)
@@ -36,6 +40,56 @@ export function interpretExpression (expr: Expression): Expression {
 	} else {
 		return expr
 	}
+}
+/** Try to simplify an expression, this includes:
+ * * Combine constant operands, using arithmetic operators
+ * ...more to come?
+ */
+export function simplifyExpression (expr0: Expression): Expression {
+	const expr = (
+		_.isString(expr0) ?
+			interpretExpression(expr0) :
+		expr0
+	)
+	if (!expr) return expr
+
+	if (isExpressionObject(expr)) {
+		const l = simplifyExpression(expr.l)
+		const o = expr.o
+		const r = simplifyExpression(expr.r)
+
+		if (
+			isConstant(l) &&
+			isConstant(r) &&
+			_.isNumber(l) &&
+			_.isNumber(r)
+		) {
+			// The operands can be combined:
+			return (
+				o === '+' ?
+					l + r :
+				o === '-' ?
+					l - r :
+				o === '*' ?
+					l * r :
+				o === '/' ?
+					l / r :
+				o === '%' ?
+					l % r :
+				{ l, o, r }
+			)
+		}
+		return { l, o, r }
+	}
+	return expr
+}
+function isExpressionObject (expr: Expression): expr is ExpressionObj {
+	return (
+		typeof expr === 'object' &&
+		_.has(expr, 'l') &&
+		_.has(expr, 'o') &&
+		_.has(expr, 'r')
+	)
 }
 function wordIsOperator (operatorList: string[], word: string) {
 	if (operatorList.indexOf(word) !== -1) return true
