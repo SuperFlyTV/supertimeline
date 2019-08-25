@@ -1774,7 +1774,7 @@ describe('resolver', () => {
 
 		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitCount: 10, limitTime: 999 }))
 
-		expect(resolved.statistics.resolvedObjectCount).toEqual(3)
+		expect(resolved.statistics.resolvedObjectCount).toEqual(4)
 
 		// All 3 videos should start at the same time:
 		expect(resolved.objects['video0']).toBeTruthy()
