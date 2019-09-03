@@ -1663,6 +1663,107 @@ describe('resolver', () => {
 			val2: 2
 		})
 	})
+	test('Keyframe class from chained groups', () => {
+		const timeline: TimelineObject[] = [
+			{
+			   'id': 'object0',
+			   'enable': {
+				  'while': 1
+			   },
+			   'priority': 0,
+			   'layer': 'obj0',
+			   'content': {
+				  val: 1
+			   },
+			   'keyframes': [
+				  {
+					 'id': 'object0_kf0',
+					 'enable': {
+						'while': '.show_pip'
+					 },
+					 'content': {
+						val2: 2
+					 }
+				  }
+			   ]
+			},
+			{
+			   'id': 'object1',
+			   'enable': {
+				  'while': '.show_pip'
+			   },
+			   'priority': 0,
+			   'layer': 'obj1',
+			   'content': {}
+			},
+			{
+				'id': 'class0',
+				'priority': 0,
+				'enable': {
+				   'start': 1000,
+				   'duration': 800
+				},
+				'layer': 'cl0',
+				'classes': [
+				   'show_pip'
+				],
+				'content': {}
+			},
+			{
+				'id': 'class1',
+				'priority': 0,
+				'enable': {
+				   'start': 2000
+				},
+				'layer': 'cl0',
+				'classes': [
+				   'show_pip'
+				],
+				'content': {}
+			}
+		 ]
+
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 800, limitCount: 10, limitTime: 3000 }))
+
+		expect(resolved.statistics.unresolvedCount).toEqual(0)
+
+		expect(resolved.objects['object0']).toBeTruthy()
+		expect(resolved.objects['object0'].resolved.instances).toHaveLength(1)
+
+		// Before class
+		const state = Resolver.getState(resolved, 800, 10)
+		expect(state.layers['obj0']).toBeTruthy()
+		expect(state.layers['obj1']).toBeFalsy()
+		expect(state.layers['obj0'].content).toEqual({
+			val: 1
+		})
+
+		// With class
+		const state2 = Resolver.getState(resolved, 1600, 10)
+		expect(state2.layers['obj0']).toBeTruthy()
+		expect(state2.layers['obj1']).toBeTruthy()
+		expect(state2.layers['obj0'].content).toEqual({
+			val: 1,
+			val2: 2
+		})
+
+		// Before class from second
+		const state3 = Resolver.getState(resolved, 1900, 10)
+		expect(state3.layers['obj0']).toBeTruthy()
+		expect(state3.layers['obj1']).toBeFalsy()
+		expect(state3.layers['obj0'].content).toEqual({
+			val: 1
+		})
+
+		// With class from second
+		const state4 = Resolver.getState(resolved, 2100, 10)
+		expect(state4.layers['obj0']).toBeTruthy()
+		expect(state4.layers['obj1']).toBeTruthy()
+		expect(state4.layers['obj0'].content).toEqual({
+			val: 1,
+			val2: 2
+		})
+	})
 	test('Class not defined', () => {
 		const timeline: TimelineObject[] = [
 			{
