@@ -393,6 +393,7 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 						activeKeyframes[obj.id] = newObjInstance
 					} else {
 						delete activeKeyframes[obj.id]
+						delete activeKeyframesChecked[obj.id]
 					}
 				}
 			}
