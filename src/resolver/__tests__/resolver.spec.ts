@@ -1,5 +1,5 @@
 import { lookupExpression, Resolver } from '../resolver'
-import { ResolvedTimeline, TimelineObject } from '../../api/api'
+import { ResolvedTimeline, TimelineObject, ResolvedTimelineObject } from '../../api/api'
 import { interpretExpression } from '../expression'
 import { EventType } from '../../api/enums'
 import { resetId } from '../../lib'
@@ -25,11 +25,16 @@ describe('resolver', () => {
 			resolvedKeyframeCount: 0
 		}
 	}
-	const stdObj: TimelineObject = {
+	const stdObj: ResolvedTimelineObject = {
 		id: 'obj0',
 		layer: '10',
 		enable: {},
-		content: {}
+		content: {},
+		resolved: {
+			resolved: false,
+			resolving: false,
+			instances: []
+		}
 	}
 	test('expression: basic math', () => {
 		expect(lookupExpression(rtl, stdObj, interpretExpression('1+2'), 'start'))		.toEqual({ value: 1 + 2, references: [] })
@@ -238,11 +243,16 @@ describe('resolver', () => {
 			classes: {},
 			layers: {}
 		}
-		const obj: TimelineObject = {
+		const obj: ResolvedTimelineObject = {
 			id: 'obj0',
 			layer: '10',
 			enable: {},
-			content: {}
+			content: {},
+			resolved: {
+				resolved: false,
+				resolving: false,
+				instances: []
+			}
 		}
 
 		expect(lookupExpression(rtl, obj, interpretExpression('#unknown'), 'start')).toEqual(null)
@@ -1480,12 +1490,14 @@ describe('resolver', () => {
 				end: 8
 			}])
 			expect(resolved.objects['video1']).toBeTruthy()
+			expect(resolved.objects['video1'].resolved.isSelfReferencing).toEqual(true)
 			expect(resolved.objects['video1'].resolved.instances).toMatchObject([{
 				start: 8,
 				end: 9, // becuse it's overridden by video2
 				originalEnd: 10
 			}])
 			expect(resolved.objects['video2']).toBeTruthy()
+			expect(resolved.objects['video2'].resolved.isSelfReferencing).toEqual(true)
 			expect(resolved.objects['video2'].resolved.instances).toMatchObject([{
 				start: 9,
 				end: 11
@@ -1543,12 +1555,14 @@ describe('resolver', () => {
 				end: 8
 			}])
 			expect(resolved.objects['video1']).toBeTruthy()
+			expect(resolved.objects['video1'].resolved.isSelfReferencing).toEqual(true)
 			expect(resolved.objects['video1'].resolved.instances).toMatchObject([{
 				start: 8,
 				end: 9, // becuse it's overridden by video2
 				originalEnd: 10
 			}])
 			expect(resolved.objects['video2']).toBeTruthy()
+			expect(resolved.objects['video2'].resolved.isSelfReferencing).toEqual(true)
 			expect(resolved.objects['video2'].resolved.instances).toMatchObject([{
 				start: 9,
 				end: 11

@@ -80,7 +80,8 @@ export class Resolver {
 					resolved: false,
 					resolving: false,
 					instances: [],
-					levelDeep: levelDeep
+					levelDeep: levelDeep,
+					isSelfReferencing: false
 				}
 			})
 			if (parentId) o.resolved.parentId = parentId
@@ -359,7 +360,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 type ObjectRefType = 'start' | 'end' | 'duration'
 export function lookupExpression (
 	resolvedTimeline: ResolvedTimeline,
-	obj: TimelineObject,
+	obj: ResolvedTimelineObject,
 	expr: Expression | null,
 	context: ObjectRefType
 ): Array<TimelineObjectInstance> | ValueWithReference | null {
@@ -390,10 +391,11 @@ export function lookupExpression (
 				return []
 			}
 		}
+
 		// Look up string
 		let invert: boolean = false
 		let ignoreFirstIfZero: boolean = false
-		const referencedObjs: ResolvedTimelineObject[] = []
+		let referencedObjs: ResolvedTimelineObject[] = []
 		let ref: ObjectRefType = context
 		let rest: string = ''
 
@@ -425,13 +427,25 @@ export function lookupExpression (
 				}
 			}
 		}
-		_.each(objIdsToReference, (objId: string) => {
-			const obj = resolvedTimeline.objects[objId]
-			if (obj) {
-				referencedObjs.push(obj)
+		_.each(objIdsToReference, (refObjId: string) => {
+			if (refObjId !== obj.id) {
+				const refObj = resolvedTimeline.objects[refObjId]
+				if (refObj) {
+					referencedObjs.push(refObj)
+				}
+			} else {
+				// Looks like the object is referencing itself!
+				if (obj.resolved.resolving) {
+					obj.resolved.isSelfReferencing = true
+				}
 			}
 		})
-
+		if (obj.resolved.isSelfReferencing) {
+			// Exclude any self-referencing objects:
+			referencedObjs = _.filter(referencedObjs, refObj => {
+				return !refObj.resolved.isSelfReferencing
+			})
+		}
 		if (referencedObjs.length) {
 			if (rest.match(/start/)) ref = 'start'
 			if (rest.match(/end/)) ref = 'end'
@@ -443,18 +457,26 @@ export function lookupExpression (
 				_.each(referencedObjs, (referencedObj: ResolvedTimelineObject) => {
 					resolveTimelineObj(resolvedTimeline, referencedObj)
 					if (referencedObj.resolved.resolved) {
-						const firstInstance = _.first(referencedObj.resolved.instances)
-						if (firstInstance) {
-							const duration: number | null = (
-								firstInstance.end !== null ?
-								firstInstance.end - firstInstance.start :
-								null
-							)
-							if (duration !== null) {
-								instanceDurations.push({
-									value: duration,
-									references: joinReferences(referencedObj.id, firstInstance.references)
-								})
+						if (
+							obj.resolved.isSelfReferencing &&
+							referencedObj.resolved.isSelfReferencing
+						) {
+							// If the querying object is self-referencing, exclude any other self-referencing objects,
+							// ignore the object
+						} else {
+							const firstInstance = _.first(referencedObj.resolved.instances)
+							if (firstInstance) {
+								const duration: number | null = (
+									firstInstance.end !== null ?
+									firstInstance.end - firstInstance.start :
+									null
+								)
+								if (duration !== null) {
+									instanceDurations.push({
+										value: duration,
+										references: joinReferences(referencedObj.id, firstInstance.references)
+									})
+								}
 							}
 						}
 					}
@@ -477,7 +499,15 @@ export function lookupExpression (
 				_.each(referencedObjs, (referencedObj: ResolvedTimelineObject) => {
 					resolveTimelineObj(resolvedTimeline, referencedObj)
 					if (referencedObj.resolved.resolved) {
-						returnInstances = returnInstances.concat(referencedObj.resolved.instances)
+						if (
+							obj.resolved.isSelfReferencing &&
+							referencedObj.resolved.isSelfReferencing
+						) {
+							// If the querying object is self-referencing, exclude any other self-referencing objects,
+							// ignore the object
+						} else {
+							returnInstances = returnInstances.concat(referencedObj.resolved.instances)
+						}
 					}
 				})
 				if (returnInstances.length) {
