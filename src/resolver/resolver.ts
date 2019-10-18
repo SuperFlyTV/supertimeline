@@ -578,6 +578,8 @@ export function lookupExpression (
 					let events: Array<SideEvent> = []
 					const addEvents = (instances: Array<TimelineObjectInstance>, left: boolean) => {
 						_.each(instances, (instance) => {
+							if (instance.start === instance.end) return // event doesn't actually exist...
+
 							events.push({
 								left: left,
 								time: instance.start,
