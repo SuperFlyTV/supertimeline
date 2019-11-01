@@ -1,5 +1,5 @@
 import { lookupExpression, Resolver } from '../resolver'
-import { ResolvedTimeline, TimelineObject, TimelineObjectInstance } from '../../api/api'
+import { ResolvedTimeline, TimelineObject, TimelineObjectInstance, ResolvedTimelineObject } from '../../api/api'
 import { interpretExpression } from '../expression'
 import { EventType } from '../../api/enums'
 import { resetId } from '../../lib'
@@ -25,11 +25,16 @@ describe('resolver', () => {
 			resolvedKeyframeCount: 0
 		}
 	}
-	const stdObj: TimelineObject = {
+	const stdObj: ResolvedTimelineObject = {
 		id: 'obj0',
 		layer: '10',
 		enable: {},
-		content: {}
+		content: {},
+		resolved: {
+			resolved: false,
+			resolving: false,
+			instances: []
+		}
 	}
 	test('expression: basic math', () => {
 		expect(lookupExpression(rtl, stdObj, interpretExpression('1+2'), 'start'))		.toEqual({ value: 1 + 2, references: [] })
@@ -238,11 +243,16 @@ describe('resolver', () => {
 			classes: {},
 			layers: {}
 		}
-		const obj: TimelineObject = {
+		const obj: ResolvedTimelineObject = {
 			id: 'obj0',
 			layer: '10',
 			enable: {},
-			content: {}
+			content: {},
+			resolved: {
+				resolved: false,
+				resolving: false,
+				instances: []
+			}
 		}
 
 		expect(lookupExpression(rtl, obj, interpretExpression('#unknown'), 'start')).toEqual([])
@@ -1826,5 +1836,288 @@ describe('resolver', () => {
 				end: 110
 			}
 		])
+	})
+	test('Parent references', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'parent',
+				layer: 'p0',
+				priority: 0,
+				enable: {
+					start: '100'
+				},
+				content: {},
+				isGroup: true,
+				children: [
+					{
+						id: 'video0',
+						layer: '0',
+						priority: 0,
+						enable: {
+							start: 20 + 30,
+							duration: 10
+						},
+						content: {}
+					},
+					{
+						id: 'video1',
+						layer: '1',
+						priority: 0,
+						enable: {
+							start: '20 + 30',
+							duration: 10
+						},
+						content: {}
+					}
+				]
+			},
+			{
+				id: 'video2',
+				layer: '2',
+				priority: 0,
+				enable: {
+					start: '150',
+					duration: 10
+				},
+				content: {}
+			}
+		]
+
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitCount: 10, limitTime: 999 }))
+
+		expect(resolved.statistics.resolvedObjectCount).toEqual(4)
+
+		// All 3 videos should start at the same time:
+		expect(resolved.objects['video0']).toBeTruthy()
+		expect(resolved.objects['video1']).toBeTruthy()
+		expect(resolved.objects['video2']).toBeTruthy()
+		expect(resolved.objects['video0'].resolved.instances).toHaveLength(1)
+		expect(resolved.objects['video1'].resolved.instances).toHaveLength(1)
+		expect(resolved.objects['video2'].resolved.instances).toHaveLength(1)
+
+		expect(resolved.objects['video0'].resolved.instances[0]).toMatchObject({
+			start: 150,
+			end: 160
+		})
+		expect(resolved.objects['video1'].resolved.instances[0]).toMatchObject({
+			start: 150,
+			end: 160
+		})
+		expect(resolved.objects['video2'].resolved.instances[0]).toMatchObject({
+			start: 150,
+			end: 160
+		})
+	})
+	test('Reference own layer', () => {
+		// https://github.com/SuperFlyTV/supertimeline/pull/50
+		const timeline: TimelineObject[] = [
+			{
+				id: 'video0',
+				layer: '0',
+				enable: {
+					start: 0,
+					duration: 8
+				},
+				content: {}
+			},
+			{
+				id: 'video1',
+				layer: '0',
+				enable: {
+					// Play for 2 after each other object on layer 0
+					start: '$0.end',
+					duration: 2
+				},
+				content: {}
+			},
+			{
+				id: 'video2',
+				layer: '0',
+				enable: {
+					// Play for 2 after each other object on layer 0
+					start: '$0.end + 1',
+					duration: 2
+				},
+				content: {}
+			}
+		]
+		for (let i = 0; i < 2; i++) {
+			timeline.reverse() // change the order
+			expect(timeline.length).toEqual(3)
+
+			const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitCount: 100, limitTime: 99999 }))
+
+			expect(resolved.statistics.resolvedObjectCount).toEqual(3)
+			expect(resolved.statistics.unresolvedCount).toEqual(0)
+
+			expect(resolved.objects['video0']).toBeTruthy()
+			expect(resolved.objects['video0'].resolved.instances).toMatchObject([{
+				start: 0,
+				end: 8
+			}])
+			expect(resolved.objects['video1']).toBeTruthy()
+			expect(resolved.objects['video1'].resolved.isSelfReferencing).toEqual(true)
+			expect(resolved.objects['video1'].resolved.instances).toMatchObject([{
+				start: 8,
+				end: 9, // becuse it's overridden by video2
+				originalEnd: 10
+			}])
+			expect(resolved.objects['video2']).toBeTruthy()
+			expect(resolved.objects['video2'].resolved.isSelfReferencing).toEqual(true)
+			expect(resolved.objects['video2'].resolved.instances).toMatchObject([{
+				start: 9,
+				end: 11
+			}])
+		}
+	})
+	test('Reference own class', () => {
+		// https://github.com/SuperFlyTV/supertimeline/pull/50
+		const timeline: TimelineObject[] = [
+			{
+				id: 'video0',
+				layer: '0',
+				enable: {
+					start: 0,
+					duration: 8
+				},
+				content: {},
+				classes: [ 'insert_after' ]
+			},
+			{
+				id: 'video1',
+				layer: '1',
+				enable: {
+					// Play for 2 after each other object with class 'insert_after'
+					start: '.insert_after.end',
+					duration: 2
+				},
+				content: {},
+				classes: [ 'insert_after' ]
+			},
+			{
+				id: 'video2',
+				layer: '1',
+				enable: {
+					// Play for 2 after each other object with class 'insert_after'
+					start: '.insert_after.end + 1',
+					duration: 2
+				},
+				content: {},
+				classes: [ 'insert_after' ]
+			}
+		]
+		for (let i = 0; i < 2; i++) {
+			timeline.reverse() // change the order
+			expect(timeline.length).toEqual(3)
+
+			const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitCount: 100, limitTime: 99999 }))
+
+			expect(resolved.statistics.resolvedObjectCount).toEqual(3)
+			expect(resolved.statistics.unresolvedCount).toEqual(0)
+
+			expect(resolved.objects['video0']).toBeTruthy()
+			expect(resolved.objects['video0'].resolved.instances).toMatchObject([{
+				start: 0,
+				end: 8
+			}])
+			expect(resolved.objects['video1']).toBeTruthy()
+			expect(resolved.objects['video1'].resolved.isSelfReferencing).toEqual(true)
+			expect(resolved.objects['video1'].resolved.instances).toMatchObject([{
+				start: 8,
+				end: 9, // becuse it's overridden by video2
+				originalEnd: 10
+			}])
+			expect(resolved.objects['video2']).toBeTruthy()
+			expect(resolved.objects['video2'].resolved.isSelfReferencing).toEqual(true)
+			expect(resolved.objects['video2'].resolved.instances).toMatchObject([{
+				start: 9,
+				end: 11
+			}])
+		}
+	})
+	test('Continuous combined negated and normal classes on different objects', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'parent',
+				layer: 'p0',
+				priority: 0,
+				enable: {
+					while: 1
+				},
+				content: {
+					val: 1
+				},
+				keyframes: [
+					{
+						id: 'kf0',
+						enable: {
+							while: '.playout & !.muted'
+						},
+						content: {
+							val: 2
+						}
+					}
+				]
+			},
+
+			{
+				id: 'muted_playout1',
+				layer: '2',
+				priority: 0,
+				enable: {
+					start: '100',
+					duration: 100
+				},
+				content: {},
+				classes: [ 'playout', 'muted' ]
+			},
+			{
+				id: 'muted_playout2',
+				layer: '2',
+				priority: 0,
+				enable: {
+					start: '200',
+					duration: 100
+				},
+				content: {},
+				classes: [ 'playout', 'muted' ]
+			},
+			{
+				id: 'unmuted_playout1',
+				layer: '2',
+				priority: 0,
+				enable: {
+					start: '300',
+					duration: 100
+				},
+				content: {},
+				classes: [ 'playout' ]
+			}
+		]
+
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitCount: 10, limitTime: 999 }))
+
+		expect(resolved.statistics.resolvedObjectCount).toEqual(4)
+
+		// first everything is normal
+		expect(Resolver.getState(resolved, 50).layers['p0'].content).toMatchObject({
+			val: 1
+		})
+
+		// then we have muted playout
+		expect(Resolver.getState(resolved, 150).layers['p0'].content).toMatchObject({
+			val: 1
+		})
+
+		// then we have muted playout again
+		expect(Resolver.getState(resolved, 250).layers['p0'].content).toMatchObject({
+			val: 1
+		})
+
+		// only then we have unmuted playout
+		expect(Resolver.getState(resolved, 350).layers['p0'].content).toMatchObject({
+			val: 2
+		})
+
 	})
 })

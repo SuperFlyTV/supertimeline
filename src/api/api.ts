@@ -119,6 +119,8 @@ export interface ResolvedTimelineObject extends TimelineObject {
 		parentId?: string
 		/** True if object is a keyframe */
 		isKeyframe?: boolean
+		/** True if object is referencing itself (only directly, not indirectly via another object) */
+		isSelfReferencing?: boolean
 	}
 }
 export interface TimelineObjectInstance {
