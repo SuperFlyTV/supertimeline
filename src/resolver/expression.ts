@@ -153,7 +153,8 @@ function words2Expression (operatorList: Array<string>, words: Array<any>): Expr
 		return expr
 	} else throw new Error('words2Expression: syntax error: operator not found: "' + (words.join(' ')) + '"')
 }
-function validateExpression (operatorList: Array<string>, expr0: Expression, breadcrumbs?: string) {
+/** Validates an expression. Returns true on success, throws error if not */
+export function validateExpression (operatorList: Array<string>, expr0: Expression, breadcrumbs?: string): true {
 	if (!breadcrumbs) breadcrumbs = 'ROOT'
 
 	if (_.isObject(expr0) && !_.isArray(expr0)) {
@@ -167,9 +168,12 @@ function validateExpression (operatorList: Array<string>, expr0: Expression, bre
 
 		if (!wordIsOperator(operatorList, expr.o)) throw new Error(breadcrumbs + '.o not valid: "' + expr.o + '"')
 
-		validateExpression(operatorList, expr.l, breadcrumbs + '.l')
-		validateExpression(operatorList, expr.r, breadcrumbs + '.r')
+		return (
+			validateExpression(operatorList, expr.l, breadcrumbs + '.l') &&
+			validateExpression(operatorList, expr.r, breadcrumbs + '.r')
+		)
 	} else if (!_.isNull(expr0) && !_.isString(expr0) && !_.isNumber(expr0)) {
 		throw new Error(`validateExpression: ${breadcrumbs} is of invalid type`)
 	}
+	return true
 }
