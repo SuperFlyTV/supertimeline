@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.3.0](https://github.com/SuperFlyTV/supertimeline/compare/7.2.4...7.3.0) (2019-11-01)
+
+
+### Features
+
+* update ci to run for node 8,10,12 ([7a182c6](https://github.com/SuperFlyTV/supertimeline/commit/7a182c639f1798ca3144bfdc1ac57f7a1ac6b760))
+
+
+### Bug Fixes
+
+* be able to reference other objects in own class or layer ([3996a80](https://github.com/SuperFlyTV/supertimeline/commit/3996a80f082b578032ade77b28119c8fd5fd62fd))
+* disregard event instances with 0 duration ([678bd19](https://github.com/SuperFlyTV/supertimeline/commit/678bd19bab2ea47829818188e23469cf62cd9d55))
+* keyframe class from chained group ([6164a6e](https://github.com/SuperFlyTV/supertimeline/commit/6164a6eec8bf5f0d5ba52ddddb420eb854a3993d))
+* simplify expressions to allow for using arithmetics inside of parent groups ([91a5a64](https://github.com/SuperFlyTV/supertimeline/commit/91a5a64df5417421910090ce44164d0289eeea6e))
+
 ### [7.2.4](https://github.com/SuperFlyTV/supertimeline/compare/7.2.3...7.2.4) (2019-09-03)
 
 
