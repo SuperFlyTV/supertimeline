@@ -2035,4 +2035,89 @@ describe('resolver', () => {
 			}])
 		}
 	})
+	test('Continuous combined negated and normal classes on different objects', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'parent',
+				layer: 'p0',
+				priority: 0,
+				enable: {
+					while: 1
+				},
+				content: {
+					val: 1
+				},
+				keyframes: [
+					{
+						id: 'kf0',
+						enable: {
+							while: '.playout & !.muted'
+						},
+						content: {
+							val: 2
+						}
+					}
+				]
+			},
+
+			{
+				id: 'muted_playout1',
+				layer: '2',
+				priority: 0,
+				enable: {
+					start: '100',
+					duration: 100
+				},
+				content: {},
+				classes: [ 'playout', 'muted' ]
+			},
+			{
+				id: 'muted_playout2',
+				layer: '2',
+				priority: 0,
+				enable: {
+					start: '200',
+					duration: 100
+				},
+				content: {},
+				classes: [ 'playout', 'muted' ]
+			},
+			{
+				id: 'unmuted_playout1',
+				layer: '2',
+				priority: 0,
+				enable: {
+					start: '300',
+					duration: 100
+				},
+				content: {},
+				classes: [ 'playout' ]
+			}
+		]
+
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitCount: 10, limitTime: 999 }))
+
+		expect(resolved.statistics.resolvedObjectCount).toEqual(4)
+
+		// first everything is normal
+		expect(Resolver.getState(resolved, 50).layers['p0'].content).toMatchObject({
+			val: 1
+		})
+
+		// then we have muted playout
+		expect(Resolver.getState(resolved, 150).layers['p0'].content).toMatchObject({
+			val: 1
+		})
+
+		// then we have muted playout again
+		expect(Resolver.getState(resolved, 250).layers['p0'].content).toMatchObject({
+			val: 1
+		})
+
+		// only then we have unmuted playout
+		expect(Resolver.getState(resolved, 350).layers['p0'].content).toMatchObject({
+			val: 2
+		})
+
+	})
 })
