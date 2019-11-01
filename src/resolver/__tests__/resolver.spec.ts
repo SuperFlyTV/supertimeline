@@ -1,5 +1,5 @@
 import { lookupExpression, Resolver } from '../resolver'
-import { ResolvedTimeline, TimelineObject, TimelineObjectInstance } from '../../api/api'
+import { ResolvedTimeline, TimelineObject, TimelineObjectInstance, ResolvedTimelineObject } from '../../api/api'
 import { interpretExpression } from '../expression'
 import { EventType } from '../../api/enums'
 import { resetId } from '../../lib'
@@ -25,11 +25,16 @@ describe('resolver', () => {
 			resolvedKeyframeCount: 0
 		}
 	}
-	const stdObj: TimelineObject = {
+	const stdObj: ResolvedTimelineObject = {
 		id: 'obj0',
 		layer: '10',
 		enable: {},
-		content: {}
+		content: {},
+		resolved: {
+			resolved: false,
+			resolving: false,
+			instances: []
+		}
 	}
 	test('expression: basic math', () => {
 		expect(lookupExpression(rtl, stdObj, interpretExpression('1+2'), 'start'))		.toEqual({ value: 1 + 2, references: [] })
@@ -238,11 +243,16 @@ describe('resolver', () => {
 			classes: {},
 			layers: {}
 		}
-		const obj: TimelineObject = {
+		const obj: ResolvedTimelineObject = {
 			id: 'obj0',
 			layer: '10',
 			enable: {},
-			content: {}
+			content: {},
+			resolved: {
+				resolved: false,
+				resolving: false,
+				instances: []
+			}
 		}
 
 		expect(lookupExpression(rtl, obj, interpretExpression('#unknown'), 'start')).toEqual([])
@@ -1897,6 +1907,132 @@ describe('resolver', () => {
 			start: 150,
 			end: 160
 		})
+	})
+	test('Reference own layer', () => {
+		// https://github.com/SuperFlyTV/supertimeline/pull/50
+		const timeline: TimelineObject[] = [
+			{
+				id: 'video0',
+				layer: '0',
+				enable: {
+					start: 0,
+					duration: 8
+				},
+				content: {}
+			},
+			{
+				id: 'video1',
+				layer: '0',
+				enable: {
+					// Play for 2 after each other object on layer 0
+					start: '$0.end',
+					duration: 2
+				},
+				content: {}
+			},
+			{
+				id: 'video2',
+				layer: '0',
+				enable: {
+					// Play for 2 after each other object on layer 0
+					start: '$0.end + 1',
+					duration: 2
+				},
+				content: {}
+			}
+		]
+		for (let i = 0; i < 2; i++) {
+			timeline.reverse() // change the order
+			expect(timeline.length).toEqual(3)
 
+			const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitCount: 100, limitTime: 99999 }))
+
+			expect(resolved.statistics.resolvedObjectCount).toEqual(3)
+			expect(resolved.statistics.unresolvedCount).toEqual(0)
+
+			expect(resolved.objects['video0']).toBeTruthy()
+			expect(resolved.objects['video0'].resolved.instances).toMatchObject([{
+				start: 0,
+				end: 8
+			}])
+			expect(resolved.objects['video1']).toBeTruthy()
+			expect(resolved.objects['video1'].resolved.isSelfReferencing).toEqual(true)
+			expect(resolved.objects['video1'].resolved.instances).toMatchObject([{
+				start: 8,
+				end: 9, // becuse it's overridden by video2
+				originalEnd: 10
+			}])
+			expect(resolved.objects['video2']).toBeTruthy()
+			expect(resolved.objects['video2'].resolved.isSelfReferencing).toEqual(true)
+			expect(resolved.objects['video2'].resolved.instances).toMatchObject([{
+				start: 9,
+				end: 11
+			}])
+		}
+	})
+	test('Reference own class', () => {
+		// https://github.com/SuperFlyTV/supertimeline/pull/50
+		const timeline: TimelineObject[] = [
+			{
+				id: 'video0',
+				layer: '0',
+				enable: {
+					start: 0,
+					duration: 8
+				},
+				content: {},
+				classes: [ 'insert_after' ]
+			},
+			{
+				id: 'video1',
+				layer: '1',
+				enable: {
+					// Play for 2 after each other object with class 'insert_after'
+					start: '.insert_after.end',
+					duration: 2
+				},
+				content: {},
+				classes: [ 'insert_after' ]
+			},
+			{
+				id: 'video2',
+				layer: '1',
+				enable: {
+					// Play for 2 after each other object with class 'insert_after'
+					start: '.insert_after.end + 1',
+					duration: 2
+				},
+				content: {},
+				classes: [ 'insert_after' ]
+			}
+		]
+		for (let i = 0; i < 2; i++) {
+			timeline.reverse() // change the order
+			expect(timeline.length).toEqual(3)
+
+			const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitCount: 100, limitTime: 99999 }))
+
+			expect(resolved.statistics.resolvedObjectCount).toEqual(3)
+			expect(resolved.statistics.unresolvedCount).toEqual(0)
+
+			expect(resolved.objects['video0']).toBeTruthy()
+			expect(resolved.objects['video0'].resolved.instances).toMatchObject([{
+				start: 0,
+				end: 8
+			}])
+			expect(resolved.objects['video1']).toBeTruthy()
+			expect(resolved.objects['video1'].resolved.isSelfReferencing).toEqual(true)
+			expect(resolved.objects['video1'].resolved.instances).toMatchObject([{
+				start: 8,
+				end: 9, // becuse it's overridden by video2
+				originalEnd: 10
+			}])
+			expect(resolved.objects['video2']).toBeTruthy()
+			expect(resolved.objects['video2'].resolved.isSelfReferencing).toEqual(true)
+			expect(resolved.objects['video2'].resolved.instances).toMatchObject([{
+				start: 9,
+				end: 11
+			}])
+		}
 	})
 })
