@@ -319,6 +319,7 @@ describe('Resolver, keyframes', () => {
 		})
 	})
 	test('Keyframe class from chained groups', () => {
+		// https://github.com/SuperFlyTV/supertimeline/pull/56
 		const timeline: TimelineObject[] = [
 			{
 			   'id': 'object0',

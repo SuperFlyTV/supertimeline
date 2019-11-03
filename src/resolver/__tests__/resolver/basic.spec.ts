@@ -659,6 +659,7 @@ describe('Resolver, basic', () => {
 		}
 	})
 	test('Continuous combined negated and normal classes on different objects', () => {
+		// https://github.com/SuperFlyTV/supertimeline/pull/57
 		const timeline: TimelineObject[] = [
 			{
 				id: 'parent',
