@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [7.3.1](https://github.com/SuperFlyTV/supertimeline/compare/7.3.0...7.3.1) (2019-12-02)
+
+
+### Bug Fixes
+
+* add reference to tslib ([e2fed55](https://github.com/SuperFlyTV/supertimeline/commit/e2fed55320704bdf385a893cf91a7b319a2e36b7))
+
 ## [7.3.0](https://github.com/SuperFlyTV/supertimeline/compare/7.2.4...7.3.0) (2019-11-01)
 
 
