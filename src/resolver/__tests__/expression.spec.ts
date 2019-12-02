@@ -1,6 +1,7 @@
 import { interpretExpression, wrapInnerExpressions, simplifyExpression, validateExpression } from '../expression'
 
 describe('Expression', () => {
+
 	test('interpretExpression from string', () => {
 		expect(interpretExpression('42.5')).toEqual(42.5)
 		expect(interpretExpression('+42.5')).toEqual(42.5)
