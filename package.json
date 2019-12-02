@@ -108,6 +108,7 @@
     "source"
   ],
   "dependencies": {
+    "tslib": "^1.10.0",
     "underscore": "^1.9.1"
   },
   "standard-version": {
