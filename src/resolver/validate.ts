@@ -11,10 +11,10 @@ function validateObject0 (obj: TimelineObject, strict?: boolean, uniqueIds?: Ids
 	if (!uniqueIds) uniqueIds = {}
 
 	if (!obj) throw new Error(`Object is undefined`)
-	if (!_.isObject(obj)) throw new Error(`Object is not an object`)
+	if (typeof obj !== 'object') throw new Error(`Object is not an object`)
 
 	if (!obj.id) throw new Error(`Object missing "id" attribute`)
-	if (!_.isString(obj.id)) throw new Error(`Object "id" attribute is not a string: "${obj.id}"`)
+	if (typeof obj.id !== 'string') throw new Error(`Object "id" attribute is not a string: "${obj.id}"`)
 
 	if (uniqueIds[obj.id]) throw new Error(`Object id "${obj.id}" is not unique`)
 	uniqueIds[obj.id] = true
@@ -77,10 +77,10 @@ function validateKeyframe0 (keyframe: TimelineKeyframe, strict?: boolean, unique
 	if (!uniqueIds) uniqueIds = {}
 
 	if (!keyframe) throw new Error(`Keyframe is undefined`)
-	if (!_.isObject(keyframe)) throw new Error(`Keyframe is not an object`)
+	if (typeof keyframe !== 'object') throw new Error(`Keyframe is not an object`)
 
 	if (!keyframe.id) throw new Error(`Keyframe missing id attribute`)
-	if (!_.isString(keyframe.id)) throw new Error(`Keyframe id attribute is not a string: "${keyframe.id}"`)
+	if (typeof keyframe.id !== 'string') throw new Error(`Keyframe id attribute is not a string: "${keyframe.id}"`)
 
 	if (uniqueIds[keyframe.id]) throw new Error(`Keyframe id "${keyframe.id}" is not unique`)
 	uniqueIds[keyframe.id] = true
