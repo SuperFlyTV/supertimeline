@@ -618,3 +618,33 @@ export function applyParentInstances (parentInstances: TimelineObjectInstance[] 
 	}
 	return operateOnArrays(parentInstances, value, operate)
 }
+
+const cacheResultCache: {
+	[name: string]: {
+		ttl: number,
+		value: any
+	}
+} = {}
+/** Cache the result of function for a limited time */
+export function cacheResult<T> (name: string, fcn: () => T, limitTime: number = 1000) {
+
+	if (Math.random() < 0.01) {
+		setTimeout(cleanCacheResult, 100)
+	}
+	const cache = cacheResultCache[name]
+	if (!cache || cache.ttl < Date.now()) {
+		const value = fcn()
+		cacheResultCache[name] = {
+			ttl: Date.now() + limitTime,
+			value: value
+		}
+		return value
+	} else {
+		return cache.value
+	}
+}
+function cleanCacheResult () {
+	_.each(cacheResultCache, (cache, name) => {
+		if (cache.ttl < Date.now()) delete cacheResultCache[name]
+	})
+}
