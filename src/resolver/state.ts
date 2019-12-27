@@ -169,7 +169,8 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 	times.sort((a,b) => {
 		return a - b
 	})
-	_.each(times, time => {
+	for (let i = 0; i < times.length; i++) {
+		const time = times[i]
 		const instancesToCheck = pointsInTime[time]
 		const checkedObjectsThisTime: {[instanceId: string]: true} = {}
 
@@ -194,7 +195,8 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 			return 0
 		})
 
-		_.each(instancesToCheck, (o) => {
+		for (let j = 0; j < instancesToCheck.length; j++) {
+			const o = instancesToCheck[j]
 			const obj: ResolvedTimelineObject = o.obj
 			const instance: TimelineObjectInstance = o.instance
 
@@ -204,9 +206,9 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 			)
 
 			const layer: string = obj.layer + ''
-
-			if (!checkedObjectsThisTime[obj.id + '_' + instance.id + '_' + o.enable]) { // Only check each object and event-type once for every point in time
-				checkedObjectsThisTime[obj.id + '_' + instance.id + '_' + o.enable] = true
+			const identifier = obj.id + '_' + instance.id + '_' + o.enable
+			if (!checkedObjectsThisTime[identifier]) { // Only check each object and event-type once for every point in time
+				checkedObjectsThisTime[identifier] = true
 
 				if (!obj.resolved.isKeyframe) {
 
@@ -397,7 +399,7 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 					}
 				}
 			}
-		})
+		}
 		// Go through keyframes:
 		_.each(activeKeyframes, (objInstance: ResolvedTimelineObjectInstance, objId: string) => {
 
@@ -454,15 +456,16 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 			// else: the keyframe:s parent isn't active, remove/stop the keyframe then:
 			delete activeKeyframesChecked[objId]
 		})
-	})
+	}
 	// Go through the keyframe events and add them to nextEvents:
-	_.each(keyframeEvents, (keyframeEvent) => {
+	for (let i = 0; i < keyframeEvents.length; i++) {
+		const keyframeEvent = keyframeEvents[i]
 		// tslint:disable-next-line
 		if (eventObjectTimes[keyframeEvent.time + ''] === undefined) { // no need to put a keyframe event if there's already another event there
 			resolvedStates.nextEvents.push(keyframeEvent)
 			eventObjectTimes[keyframeEvent.time + ''] = EventType.KEYFRAME
 		}
-	})
+	}
 
 	if (onlyForTime) {
 		resolvedStates.nextEvents = _.filter(resolvedStates.nextEvents, e => e.time > onlyForTime)

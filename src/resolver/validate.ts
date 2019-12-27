@@ -42,31 +42,34 @@ function validateObject0 (obj: TimelineObject, strict?: boolean, uniqueIds?: Ids
 	} else throw new Error(`Object "${obj.id}": "enable.start" or "enable.while" must be set`)
 
 	if (obj.keyframes) {
-		_.each(obj.keyframes, (keyframe, i) => {
+		for (let i = 0; i < obj.keyframes.length; i++) {
+			const keyframe = obj.keyframes[i]
 			try {
 				validateKeyframe0(keyframe, strict, uniqueIds)
 			} catch (e) {
 				throw new Error(`Object "${obj.id}" keyframe[${i}]: ${e}`)
 			}
-		})
+		}
 	}
 	if (obj.classes) {
-		_.each(obj.classes, (className, i) => {
-			if (className && !_.isString(className)) throw new Error(`Object "${obj.id}": "classes[${i}]" is not a string`)
-		})
+		for (let i = 0; i < obj.classes.length; i++) {
+			const className = obj.classes[i]
+			if (className && typeof className !== 'string') throw new Error(`Object "${obj.id}": "classes[${i}]" is not a string`)
+		}
 	}
 
 	if (obj.children && !obj.isGroup) throw new Error(`Object "${obj.id}": attribute "children" is set but "isGroup" is not`)
 	if (obj.isGroup && !obj.children) throw new Error(`Object "${obj.id}": attribute "isGroup" is set but "children" missing`)
 
 	if (obj.children) {
-		_.each(obj.children, (child, i) => {
+		for (let i = 0; i < obj.children.length; i++) {
+			const child = obj.children[i]
 			try {
 				validateObject0(child, strict, uniqueIds)
 			} catch (e) {
 				throw new Error(`Object "${obj.id}" child[${i}]: ${e}`)
 			}
-		})
+		}
 	}
 	if (obj.priority !== undefined && !_.isNumber(obj.priority)) throw new Error(`Object "${obj.id}": attribute "priority" is not a number`)
 }
@@ -102,9 +105,10 @@ function validateKeyframe0 (keyframe: TimelineKeyframe, strict?: boolean, unique
 	} else throw new Error(`Keyframe "${keyframe.id}": "enable.start" or "enable.while" must be set`)
 
 	if (keyframe.classes) {
-		_.each(keyframe.classes, (className, i) => {
+		for (let i = 0; i < keyframe.classes.length; i++) {
+			const className = keyframe.classes[i]
 			if (className && !_.isString(className)) throw new Error(`Keyframe "${keyframe.id}": "classes[${i}]" is not a string`)
-		})
+		}
 	}
 }
 
@@ -115,9 +119,10 @@ function validateKeyframe0 (keyframe: TimelineKeyframe, strict?: boolean, unique
  */
 export function validateTimeline (timeline: Array<TimelineObject>, strict?: boolean): void {
 	const uniqueIds: {[id: string]: true} = {}
-	_.each(timeline, (obj) => {
+	for (let i = 0; i < timeline.length; i++) {
+		const obj = timeline[i]
 		validateObject0(obj, strict, uniqueIds)
-	})
+	}
 }
 /**
  * Validates a Timeline-object. Throws an error if something's wrong

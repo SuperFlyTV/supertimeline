@@ -91,23 +91,26 @@ export class Resolver {
 
 			// Add children:
 			if (obj.isGroup && obj.children) {
-				_.each(obj.children, (child) => {
+				for (let i = 0; i < obj.children.length; i++) {
+					const child = obj.children[i]
 					addToResolvedTimeline(child, levelDeep + 1, obj.id)
-				})
+				}
 			}
 			// Add keyframes:
 			if (obj.keyframes) {
-				_.each(obj.keyframes, (keyframe) => {
+				for (let i = 0; i < obj.keyframes.length; i++) {
+					const keyframe = obj.keyframes[i]
 					const kf2: TimelineObjectKeyframe = extendMandadory<TimelineKeyframe, TimelineObjectKeyframe>(_.clone(keyframe), {
 						layer: ''
 					})
 					addToResolvedTimeline(kf2, levelDeep + 1, obj.id, true)
-				})
+				}
 			}
 		}
-		_.each(timeline, (obj: TimelineObject) => {
+		for (let i = 0; i < timeline.length; i++) {
+			const obj: TimelineObject = timeline[i]
 			addToResolvedTimeline(obj, 0)
-		})
+		}
 		// Step 2: go though and resolve the objects
 		_.each(resolvedTimeline.objects, (obj: ResolvedTimelineObject) => {
 			resolveTimelineObj(resolvedTimeline, obj)
@@ -301,30 +304,32 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 	if (hasParent) {
 		// figure out what parent-instance the instances are tied to, and cap them
 		const cappedInstances: TimelineObjectInstance[] = []
-		_.each(instances, (instance) => {
+		for (let i = 0; i < instances.length; i++) {
+			const instance = instances[i]
 			if (parentInstances) {
 
-				const parentInstance = _.find(parentInstances, (parentInstance) => {
+				const referredParentInstance = _.find(parentInstances, (parentInstance) => {
 					return instance.references.indexOf(parentInstance.id) !== -1
 				})
 
-				if (parentInstance) {
+				if (referredParentInstance) {
 					// If the child refers to its parent, there should be one specific instance to cap into
-					const cappedInstance = capInstances([instance], [parentInstance])[0]
+					const cappedInstance = capInstances([instance], [referredParentInstance])[0]
 
 					if (cappedInstance) {
 
 						if (!cappedInstance.caps) cappedInstance.caps = []
 						cappedInstance.caps.push({
-							id: parentInstance.id,
-							start: parentInstance.start,
-							end: parentInstance.end
+							id: referredParentInstance.id,
+							start: referredParentInstance.start,
+							end: referredParentInstance.end
 						})
 						cappedInstances.push(cappedInstance)
 					}
 				} else {
 					// If the child doesn't refer to its parent, it should be capped within all of its parent instances
-					_.each(parentInstances, parentInstance => {
+					for (let i = 0; i < parentInstances.length; i++) {
+						const parentInstance = parentInstances[i]
 
 						const cappedInstance = capInstances([instance], [parentInstance])[0]
 
@@ -339,10 +344,10 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 							}
 							cappedInstances.push(cappedInstance)
 						}
-					})
+					}
 				}
 			}
-		})
+		}
 		instances = cappedInstances
 	}
 	instances = applyRepeatingInstances(
@@ -464,7 +469,8 @@ export function lookupExpression (
 				}
 			}
 		}
-		_.each(objIdsToReference, (refObjId: string) => {
+		for (let i = 0; i < objIdsToReference.length; i++) {
+			const refObjId: string = objIdsToReference[i]
 			if (refObjId !== obj.id) {
 				const refObj = resolvedTimeline.objects[refObjId]
 				if (refObj) {
@@ -476,7 +482,7 @@ export function lookupExpression (
 					obj.resolved.isSelfReferencing = true
 				}
 			}
-		})
+		}
 		if (!referenceIsOk) return null
 
 		if (obj.resolved.isSelfReferencing) {
@@ -493,7 +499,8 @@ export function lookupExpression (
 			if (ref === 'duration') {
 				// Duration refers to the first object on the resolved timeline
 				const instanceDurations: Array<ValueWithReference> = []
-				_.each(referencedObjs, (referencedObj: ResolvedTimelineObject) => {
+				for (let i = 0; i < referencedObjs.length; i++) {
+					const referencedObj: ResolvedTimelineObject = referencedObjs[i]
 					resolveTimelineObj(resolvedTimeline, referencedObj)
 					if (referencedObj.resolved.resolved) {
 						if (
@@ -519,7 +526,7 @@ export function lookupExpression (
 							}
 						}
 					}
-				})
+				}
 				let firstDuration: ValueWithReference | null = null
 				_.each(instanceDurations, (d) => {
 					if (firstDuration === null || d.value < firstDuration.value) firstDuration = d
