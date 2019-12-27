@@ -30,7 +30,8 @@ import {
 	EventForInstance,
 	getId,
 	isConstant,
-	resetId
+	resetId,
+	applyParentInstances
 } from '../lib'
 import { validateTimeline } from './validate'
 import { interpretExpression, simplifyExpression } from './expression'
@@ -187,18 +188,8 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 	}
 	let lookedupStarts = lookupExpression(resolvedTimeline, obj, startExpr, 'start')
 
-	const applyParentInstances = (value: TimelineObjectInstance[] | null | ValueWithReference): TimelineObjectInstance[] | null | ValueWithReference => {
-		const operate = (a: ValueWithReference | null, b: ValueWithReference | null): ValueWithReference | null => {
-			if (a === null || b === null) return null
-			return {
-				value: a.value + b.value,
-				references: joinReferences(a.references, b.references)
-			}
-		}
-		return operateOnArrays(parentInstances, value, operate)
-	}
 	if (referToParent) {
-		lookedupStarts = applyParentInstances(lookedupStarts)
+		lookedupStarts = applyParentInstances(parentInstances, lookedupStarts)
 	}
 
 	if (obj.enable.while) {
@@ -243,7 +234,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 				null
 			)
 			if (referToParent && isConstant(endExpr)) {
-				lookedupEnds = applyParentInstances(lookedupEnds)
+				lookedupEnds = applyParentInstances(parentInstances, lookedupEnds)
 			}
 			if (_.isArray(lookedupEnds)) {
 				_.each(lookedupEnds, (instance) => {

@@ -608,3 +608,13 @@ export function setInstanceStartTime (instance: TimelineObjectInstance, startTim
 	)
 	instance.start = startTime
 }
+export function applyParentInstances (parentInstances: TimelineObjectInstance[] | null, value: TimelineObjectInstance[] | null | ValueWithReference): TimelineObjectInstance[] | null | ValueWithReference {
+	const operate = (a: ValueWithReference | null, b: ValueWithReference | null): ValueWithReference | null => {
+		if (a === null || b === null) return null
+		return {
+			value: a.value + b.value,
+			references: joinReferences(a.references, b.references)
+		}
+	}
+	return operateOnArrays(parentInstances, value, operate)
+}
