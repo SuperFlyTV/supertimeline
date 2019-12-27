@@ -533,14 +533,27 @@ export function isReference (ref: any): ref is ValueWithReference {
 	)
 }
 export function joinReferences (...references: Array<Array<string> | string>): Array<string> {
-	return _.compact(
-		_.uniq(
-			_.reduce(references, (memo, ref) => {
-				if (_.isString(ref)) return memo.concat([ref])
-				else return memo.concat(ref)
-			},[] as Array<string>)
-		)
-	).sort((a, b) => {
+	const refMap: {[reference: string]: true} = {}
+	const refs: string[] = []
+
+	for (let i = 0; i < references.length; i++) {
+		const reference = references[i]
+		if (reference) {
+			if (typeof reference === 'string') {
+				if (!refMap[reference]) refs.push(reference)
+				refMap[reference] = true
+			} else {
+				for (let j = 0; j < reference.length; j++) {
+					const ref = reference[j]
+					if (ref) {
+						if (!refMap[ref]) refs.push(ref)
+						refMap[ref] = true
+					}
+				}
+			}
+		}
+	}
+	return refs.sort((a, b) => {
 		if (a > b) return 1
 		if (a < b) return -1
 		return 0
@@ -566,21 +579,17 @@ export function addCapsToResuming (instance: TimelineObjectInstance, ...caps: Ar
 	instance.caps = joinCaps(instance.caps, capsToAdd)
 }
 export function joinCaps (...caps: Array<Array<Cap> | undefined>): Array<Cap> {
-	return (
-		_.uniq(
-			_.compact(
-				_.reduce(caps, (memo, cap) => {
-					if (cap !== undefined) {
-						return (memo || []).concat(cap)
-					} else return memo
-				},[] as Array<Cap>)
-			),
-			false,
-			(cap) => {
-				return cap.id
+	const capMap: {[capReference: string]: Cap} = {}
+	for (let i = 0; i < caps.length; i++) {
+		const caps2 = caps[i]
+		if (caps2) {
+			for (let j = 0; j < caps2.length; j++) {
+				const cap2 = caps2[j]
+				capMap[cap2.id] = cap2
 			}
-		)
-	)
+		}
+	}
+	return Object.values(capMap)
 }
 let i: number = 0
 /**
