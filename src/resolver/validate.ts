@@ -27,6 +27,7 @@ function validateObject0 (obj: TimelineObject, strict?: boolean, uniqueIds?: Ids
 
 	if (obj.enable.start !== undefined) {
 		if (strict && obj.enable.while !== undefined) throw new Error(`Object "${obj.id}": "enable.start" and "enable.while" cannot be combined`)
+		if (strict && obj.enable.instances !== undefined) throw new Error(`Object "${obj.id}": "enable.start" and "enable.instances" cannot be combined`)
 
 		if (
 			strict &&
@@ -38,6 +39,13 @@ function validateObject0 (obj: TimelineObject, strict?: boolean, uniqueIds?: Ids
 
 		if (strict && obj.enable.end !== undefined) throw new Error(`Object "${obj.id}": "enable.while" and "enable.end" cannot be combined`)
 		if (strict && obj.enable.duration !== undefined) throw new Error(`Object "${obj.id}": "enable.while" and "enable.duration" cannot be combined`)
+		if (strict && obj.enable.instances !== undefined) throw new Error(`Object "${obj.id}": "enable.while" and "enable.instances" cannot be combined`)
+
+	} else if (obj.enable.instances !== undefined) {
+
+		if (strict && obj.enable.end !== undefined) throw new Error(`Object "${obj.id}": "enable.instances" and "enable.end" cannot be combined`)
+		if (strict && obj.enable.duration !== undefined) throw new Error(`Object "${obj.id}": "enable.instances" and "enable.duration" cannot be combined`)
+		if (strict && obj.enable.start !== undefined) throw new Error(`Object "${obj.id}": "enable.instances" and "enable.start" cannot be combined`)
 
 	} else throw new Error(`Object "${obj.id}": "enable.start" or "enable.while" must be set`)
 

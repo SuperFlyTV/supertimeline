@@ -381,5 +381,46 @@ describe('index', () => {
 		expect(state0.layers['layer0']).toBeTruthy()
 		expect(state0.layers['layer0'].id).toEqual('o1')
 
- 	})
+	 })
+	 test('instances', () => {
+		const timeline: Array<TimelineObject> = [
+			{
+				id: 'video',
+				layer: '0',
+				enable: {
+					instances: [
+						{ start: 10, end: 20 },
+						{ start: 30, end: 40 }
+					]
+				},
+				content: {}
+			}
+		]
+		// First, just to a validation, to make sure it's okay:
+		validateTimeline(timeline, true)
+
+		const options: ResolveOptions = {
+			time: 0
+		}
+		// Resolve the timeline
+		const resolvedTimeline = Resolver.resolveTimeline(timeline, options)
+
+		const resolvedStates = Resolver.resolveAllStates(resolvedTimeline)
+
+		// Calculate the state at a certain time:
+		const state0 = Resolver.getState(resolvedStates, 5)
+		expect(state0.layers['0']).toBeFalsy()
+
+		const state1 = Resolver.getState(resolvedStates, 15)
+		expect(state1).toMatchObject({
+			layers: {
+				'0': { id: 'video' }
+			},
+			nextEvents: [
+				{ time: 20, type: EventType.END, objId: 'video' },
+				{ time: 30, type: EventType.START, objId: 'video' },
+				{ time: 40, type: EventType.END, objId: 'video' }
+			]
+		})
+	})
 })
