@@ -806,4 +806,57 @@ describe('Resolver, basic', () => {
 		expect(state.layers.L2).toBeUndefined()
 		expect(state.layers.L1).toBeUndefined()
 	})
+	test.only('negative length object', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'obj0',
+				layer: 'L1',
+				enable: {
+				  start: 15,
+				  end: 14
+				},
+				content: {}
+			}
+		]
+
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0 }))
+		const state = Resolver.getState(resolved, 20)
+		expect(state.layers.L1).toBeUndefined()
+	})
+	test.only('negative length object sandwich', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'obj0',
+				layer: 'L1',
+				enable: {
+				  start: 15,
+				  end: '#obj1.start'
+				},
+				content: {}
+			},
+			{
+				id: 'obj1',
+				layer: 'L2',
+				enable: {
+				  start: 15,
+				  end: '#obj2.start'
+				},
+				content: {}
+			},
+			{
+				id: 'obj2',
+				layer: 'L3',
+				enable: {
+				  start: 10
+				},
+				content: {}
+			}
+		]
+
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0 }))
+		const state = Resolver.getState(resolved, 20)
+		expect(state.layers.L3).toMatchObject({ id: 'obj2' })
+		expect(state.layers.L2).toBeUndefined()
+		expect(state.layers.L1).toBeUndefined()
+	})
 })
