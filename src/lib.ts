@@ -85,9 +85,9 @@ export function cleanInstances (
 
 	const events: Array<EventForInstance> = []
 
-	// let i: number = 1
-	_.each(instances, (instance) => {
-		// const id = 'i' + (i++)
+	for (let i = 0; i < instances.length; i++) {
+		const instance = instances[i]
+
 		events.push({
 			time: instance.start,
 			value: true,
@@ -102,7 +102,7 @@ export function cleanInstances (
 				references: instance.references
 			})
 		}
-	})
+	}
 	return convertEventsToInstances(events, allowMerge, allowZeroGaps)
 }
 export type EventForInstance = InstanceEvent<{id?: string, instance: TimelineObjectInstance}>
@@ -117,15 +117,16 @@ export function convertEventsToInstances (
 	let activeInstanceId: string | null = null
 	let previousActive: boolean = false
 	const returnInstances: Array<TimelineObjectInstance> = []
-	_.each(events, (event) => {
+	for (let i = 0; i < events.length; i++) {
+		const event = events[i]
 		const eventId = event.data.id || event.data.instance.id
-		const lastInstance = _.last(returnInstances)
+		const lastInstance = returnInstances[returnInstances.length - 1]
 		if (event.value) {
 			activeInstances[eventId] = event
 		} else {
 			delete activeInstances[eventId]
 		}
-		if (_.keys(activeInstances).length) {
+		if (Object.keys(activeInstances).length) {
 			// There is an active instance
 			previousActive = true
 			if (
@@ -221,7 +222,7 @@ export function convertEventsToInstances (
 			}
 			previousActive = false
 		}
-	})
+	}
 	return returnInstances
 }
 export function invertInstances (
@@ -464,11 +465,13 @@ export function capInstances (
 	) return instances
 
 	const returnInstances: TimelineObjectInstance[] = []
-	_.each(instances, (instance) => {
+	for (let i = 0; i < instances.length; i++) {
+		const instance = instances[i]
 
 		let parent: TimelineObjectInstance | null = null
 
-		_.each(parentInstances, (p) => {
+		for (let j = 0; j < parentInstances.length; j++) {
+			const p = parentInstances[j]
 			if (
 				(
 					instance.start >= p.start &&
@@ -485,9 +488,10 @@ export function capInstances (
 					parent = p
 				}
 			}
-		})
+		}
 		if (!parent) {
-			_.each(parentInstances, (p) => {
+			for (let j = 0; j < parentInstances.length; j++) {
+				const p = parentInstances[j]
 				if (
 					(instance.end || Infinity) > p.start &&
 					(instance.end || Infinity) <= (p.end || Infinity)
@@ -499,7 +503,7 @@ export function capInstances (
 						parent = p
 					}
 				}
-			})
+			}
 		}
 		if (parent) {
 			const parent2: TimelineObjectInstance = parent // cast type
@@ -516,12 +520,12 @@ export function capInstances (
 
 			returnInstances.push(i2)
 		}
-	})
+	}
 	return returnInstances
 }
 export function isReference (ref: any): ref is ValueWithReference {
 	return (
-		_.isObject(ref) &&
+		typeof ref === 'object' &&
 		!_.isArray(ref) &&
 		ref.value !== undefined &&
 		_.isArray(ref.references) &&
@@ -529,14 +533,27 @@ export function isReference (ref: any): ref is ValueWithReference {
 	)
 }
 export function joinReferences (...references: Array<Array<string> | string>): Array<string> {
-	return _.compact(
-		_.uniq(
-			_.reduce(references, (memo, ref) => {
-				if (_.isString(ref)) return memo.concat([ref])
-				else return memo.concat(ref)
-			},[] as Array<string>)
-		)
-	).sort((a, b) => {
+	const refMap: {[reference: string]: true} = {}
+	const refs: string[] = []
+
+	for (let i = 0; i < references.length; i++) {
+		const reference = references[i]
+		if (reference) {
+			if (typeof reference === 'string') {
+				if (!refMap[reference]) refs.push(reference)
+				refMap[reference] = true
+			} else {
+				for (let j = 0; j < reference.length; j++) {
+					const ref = reference[j]
+					if (ref) {
+						if (!refMap[ref]) refs.push(ref)
+						refMap[ref] = true
+					}
+				}
+			}
+		}
+	}
+	return refs.sort((a, b) => {
 		if (a > b) return 1
 		if (a < b) return -1
 		return 0
@@ -562,21 +579,17 @@ export function addCapsToResuming (instance: TimelineObjectInstance, ...caps: Ar
 	instance.caps = joinCaps(instance.caps, capsToAdd)
 }
 export function joinCaps (...caps: Array<Array<Cap> | undefined>): Array<Cap> {
-	return (
-		_.uniq(
-			_.compact(
-				_.reduce(caps, (memo, cap) => {
-					if (cap !== undefined) {
-						return (memo || []).concat(cap)
-					} else return memo
-				},[] as Array<Cap>)
-			),
-			false,
-			(cap) => {
-				return cap.id
+	const capMap: {[capReference: string]: Cap} = {}
+	for (let i = 0; i < caps.length; i++) {
+		const caps2 = caps[i]
+		if (caps2) {
+			for (let j = 0; j < caps2.length; j++) {
+				const cap2 = caps2[j]
+				capMap[cap2.id] = cap2
 			}
-		)
-	)
+		}
+	}
+	return Object.values(capMap)
 }
 let i: number = 0
 /**
@@ -603,4 +616,44 @@ export function setInstanceStartTime (instance: TimelineObjectInstance, startTim
 		instance.start
 	)
 	instance.start = startTime
+}
+export function applyParentInstances (parentInstances: TimelineObjectInstance[] | null, value: TimelineObjectInstance[] | null | ValueWithReference): TimelineObjectInstance[] | null | ValueWithReference {
+	const operate = (a: ValueWithReference | null, b: ValueWithReference | null): ValueWithReference | null => {
+		if (a === null || b === null) return null
+		return {
+			value: a.value + b.value,
+			references: joinReferences(a.references, b.references)
+		}
+	}
+	return operateOnArrays(parentInstances, value, operate)
+}
+
+const cacheResultCache: {
+	[name: string]: {
+		ttl: number,
+		value: any
+	}
+} = {}
+/** Cache the result of function for a limited time */
+export function cacheResult<T> (name: string, fcn: () => T, limitTime: number = 1000) {
+
+	if (Math.random() < 0.01) {
+		setTimeout(cleanCacheResult, 100)
+	}
+	const cache = cacheResultCache[name]
+	if (!cache || cache.ttl < Date.now()) {
+		const value = fcn()
+		cacheResultCache[name] = {
+			ttl: Date.now() + limitTime,
+			value: value
+		}
+		return value
+	} else {
+		return cache.value
+	}
+}
+function cleanCacheResult () {
+	_.each(cacheResultCache, (cache, name) => {
+		if (cache.ttl < Date.now()) delete cacheResultCache[name]
+	})
 }
