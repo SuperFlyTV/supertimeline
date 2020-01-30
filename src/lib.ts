@@ -80,8 +80,15 @@ export function cleanInstances (
 	allowMerge: boolean,
 	allowZeroGaps: boolean = false
 ): Array<TimelineObjectInstance> {
-
-	// if (!allowMerge) throw new Error(`TODO: cleanInstances: allowMerge is temorarily removed`)
+	// First, optimize for certain common situations:
+	if (instances.length === 0) return []
+	if (instances.length <= 1) {
+		const instance = instances[0]
+		if (!instance.end) instance.end = null
+		instance.originalEnd = instance.end
+		instance.originalStart = instance.start
+		return [instance]
+	}
 
 	const events: Array<EventForInstance> = []
 
