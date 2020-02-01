@@ -4,7 +4,6 @@ import {
 	ResolverCacheInternal,
 	ResolvedTimeline
 } from '../api/api'
-import * as crypto from 'crypto'
 import * as _ from 'underscore'
 
 export function initializeCache (cacheOrg: ResolverCache, resolvedTimeline: ResolvedTimeline): ResolverCacheInternal {
@@ -28,15 +27,8 @@ export function objectHash (obj: ResolvedTimelineObject): string {
 		obj.classes ? obj.classes.join('.') : '',
 		obj.layer + ''
 	]
-
-	return crypto.createHash('md5').update(thingsThatMatter.join(',')).digest('hex')
+	return thingsThatMatter.join(',')
 }
 export function getObjectReferences (obj: ResolvedTimelineObject) {
 	return obj.resolved.directReferences
-
-	// const references: string[] = []
-	// _.each(obj.resolved.instances, instance => {
-	// 	instance.references.forEach(ref => references.push(ref))
-	// })
-	// return references
 }
