@@ -226,4 +226,6 @@ export interface ResolverCacheInternal {
 
 	resolvedTimeline: ResolvedTimeline
 	hasOldData?: boolean
+
+	resolvedStates?: ResolvedStates
 }

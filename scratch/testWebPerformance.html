@@ -8,14 +8,16 @@
 <body>
 	<button onclick="test()">test</button>
 	<script>
+	const cache = {}
 	function test () {
 		const startTime = Date.now()
 		const options = {
-			time: 0
+			time: 0,
+			cache
 		}
 		const resolvedTimeline = SuperTimeline.Resolver.resolveTimeline(timeline, options)
 		
-		SuperTimeline.Resolver.resolveAllStates(resolvedTimeline)
+		SuperTimeline.Resolver.resolveAllStates(resolvedTimeline, cache)
 		const time0 = Date.now() - startTime
 		console.log(`Time of execution: ${time0}`)
 	}

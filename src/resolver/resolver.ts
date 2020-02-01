@@ -15,7 +15,8 @@ import {
 	Cap,
 	ResolvedStates,
 	ResolverCacheInternal,
-	ResolvedTimelineObjects
+	ResolvedTimelineObjects,
+	ResolverCache
  } from '../api/api'
 import {
 	extendMandadory,
@@ -177,7 +178,6 @@ export class Resolver {
 				_.each(resolvedTimeline.objects, obj => {
 					validObjects[obj.id] = obj
 				})
-
 				/** All references that depend on another reference (ie objects, classs or layers): */
 				const affectReferenceMap: {[ref: string]: string[]} = {}
 
@@ -215,11 +215,9 @@ export class Resolver {
 								if (!affectReferenceMap[ref]) affectReferenceMap[ref] = []
 								affectReferenceMap[ref].push('#' + obj.id)
 							}
-						} else {
 						}
 					}
 				})
-
 				// Invalidate all changed objects, and recursively invalidate all objects that reference those objects:
 				const handledReferences: {[ref: string]: true} = {}
 				const invalidateObjectsWithReference = (
@@ -254,7 +252,6 @@ export class Resolver {
 				_.each(Object.keys(changedReferences), reference => {
 					invalidateObjectsWithReference(reference, affectReferenceMap, validObjects)
 				})
-
 				// The objects that are left in validObjects at this point are still valid.
 				// We can reuse the old resolving for those:
 				_.each(validObjects, (obj: ResolvedTimelineObject) => {
@@ -291,8 +288,8 @@ export class Resolver {
 		}
 	}
 	/** Calculate the state for all points in time.  */
-	static resolveAllStates (resolvedTimeline: ResolvedTimeline): ResolvedStates {
-		return resolveStates(resolvedTimeline)
+	static resolveAllStates (resolvedTimeline: ResolvedTimeline, cache?: ResolverCache): ResolvedStates {
+		return resolveStates(resolvedTimeline, undefined, cache)
 	}
 	/**
 	 * Calculate the state at a given point in time.
