@@ -51,6 +51,7 @@ describe('Resolver, using Cache', () => {
 		expect(resolved.objects['graphic1'].resolved).toMatchObject({ instances: [{ start: 30, end: 45 }] })
 
 		// make a small change in timeline:
+		// @ts-ignore
 		timeline[2].enable.start = '#graphic0.end + 15' // 35
 
 		const resolved2 = Resolver.resolveAllStates(
@@ -62,6 +63,7 @@ describe('Resolver, using Cache', () => {
 		expect(resolved2.objects['graphic1'].resolved).toMatchObject({ instances: [{ start: 35, end: 50 }] })
 
 		// make another change in timeline:
+		// @ts-ignore
 		timeline[0].enable.start = 10
 
 		const resolved3 = Resolver.resolveAllStates(
@@ -123,6 +125,7 @@ describe('Resolver, using Cache', () => {
 		expect(resolved.objects['graphic1']).toBeFalsy()
 
 		// change the timeline
+		// @ts-ignore
 		timeline[0].enable.start = 20
 
 		const resolved2 = Resolver.resolveAllStates(
@@ -188,6 +191,7 @@ describe('Resolver, using Cache', () => {
 		expect(resolved.objects['graphic1']).toBeFalsy()
 
 		// change the timeline
+		// @ts-ignore
 		timeline[0].enable.start = 20
 
 		const resolved2 = Resolver.resolveAllStates(
@@ -328,6 +332,7 @@ describe('Resolver, using Cache', () => {
 		expect(resolved.objects['video1'].resolved).toMatchObject({ instances: [{ start: 20, end: 30 }] })
 
 		// change the group
+		// @ts-ignore
 		timeline[0].enable.start = 20
 
 		const resolved2 = Resolver.resolveAllStates(

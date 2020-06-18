@@ -28,7 +28,7 @@ export interface ResolveOptions {
 }
 export interface TimelineObject {
 	id: ObjectId
-	enable: TimelineEnable
+	enable: TimelineEnable | TimelineEnable[]
 
 	layer: string | number
 	/** Group children */
@@ -70,7 +70,7 @@ export interface TimelineEnable {
 }
 export interface TimelineKeyframe {
 	id: string
-	enable: TimelineEnable
+	enable: TimelineEnable | TimelineEnable[]
 	duration?: number | string
 	classes?: Array<string>
 	content: Content
@@ -135,7 +135,7 @@ export interface TimelineObjectInstance {
 	id: string
 	/** if true, the instance starts from the beginning of time */
 	isFirst?: boolean
-	/** The start time of the instance  */
+	/** The start time of the instance */
 	start: Time
 	/** The end time of the instance (null = infinite) */
 	end: Time | null
