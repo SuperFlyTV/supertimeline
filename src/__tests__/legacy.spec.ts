@@ -4204,5 +4204,15 @@ describe('Tests with reversed data', () => {
 		})
 	})
 })
+describe('Tests with cache', () => {
+	const cache = {}
+	stdOpts.cache = cache
+	_.each(tests, (t, key) => {
+		test(key, () => {
+			reverseData = true
+			t()
+		})
+	})
+})
 
 // TODO: test .useExternalFunctions

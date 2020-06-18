@@ -23,6 +23,8 @@ export interface ResolveOptions {
 	limitTime?: Time
 	/** If set to true, the resolver will go through the instances of the objects and fix collisions, so that the instances more closely resembles the end state. */
 	resolveInstanceCollisions?: boolean
+	/** A cache thet is to persist data between resolves. If provided, will increase performance of resolving when only making small changes to the timeline. */
+	cache?: ResolverCache
 }
 export interface TimelineObject {
 	id: ObjectId
@@ -100,6 +102,9 @@ export interface ResolvedTimeline {
 		resolvedGroupCount: number
 		/** Number of resolved keyframes */
 		resolvedKeyframeCount: number
+
+		/** How many objects that was actually resolved (is affected when using cache) */
+		resolvingCount: number
 	}
 }
 export interface ResolvedTimelineObjects {
@@ -121,6 +126,8 @@ export interface ResolvedTimelineObject extends TimelineObject {
 		isKeyframe?: boolean
 		/** True if object is referencing itself (only directly, not indirectly via another object) */
 		isSelfReferencing?: boolean
+		/** Ids of all other objects that directly affects this object (ie through direct reference, classes, etc) */
+		directReferences: string[]
 	}
 }
 export interface TimelineObjectInstance {
@@ -212,4 +219,13 @@ export interface TimeEvent {
 	time: number
 	/** true when the event indicate that something starts, false when something ends */
 	enable: boolean
+}
+export type ResolverCache = Partial<ResolverCacheInternal>
+export interface ResolverCacheInternal {
+	objHashes: {[id: string]: string}
+
+	resolvedTimeline: ResolvedTimeline
+	hasOldData?: boolean
+
+	resolvedStates?: ResolvedStates
 }

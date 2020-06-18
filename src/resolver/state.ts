@@ -11,7 +11,8 @@ import {
 	TimeEvent,
 	ResolvedStates,
 	ResolvedTimelineObjectInstanceKeyframe,
-	NextEvent
+	NextEvent,
+	ResolverCache
 } from '../api/api'
 import * as _ from 'underscore'
 import { addObjectToResolvedTimeline } from './common'
@@ -39,7 +40,7 @@ export function getState (resolved: ResolvedTimeline | ResolvedStates, time: Tim
 
 	return state
 }
-export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): ResolvedStates {
+export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time, cache?: ResolverCache): ResolvedStates {
 	const resolvedStates: ResolvedStates = {
 		options: resolved.options,
 		statistics: resolved.statistics,
@@ -51,6 +52,16 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 
 		state: {},
 		nextEvents: []
+	}
+
+	if (
+		cache &&
+		!onlyForTime &&
+		resolved.statistics.resolvingCount === 0 &&
+		cache.resolvedStates
+	) {
+		// Nothing has changed since last time, just return the states right away:
+		return cache.resolvedStates
 	}
 
 	const resolvedObjects = _.values(resolved.objects)
@@ -482,6 +493,10 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 
 		return 0
 	})
+
+	if (cache && !onlyForTime) {
+		cache.resolvedStates = resolvedStates
+	}
 
 	return resolvedStates
 }
