@@ -123,17 +123,16 @@ export interface ResolvedTimelineObject extends TimelineObject {
 		isSelfReferencing?: boolean
 	}
 }
-export interface BasicInstance {
-	/** The start time of the instance */
-	start: Time
-	/** The end time of the instance (null = infinite) */
-	end: Time | null
-}
-export interface TimelineObjectInstance extends BasicInstance {
+export interface TimelineObjectInstance {
 	/** id of the instance (unique)  */
 	id: string
 	/** if true, the instance starts from the beginning of time */
 	isFirst?: boolean
+	/** The start time of the instance */
+	start: Time
+	/** The end time of the instance (null = infinite) */
+	end: Time | null
+
 	/** The original start time of the instance (if an instance is split or capped, the original start time is retained in here).
 	 * If undefined, fallback to .start
 	 */

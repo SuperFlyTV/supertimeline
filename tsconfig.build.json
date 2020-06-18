@@ -2,6 +2,6 @@
   "extends": "./config/tsconfig.base",
   "exclude": [
     "node_modules/**",
-    "src/**/*spec.ts"
+    "src/**/__tests__/**/*"
   ]
 }

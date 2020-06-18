@@ -381,7 +381,7 @@ describe('index', () => {
 		expect(state0.layers['layer0']).toBeTruthy()
 		expect(state0.layers['layer0'].id).toEqual('o1')
 
-	 })
+	})
 	 test('instances', () => {
 		const timeline: Array<TimelineObject> = [
 			{

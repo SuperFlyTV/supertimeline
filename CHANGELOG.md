@@ -1,6 +1,202 @@
-# Change Log
+# Changelog
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+### [7.3.1](https://github.com/SuperFlyTV/supertimeline/compare/7.3.0...7.3.1) (2019-12-02)
+
+
+### Bug Fixes
+
+* add reference to tslib ([e2fed55](https://github.com/SuperFlyTV/supertimeline/commit/e2fed55320704bdf385a893cf91a7b319a2e36b7))
+
+## [7.3.0](https://github.com/SuperFlyTV/supertimeline/compare/7.2.4...7.3.0) (2019-11-01)
+
+
+### Features
+
+* update ci to run for node 8,10,12 ([7a182c6](https://github.com/SuperFlyTV/supertimeline/commit/7a182c639f1798ca3144bfdc1ac57f7a1ac6b760))
+
+
+### Bug Fixes
+
+* be able to reference other objects in own class or layer ([3996a80](https://github.com/SuperFlyTV/supertimeline/commit/3996a80f082b578032ade77b28119c8fd5fd62fd))
+* disregard event instances with 0 duration ([678bd19](https://github.com/SuperFlyTV/supertimeline/commit/678bd19bab2ea47829818188e23469cf62cd9d55))
+* keyframe class from chained group ([6164a6e](https://github.com/SuperFlyTV/supertimeline/commit/6164a6eec8bf5f0d5ba52ddddb420eb854a3993d))
+* simplify expressions to allow for using arithmetics inside of parent groups ([91a5a64](https://github.com/SuperFlyTV/supertimeline/commit/91a5a64df5417421910090ce44164d0289eeea6e))
+
+### [7.2.4](https://github.com/SuperFlyTV/supertimeline/compare/7.2.3...7.2.4) (2019-09-03)
+
+
+### Bug Fixes
+
+* keyframe class from chained group ([7f5c95d](https://github.com/SuperFlyTV/supertimeline/commit/7f5c95d))
+
+### [7.2.3](https://github.com/SuperFlyTV/supertimeline/compare/7.2.2...7.2.3) (2019-08-13)
+
+
+### Bug Fixes
+
+* bug fix: reference duration ([de7b86c](https://github.com/SuperFlyTV/supertimeline/commit/de7b86c))
+
+### [7.2.2](https://github.com/SuperFlyTV/supertimeline/compare/7.2.1...7.2.2) (2019-08-09)
+
+
+### Bug Fixes
+
+* Handle keyframes that begin or end outside of their parents ([1eb1f50](https://github.com/SuperFlyTV/supertimeline/commit/1eb1f50))
+* lookupExpression should return [], not null, when a reference yields zero results ([0d6586d](https://github.com/SuperFlyTV/supertimeline/commit/0d6586d))
+* make child in group-behaviour constistent... ([95af8c3](https://github.com/SuperFlyTV/supertimeline/commit/95af8c3))
+* while: 1 and while: '1' should return same result ([7ca9452](https://github.com/SuperFlyTV/supertimeline/commit/7ca9452))
+
+### [7.2.1](https://github.com/SuperFlyTV/supertimeline/compare/7.2.0...7.2.1) (2019-07-30)
+
+
+### Bug Fixes
+
+* update dependencies, removed unused "marked" dependency ([2098912](https://github.com/SuperFlyTV/supertimeline/commit/2098912))
+
+## [7.2.0](https://github.com/SuperFlyTV/supertimeline/compare/7.1.2...7.2.0) (2019-07-16)
+
+
+### Bug Fixes
+
+* typo ([f8901b3](https://github.com/SuperFlyTV/supertimeline/commit/f8901b3))
+* update dependencies, due to security issues upstream ([28aa657](https://github.com/SuperFlyTV/supertimeline/commit/28aa657))
+
+
+### Features
+
+* add typings for originalStart & originalEnd ([1f7af78](https://github.com/SuperFlyTV/supertimeline/commit/1f7af78))
+* support for having negative start times in groups ([9a61048](https://github.com/SuperFlyTV/supertimeline/commit/9a61048))
+* support for originalStart & originalEnd in instances ([52b2a9b](https://github.com/SuperFlyTV/supertimeline/commit/52b2a9b))
+
+
+
+<a name="7.1.2"></a>
+## [7.1.2](https://github.com/SuperFlyTV/supertimeline/compare/7.1.1...7.1.2) (2019-05-21)
+
+
+### Bug Fixes
+
+* some expressions failing to be converted to objects ([6921801](https://github.com/SuperFlyTV/supertimeline/commit/6921801))
+
+
+
+<a name="7.1.1"></a>
+## [7.1.1](https://github.com/SuperFlyTV/supertimeline/compare/7.1.0...7.1.1) (2019-05-21)
+
+
+### Bug Fixes
+
+* make instance ids unique ([3376662](https://github.com/SuperFlyTV/supertimeline/commit/3376662))
+* missing type in getState ([4f86b1b](https://github.com/SuperFlyTV/supertimeline/commit/4f86b1b))
+
+
+
+<a name="7.1.0"></a>
+# [7.1.0](https://github.com/SuperFlyTV/supertimeline/compare/7.0.2...7.1.0) (2019-05-18)
+
+
+### Bug Fixes
+
+* carefully merging of caps of instances ([4e0dd91](https://github.com/SuperFlyTV/supertimeline/commit/4e0dd91))
+* issue with non-unique instance ids ([f594aa4](https://github.com/SuperFlyTV/supertimeline/commit/f594aa4))
+
+
+### Features
+
+* implement resolveStates ([76a4ec6](https://github.com/SuperFlyTV/supertimeline/commit/76a4ec6))
+* Implement support for negations ("!") together with parentheses ([efe79a6](https://github.com/SuperFlyTV/supertimeline/commit/efe79a6))
+
+
+
+<a name="7.0.2"></a>
+## [7.0.2](https://github.com/SuperFlyTV/supertimeline/compare/7.0.1...7.0.2) (2019-04-07)
+
+
+
+<a name="7.0.1"></a>
+## [7.0.1](https://github.com/SuperFlyTV/supertimeline/compare/7.0.0...7.0.1) (2019-04-07)
+
+
+### Bug Fixes
+
+* reset ids on start of resolving ([b65585a](https://github.com/SuperFlyTV/supertimeline/commit/b65585a))
+
+
+
+<a name="7.0.0"></a>
+# [7.0.0](https://github.com/SuperFlyTV/supertimeline/compare/6.0.3...7.0.0) (2019-04-06)
+
+
+### Bug Fixes
+
+* minor bugs in expressions ([bcfe44f](https://github.com/SuperFlyTV/supertimeline/commit/bcfe44f))
+* tests and ts3 lint issues ([01a537e](https://github.com/SuperFlyTV/supertimeline/commit/01a537e))
+* use ts 3 and update deps ([0731cba](https://github.com/SuperFlyTV/supertimeline/commit/0731cba))
+
+
+### Features
+
+* add reference breadcrumbs, continued work on capping-in-parent etc.. ([af4380d](https://github.com/SuperFlyTV/supertimeline/commit/af4380d))
+* continued implementation ([296729c](https://github.com/SuperFlyTV/supertimeline/commit/296729c))
+* continued implementation, all (non-deprecated) tests are now ok ([3f90008](https://github.com/SuperFlyTV/supertimeline/commit/3f90008))
+* continued implementation, validation, ([f95b4ce](https://github.com/SuperFlyTV/supertimeline/commit/f95b4ce))
+* implement cap-in-parent, refactoring, rename trigger => enable ([ce656a9](https://github.com/SuperFlyTV/supertimeline/commit/ce656a9))
+* implement classes ([6d1b2e0](https://github.com/SuperFlyTV/supertimeline/commit/6d1b2e0))
+* implement getState & getNextEvents ([c04a269](https://github.com/SuperFlyTV/supertimeline/commit/c04a269))
+* implement getState, groups & repeating trigger ([f1753e1](https://github.com/SuperFlyTV/supertimeline/commit/f1753e1))
+* implement keyframes ([80513ea](https://github.com/SuperFlyTV/supertimeline/commit/80513ea))
+* mixed expressions, initial implementation. Complete rehaul (WIP) ([923b2e2](https://github.com/SuperFlyTV/supertimeline/commit/923b2e2))
+
+
+
+<a name="6.0.3"></a>
+## [6.0.3](https://github.com/SuperFlyTV/supertimeline/compare/6.0.2...6.0.3) (2018-11-07)
+
+
+### Bug Fixes
+
+* Create TimelineTrigger interface for trigger property ([a497393](https://github.com/SuperFlyTV/supertimeline/commit/a497393))
+
+
+
+<a name="6.0.2"></a>
+## [6.0.2](https://github.com/SuperFlyTV/supertimeline/compare/6.0.1...6.0.2) (2018-10-30)
+
+
+### Bug Fixes
+
+* Allow string llayer ids in logical triggers ([cedd170](https://github.com/SuperFlyTV/supertimeline/commit/cedd170))
+
+
+
+<a name="6.0.1"></a>
+## [6.0.1](https://github.com/SuperFlyTV/supertimeline/compare/5.0.6...6.0.1) (2018-09-13)
+
+
+
+<a name="5.0.6"></a>
+## [5.0.6](https://github.com/SuperFlyTV/supertimeline/compare/5.0.5...5.0.6) (2018-09-13)
+
+
+### Bug Fixes
+
+* TimelineObject duration can be a string ([edf3ae3](https://github.com/SuperFlyTV/supertimeline/commit/edf3ae3))
+
+
+
+<a name="5.0.5"></a>
+## [5.0.5](https://github.com/SuperFlyTV/supertimeline/compare/5.0.4...5.0.5) (2018-09-13)
+
+
+### Bug Fixes
+
+* cap startTime within parent group ([4e913ba](https://github.com/SuperFlyTV/supertimeline/commit/4e913ba))
+* changed duration interpretation to support Infinite duration properly ([489fc4e](https://github.com/SuperFlyTV/supertimeline/commit/489fc4e))
+* duration can be undefined ([bc278d6](https://github.com/SuperFlyTV/supertimeline/commit/bc278d6))
+
+
 
 <a name="5.0.4"></a>
 ## [5.0.4](https://github.com/SuperFlyTV/supertimeline/compare/5.0.3...5.0.4) (2018-09-04)
