@@ -13,7 +13,8 @@ import {
 	ValueWithReference,
 	InstanceEvent,
 	Cap,
-	ResolvedStates
+	ResolvedStates,
+	TimelineEnable
  } from '../api/api'
 import {
 	extendMandadory,
@@ -140,19 +141,17 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 
 	let instances: Array<TimelineObjectInstance> = []
 
-	if (obj.enable.instances) {
-		_.each(obj.enable.instances, instance => {
-			instances.push({
-				id: getId(),
-				start: instance.start,
-				end: instance.end,
-				references: []
-			})
-		})
-	} else {
+	const enables: TimelineEnable[] = (
+		_.isArray(obj.enable) ?
+		obj.enable :
+		[obj.enable]
+	)
+
+	_.each(enables, enable => {
+		let newInstances: Array<TimelineObjectInstance> = []
 		const repeatingExpr: Expression | null = (
-			obj.enable.repeating !== undefined ?
-			interpretExpression(obj.enable.repeating) :
+			enable.repeating !== undefined ?
+			interpretExpression(enable.repeating) :
 			null
 		)
 		const lookedupRepeating = lookupExpression(resolvedTimeline, obj, repeatingExpr, 'duration')
@@ -161,15 +160,15 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 		}
 
 		let start: Expression = (
-			obj.enable.while !== undefined ?
-				obj.enable.while :
-			obj.enable.start !== undefined ?
-				obj.enable.start :
+			enable.while !== undefined ?
+				enable.while :
+			enable.start !== undefined ?
+				enable.start :
 			''
 		)
-		if (obj.enable.while + '' === '1') {
+		if (enable.while + '' === '1') {
 			start = 'true'
-		} else if (obj.enable.while + '' === '0') {
+		} else if (enable.while + '' === '0') {
 			start = 'false'
 		}
 
@@ -210,11 +209,11 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 
 		// if (obj.enable.instances) {
 
-		if (obj.enable.while) {
+		if (enable.while) {
 			if (_.isArray(lookedupStarts)) {
-				instances = lookedupStarts
+				newInstances = lookedupStarts
 			} else if (lookedupStarts !== null) {
-				instances = [{
+				newInstances = [{
 					id: getId(),
 					start: lookedupStarts.value,
 					end: null,
@@ -243,8 +242,8 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 				})
 			}
 
-			if (obj.enable.end !== undefined) {
-				const endExpr: Expression = interpretExpression(obj.enable.end)
+			if (enable.end !== undefined) {
+				const endExpr: Expression = interpretExpression(enable.end)
 				// lookedupEnds will contain an inverted list of instances. Therefore .start means an end
 				let lookedupEnds = (
 					endExpr ?
@@ -271,8 +270,8 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 						references: lookedupEnds.references
 					})
 				}
-			} else if (obj.enable.duration !== undefined) {
-				const durationExpr: Expression = interpretExpression(obj.enable.duration)
+			} else if (enable.duration !== undefined) {
+				const durationExpr: Expression = interpretExpression(enable.duration)
 				let lookedupDuration = lookupExpression(resolvedTimeline, obj, durationExpr, 'duration')
 
 				if (_.isArray(lookedupDuration) && lookedupDuration.length === 1) {
@@ -307,12 +306,12 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 					})
 				}
 			}
-			instances = convertEventsToInstances(events, false)
+			newInstances = convertEventsToInstances(events, false)
 		}
 		if (hasParent) {
 			// figure out what parent-instance the instances are tied to, and cap them
 			const cappedInstances: TimelineObjectInstance[] = []
-			_.each(instances, (instance) => {
+			_.each(newInstances, (instance) => {
 				if (parentInstances) {
 
 					const parentInstance = _.find(parentInstances, (parentInstance) => {
@@ -354,14 +353,16 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 					}
 				}
 			})
-			instances = cappedInstances
+			newInstances = cappedInstances
 		}
-		instances = applyRepeatingInstances(
-			instances,
+		newInstances = applyRepeatingInstances(
+			newInstances,
 			lookedupRepeating,
 			resolvedTimeline.options
 		)
-	}
+		instances = instances.concat(newInstances)
+	})
+	// asdf
 
 	// filter out zero-length instances:
 	instances = _.filter(instances, (instance) => {

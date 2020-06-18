@@ -387,12 +387,10 @@ describe('index', () => {
 			{
 				id: 'video',
 				layer: '0',
-				enable: {
-					instances: [
-						{ start: 10, end: 20 },
-						{ start: 30, end: 40 }
-					]
-				},
+				enable: [
+					{ start: 10, end: 20 },
+					{ start: 30, end: 40 }
+				],
 				content: {}
 			}
 		]

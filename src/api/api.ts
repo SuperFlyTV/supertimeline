@@ -26,7 +26,7 @@ export interface ResolveOptions {
 }
 export interface TimelineObject {
 	id: ObjectId
-	enable: TimelineEnable
+	enable: TimelineEnable | TimelineEnable[]
 
 	layer: string | number
 	/** Group children */
@@ -65,12 +65,10 @@ export interface TimelineEnable {
 	duration?: Expression
 	/** (Optional) Makes the object repeat with given interval */
 	repeating?: Expression
-	/** (Optional) Instead of anything above, define instances directly */
-	instances?: BasicInstance[]
 }
 export interface TimelineKeyframe {
 	id: string
-	enable: TimelineEnable
+	enable: TimelineEnable | TimelineEnable[]
 	duration?: number | string
 	classes?: Array<string>
 	content: Content
