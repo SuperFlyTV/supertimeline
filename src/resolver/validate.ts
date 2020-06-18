@@ -1,6 +1,6 @@
 /* tslint:disable:strict-type-predicates */
 import {
-	TimelineObject, TimelineKeyframe
+	TimelineObject, TimelineKeyframe, TimelineEnable
 } from '../api/api'
 import _ = require('underscore')
 
@@ -25,22 +25,29 @@ function validateObject0 (obj: TimelineObject, strict?: boolean, uniqueIds?: Ids
 	if (!obj.content) throw new Error(`Object "${obj.id}": "content" attribute must be set`)
 	if (!obj.enable) throw new Error(`Object "${obj.id}": "enable" attribute must be set`)
 
-	if (obj.enable.start !== undefined) {
-		if (strict && obj.enable.while !== undefined) throw new Error(`Object "${obj.id}": "enable.start" and "enable.while" cannot be combined`)
+	const enables: TimelineEnable[] = (
+		_.isArray(obj.enable) ?
+		obj.enable :
+		[obj.enable]
+	)
+	_.each(enables, enable => {
 
-		if (
-			strict &&
-			obj.enable.end !== undefined &&
-			obj.enable.duration !== undefined
-		) throw new Error(`Object "${obj.id}": "enable.end" and "enable.duration" cannot be combined`)
+		if (enable.start !== undefined) {
+			if (strict && enable.while !== undefined) throw new Error(`Object "${obj.id}": "enable.start" and "enable.while" cannot be combined`)
 
-	} else if (obj.enable.while !== undefined) {
+			if (
+				strict &&
+				enable.end !== undefined &&
+				enable.duration !== undefined
+			) throw new Error(`Object "${obj.id}": "enable.end" and "enable.duration" cannot be combined`)
 
-		if (strict && obj.enable.end !== undefined) throw new Error(`Object "${obj.id}": "enable.while" and "enable.end" cannot be combined`)
-		if (strict && obj.enable.duration !== undefined) throw new Error(`Object "${obj.id}": "enable.while" and "enable.duration" cannot be combined`)
+		} else if (enable.while !== undefined) {
 
-	} else throw new Error(`Object "${obj.id}": "enable.start" or "enable.while" must be set`)
+			if (strict && enable.end !== undefined) throw new Error(`Object "${obj.id}": "enable.while" and "enable.end" cannot be combined`)
+			if (strict && enable.duration !== undefined) throw new Error(`Object "${obj.id}": "enable.while" and "enable.duration" cannot be combined`)
 
+		} else throw new Error(`Object "${obj.id}": "enable.start" or "enable.while" must be set`)
+	})
 	if (obj.keyframes) {
 		for (let i = 0; i < obj.keyframes.length; i++) {
 			const keyframe = obj.keyframes[i]
@@ -87,23 +94,28 @@ function validateKeyframe0 (keyframe: TimelineKeyframe, strict?: boolean, unique
 
 	if (!keyframe.content) throw new Error(`Keyframe "${keyframe.id}": "content" attribute must be set`)
 	if (!keyframe.enable) throw new Error(`Keyframe "${keyframe.id}": "enable" attribute must be set`)
+	const enables: TimelineEnable[] = (
+		_.isArray(keyframe.enable) ?
+		keyframe.enable :
+		[keyframe.enable]
+	)
+	_.each(enables, enable => {
+		if (enable.start !== undefined) {
+			if (strict && enable.while !== undefined) throw new Error(`Keyframe "${keyframe.id}": "enable.start" and "enable.while" cannot be combined`)
 
-	if (keyframe.enable.start !== undefined) {
-		if (strict && keyframe.enable.while !== undefined) throw new Error(`Keyframe "${keyframe.id}": "enable.start" and "enable.while" cannot be combined`)
+			if (
+				strict &&
+				enable.end !== undefined &&
+				enable.duration !== undefined
+			) throw new Error(`Keyframe "${keyframe.id}": "enable.end" and "enable.duration" cannot be combined`)
 
-		if (
-			strict &&
-			keyframe.enable.end !== undefined &&
-			keyframe.enable.duration !== undefined
-		) throw new Error(`Keyframe "${keyframe.id}": "enable.end" and "enable.duration" cannot be combined`)
+		} else if (enable.while !== undefined) {
 
-	} else if (keyframe.enable.while !== undefined) {
+			if (strict && enable.end !== undefined) throw new Error(`Keyframe "${keyframe.id}": "enable.while" and "enable.end" cannot be combined`)
+			if (strict && enable.duration !== undefined) throw new Error(`Keyframe "${keyframe.id}": "enable.while" and "enable.duration" cannot be combined`)
 
-		if (strict && keyframe.enable.end !== undefined) throw new Error(`Keyframe "${keyframe.id}": "enable.while" and "enable.end" cannot be combined`)
-		if (strict && keyframe.enable.duration !== undefined) throw new Error(`Keyframe "${keyframe.id}": "enable.while" and "enable.duration" cannot be combined`)
-
-	} else throw new Error(`Keyframe "${keyframe.id}": "enable.start" or "enable.while" must be set`)
-
+		} else throw new Error(`Keyframe "${keyframe.id}": "enable.start" or "enable.while" must be set`)
+	})
 	if (keyframe.classes) {
 		for (let i = 0; i < keyframe.classes.length; i++) {
 			const className = keyframe.classes[i]

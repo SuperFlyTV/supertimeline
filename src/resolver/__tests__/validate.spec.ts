@@ -1,5 +1,5 @@
 import { validateObject, validateKeyframe, validateTimeline } from '../validate'
-import { TimelineObject, TimelineKeyframe } from '../../api/api'
+import { TimelineObject, TimelineKeyframe, TimelineEnable } from '../../api/api'
 import _ = require('underscore')
 
 describe('validate', () => {
@@ -72,7 +72,7 @@ describe('validate', () => {
 
 		expect(() => {
 			const o = _.clone(obj)
-			o.enable = _.clone(o.enable)
+			o.enable = _.clone(o.enable) as TimelineEnable
 			o.enable.while = 32
 			validateObject(o, true)
 		}).toThrowError()
@@ -192,7 +192,7 @@ describe('validate', () => {
 
 		expect(() => {
 			const o = _.clone(keyframe)
-			o.enable = _.clone(o.enable)
+			o.enable = _.clone(o.enable) as TimelineEnable
 			o.enable.while = 32
 			validateKeyframe(o, true)
 		}).toThrowError()
@@ -227,7 +227,7 @@ describe('validate', () => {
 
 		expect(() => {
 			const o = _.clone(keyframe)
-			o.enable = _.clone(o.enable)
+			o.enable = _.clone(o.enable) as TimelineEnable
 			delete o.enable.start
 			validateKeyframe(o, true)
 		}).toThrowError()
