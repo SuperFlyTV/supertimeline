@@ -3787,17 +3787,17 @@ let tests: Tests = {
 		})
 		expect(tl.objects['group1_1'].resolved).toMatchObject({
 			instances: [
-				// { start: 1000 , end: 1000 }
+				{ start: 1000 , end: 1000 }
 			]
 		})
 		expect(tl.objects['child0'].resolved).toMatchObject({
 			instances: [
-				// { start: 1000 , end: 1000 }
+				{ start: 1000 , end: 1000 }
 			]
 		})
 
-		expect(tl.statistics.unresolvedCount).toEqual(2)
-		expect(tl.statistics.resolvedObjectCount).toEqual(4)
+		expect(tl.statistics.unresolvedCount).toEqual(0)
+		expect(tl.statistics.resolvedObjectCount).toEqual(6)
 
 	},
 	'Many parentheses': () => {
