@@ -744,14 +744,14 @@ describe('Resolver, basic', () => {
 		})
 
 	})
-	test.only('zero length object', () => {
+	test('zero length object', () => {
 		const timeline: TimelineObject[] = [
 			{
 				id: 'obj0',
 				layer: 'L1',
 				enable: {
 				  start: 10,
-				  end: '#obj1.start'
+				  end: '#obj1.start' // turns this into a zero-duration
 				},
 				content: {}
 			},
@@ -762,15 +762,35 @@ describe('Resolver, basic', () => {
 				  start: 10
 				},
 				content: {}
+			},
+			{
+				id: 'obj2',
+				layer: 'L3',
+				enable: {
+				  start: '#obj0.start', // 10
+				  duration: 10 // 20
+				},
+				content: {}
 			}
 		]
+		const resolved = Resolver.resolveTimeline(timeline, { time: 0 })
 
-		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0 }))
-		const state = Resolver.getState(resolved, 20)
+		expect(resolved.objects['obj0'].resolved.instances).toMatchObject([{
+			start: 10,
+			end: 10
+		}])
+		expect(resolved.objects['obj2'].resolved.instances).toMatchObject([{
+			start: 10,
+			end: 20
+		}])
+
+		const state = Resolver.getState(resolved, 15)
+		expect(state.layers.L1).toBeUndefined()
 		expect(state.layers.L2).toMatchObject({ id: 'obj1' })
-		expect(state.layers.L1).toBeUndefined()
+		expect(state.layers.L3).toMatchObject({ id: 'obj2' })
+
 	})
-	test.only('zero length object sandwich', () => {
+	test('zero length object sandwich', () => {
 		const timeline: TimelineObject[] = [
 			{
 				id: 'obj0',
@@ -800,37 +820,44 @@ describe('Resolver, basic', () => {
 			}
 		]
 
-		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0 }))
+		const resolved = Resolver.resolveTimeline(timeline, { time: 0 })
 		const state = Resolver.getState(resolved, 20)
 		expect(state.layers.L3).toMatchObject({ id: 'obj2' })
 		expect(state.layers.L2).toBeUndefined()
 		expect(state.layers.L1).toBeUndefined()
 	})
-	test.only('negative length object', () => {
+	test('negative length object', () => {
 		const timeline: TimelineObject[] = [
 			{
 				id: 'obj0',
 				layer: 'L1',
 				enable: {
 				  start: 15,
-				  end: 14
+				  end: 10
 				},
 				content: {}
 			}
 		]
 
-		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0 }))
-		const state = Resolver.getState(resolved, 20)
-		expect(state.layers.L1).toBeUndefined()
+		const resolved = Resolver.resolveTimeline(timeline, { time: 0 })
+		expect(resolved.objects['obj0'].resolved.instances).toMatchObject([{
+			start: 15,
+			end: 10
+		}])
+		const state0 = Resolver.getState(resolved, 14)
+		expect(state0.layers.L1).toBeUndefined()
+
+		const state1 = Resolver.getState(resolved, 15)
+		expect(state1.layers.L1).toBeUndefined()
 	})
-	test.only('negative length object sandwich', () => {
+	test('negative length object sandwich', () => {
 		const timeline: TimelineObject[] = [
 			{
 				id: 'obj0',
 				layer: 'L1',
 				enable: {
 				  start: 15,
-				  end: '#obj1.start'
+				  end: '#obj1.start' // 15
 				},
 				content: {}
 			},
@@ -839,7 +866,7 @@ describe('Resolver, basic', () => {
 				layer: 'L2',
 				enable: {
 				  start: 15,
-				  end: '#obj2.start'
+				  end: '#obj2.start' // 10
 				},
 				content: {}
 			},
@@ -850,13 +877,105 @@ describe('Resolver, basic', () => {
 				  start: 10
 				},
 				content: {}
+			},
+			{
+				id: 'obj3',
+				layer: 'L4',
+				enable: {
+				  start: '#obj1.start', // 10
+				  duration: 10
+				},
+				content: {}
+			},
+			{
+				id: 'obj4',
+				layer: 'L5',
+				enable: {
+				  start: '#obj1.end', // 15
+				  duration: 10
+				},
+				content: {}
 			}
 		]
 
-		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0 }))
+		const resolved = Resolver.resolveTimeline(timeline, { time: 0 })
+		expect(resolved.objects['obj1'].resolved.instances).toMatchObject([{
+			start: 15,
+			end: 10
+		}])
+		expect(resolved.objects['obj3'].resolved.instances).toMatchObject([{
+			start: 10,
+			end: 20
+		}])
+		expect(resolved.objects['obj4'].resolved.instances).toMatchObject([{
+			start: 15,
+			end: 25
+		}])
 		const state = Resolver.getState(resolved, 20)
-		expect(state.layers.L3).toMatchObject({ id: 'obj2' })
-		expect(state.layers.L2).toBeUndefined()
 		expect(state.layers.L1).toBeUndefined()
+		expect(state.layers.L2).toBeUndefined()
+		expect(state.layers.L3).toMatchObject({ id: 'obj2' })
+		expect(state.layers.L4).toMatchObject({ id: 'obj3' })
+		expect(state.layers.L5).toMatchObject({ id: 'obj4' })
+	})
+	test('negative length object sandwich 2', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'obj0',
+				layer: 'L1',
+				enable: {
+				  start: 10,
+				  end: '#obj1.start'
+				},
+				content: {}
+			},
+			{
+				id: 'obj1',
+				layer: 'L2',
+				enable: {
+				  start: 20,
+				  end: '#obj2.start'
+				},
+				content: {}
+			},
+			{
+				id: 'obj2',
+				layer: 'L3',
+				enable: {
+				  start: 30,
+				  duration: 10
+				},
+				content: {}
+			}
+		]
+
+		const resolved0 = Resolver.resolveTimeline(timeline, { time: 0 })
+		expect(resolved0.objects['obj0'].resolved.instances).toMatchObject([{ start: 10, end: 20 }])
+		expect(resolved0.objects['obj1'].resolved.instances).toMatchObject([{ start: 20, end: 30 }])
+		expect(resolved0.objects['obj2'].resolved.instances).toMatchObject([{ start: 30, end: 40 }])
+
+		// Move obj2, so that obj1 becomes zero-length
+		// @ts-ignore
+		timeline[2].enable.start = 20
+
+		const resolved1 = Resolver.resolveTimeline(timeline, { time: 0 })
+		expect(resolved1.objects['obj0'].resolved.instances).toMatchObject([{ start: 10, end: 20 }])
+		expect(resolved1.objects['obj1'].resolved.instances).toMatchObject([{ start: 20, end: 20 }])
+		expect(resolved1.objects['obj2'].resolved.instances).toMatchObject([{ start: 20, end: 30 }])
+
+		// Move obj2, so that obj1 becomes negative-length
+		// @ts-ignore
+		timeline[2].enable.start = 15
+
+		const resolved2 = Resolver.resolveTimeline(timeline, { time: 0 })
+		expect(resolved2.objects['obj0'].resolved.instances).toMatchObject([{ start: 10, end: 20 }])
+		expect(resolved2.objects['obj1'].resolved.instances).toMatchObject([{ start: 20, end: 15 }])
+		expect(resolved2.objects['obj2'].resolved.instances).toMatchObject([{ start: 15, end: 25 }])
+
+		const state2 = Resolver.getState(resolved2, 17)
+		expect(state2.layers.L1).toMatchObject({ id: 'obj0' })
+		expect(state2.layers.L2).toBeUndefined()
+		expect(state2.layers.L3).toMatchObject({ id: 'obj2' })
+
 	})
 })

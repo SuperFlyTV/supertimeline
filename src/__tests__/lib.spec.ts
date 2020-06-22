@@ -407,5 +407,21 @@ describe('lib', () => {
 			{ id: '%d', start: 75, end: 80, references: [''] }, // capped
 			{ id: '%e', start: 90, end: 95, references: [''] } // capped
 		])
+
+		expect(capInstances([
+			{ id: '%a', start: 10, end: 20, references: [''] }
+		], [
+			{ id: '%x', start: 15, end: 15, references: [''] }
+		])).toMatchObject([
+			{ id: '%a', start: 15, end: 15, references: [''] } // capped
+		])
+
+		expect(capInstances([
+			{ id: '%a', start: 10, end: null, references: [''] }
+		], [
+			{ id: '%x', start: 10, end: 10, references: [''] }
+		])).toMatchObject([
+			{ id: '%a', start: 10, end: 10, references: [''] } // capped
+		])
 	})
 })
