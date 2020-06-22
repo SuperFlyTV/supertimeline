@@ -22,7 +22,8 @@ describe('Resolver, expressions', () => {
 			resolvedInstanceCount: 0,
 			resolvedObjectCount: 0,
 			resolvedGroupCount: 0,
-			resolvedKeyframeCount: 0
+			resolvedKeyframeCount: 0,
+			resolvingCount: 0
 		}
 	}
 	const stdObj: ResolvedTimelineObject = {
@@ -33,16 +34,17 @@ describe('Resolver, expressions', () => {
 		resolved: {
 			resolved: false,
 			resolving: false,
-			instances: []
+			instances: [],
+			directReferences: []
 		}
 	}
 
 	test('expression: basic math', () => {
-		expect(lookupExpression(rtl, stdObj, interpretExpression('1+2'), 'start'))		.toEqual({ value: 1 + 2, references: [] })
-		expect(lookupExpression(rtl, stdObj, interpretExpression('123-23'), 'start'))	.toEqual({ value: 123 - 23, references: [] })
-		expect(lookupExpression(rtl, stdObj, interpretExpression('4*5'), 'start'))		.toEqual({ value: 4 * 5, references: [] })
-		expect(lookupExpression(rtl, stdObj, interpretExpression('20/4'), 'start'))		.toEqual({ value: 20 / 4, references: [] })
-		expect(lookupExpression(rtl, stdObj, interpretExpression('24%5'), 'start'))		.toEqual({ value: 24 % 5, references: [] })
+		expect(lookupExpression(rtl, stdObj, interpretExpression('1+2'), 'start'))		.toEqual({ instances: { value: 1 + 2, references: [] }, allReferences: [] })
+		expect(lookupExpression(rtl, stdObj, interpretExpression('123-23'), 'start'))	.toEqual({ instances: { value: 123 - 23, references: [] }, allReferences: [] })
+		expect(lookupExpression(rtl, stdObj, interpretExpression('4*5'), 'start'))		.toEqual({ instances: { value: 4 * 5, references: [] }, allReferences: [] })
+		expect(lookupExpression(rtl, stdObj, interpretExpression('20/4'), 'start'))		.toEqual({ instances: { value: 20 / 4, references: [] }, allReferences: [] })
+		expect(lookupExpression(rtl, stdObj, interpretExpression('24%5'), 'start'))		.toEqual({ instances: { value: 24 % 5, references: [] }, allReferences: [] })
 	})
 	test('expressions', () => {
 		expect(interpretExpression('1 + 2')).toMatchObject({
@@ -53,55 +55,55 @@ describe('Resolver, expressions', () => {
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('1 + 2')
-		,'start')).toEqual({ value: 3, references: [] })
+		,'start')).toEqual({ instances: { value: 3, references: [] }, allReferences: [] })
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('5 + 4 - 2 + 1 - 5 + 7')
-		,'start')).toEqual({ value: 10, references: [] })
+		,'start')).toEqual({ instances: { value: 10, references: [] }, allReferences: [] })
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('5 - 4 - 3')
-		,'start')).toEqual({ value: -2, references: [] })
+		,'start')).toEqual({ instances: { value: -2, references: [] }, allReferences: [] })
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('5 - 4 - 3 - 10 + 2')
-		,'start')).toEqual({ value: -10, references: [] })
+		,'start')).toEqual({ instances: { value: -10, references: [] }, allReferences: [] })
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('4 * 5.5')
-		,'start')).toEqual({ value: 22, references: [] })
+		,'start')).toEqual({ instances: { value: 22, references: [] }, allReferences: [] })
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('2 * 3 * 4')
-		,'start')).toEqual({ value: 24, references: [] })
+		,'start')).toEqual({ instances: { value: 24, references: [] }, allReferences: [] })
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('20 / 4 / 2')
-		,'start')).toEqual({ value: 2.5, references: [] })
+		,'start')).toEqual({ instances: { value: 2.5, references: [] }, allReferences: [] })
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('2 * (2 + 3) - 2 * 2')
-		,'start')).toEqual({ value: 6, references: [] })
+		,'start')).toEqual({ instances: { value: 6, references: [] }, allReferences: [] })
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('2 * 2 + 3 - 2 * 2')
-		,'start')).toEqual({ value: 3, references: [] })
+		,'start')).toEqual({ instances: { value: 3, references: [] }, allReferences: [] })
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('2 * 2 + 3 - 2 * 2')
-		,'start')).toEqual({ value: 3, references: [] })
+		,'start')).toEqual({ instances: { value: 3, references: [] }, allReferences: [] })
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('5 + -3')
-		,'start')).toEqual({ value: 2, references: [] })
+		,'start')).toEqual({ instances: { value: 2, references: [] }, allReferences: [] })
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('5 + - 3')
-		,'start')).toEqual({ value: 2, references: [] })
+		,'start')).toEqual({ instances: { value: 2, references: [] }, allReferences: [] })
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('')
-		,'start')).toEqual(null)
+		,'start')).toEqual({ instances: null, allReferences: [] })
 
 		expect(() => {
 			lookupExpression(rtl, stdObj,
@@ -116,8 +118,8 @@ describe('Resolver, expressions', () => {
 				interpretExpression('5 * '), 'start') // unbalanced expression
 		}).toThrowError()
 
-		const TRUE_EXPR = [{ start: 0, end: null, references: [] }]
-		const FALSE_EXPR: any = []
+		const TRUE_EXPR = { instances: [{ start: 0, end: null, references: [] }] }
+		const FALSE_EXPR: any = { instances: [] }
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('1 | 0'), 'start'
@@ -144,13 +146,13 @@ describe('Resolver, expressions', () => {
 
 		expect(lookupExpression(rtl, stdObj,
 			interpretExpression('(0 & 1) | a'), 'start' // strange operand
-		)).toEqual(null)
+		)).toEqual({ instances: null, allReferences: [] })
 
 		expect(
 			lookupExpression(rtl, stdObj,
 				interpretExpression('14 + #badReference.start'), 'start'
 			)
-		).toEqual([])
+		).toEqual({ instances: [], allReferences: ['#badReference'] })
 
 		expect(
 			lookupExpression(rtl, stdObj, interpretExpression('1'), 'start')
@@ -167,7 +169,8 @@ describe('Resolver, expressions', () => {
 				resolvedInstanceCount: 0,
 				resolvedObjectCount: 0,
 				resolvedGroupCount: 0,
-				resolvedKeyframeCount: 0
+				resolvedKeyframeCount: 0,
+				resolvingCount: 0
 			},
 			objects: {
 				'first': {
@@ -181,7 +184,8 @@ describe('Resolver, expressions', () => {
 					resolved: {
 						resolved: false,
 						instances: [],
-						resolving: false
+						resolving: false,
+						directReferences: []
 					}
 				},
 				'second': {
@@ -195,7 +199,8 @@ describe('Resolver, expressions', () => {
 					resolved: {
 						resolved: false,
 						instances: [],
-						resolving: false
+						resolving: false,
+						directReferences: []
 					}
 				},
 				'third': {
@@ -209,7 +214,8 @@ describe('Resolver, expressions', () => {
 					resolved: {
 						resolved: false,
 						instances: [],
-						resolving: false
+						resolving: false,
+						directReferences: []
 					}
 				},
 				'fourth': {
@@ -223,7 +229,8 @@ describe('Resolver, expressions', () => {
 					resolved: {
 						resolved: false,
 						instances: [],
-						resolving: false
+						resolving: false,
+						directReferences: []
 					}
 				},
 				'middle': {
@@ -237,7 +244,8 @@ describe('Resolver, expressions', () => {
 					resolved: {
 						resolved: false,
 						instances: [],
-						resolving: false
+						resolving: false,
+						directReferences: []
 					}
 				}
 			},
@@ -252,30 +260,31 @@ describe('Resolver, expressions', () => {
 			resolved: {
 				resolved: false,
 				resolving: false,
-				instances: []
+				instances: [],
+				directReferences: []
 			}
 		}
 
-		expect(lookupExpression(timeline, obj, interpretExpression('#unknown'), 'start')).toEqual([])
-		expect(lookupExpression(timeline, obj, interpretExpression('#first'), 'start')).toMatchObject([{
+		expect(lookupExpression(timeline, obj, interpretExpression('#unknown'), 'start')).toEqual({ instances: [], allReferences: ['#unknown'] })
+		expect(lookupExpression(timeline, obj, interpretExpression('#first'), 'start')).toMatchObject({ instances: [{
 			start: 0,
 			end: 100
-		}])
-		expect(lookupExpression(timeline, obj, interpretExpression('#first.start'), 'start')).toMatchObject([{
+		}]})
+		expect(lookupExpression(timeline, obj, interpretExpression('#first.start'), 'start')).toMatchObject({ instances: [{
 			start: 0,
 			end: 100
-		}])
+		}]})
 
-		expect(lookupExpression(timeline, obj, interpretExpression('#first & #second'), 'start')).toMatchObject([{
+		expect(lookupExpression(timeline, obj, interpretExpression('#first & #second'), 'start')).toMatchObject({ instances: [{
 			start: 20,
 			end: 100
-		}])
+		}]})
 
-		expect(lookupExpression(timeline, obj, interpretExpression('(#first & #second) | #third'), 'start')).toMatchObject([{
+		expect(lookupExpression(timeline, obj, interpretExpression('(#first & #second) | #third'), 'start')).toMatchObject({ instances: [{
 			start: 20,
 			end: 130
-		}])
-		expect(lookupExpression(timeline, obj, interpretExpression('#first & #second & !#middle'), 'start')).toMatchObject([
+		}]})
+		expect(lookupExpression(timeline, obj, interpretExpression('#first & #second & !#middle'), 'start')).toMatchObject({ instances: [
 			{
 				start: 20,
 				end: 25
@@ -284,13 +293,13 @@ describe('Resolver, expressions', () => {
 				start: 35,
 				end: 100
 			}
-		])
+		]})
 
-		expect(lookupExpression(timeline, obj, interpretExpression('#first + 5'), 'start')).toMatchObject([{
+		expect(lookupExpression(timeline, obj, interpretExpression('#first + 5'), 'start')).toMatchObject({ instances: [{
 			start: 5,
 			end: 105
-		}])
-		expect(lookupExpression(timeline, obj, interpretExpression('((#first & !#second) | #middle) + 1'), 'start')).toMatchObject([
+		}]})
+		expect(lookupExpression(timeline, obj, interpretExpression('((#first & !#second) | #middle) + 1'), 'start')).toMatchObject({ instances: [
 			{
 				start: 1,
 				end: 21
@@ -299,6 +308,6 @@ describe('Resolver, expressions', () => {
 				start: 26,
 				end: 36
 			}
-		])
+		]})
 	})
 })

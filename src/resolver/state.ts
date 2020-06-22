@@ -11,7 +11,8 @@ import {
 	TimeEvent,
 	ResolvedStates,
 	ResolvedTimelineObjectInstanceKeyframe,
-	NextEvent
+	NextEvent,
+	ResolverCache
 } from '../api/api'
 import * as _ from 'underscore'
 import { addObjectToResolvedTimeline } from './common'
@@ -39,7 +40,7 @@ export function getState (resolved: ResolvedTimeline | ResolvedStates, time: Tim
 
 	return state
 }
-export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): ResolvedStates {
+export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time, cache?: ResolverCache): ResolvedStates {
 	const resolvedStates: ResolvedStates = {
 		options: resolved.options,
 		statistics: resolved.statistics,
@@ -51,6 +52,16 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 
 		state: {},
 		nextEvents: []
+	}
+
+	if (
+		cache &&
+		!onlyForTime &&
+		resolved.statistics.resolvingCount === 0 &&
+		cache.resolvedStates
+	) {
+		// Nothing has changed since last time, just return the states right away:
+		return cache.resolvedStates
 	}
 
 	const resolvedObjects = _.values(resolved.objects)
@@ -169,7 +180,8 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 	times.sort((a,b) => {
 		return a - b
 	})
-	_.each(times, time => {
+	for (let i = 0; i < times.length; i++) {
+		const time = times[i]
 		const instancesToCheck = pointsInTime[time]
 		const checkedObjectsThisTime: {[instanceId: string]: true} = {}
 
@@ -194,7 +206,8 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 			return 0
 		})
 
-		_.each(instancesToCheck, (o) => {
+		for (let j = 0; j < instancesToCheck.length; j++) {
+			const o = instancesToCheck[j]
 			const obj: ResolvedTimelineObject = o.obj
 			const instance: TimelineObjectInstance = o.instance
 
@@ -204,9 +217,9 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 			)
 
 			const layer: string = obj.layer + ''
-
-			if (!checkedObjectsThisTime[obj.id + '_' + instance.id + '_' + o.enable]) { // Only check each object and event-type once for every point in time
-				checkedObjectsThisTime[obj.id + '_' + instance.id + '_' + o.enable] = true
+			const identifier = obj.id + '_' + instance.id + '_' + o.enable
+			if (!checkedObjectsThisTime[identifier]) { // Only check each object and event-type once for every point in time
+				checkedObjectsThisTime[identifier] = true
 
 				if (!obj.resolved.isKeyframe) {
 
@@ -397,7 +410,7 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 					}
 				}
 			}
-		})
+		}
 		// Go through keyframes:
 		_.each(activeKeyframes, (objInstance: ResolvedTimelineObjectInstance, objId: string) => {
 
@@ -454,15 +467,16 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 			// else: the keyframe:s parent isn't active, remove/stop the keyframe then:
 			delete activeKeyframesChecked[objId]
 		})
-	})
+	}
 	// Go through the keyframe events and add them to nextEvents:
-	_.each(keyframeEvents, (keyframeEvent) => {
+	for (let i = 0; i < keyframeEvents.length; i++) {
+		const keyframeEvent = keyframeEvents[i]
 		// tslint:disable-next-line
 		if (eventObjectTimes[keyframeEvent.time + ''] === undefined) { // no need to put a keyframe event if there's already another event there
 			resolvedStates.nextEvents.push(keyframeEvent)
 			eventObjectTimes[keyframeEvent.time + ''] = EventType.KEYFRAME
 		}
-	})
+	}
 
 	if (onlyForTime) {
 		resolvedStates.nextEvents = _.filter(resolvedStates.nextEvents, e => e.time > onlyForTime)
@@ -479,6 +493,10 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time): 
 
 		return 0
 	})
+
+	if (cache && !onlyForTime) {
+		cache.resolvedStates = resolvedStates
+	}
 
 	return resolvedStates
 }

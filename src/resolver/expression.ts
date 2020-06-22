@@ -1,8 +1,10 @@
 import _ = require('underscore')
 import { Expression, ExpressionObj } from '../api/api'
-import { isNumeric, isConstant } from '../lib'
+import { isNumeric, isConstant, cacheResult } from '../lib'
 
 export const OPERATORS = ['&', '|', '+', '-', '*', '/', '%', '!']
+
+const REGEXP_OPERATORS = _.map(OPERATORS, o => '\\' + o).join('')
 
 export function interpretExpression (expr: null): null
 export function interpretExpression (expr: number): number
@@ -13,30 +15,30 @@ export function interpretExpression (expr: Expression): Expression {
 		return parseFloat(expr as string)
 	} else if (_.isString(expr)) {
 
-		const operatorList = OPERATORS
+		const expr0 = expr
+		return cacheResult(expr0, () => {
+			const expr = expr0.replace(new RegExp('([' + REGEXP_OPERATORS + '\\(\\)])','g'),' $1 ') // Make sure there's a space between every operator & operand
 
-		const regexpOperators = _.map(operatorList, o => '\\' + o).join('')
+			const words: Array<string> = _.compact(expr.split(' '))
 
-		expr = expr.replace(new RegExp('([' + regexpOperators + '\\(\\)])','g'),' $1 ') // Make sure there's a space between every operator & operand
+			if (words.length === 0) return null // empty expression
 
-		const words: Array<string> = _.compact(expr.split(' '))
-
-		if (words.length === 0) return null // empty expression
-
-		// Fix special case: a + - b
-		for (let i = words.length - 2; i >= 1; i--) {
-			if ((words[i] === '-' || words[i] === '+') && wordIsOperator(operatorList, words[i - 1])) {
-				words[i] = words[i] + words[i + 1]
-				words.splice(i + 1,1)
+			// Fix special case: a + - b
+			for (let i = words.length - 2; i >= 1; i--) {
+				if ((words[i] === '-' || words[i] === '+') && wordIsOperator(OPERATORS, words[i - 1])) {
+					words[i] = words[i] + words[i + 1]
+					words.splice(i + 1,1)
+				}
 			}
-		}
-		const innerExpression = wrapInnerExpressions(words)
-		if (innerExpression.rest.length) throw new Error('interpretExpression: syntax error: parentheses don\'t add up in "' + expr + '".')
-		if (innerExpression.inner.length % 2 !== 1) throw new Error('interpretExpression: operands & operators don\'t add up: "' + innerExpression.inner.join(' ') + '".')
+			const innerExpression = wrapInnerExpressions(words)
+			if (innerExpression.rest.length) throw new Error('interpretExpression: syntax error: parentheses don\'t add up in "' + expr + '".')
+			if (innerExpression.inner.length % 2 !== 1) throw new Error('interpretExpression: operands & operators don\'t add up: "' + innerExpression.inner.join(' ') + '".')
 
-		const expression = words2Expression(operatorList, innerExpression.inner)
-		validateExpression(operatorList, expression)
-		return expression
+			const expression = words2Expression(OPERATORS, innerExpression.inner)
+			validateExpression(OPERATORS, expression)
+			return expression
+		}, 100 * 1000)
+
 	} else {
 		return expr
 	}

@@ -10,7 +10,8 @@ import {
 	ResolvedTimelineObject as NewResolvedTimelineObject,
 	TimelineObject as NewTimelineObject,
 	TimelineKeyframe as NewTimelineKeyframe,
-	ResolveOptions
+	ResolveOptions,
+	TimelineEnable
 } from '../api/api'
 import {
 	Resolver
@@ -2192,10 +2193,10 @@ const testData: {
 } = {}
 // Convert test-data to new data structure:
 function convertTimelineObject (obj: TimelineObject): NewTimelineObject {
+	const enable: TimelineEnable = {}
 	const newObj: NewTimelineObject = {
 		id: obj.id,
-		enable: {
-		},
+		enable: enable,
 		layer: obj.LLayer,
 		// children?: Array<TimelineObject>
 		// keyframes?: Array<TimelineKeyframe>
@@ -2207,19 +2208,19 @@ function convertTimelineObject (obj: TimelineObject): NewTimelineObject {
 	}
 
 	if (obj.trigger.type === TriggerType.TIME_ABSOLUTE) {
-		newObj.enable.start = obj.trigger.value
+		enable.start = obj.trigger.value
 	} else if (obj.trigger.type === TriggerType.TIME_RELATIVE) {
-		newObj.enable.start = obj.trigger.value
+		enable.start = obj.trigger.value
 	} else if (obj.trigger.type === TriggerType.LOGICAL) {
-		newObj.enable.while = obj.trigger.value
-		// if (newObj.enable.while === '1') {
-		// 	newObj.enable.while = 'true'
-		// } else if (newObj.enable.while === '0') {
-		// 	newObj.enable.while = 'false'
+		enable.while = obj.trigger.value
+		// if (enable.while === '1') {
+		// 	enable.while = 'true'
+		// } else if (enable.while === '0') {
+		// 	enable.while = 'false'
 		// }
 	}
 	if (obj.duration) {
-		newObj.enable.duration = obj.duration
+		enable.duration = obj.duration
 	}
 	// @ts-ignore
 	if (obj.legacyRepeatingTime) {
@@ -2251,10 +2252,10 @@ function convertTimelineObject (obj: TimelineObject): NewTimelineObject {
 	return newObj
 }
 function convertTimelineKeyframe (obj: TimelineKeyframe): NewTimelineKeyframe {
+	const enable: TimelineEnable = {}
 	const newKf: NewTimelineKeyframe = {
 		id: obj.id,
-		enable: {
-		},
+		enable: enable,
 		// children?: Array<TimelineObject>
 		// keyframes?: Array<TimelineKeyframe>
 		classes: obj.classes,
@@ -2262,14 +2263,14 @@ function convertTimelineKeyframe (obj: TimelineKeyframe): NewTimelineKeyframe {
 		content: obj.content as any
 	}
 	if (obj.trigger.type === TriggerType.TIME_ABSOLUTE) {
-		newKf.enable.start = obj.trigger.value
+		enable.start = obj.trigger.value
 	} else if (obj.trigger.type === TriggerType.TIME_RELATIVE) {
-		newKf.enable.start = obj.trigger.value
+		enable.start = obj.trigger.value
 	} else if (obj.trigger.type === TriggerType.LOGICAL) {
-		newKf.enable.while = obj.trigger.value
+		enable.while = obj.trigger.value
 	}
 	if (obj.duration) {
-		newKf.enable.duration = obj.duration
+		enable.duration = obj.duration
 	}
 	return newKf
 }
@@ -2917,6 +2918,7 @@ let tests: Tests = {
 		}).toThrowError()
 		expect(() => {
 			const data = clone(getTestData('basic'))
+			// @ts-ignore
 			delete data[0].enable.start
 			const tl = Resolver.resolveTimeline(data, stdOpts)
 			Resolver.getState(tl, now)
@@ -3501,6 +3503,7 @@ let tests: Tests = {
 		// expect(tl.statistics.resolvedObjectCount).toEqual(0)
 
 		const obj0: NewTimelineObject = _.findWhere(data, { id: 'obj0' }) as NewTimelineObject
+		// @ts-ignore
 		obj0.enable.duration = 10 // break the circular dependency
 
 		const tl = Resolver.resolveTimeline(data, stdOpts)
@@ -4194,6 +4197,16 @@ describe('All tests', () => {
 })
 
 describe('Tests with reversed data', () => {
+	_.each(tests, (t, key) => {
+		test(key, () => {
+			reverseData = true
+			t()
+		})
+	})
+})
+describe('Tests with cache', () => {
+	const cache = {}
+	stdOpts.cache = cache
 	_.each(tests, (t, key) => {
 		test(key, () => {
 			reverseData = true
