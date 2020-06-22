@@ -123,6 +123,12 @@ export function convertEventsToInstances (
 	const activeInstances: {[id: string]: InstanceEvent} = {}
 	let activeInstanceId: string | null = null
 	let previousActive: boolean = false
+
+	const negativeInstances: {[id: string]: InstanceEvent} = {}
+	let previousNegative: boolean = false
+	previousNegative = previousNegative
+	let negativeInstanceId: string | null = null
+
 	const returnInstances: Array<TimelineObjectInstance> = []
 	for (let i = 0; i < events.length; i++) {
 		const event = events[i]
@@ -130,95 +136,39 @@ export function convertEventsToInstances (
 		const lastInstance = returnInstances[returnInstances.length - 1]
 		if (event.value) {
 			activeInstances[eventId] = event
+			delete negativeInstances[eventId]
 		} else {
 			delete activeInstances[eventId]
+			negativeInstances[eventId] = event
 		}
 		if (Object.keys(activeInstances).length) {
 			// There is an active instance
-			previousActive = true
 			if (
 				!allowMerge &&
-				event.value &&
-				lastInstance &&
-				lastInstance.end === null &&
-				activeInstanceId !== null &&
-				activeInstanceId !== eventId
-			) {
-				// Start a new instance:
-				lastInstance.end = event.time
-				returnInstances.push({
-					id: getId(),
-					start: event.time,
-					end: null,
-					references: event.references
-				})
-				activeInstanceId = eventId
-			} else if (
-				!allowMerge &&
-				!event.value &&
-				lastInstance &&
-				activeInstanceId === eventId
-			) {
-				// The active instance stopped playing, but another is still playing
-				const latestInstance: {event: InstanceEvent, id: string} | null = _.reduce(
-					activeInstances,
-					(memo, event, id) => {
-						if (
-							memo === null ||
-							memo.event.time < event.time
-						) {
-							return {
-								event: event,
-								id: id
-							}
-						}
-						return memo
-					},
-					null as ({event: InstanceEvent, id: string} | null)
-				)
-
-				if (latestInstance) {
-					// Restart that instance now:
-					lastInstance.end = event.time
-					returnInstances.push({
-						id: eventId + '_' + getId(),
-						start: event.time,
-						end: null,
-						references: latestInstance.event.references
-					})
-					activeInstanceId = latestInstance.id
-				}
-			} else if (
-				allowMerge &&
 				!allowZeroGaps &&
 				lastInstance &&
-				lastInstance.end === event.time
+				previousNegative
 			) {
-				// The previously running ended just now
-				// resume previous instance:
-				lastInstance.end = null
-				lastInstance.references = joinReferences(lastInstance.references, event.references)
-				addCapsToResuming(lastInstance, event.data.instance.caps)
-			} else if (
-				!lastInstance ||
-				lastInstance.end !== null
-			) {
-				// There is no previously running instance
-				// Start a new instance:
-				returnInstances.push({
-					id: eventId,
-					start: event.time,
-					end: null,
-					references: event.references,
-					caps: event.data.instance.caps
-				})
-				activeInstanceId = eventId
+				// There is previously an inActive (negative) instance
+				lastInstance.start = event.time
 			} else {
-				// There is already a running instance
-				lastInstance.references = joinReferences(lastInstance.references, event.references)
-				addCapsToResuming(lastInstance, event.data.instance.caps)
+				const o = handleActiveInstances(
+					event,
+					lastInstance,
+					activeInstanceId,
+					eventId,
+					activeInstances,
+					allowMerge,
+					allowZeroGaps
+				)
+				activeInstanceId = o.activeInstanceId
+				if (o.returnInstance) {
+					returnInstances.push(o.returnInstance)
+				}
 			}
-			if (lastInstance && lastInstance.caps && !lastInstance.caps.length) delete lastInstance.caps
+
+			previousActive = true
+			previousNegative = false
 		} else {
 			// No instances are active
 			if (
@@ -226,11 +176,152 @@ export function convertEventsToInstances (
 				previousActive
 			) {
 				lastInstance.end = event.time
+			} else {
+				if (Object.keys(negativeInstances).length) {
+					// There is a negative instance running
+
+					const o = handleActiveInstances(
+						event,
+						lastInstance,
+						negativeInstanceId,
+						eventId,
+						negativeInstances,
+						allowMerge,
+						allowZeroGaps
+					)
+					negativeInstanceId = o.activeInstanceId
+					if (o.returnInstance) {
+						returnInstances.push({
+							...o.returnInstance,
+							start: o.returnInstance.end || 0,
+							end: o.returnInstance.start
+						})
+					}
+					previousNegative = true
+				}
 			}
 			previousActive = false
 		}
 	}
 	return returnInstances
+}
+function handleActiveInstances (
+	event: EventForInstance,
+	lastInstance: TimelineObjectInstance,
+	activeInstanceId: string | null,
+	eventId: string,
+	activeInstances: { [id: string]: InstanceEvent<any> },
+
+	allowMerge: boolean,
+	allowZeroGaps: boolean = false
+): {
+	activeInstanceId: string | null
+	returnInstance: TimelineObjectInstance | null
+} {
+	let returnInstance = null
+	if (
+		!allowMerge &&
+		event.value &&
+		lastInstance &&
+		lastInstance.end === null &&
+		activeInstanceId !== null &&
+		activeInstanceId !== eventId
+	) {
+		// Start a new instance:
+		lastInstance.end = event.time
+		returnInstance = {
+			id: getId(),
+			start: event.time,
+			end: null,
+			references: event.references
+		}
+		activeInstanceId = eventId
+	} else if (
+		!allowMerge &&
+		!event.value &&
+		lastInstance &&
+		activeInstanceId === eventId
+	) {
+		// The active instance stopped playing, but another is still playing
+		const latestInstance: {event: InstanceEvent, id: string} | null = _.reduce(
+			activeInstances,
+			(memo, event, id) => {
+				if (
+					memo === null ||
+					memo.event.time < event.time
+				) {
+					return {
+						event: event,
+						id: id
+					}
+				}
+				return memo
+			},
+			null as ({event: InstanceEvent, id: string} | null)
+		)
+
+		if (latestInstance) {
+			// Restart that instance now:
+			lastInstance.end = event.time
+			returnInstance = {
+				id: eventId + '_' + getId(),
+				start: event.time,
+				end: null,
+				references: latestInstance.event.references
+			}
+			activeInstanceId = latestInstance.id
+		}
+	} else if (
+		allowMerge &&
+		!allowZeroGaps &&
+		lastInstance &&
+		lastInstance.end === event.time
+	) {
+		// The previously running ended just now
+		// resume previous instance:
+		lastInstance.end = null
+		lastInstance.references = joinReferences(lastInstance.references, event.references)
+		addCapsToResuming(lastInstance, event.data.instance.caps)
+	} else if (
+		!lastInstance ||
+		lastInstance.end !== null
+	) {
+		// There is no previously running instance
+		// Start a new instance:
+		returnInstance = {
+			id: eventId,
+			start: event.time,
+			end: null,
+			references: event.references,
+			caps: event.data.instance.caps
+		}
+		activeInstanceId = eventId
+	} else {
+		// There is already a running instance
+		lastInstance.references = joinReferences(lastInstance.references, event.references)
+		addCapsToResuming(lastInstance, event.data.instance.caps)
+	}
+	if (lastInstance && lastInstance.caps && !lastInstance.caps.length) delete lastInstance.caps
+
+	if (
+		returnInstance &&
+		lastInstance &&
+		lastInstance.start === lastInstance.end &&
+		lastInstance.end === returnInstance.start
+	) {
+		// replace the previous zero-length with this one instead
+		lastInstance.id = returnInstance.id
+		lastInstance.start = returnInstance.start
+		lastInstance.end = returnInstance.end
+		lastInstance.references = returnInstance.references
+		lastInstance.caps = returnInstance.caps
+		returnInstance = null
+	}
+
+	return {
+		activeInstanceId,
+		returnInstance
+	}
 }
 export function invertInstances (
 	instances: Array<TimelineObjectInstance>
@@ -500,8 +591,14 @@ export function capInstances (
 			for (let j = 0; j < parentInstances.length; j++) {
 				const p = parentInstances[j]
 				if (
-					(instance.end || Infinity) > p.start &&
-					(instance.end || Infinity) <= (p.end || Infinity)
+					(
+						(instance.end || Infinity) > p.start &&
+						(instance.end || Infinity) <= (p.end || Infinity)
+					) || (
+						p.start === p.end &&
+						instance.start <= p.start &&
+						(instance.end || Infinity) >= p.end
+					)
 				) {
 					if (
 						parent === null ||

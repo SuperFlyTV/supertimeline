@@ -478,7 +478,6 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 					})
 				}
 			}
-
 			newInstances = convertEventsToInstances(events, false)
 		}
 		if (hasParent) {
@@ -536,11 +535,6 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 			resolvedTimeline.options
 		)
 		instances = instances.concat(newInstances)
-	})
-
-	// filter out zero-length instances:
-	instances = _.filter(instances, (instance) => {
-		return ((instance.end || Infinity) > instance.start)
 	})
 
 	obj.resolved.resolved = true
