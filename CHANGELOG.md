@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [8.0.0](https://github.com/SuperFlyTV/supertimeline/compare/7.3.1...8.0.0) (2020-06-27)
+
+
+### ⚠ BREAKING CHANGES
+
+* drop node 8 support
+
+### Features
+
+* drop node 8 support ([98f42ca](https://github.com/SuperFlyTV/supertimeline/commit/98f42caf62f0d93364e1cf921fd359437a27fea4))
+* **ci:** prerelease flow & optional audit skip [skip ci] ([a7a4c20](https://github.com/SuperFlyTV/supertimeline/commit/a7a4c20d01971d934253cbb348744ed5d042c2d1))
+* add check in resolveAllStates, optimizing when no changes are detected at all. ([6d02009](https://github.com/SuperFlyTV/supertimeline/commit/6d02009995de2ebaf782774ade5779e321ca15b2))
+* be able to provide enable.instances directly in the timeline. ([0bd3149](https://github.com/SuperFlyTV/supertimeline/commit/0bd31490734d001e5ea4ab1c9e751717c85e1a37))
+* partial resolve of timeline ([eab68aa](https://github.com/SuperFlyTV/supertimeline/commit/eab68aac2d7b70e85ec5bc6a733676358f348ec1))
+
+
+### Bug Fixes
+
+* don't hash content, it takes too much time ([ac35795](https://github.com/SuperFlyTV/supertimeline/commit/ac35795ae6d7e74ef2413b0b2391f0206d23343c))
+* optimize cleanInstances for most common situations ([8b9e0b5](https://github.com/SuperFlyTV/supertimeline/commit/8b9e0b51976f47d620af1332a061e74c18549928))
+* performance: cache result of interpretExpression ([ea572cb](https://github.com/SuperFlyTV/supertimeline/commit/ea572cbd791366b44134144292418ed5f057831f))
+* performance: move applyParendInstances ([bb1e952](https://github.com/SuperFlyTV/supertimeline/commit/bb1e952019b085264b501e60c6a950eeb84d041b))
+* performance: refactor _.uniq + _.reduce + _.compact ([d6d7eb5](https://github.com/SuperFlyTV/supertimeline/commit/d6d7eb5cf780707a3a6ebaa545e4ea20d672be75))
+* performance: replace _.each for for-loops where it's most used ([5d1df6a](https://github.com/SuperFlyTV/supertimeline/commit/5d1df6a99042c6233bb6fe76715c73c565933a80))
+* performance: use typeof instead of _.isObject ([14bf545](https://github.com/SuperFlyTV/supertimeline/commit/14bf5453423cbb93e80e0db3bf62cb363c9dd1b4))
+* reworked instances to instead use arrays directly on the .enable property ([ccc8452](https://github.com/SuperFlyTV/supertimeline/commit/ccc845278d3f2e5c279fd3cffe2ebf40f87b651a))
+
 ### [7.3.1](https://github.com/SuperFlyTV/supertimeline/compare/7.3.0...7.3.1) (2019-12-02)
 
 
