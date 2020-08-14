@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [8.1.0](https://github.com/SuperFlyTV/supertimeline/compare/8.0.0...8.1.0) (2020-08-14)
+
+
+### Features
+
+* support for zero-length and negative instances ([0b340db](https://github.com/SuperFlyTV/supertimeline/commit/0b340db2cb626671c94242d77a392f0f14a7afa7))
+* support for zero-length and negative instances ([bc03699](https://github.com/SuperFlyTV/supertimeline/commit/bc03699cd87eab299ee66ab09c1f54e1c4d7d56c))
+
 ## [8.0.0](https://github.com/SuperFlyTV/supertimeline/compare/7.3.1...8.0.0) (2020-06-27)
 
 
