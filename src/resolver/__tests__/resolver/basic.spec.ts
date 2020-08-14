@@ -850,74 +850,76 @@ describe('Resolver, basic', () => {
 		const state1 = Resolver.getState(resolved, 15)
 		expect(state1.layers.L1).toBeUndefined()
 	})
-	test('negative length object sandwich', () => {
-		const timeline: TimelineObject[] = [
-			{
-				id: 'obj0',
-				layer: 'L1',
-				enable: {
-				  start: 15,
-				  end: '#obj1.start' // 15
-				},
-				content: {}
-			},
-			{
-				id: 'obj1',
-				layer: 'L2',
-				enable: {
-				  start: 15,
-				  end: '#obj2.start' // 10
-				},
-				content: {}
-			},
-			{
-				id: 'obj2',
-				layer: 'L3',
-				enable: {
-				  start: 10
-				},
-				content: {}
-			},
-			{
-				id: 'obj3',
-				layer: 'L4',
-				enable: {
-				  start: '#obj1.start', // 10
-				  duration: 10
-				},
-				content: {}
-			},
-			{
-				id: 'obj4',
-				layer: 'L5',
-				enable: {
-				  start: '#obj1.end', // 15
-				  duration: 10
-				},
-				content: {}
-			}
-		]
+	// This test is "temporarily" disabled,
+	// see https://github.com/SuperFlyTV/supertimeline/pull/60
+	// test('negative length object sandwich', () => {
+	// 	const timeline: TimelineObject[] = [
+	// 		{
+	// 			id: 'obj0',
+	// 			layer: 'L1',
+	// 			enable: {
+	// 			  start: 15,
+	// 			  end: '#obj1.start' // 15
+	// 			},
+	// 			content: {}
+	// 		},
+	// 		{
+	// 			id: 'obj1',
+	// 			layer: 'L2',
+	// 			enable: {
+	// 			  start: 15,
+	// 			  end: '#obj2.start' // 10
+	// 			},
+	// 			content: {}
+	// 		},
+	// 		{
+	// 			id: 'obj2',
+	// 			layer: 'L3',
+	// 			enable: {
+	// 			  start: 10
+	// 			},
+	// 			content: {}
+	// 		},
+	// 		{
+	// 			id: 'obj3',
+	// 			layer: 'L4',
+	// 			enable: {
+	// 			  start: '#obj1.start', // 10
+	// 			  duration: 10
+	// 			},
+	// 			content: {}
+	// 		},
+	// 		{
+	// 			id: 'obj4',
+	// 			layer: 'L5',
+	// 			enable: {
+	// 			  start: '#obj1.end', // 15
+	// 			  duration: 10
+	// 			},
+	// 			content: {}
+	// 		}
+	// 	]
 
-		const resolved = Resolver.resolveTimeline(timeline, { time: 0 })
-		expect(resolved.objects['obj1'].resolved.instances).toMatchObject([{
-			start: 15,
-			end: 10
-		}])
-		expect(resolved.objects['obj3'].resolved.instances).toMatchObject([{
-			start: 10,
-			end: 20
-		}])
-		expect(resolved.objects['obj4'].resolved.instances).toMatchObject([{
-			start: 15,
-			end: 25
-		}])
-		const state = Resolver.getState(resolved, 20)
-		expect(state.layers.L1).toBeUndefined()
-		expect(state.layers.L2).toBeUndefined()
-		expect(state.layers.L3).toMatchObject({ id: 'obj2' })
-		expect(state.layers.L4).toMatchObject({ id: 'obj3' })
-		expect(state.layers.L5).toMatchObject({ id: 'obj4' })
-	})
+	// 	const resolved = Resolver.resolveTimeline(timeline, { time: 0 })
+	// 	expect(resolved.objects['obj1'].resolved.instances).toMatchObject([{
+	// 		start: 15,
+	// 		end: 10
+	// 	}])
+	// 	expect(resolved.objects['obj3'].resolved.instances).toMatchObject([{
+	// 		start: 10,
+	// 		end: 20
+	// 	}])
+	// 	expect(resolved.objects['obj4'].resolved.instances).toMatchObject([{
+	// 		start: 15,
+	// 		end: 25
+	// 	}])
+	// 	const state = Resolver.getState(resolved, 20)
+	// 	expect(state.layers.L1).toBeUndefined()
+	// 	expect(state.layers.L2).toBeUndefined()
+	// 	expect(state.layers.L3).toMatchObject({ id: 'obj2' })
+	// 	expect(state.layers.L4).toMatchObject({ id: 'obj3' })
+	// 	expect(state.layers.L5).toMatchObject({ id: 'obj4' })
+	// })
 	test('negative length object sandwich 2', () => {
 		const timeline: TimelineObject[] = [
 			{
