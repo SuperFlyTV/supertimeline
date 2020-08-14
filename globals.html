@@ -2567,6 +2567,9 @@ img {
 			<a href="globals.html#gettimesfromparents" class="tsd-kind-icon">get<wbr>Times<wbr>From<wbr>Parents</a>
 		</li>
 		<li class=" tsd-kind-function tsd-is-external">
+			<a href="globals.html#handleactiveinstances" class="tsd-kind-icon">handle<wbr>Active<wbr>Instances</a>
+		</li>
+		<li class=" tsd-kind-function tsd-is-external">
 			<a href="globals.html#initializecache" class="tsd-kind-icon">initialize<wbr>Cache</a>
 		</li>
 		<li class=" tsd-kind-function tsd-is-external">
@@ -3068,6 +3071,7 @@ img {
 							<li class="tsd-kind-function tsd-is-external"><a href="globals.html#getstate" class="tsd-kind-icon">get<wbr>State</a></li>
 							<li class="tsd-kind-function tsd-is-external"><a href="globals.html#getstateattime" class="tsd-kind-icon">get<wbr>State<wbr>AtTime</a></li>
 							<li class="tsd-kind-function tsd-is-external"><a href="globals.html#gettimesfromparents" class="tsd-kind-icon">get<wbr>Times<wbr>From<wbr>Parents</a></li>
+							<li class="tsd-kind-function tsd-is-external"><a href="globals.html#handleactiveinstances" class="tsd-kind-icon">handle<wbr>Active<wbr>Instances</a></li>
 							<li class="tsd-kind-function tsd-is-external"><a href="globals.html#initializecache" class="tsd-kind-icon">initialize<wbr>Cache</a></li>
 							<li class="tsd-kind-function tsd-is-external"><a href="globals.html#interpretexpression" class="tsd-kind-icon">interpret<wbr>Expression</a></li>
 							<li class="tsd-kind-function tsd-is-external"><a href="globals.html#invertinstances" class="tsd-kind-icon">invert<wbr>Instances</a></li>
@@ -3112,7 +3116,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Content<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{}</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/api/api.ts#L45">api/api.ts:45</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/api/api.ts#L45">api/api.ts:45</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-type-declaration">
@@ -3130,7 +3134,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Difference&lt;A, B&gt;<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Pick</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">B</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">Exclude</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">keyof </span><span class="tsd-signature-type">B</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">keyof </span><a href="globals.html#requiredproperties" class="tsd-signature-type">RequiredProperties</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/lib.ts#L27">lib.ts:27</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L27">lib.ts:27</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -3154,7 +3158,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Duration<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/api/api.ts#L6">api/api.ts:6</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/api/api.ts#L6">api/api.ts:6</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -3169,7 +3173,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Duration<wbr>Maybe<span class="tsd-signature-symbol">:</span> <a href="globals.html#duration" class="tsd-signature-type">Duration</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/api/api.ts#L9">api/api.ts:9</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/api/api.ts#L9">api/api.ts:9</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -3179,7 +3183,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Event<wbr>For<wbr>Instance<span class="tsd-signature-symbol">:</span> <a href="interfaces/instanceevent.html" class="tsd-signature-type">InstanceEvent</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>id<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>instance<span class="tsd-signature-symbol">: </span><a href="interfaces/timelineobjectinstance.html" class="tsd-signature-type">TimelineObjectInstance</a><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/lib.ts#L115">lib.ts:115</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L115">lib.ts:115</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -3189,7 +3193,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Expression<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><a href="interfaces/expressionobj.html" class="tsd-signature-type">ExpressionObj</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/api/api.ts#L175">api/api.ts:175</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/api/api.ts#L175">api/api.ts:175</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -3199,7 +3203,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Expression<wbr>Event<span class="tsd-signature-symbol">:</span> <a href="interfaces/instanceevent.html" class="tsd-signature-type">InstanceEvent</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/api/api.ts#L182">api/api.ts:182</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/api/api.ts#L182">api/api.ts:182</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -3209,7 +3213,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Object<wbr>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/api/api.ts#L11">api/api.ts:11</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/api/api.ts#L11">api/api.ts:11</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -3219,7 +3223,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Object<wbr>Ref<wbr>Type<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">"start"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"end"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"duration"</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/resolver.ts#L572">resolver/resolver.ts:572</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/resolver.ts#L566">resolver/resolver.ts:566</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -3229,7 +3233,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Optional<wbr>Properties&lt;T&gt;<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Pick</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">, </span><a href="globals.html#optionalpropertynames" class="tsd-signature-type">OptionalPropertyNames</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/lib.ts#L21">lib.ts:21</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L21">lib.ts:21</a></li>
 					</ul>
 				</aside>
 				<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -3245,7 +3249,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Optional<wbr>Property<wbr>Names&lt;T&gt;<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{}</span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-symbol">keyof </span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">]</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/lib.ts#L15">lib.ts:15</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L15">lib.ts:15</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -3266,7 +3270,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Required<wbr>Properties&lt;T&gt;<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Pick</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">, </span><a href="globals.html#requiredpropertynames" class="tsd-signature-type">RequiredPropertyNames</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/lib.ts#L22">lib.ts:22</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L22">lib.ts:22</a></li>
 					</ul>
 				</aside>
 				<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -3282,7 +3286,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Required<wbr>Property<wbr>Names&lt;T&gt;<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{}</span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-symbol">keyof </span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">]</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/lib.ts#L18">lib.ts:18</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L18">lib.ts:18</a></li>
 					</ul>
 				</aside>
 				<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -3298,7 +3302,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Resolved<wbr>Expression<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="globals.html#expressionevent" class="tsd-signature-type">ExpressionEvent</a><span class="tsd-signature-symbol">&gt;</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/api/api.ts#L183">api/api.ts:183</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/api/api.ts#L183">api/api.ts:183</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -3308,7 +3312,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Resolver<wbr>Cache<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Partial</span><span class="tsd-signature-symbol">&lt;</span><a href="interfaces/resolvercacheinternal.html" class="tsd-signature-type">ResolverCacheInternal</a><span class="tsd-signature-symbol">&gt;</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/api/api.ts#L223">api/api.ts:223</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/api/api.ts#L223">api/api.ts:223</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -3318,7 +3322,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Time<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/api/api.ts#L4">api/api.ts:4</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/api/api.ts#L4">api/api.ts:4</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -3333,7 +3337,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Time<wbr>Maybe<span class="tsd-signature-symbol">:</span> <a href="globals.html#time" class="tsd-signature-type">Time</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/api/api.ts#L8">api/api.ts:8</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/api/api.ts#L8">api/api.ts:8</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -3343,7 +3347,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Times<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="globals.html#time" class="tsd-signature-type">Time</a><span class="tsd-signature-symbol">&gt;</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/api/api.ts#L13">api/api.ts:13</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/api/api.ts#L13">api/api.ts:13</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -3356,7 +3360,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">OPERATORS<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> = [&#x27;&amp;&#x27;, &#x27;|&#x27;, &#x27;+&#x27;, &#x27;-&#x27;, &#x27;*&#x27;, &#x27;/&#x27;, &#x27;%&#x27;, &#x27;!&#x27;]</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/expression.ts#L5">resolver/expression.ts:5</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/expression.ts#L5">resolver/expression.ts:5</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -3366,7 +3370,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">REGEXP_<wbr>OPERATORS<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = _.map(OPERATORS, o &#x3D;&gt; &#x27;\\&#x27; + o).join(&#x27;&#x27;)</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/expression.ts#L7">resolver/expression.ts:7</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/expression.ts#L7">resolver/expression.ts:7</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -3376,8 +3380,8 @@ img {
 				<div class="tsd-signature tsd-kind-icon">_<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">UnderscoreStatic</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/validate.ts#L5">resolver/validate.ts:5</a></li>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/expression.ts#L1">resolver/expression.ts:1</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/validate.ts#L5">resolver/validate.ts:5</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/expression.ts#L1">resolver/expression.ts:1</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -3387,7 +3391,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">cache<wbr>Result<wbr>Cache<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{}</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/lib.ts#L638">lib.ts:638</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L735">lib.ts:735</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-type-declaration">
@@ -3413,7 +3417,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">i<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 0</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/lib.ts#L601">lib.ts:601</a></li>
+						<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L698">lib.ts:698</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -3430,7 +3434,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/lib.ts#L569">lib.ts:569</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L666">lib.ts:666</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3456,7 +3460,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/state.ts#L541">resolver/state.ts:541</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/state.ts#L541">resolver/state.ts:541</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3488,7 +3492,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/common.ts#L4">resolver/common.ts:4</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/common.ts#L4">resolver/common.ts:4</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3514,7 +3518,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/state.ts#L503">resolver/state.ts:503</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/state.ts#L503">resolver/state.ts:503</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3540,7 +3544,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/lib.ts#L627">lib.ts:627</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L724">lib.ts:724</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3566,7 +3570,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/lib.ts#L390">lib.ts:390</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L481">lib.ts:481</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3600,7 +3604,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/lib.ts#L645">lib.ts:645</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L742">lib.ts:742</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3652,7 +3656,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/lib.ts#L465">lib.ts:465</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L556">lib.ts:556</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3685,7 +3689,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/lib.ts#L662">lib.ts:662</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L759">lib.ts:759</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -3702,7 +3706,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/lib.ts#L78">lib.ts:78</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L78">lib.ts:78</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3738,7 +3742,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/lib.ts#L116">lib.ts:116</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L116">lib.ts:116</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3767,7 +3771,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/lib.ts#L33">lib.ts:33</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L33">lib.ts:33</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3813,7 +3817,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/lib.ts#L605">lib.ts:605</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L702">lib.ts:702</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3835,7 +3839,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/cache.ts#L32">resolver/cache.ts:32</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/cache.ts#L32">resolver/cache.ts:32</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3858,7 +3862,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/state.ts#L22">resolver/state.ts:22</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/state.ts#L22">resolver/state.ts:22</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3887,7 +3891,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/state.ts#L548">resolver/state.ts:548</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/state.ts#L548">resolver/state.ts:548</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3916,7 +3920,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/state.ts#L520">resolver/state.ts:520</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/state.ts#L520">resolver/state.ts:520</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3933,6 +3937,60 @@ img {
 				</ul>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-function tsd-is-external">
+				<a name="handleactiveinstances" class="tsd-anchor"></a>
+				<h3>handle<wbr>Active<wbr>Instances</h3>
+				<ul class="tsd-signatures tsd-kind-function tsd-is-external">
+					<li class="tsd-signature tsd-kind-icon">handle<wbr>Active<wbr>Instances<span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><a href="globals.html#eventforinstance" class="tsd-signature-type">EventForInstance</a>, lastInstance<span class="tsd-signature-symbol">: </span><a href="interfaces/timelineobjectinstance.html" class="tsd-signature-type">TimelineObjectInstance</a>, activeInstanceId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span>, eventId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, activeInstances<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{}</span>, allowMerge<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span>, allowZeroGaps<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>activeInstanceId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">; </span>returnInstance<span class="tsd-signature-symbol">: </span><a href="interfaces/timelineobjectinstance.html" class="tsd-signature-type">TimelineObjectInstance</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> }</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L208">lib.ts:208</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>event: <a href="globals.html#eventforinstance" class="tsd-signature-type">EventForInstance</a></h5>
+							</li>
+							<li>
+								<h5>lastInstance: <a href="interfaces/timelineobjectinstance.html" class="tsd-signature-type">TimelineObjectInstance</a></h5>
+							</li>
+							<li>
+								<h5>activeInstanceId: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></h5>
+							</li>
+							<li>
+								<h5>eventId: <span class="tsd-signature-type">string</span></h5>
+							</li>
+							<li>
+								<h5>activeInstances: <span class="tsd-signature-symbol">{}</span></h5>
+								<ul class="tsd-parameters">
+									<li class="tsd-parameter-index-signature">
+										<h5><span class="tsd-signature-symbol">[</span>id: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><a href="interfaces/instanceevent.html" class="tsd-signature-type">InstanceEvent</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h5>
+									</li>
+								</ul>
+							</li>
+							<li>
+								<h5>allowMerge: <span class="tsd-signature-type">boolean</span></h5>
+							</li>
+							<li>
+								<h5><span class="tsd-flag ts-flagDefault value">Default value</span> allowZeroGaps: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">{ </span>activeInstanceId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">; </span>returnInstance<span class="tsd-signature-symbol">: </span><a href="interfaces/timelineobjectinstance.html" class="tsd-signature-type">TimelineObjectInstance</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> }</span></h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter">
+								<h5>active<wbr>Instance<wbr>Id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></h5>
+							</li>
+							<li class="tsd-parameter">
+								<h5>return<wbr>Instance<span class="tsd-signature-symbol">: </span><a href="interfaces/timelineobjectinstance.html" class="tsd-signature-type">TimelineObjectInstance</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></h5>
+							</li>
+						</ul>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-function tsd-is-external">
 				<a name="initializecache" class="tsd-anchor"></a>
 				<h3>initialize<wbr>Cache</h3>
 				<ul class="tsd-signatures tsd-kind-function tsd-is-external">
@@ -3942,7 +4000,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/cache.ts#L9">resolver/cache.ts:9</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/cache.ts#L9">resolver/cache.ts:9</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3971,7 +4029,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/expression.ts#L9">resolver/expression.ts:9</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/expression.ts#L9">resolver/expression.ts:9</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3985,7 +4043,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/expression.ts#L10">resolver/expression.ts:10</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/expression.ts#L10">resolver/expression.ts:10</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3999,7 +4057,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/expression.ts#L11">resolver/expression.ts:11</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/expression.ts#L11">resolver/expression.ts:11</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -4013,7 +4071,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/expression.ts#L12">resolver/expression.ts:12</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/expression.ts#L12">resolver/expression.ts:12</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -4036,7 +4094,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/lib.ts#L235">lib.ts:235</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L326">lib.ts:326</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -4059,7 +4117,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/lib.ts#L37">lib.ts:37</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L37">lib.ts:37</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -4082,7 +4140,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/expression.ts#L88">resolver/expression.ts:88</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/expression.ts#L88">resolver/expression.ts:88</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -4105,7 +4163,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/lib.ts#L49">lib.ts:49</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L49">lib.ts:49</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -4128,7 +4186,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/lib.ts#L533">lib.ts:533</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L630">lib.ts:630</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -4151,7 +4209,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/state.ts#L600">resolver/state.ts:600</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/state.ts#L600">resolver/state.ts:600</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -4174,7 +4232,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/lib.ts#L588">lib.ts:588</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L685">lib.ts:685</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -4197,7 +4255,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/lib.ts#L542">lib.ts:542</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L639">lib.ts:639</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -4220,7 +4278,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/resolver.ts#L585">resolver/resolver.ts:585</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/resolver.ts#L579">resolver/resolver.ts:579</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -4271,7 +4329,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/cache.ts#L19">resolver/cache.ts:19</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/cache.ts#L19">resolver/cache.ts:19</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -4294,7 +4352,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/lib.ts#L283">lib.ts:283</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L374">lib.ts:374</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -4351,7 +4409,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/lib.ts#L608">lib.ts:608</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L705">lib.ts:705</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -4368,7 +4426,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/state.ts#L43">resolver/state.ts:43</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/state.ts#L43">resolver/state.ts:43</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -4397,7 +4455,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/resolver.ts#L308">resolver/resolver.ts:308</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/resolver.ts#L308">resolver/resolver.ts:308</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -4423,7 +4481,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/lib.ts#L611">lib.ts:611</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L708">lib.ts:708</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -4449,7 +4507,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/lib.ts#L619">lib.ts:619</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L716">lib.ts:716</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -4475,7 +4533,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/state.ts#L537">resolver/state.ts:537</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/state.ts#L537">resolver/state.ts:537</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -4507,7 +4565,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/expression.ts#L50">resolver/expression.ts:50</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/expression.ts#L50">resolver/expression.ts:50</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -4539,7 +4597,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/lib.ts#L55">lib.ts:55</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/lib.ts#L55">lib.ts:55</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -4568,7 +4626,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/resolver.ts#L554">resolver/resolver.ts:554</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/resolver.ts#L548">resolver/resolver.ts:548</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -4594,7 +4652,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/expression.ts#L159">resolver/expression.ts:159</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/expression.ts#L159">resolver/expression.ts:159</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -4628,7 +4686,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/validate.ts#L152">resolver/validate.ts:152</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/validate.ts#L152">resolver/validate.ts:152</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -4662,7 +4720,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/validate.ts#L83">resolver/validate.ts:83</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/validate.ts#L83">resolver/validate.ts:83</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -4691,7 +4749,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/validate.ts#L144">resolver/validate.ts:144</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/validate.ts#L144">resolver/validate.ts:144</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -4725,7 +4783,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/validate.ts#L10">resolver/validate.ts:10</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/validate.ts#L10">resolver/validate.ts:10</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -4754,7 +4812,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/validate.ts#L132">resolver/validate.ts:132</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/validate.ts#L132">resolver/validate.ts:132</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -4791,7 +4849,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/expression.ts#L96">resolver/expression.ts:96</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/expression.ts#L96">resolver/expression.ts:96</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -4817,7 +4875,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/expression.ts#L133">resolver/expression.ts:133</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/expression.ts#L133">resolver/expression.ts:133</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -4843,7 +4901,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/779d09a/src/resolver/expression.ts#L106">resolver/expression.ts:106</a></li>
+								<li>Defined in <a href="https://github.com/SuperFlyTV/supertimeline/blob/fec551e/src/resolver/expression.ts#L106">resolver/expression.ts:106</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
