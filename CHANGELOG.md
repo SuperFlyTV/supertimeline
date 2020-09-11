@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [8.1.1](https://github.com/SuperFlyTV/supertimeline/compare/8.1.0...8.1.1) (2020-09-11)
+
+
+### Bug Fixes
+
+* in child objects; when end is a constant, it should refer to parent (independently of what start is set to be) ([af66705](https://github.com/SuperFlyTV/supertimeline/commit/af667058d389dd33daee3c17e5697d99b17f0173))
+
 ## [8.1.0](https://github.com/SuperFlyTV/supertimeline/compare/8.0.0...8.1.0) (2020-08-14)
 
 
