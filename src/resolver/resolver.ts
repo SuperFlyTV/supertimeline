@@ -353,7 +353,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 
 		let parentInstances: TimelineObjectInstance[] | null = null
 		let hasParent: boolean = false
-		let referToParent: boolean = false
+		let startRefersToParent: boolean = false
 		if (obj.resolved.parentId) {
 			hasParent = true
 
@@ -368,14 +368,14 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 
 			if (isConstant(startExpr)) {
 				// Only use parent if the expression resolves to a number (ie doesn't contain any references)
-				referToParent = true
+				startRefersToParent = true
 			}
 		}
 		const lookupStart = lookupExpression(resolvedTimeline, obj, startExpr, 'start')
 		let lookedupStarts = lookupStart.instances
 		directReferences = directReferences.concat(lookupStart.allReferences)
 
-		if (referToParent) {
+		if (startRefersToParent) {
 			lookedupStarts = applyParentInstances(parentInstances, lookedupStarts)
 		}
 
@@ -413,13 +413,20 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 			}
 
 			if (enable.end !== undefined) {
-
 				const endExpr: Expression = interpretExpression(enable.end)
+				let endRefersToParent: boolean = false
+				if (obj.resolved.parentId) {
+					if (isConstant(endExpr)) {
+						// Only use parent if the expression resolves to a number (ie doesn't contain any references)
+						endRefersToParent = true
+					}
+				}
+
 				// lookedupEnds will contain an inverted list of instances. Therefore .start means an end
 				const lookupEnd = endExpr ? lookupExpression(resolvedTimeline, obj, endExpr, 'end') : null
 				let lookedupEnds = lookupEnd ? lookupEnd.instances : null
 				if (lookupEnd) directReferences = directReferences.concat(lookupEnd.allReferences)
-				if (referToParent && isConstant(endExpr)) {
+				if (endRefersToParent) {
 					lookedupEnds = applyParentInstances(parentInstances, lookedupEnds)
 				}
 				if (_.isArray(lookedupEnds)) {
