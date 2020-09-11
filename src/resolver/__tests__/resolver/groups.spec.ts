@@ -683,4 +683,120 @@ describe('Resolver, groups', () => {
 			end: 160
 		})
 	})
+	test('Child object with end time - numeric start', () => {
+		const baseTime = 1599753027264.5 // Some real point in time
+		const timeline: TimelineObject[] = [
+			{
+				id: 'grp0',
+				enable: {
+					start: baseTime
+				},
+				layer: 'parent',
+				content: {},
+				isGroup: true,
+				children: [
+					{
+						id: 'obj0',
+						content: {},
+						enable: {
+							start: 0,
+							duration: 480
+						},
+						layer: 'layer0'
+					},
+					{
+						id: 'obj1',
+						content: {},
+						enable: {
+							start: 0,
+							end: 86400000
+						},
+						layer: 'layer1'
+					}
+				]
+			}
+		]
+
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: baseTime + 1000, limitCount: 10, limitTime: 999 }))
+		expect(resolved.statistics.resolvedObjectCount).toEqual(3)
+
+		// // All 3 videos should start at the same time:
+		expect(resolved.objects['grp0']).toBeTruthy()
+		expect(resolved.objects['obj0']).toBeTruthy()
+		expect(resolved.objects['obj1']).toBeTruthy()
+		expect(resolved.objects['grp0'].resolved.instances).toHaveLength(1)
+		expect(resolved.objects['obj0'].resolved.instances).toHaveLength(1)
+		expect(resolved.objects['obj1'].resolved.instances).toHaveLength(1)
+
+		expect(resolved.objects['grp0'].resolved.instances[0]).toMatchObject({
+			start: baseTime,
+			end: null
+		})
+		expect(resolved.objects['obj0'].resolved.instances[0]).toMatchObject({
+			start: baseTime,
+			end: baseTime + 480
+		})
+		expect(resolved.objects['obj1'].resolved.instances[0]).toMatchObject({
+			start: baseTime,
+			end: baseTime + 86400000
+		})
+	})
+	test('Child object with end time - reference start', () => {
+		const baseTime = 1599753027264.5 // Some real point in time
+		const timeline: TimelineObject[] = [
+			{
+				id: 'grp0',
+				enable: {
+					start: baseTime
+				},
+				layer: 'parent',
+				content: {},
+				isGroup: true,
+				children: [
+					{
+						id: 'obj0',
+						content: {},
+						enable: {
+							start: 0,
+							duration: 480
+						},
+						layer: 'layer0'
+					},
+					{
+						id: 'obj1',
+						content: {},
+						enable: {
+							start: '#obj0.start + 0',
+							end: 86400000
+						},
+						layer: 'layer1'
+					}
+				]
+			}
+		]
+
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: baseTime + 1000, limitCount: 10, limitTime: 999 }))
+		expect(resolved.statistics.resolvedObjectCount).toEqual(3)
+
+		// // All 3 videos should start at the same time:
+		expect(resolved.objects['grp0']).toBeTruthy()
+		expect(resolved.objects['obj0']).toBeTruthy()
+		expect(resolved.objects['obj1']).toBeTruthy()
+		expect(resolved.objects['grp0'].resolved.instances).toHaveLength(1)
+		expect(resolved.objects['obj0'].resolved.instances).toHaveLength(1)
+		expect(resolved.objects['obj1'].resolved.instances).toHaveLength(1)
+
+		expect(resolved.objects['grp0'].resolved.instances[0]).toMatchObject({
+			start: baseTime,
+			end: null
+		})
+		expect(resolved.objects['obj0'].resolved.instances[0]).toMatchObject({
+			start: baseTime,
+			end: baseTime + 480
+		})
+		expect(resolved.objects['obj1'].resolved.instances[0]).toMatchObject({
+			start: baseTime,
+			end: baseTime + 86400000
+		})
+	})
 })
