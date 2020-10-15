@@ -494,13 +494,13 @@ describe('Resolver, groups', () => {
 		expect(states0.layers['42']).toBeFalsy()
 		expect(states1.layers['42']).toBeFalsy()
 
-		const omitReferences = (instances: TimelineObjectInstance[]) => {
-			return _.map(instances, i => _.omit(i, ['references']))
+		const omitProperties = (instances: TimelineObjectInstance[]) => {
+			return _.map(instances, i => _.omit(i, ['references', 'originalEnd', 'originalStart']))
 		}
 		expect(
-			omitReferences(resolved0.objects['refChild0'].resolved.instances)
+			omitProperties(resolved0.objects['refChild0'].resolved.instances)
 		).toEqual(
-			omitReferences(resolved1.objects['refChild0'].resolved.instances)
+			omitProperties(resolved1.objects['refChild0'].resolved.instances)
 		)
 	})
 	test('Content start time in capped object', () => {

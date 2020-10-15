@@ -411,19 +411,19 @@ describe('lib', () => {
 	test('capInstances', () => {
 
 		expect(capInstances([
-			{ id: '%a', start: 10, end: 20, references: ['abc'] },
+			{ id: '%a', start: 10, end: 20, references: ['abc'] }
 		], [
-			{ id: '%x', start: 1, end: 100, references: ['def'] },
+			{ id: '%x', start: 1, end: 100, references: ['def'] }
 		])).toMatchObject([
-			{ id: '%a', start: 10, end: 20, references: ['abc', 'def'] },
+			{ id: '%a', start: 10, end: 20, references: ['abc', 'def'] }
 		])
 
 		expect(capInstances([
-			{ id: '%a', start: 10, end: 100, references: ['abc'] },
+			{ id: '%a', start: 10, end: 100, references: ['abc'] }
 		], [
-			{ id: '%x', start: 50, end: 60, references: ['def'] },
+			{ id: '%x', start: 50, end: 60, references: ['def'] }
 		])).toMatchObject([
-			{ id: '%a', start: 50, end: 60, references: ['abc', 'def'], originalStart: 10, originalEnd: 100 },
+			{ id: '%a', start: 50, end: 60, references: ['abc', 'def'], originalStart: 10, originalEnd: 100 }
 		])
 
 		expect(capInstances([
