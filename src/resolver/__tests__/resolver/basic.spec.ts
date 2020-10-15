@@ -658,6 +658,48 @@ describe('Resolver, basic', () => {
 			}])
 		}
 	})
+	test('References', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'a',
+				layer: 'a',
+				priority: 0,
+				enable: {
+					start: '100', // 100
+					duration: 100 // 200
+				},
+				content: {},
+				classes: [ 'a']
+			},
+			{
+				id: 'b',
+				layer: 'b',
+				priority: 0,
+				enable: {
+					start: '150', // 200
+					duration: 100 // 300
+				},
+				content: {},
+				classes: [ 'b' ]
+			},
+			{
+				id: 'test0',
+				layer: 'test0',
+				priority: 0,
+				enable: {
+					while: '.a & !.b'
+				},
+				content: {}
+			}
+		]
+		const resolved0 = Resolver.resolveTimeline(timeline, { time: 0, limitCount: 10, limitTime: 999 })
+		const resolved = Resolver.resolveAllStates(resolved0)
+
+		expect(resolved.objects['test0'].resolved.instances).toMatchObject([
+			{ start: 100, end: 150 }
+		])
+
+	})
 	test('Continuous combined negated and normal classes on different objects', () => {
 		// https://github.com/SuperFlyTV/supertimeline/pull/57
 		const timeline: TimelineObject[] = [
@@ -718,29 +760,58 @@ describe('Resolver, basic', () => {
 				classes: [ 'playout' ]
 			}
 		]
-
-		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitCount: 10, limitTime: 999 }))
+		const resolved0 = Resolver.resolveTimeline(timeline, { time: 0, limitCount: 10, limitTime: 999 })
+		const resolved = Resolver.resolveAllStates(resolved0)
 
 		expect(resolved.statistics.resolvedObjectCount).toEqual(4)
 
+		expect(resolved.objects['parent'].resolved.instances).toMatchObject([
+			{ start: 0, end: null }
+		])
+		expect(resolved.objects['muted_playout1'].resolved.instances).toMatchObject([
+			{ start: 100, end: 200 }
+		])
+		expect(resolved.objects['muted_playout2'].resolved.instances).toMatchObject([
+			{ start: 200, end: 300 }
+		])
+		expect(resolved.objects['unmuted_playout1'].resolved.instances).toMatchObject([
+			{ start: 300, end: 400 }
+		])
+
+		expect(resolved.objects['kf0'].resolved.instances).toMatchObject([
+			{ start: 300, end: 400 }
+
+		])
+
 		// first everything is normal
-		expect(Resolver.getState(resolved, 50).layers['p0'].content).toMatchObject({
-			val: 1
+		expect(Resolver.getState(resolved, 50).layers).toMatchObject({
+			'p0': {
+				content: { val: 1 }
+			}
 		})
 
 		// then we have muted playout
-		expect(Resolver.getState(resolved, 150).layers['p0'].content).toMatchObject({
-			val: 1
+		expect(Resolver.getState(resolved, 150).layers).toMatchObject({
+			'p0': {
+				content: { val: 1 }
+			},
+			'2': { id: 'muted_playout1' }
 		})
 
 		// then we have muted playout again
-		expect(Resolver.getState(resolved, 250).layers['p0'].content).toMatchObject({
-			val: 1
+		expect(Resolver.getState(resolved, 250).layers).toMatchObject({
+			'p0': {
+				content: { val: 1 }
+			},
+			'2': { id: 'muted_playout2' }
 		})
 
 		// only then we have unmuted playout
-		expect(Resolver.getState(resolved, 350).layers['p0'].content).toMatchObject({
-			val: 2
+		expect(Resolver.getState(resolved, 350).layers).toMatchObject({
+			'p0': {
+				content: { val: 2 }
+			},
+			'2': { id: 'unmuted_playout1' }
 		})
 
 	})

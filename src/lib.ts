@@ -85,8 +85,6 @@ export function cleanInstances (
 	if (instances.length <= 1) {
 		const instance = instances[0]
 		if (!instance.end) instance.end = null
-		instance.originalEnd = instance.end
-		instance.originalStart = instance.start
 		return [instance]
 	}
 
@@ -218,7 +216,7 @@ function handleActiveInstances (
 	activeInstanceId: string | null
 	returnInstance: TimelineObjectInstance | null
 } {
-	let returnInstance = null
+	let returnInstance: TimelineObjectInstance | null = null
 	if (
 		!allowMerge &&
 		event.value &&
@@ -233,7 +231,10 @@ function handleActiveInstances (
 			id: getId(),
 			start: event.time,
 			end: null,
-			references: event.references
+			references: event.references,
+			originalEnd: event.data.instance.originalEnd,
+			originalStart: event.data.instance.originalStart
+
 		}
 		activeInstanceId = eventId
 	} else if (
@@ -267,7 +268,9 @@ function handleActiveInstances (
 				id: eventId + '_' + getId(),
 				start: event.time,
 				end: null,
-				references: latestInstance.event.references
+				references: latestInstance.event.references,
+				originalEnd: event.data.instance.originalEnd,
+				originalStart: event.data.instance.originalStart
 			}
 			activeInstanceId = latestInstance.id
 		}
@@ -293,7 +296,9 @@ function handleActiveInstances (
 			start: event.time,
 			end: null,
 			references: event.references,
-			caps: event.data.instance.caps
+			caps: event.data.instance.caps,
+			originalEnd: event.data.instance.originalEnd,
+			originalStart: event.data.instance.originalStart
 		}
 		activeInstanceId = eventId
 	} else {
@@ -315,6 +320,9 @@ function handleActiveInstances (
 		lastInstance.end = returnInstance.end
 		lastInstance.references = returnInstance.references
 		lastInstance.caps = returnInstance.caps
+		lastInstance.originalStart = returnInstance.originalStart
+		lastInstance.originalEnd = returnInstance.originalEnd
+
 		returnInstance = null
 	}
 
@@ -339,7 +347,8 @@ export function invertInstances (
 				references: joinReferences(instances[0].references, instances[0].id)
 			})
 		}
-		_.each(instances, (instance) => {
+		for (let i = 0; i < instances.length; i++) {
+			const instance = instances[i]
 			const last = _.last(invertedInstances)
 			if (last) {
 				last.end = instance.start
@@ -353,7 +362,7 @@ export function invertInstances (
 					caps: instance.caps
 				})
 			}
-		})
+		}
 		return invertedInstances
 	} else {
 		return [{
@@ -499,7 +508,9 @@ export function applyRepeatingInstances (
 		}]
 	}
 	const repeatedInstances: TimelineObjectInstance[] = []
-	_.each(instances, (instance) => {
+	for (let i = 0; i < instances.length; i++) {
+		const instance = instances[i]
+
 		let startTime = Math.max(
 			options.time - (options.time - instance.start) % repeatTime,
 			instance.start
@@ -545,7 +556,7 @@ export function applyRepeatingInstances (
 			startTime += repeatTime
 			if (endTime !== null) endTime += repeatTime
 		}
-	})
+	}
 	return cleanInstances(repeatedInstances, false)
 }
 /**
@@ -562,69 +573,61 @@ export function capInstances (
 		parentInstances === null
 	) return instances
 
-	const returnInstances: TimelineObjectInstance[] = []
+	let returnInstances: TimelineObjectInstance[] = []
 	for (let i = 0; i < instances.length; i++) {
-		const instance = instances[i]
+		const instanceOrg: TimelineObjectInstance = instances[i]
 
-		let parent: TimelineObjectInstance | null = null
+		// let instanceParents: TimelineObjectInstance[] | null = null
 
 		for (let j = 0; j < parentInstances.length; j++) {
-			const p = parentInstances[j]
-			if (
-				(
-					instance.start >= p.start &&
-					instance.start < (p.end || Infinity)
-				) || (
-					instance.start < p.start &&
-					(instance.end || Infinity) > (p.end || Infinity)
-				)
-			) {
-				if (
-					parent === null ||
-					(p.end || Infinity) > (parent.end || Infinity)
-				) {
-					parent = p
-				}
-			}
-		}
-		if (!parent) {
-			for (let j = 0; j < parentInstances.length; j++) {
-				const p = parentInstances[j]
-				if (
-					(
-						(instance.end || Infinity) > p.start &&
-						(instance.end || Infinity) <= (p.end || Infinity)
-					) || (
-						p.start === p.end &&
-						instance.start <= p.start &&
-						(instance.end || Infinity) >= p.end
-					)
-				) {
-					if (
-						parent === null ||
-						(p.end || Infinity) < (parent.end || Infinity)
-					) {
-						parent = p
-					}
-				}
-			}
-		}
-		if (parent) {
-			const parent2: TimelineObjectInstance = parent // cast type
-			const i2 = _.clone(instance)
-			if (
-				parent2.end !== null &&
-				(i2.end || Infinity) > parent2.end
-			) {
-				setInstanceEndTime(i2, parent2.end)
-			}
-			if ((i2.start || Infinity) < parent2.start) {
-				setInstanceStartTime(i2, parent2.start)
-			}
+			const parent = parentInstances[j]
 
-			returnInstances.push(i2)
+			// First, check if the instance crosses the parent at all:
+			if (
+				instanceOrg.start <= (parent.end || Infinity) &&
+				(instanceOrg.end || Infinity) >= parent.start
+			) {
+				const instance = _.clone(instanceOrg)
+
+				// Cap start
+				if (instance.start < parent.start) {
+					setInstanceStartTime(instance, parent.start)
+				}
+				// Cap end
+				if (parent.end !== null && (instance.end || Infinity) > (parent.end || Infinity)) {
+					setInstanceEndTime(instance, parent.end)
+				}
+
+				if (
+					instance.start >= parent.start &&
+					(instance.end || Infinity) <= (parent.end || Infinity)
+				) {
+					// The instance is within the parent
+					instance.references = joinReferences(instance.references, parent.references)
+					returnInstances.push(instance)
+				}
+			}
 		}
 	}
+
+	returnInstances.sort((a, b) => a.start - b.start)
+
+	// Ensure unique ids:
+	const ids: {[id: string]: number} = {}
+	for (let i = 0; i < returnInstances.length; i++) {
+		const instance = returnInstances[i]
+
+		// tslint:disable-next-line
+		if (ids[instance.id] !== undefined) {
+			instance.id = instance.id + (++ids[instance.id])
+		} else {
+			ids[instance.id] = 0
+		}
+	}
+
+	// Clean up the instances, to remove duplicates
+	returnInstances = cleanInstances(returnInstances, true, true)
+
 	return returnInstances
 }
 export function isReference (ref: any): ref is ValueWithReference {
@@ -666,7 +669,9 @@ export function joinReferences (...references: Array<Array<string> | string>): A
 export function addCapsToResuming (instance: TimelineObjectInstance, ...caps: Array<Array<Cap> | undefined>): void {
 
 	const capsToAdd: Cap[] = []
-	_.each(joinCaps(...caps), (cap) => {
+	const joinedCaps = joinCaps(...caps)
+	for (let i = 0; i < joinedCaps.length; i++) {
+		const cap = joinedCaps[i]
 
 		if (
 			cap.end &&
@@ -679,7 +684,7 @@ export function addCapsToResuming (instance: TimelineObjectInstance, ...caps: Ar
 				end: cap.end
 			})
 		}
-	})
+	}
 	instance.caps = joinCaps(instance.caps, capsToAdd)
 }
 export function joinCaps (...caps: Array<Array<Cap> | undefined>): Array<Cap> {

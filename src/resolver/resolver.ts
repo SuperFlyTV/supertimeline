@@ -250,9 +250,9 @@ export class Resolver {
 						}
 					}
 				}
-				_.each(Object.keys(changedReferences), reference => {
+				for (const reference of Object.keys(changedReferences)) {
 					invalidateObjectsWithReference(reference, affectReferenceMap, validObjects)
-				})
+				}
 				// The objects that are left in validObjects at this point are still valid.
 				// We can reuse the old resolving for those:
 				_.each(validObjects, (obj: ResolvedTimelineObject) => {
@@ -320,8 +320,8 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 		obj.enable :
 		[obj.enable]
 	)
-
-	_.each(enables, enable => {
+	for (let i = 0; i < enables.length; i++) {
+		const enable = enables[i]
 		let newInstances: Array<TimelineObjectInstance> = []
 
 		const repeatingExpr: Expression | null = (
@@ -395,14 +395,15 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 			let iStart: number = 0
 			let iEnd: number = 0
 			if (_.isArray(lookedupStarts)) {
-				_.each(lookedupStarts, (instance) => {
+				for (let i = 0; i < lookedupStarts.length; i++) {
+					const instance = lookedupStarts[i]
 					events.push({
 						time: instance.start,
 						value: true,
 						data: { instance: instance, id: obj.id + '_' + iStart++ },
 						references: instance.references
 					})
-				})
+				}
 			} else if (lookedupStarts !== null) {
 				events.push({
 					time: lookedupStarts.value,
@@ -430,14 +431,15 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 					lookedupEnds = applyParentInstances(parentInstances, lookedupEnds)
 				}
 				if (_.isArray(lookedupEnds)) {
-					_.each(lookedupEnds, (instance) => {
+					for (let i = 0; i < lookedupEnds.length; i++) {
+						const instance = lookedupEnds[i]
 						events.push({
 							time: instance.start,
 							value: false,
 							data: { instance: instance, id: obj.id + '_' + iEnd++ },
 							references: instance.references
 						})
-					})
+					}
 				} else if (lookedupEnds !== null) {
 					events.push({
 						time: lookedupEnds.value,
@@ -471,7 +473,10 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 					) lookedupDuration.value = lookedupRepeating.value
 
 					const tmpLookedupDuration: ValueWithReference = lookedupDuration // cast type
-					_.each(events, (e) => {
+
+					for (let i = 0; i < events.length; i++) {
+						const e = events[i]
+
 						if (e.value) {
 							const time = e.time + tmpLookedupDuration.value
 							const references = joinReferences(e.references, tmpLookedupDuration.references)
@@ -482,7 +487,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 								references: references
 							})
 						}
-					})
+					}
 				}
 			}
 			newInstances = convertEventsToInstances(events, false)
@@ -542,7 +547,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 			resolvedTimeline.options
 		)
 		instances = instances.concat(newInstances)
-	})
+	}
 
 	obj.resolved.resolved = true
 	obj.resolved.resolving = false
@@ -733,9 +738,10 @@ export function lookupExpression (
 					}
 				}
 				let firstDuration: ValueWithReference | null = null
-				_.each(instanceDurations, (d) => {
+				for (let i = 0; i < instanceDurations.length; i++) {
+					const d: ValueWithReference = instanceDurations[i]
 					if (firstDuration === null || d.value < firstDuration.value) firstDuration = d
-				})
+				}
 				return { instances: firstDuration, allReferences: allReferences }
 			} else {
 				let returnInstances: TimelineObjectInstance[] = []
@@ -747,7 +753,8 @@ export function lookupExpression (
 					ignoreFirstIfZero = true
 				} else throw Error(`Unknown ref: "${ref}"`)
 
-				_.each(referencedObjs, (referencedObj: ResolvedTimelineObject) => {
+				for (let i = 0; i < referencedObjs.length; i++) {
+					const referencedObj: ResolvedTimelineObject = referencedObjs[i]
 					resolveTimelineObj(resolvedTimeline, referencedObj)
 					if (referencedObj.resolved.resolved) {
 						if (
@@ -760,7 +767,8 @@ export function lookupExpression (
 							returnInstances = returnInstances.concat(referencedObj.resolved.instances)
 						}
 					}
-				})
+				}
+
 				if (returnInstances.length) {
 
 					if (invert) {
@@ -828,28 +836,30 @@ export function lookupExpression (
 					}
 					let events: Array<SideEvent> = []
 					const addEvents = (instances: Array<TimelineObjectInstance>, left: boolean) => {
-						_.each(instances, (instance) => {
-							if (instance.start === instance.end) return // event doesn't actually exist...
+						for (let i = 0; i < instances.length; i++) {
+							const instance = instances[i]
+							if (instance.start !== instance.end) { // event doesn't actually exist...
 
-							events.push({
-								left: left,
-								time: instance.start,
-								value: true,
-								references: [], // not used
-								data: true,
-								instance: instance
-							})
-							if (instance.end !== null) {
 								events.push({
 									left: left,
-									time: instance.end,
-									value: false,
+									time: instance.start,
+									value: true,
 									references: [], // not used
-									data: false,
+									data: true,
 									instance: instance
 								})
+								if (instance.end !== null) {
+									events.push({
+										left: left,
+										time: instance.end,
+										value: false,
+										references: [], // not used
+										data: false,
+										instance: instance
+									})
+								}
 							}
-						})
+						}
 					}
 					if (_.isArray(lookupExpr.l)) addEvents(lookupExpr.l, true)
 					if (_.isArray(lookupExpr.r)) addEvents(lookupExpr.r, false)

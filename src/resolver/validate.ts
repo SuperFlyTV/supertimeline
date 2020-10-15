@@ -30,7 +30,8 @@ function validateObject0 (obj: TimelineObject, strict?: boolean, uniqueIds?: Ids
 		obj.enable :
 		[obj.enable]
 	)
-	_.each(enables, enable => {
+	for (let i = 0; i < enables.length; i++) {
+		const enable = enables[i]
 
 		if (enable.start !== undefined) {
 			if (strict && enable.while !== undefined) throw new Error(`Object "${obj.id}": "enable.start" and "enable.while" cannot be combined`)
@@ -47,7 +48,7 @@ function validateObject0 (obj: TimelineObject, strict?: boolean, uniqueIds?: Ids
 			if (strict && enable.duration !== undefined) throw new Error(`Object "${obj.id}": "enable.while" and "enable.duration" cannot be combined`)
 
 		} else throw new Error(`Object "${obj.id}": "enable.start" or "enable.while" must be set`)
-	})
+	}
 	if (obj.keyframes) {
 		for (let i = 0; i < obj.keyframes.length; i++) {
 			const keyframe = obj.keyframes[i]
@@ -99,7 +100,9 @@ function validateKeyframe0 (keyframe: TimelineKeyframe, strict?: boolean, unique
 		keyframe.enable :
 		[keyframe.enable]
 	)
-	_.each(enables, enable => {
+	for (let i = 0; i < enables.length; i++) {
+		const enable = enables[i]
+
 		if (enable.start !== undefined) {
 			if (strict && enable.while !== undefined) throw new Error(`Keyframe "${keyframe.id}": "enable.start" and "enable.while" cannot be combined`)
 
@@ -115,7 +118,7 @@ function validateKeyframe0 (keyframe: TimelineKeyframe, strict?: boolean, unique
 			if (strict && enable.duration !== undefined) throw new Error(`Keyframe "${keyframe.id}": "enable.while" and "enable.duration" cannot be combined`)
 
 		} else throw new Error(`Keyframe "${keyframe.id}": "enable.start" or "enable.while" must be set`)
-	})
+	}
 	if (keyframe.classes) {
 		for (let i = 0; i < keyframe.classes.length; i++) {
 			const className = keyframe.classes[i]

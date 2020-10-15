@@ -420,4 +420,205 @@ describe('Resolver, keyframes', () => {
 			val2: 2
 		})
 	})
+
+	test('Keyframes in resuming objects 1', () => {
+		const timeline: TimelineObject[] = [
+			{
+				'id': 'obj0',
+				'enable': {
+					'start': 500.5
+				},
+				'priority': 0,
+				'layer': '0',
+				'content': {
+					'input': 6000
+				},
+				'keyframes': []
+			},
+			{
+				'id': 'obj1',
+				'enable': {
+					'start': 1,
+					'end': 500
+				},
+				'priority': 0.1,
+				'layer': '0',
+				'content': {
+					'input': 6001
+				},
+				'keyframes': []
+			},
+			{
+				'id': 'obj2',
+				'enable': {
+					'while': '1'
+				},
+				'priority': 0.05,
+				'layer': '0',
+				'content': {
+					'input': 1000
+				},
+				'keyframes': [
+					{
+						'id': 'kf0',
+						'enable': {
+							'start': '0',
+							'end': '2000'
+						},
+						'disabled': false,
+						'content': {
+							'input': 9
+						}
+					}
+				]
+			}
+		]
+
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitCount: 10, limitTime: 999 }))
+
+		expect(resolved.statistics.resolvedObjectCount).toEqual(3)
+		expect(resolved.statistics.unresolvedCount).toEqual(0)
+
+		expect(resolved.objects).toMatchObject({
+			'kf0': {
+				resolved: {
+					instances: [
+						{ start: 0, end: 1 },
+						{ start: 500, end: 500.5 },
+						{ start: 500.5, end: 2000 }
+					]
+				}
+			},
+			'obj2': {
+				resolved: {
+					instances: [
+						{ start: 0, end: 1 },
+						{ start: 500, end: 500.5 },
+						{ start: 500.5, end: null }
+					]
+				}
+			},
+			'obj1': {
+				resolved: {
+					instances: [
+						{ start: 1, end: 500 }
+					]
+				}
+			}
+		})
+
+		// Before obj1 end
+		const state = Resolver.getState(resolved, 490, 10)
+		expect(state.layers['0']).toBeTruthy()
+		expect(state.layers['0'].content).toEqual({
+			input: 6001
+		})
+
+		// After obj1 end
+		const state2 = Resolver.getState(resolved, 1000, 10)
+		expect(state2.layers['0']).toBeTruthy()
+		expect(state2.layers['0'].content).toEqual({
+			input: 9
+		})
+		// After kf0 end
+		const state3 = Resolver.getState(resolved, 3000, 10)
+		expect(state3.layers['0']).toBeTruthy()
+		expect(state3.layers['0'].content).toEqual({
+			input: 1000
+		})
+	})
+	test('Keyframes in resuming objects 1', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'obj0',
+				enable: {
+					start: 10,
+					end: 100
+				},
+				layer: '0',
+				content: {
+					input: 0
+				},
+				keyframes: [
+					{
+						id: 'kf0',
+						enable: {
+							while: '1'
+						},
+						disabled: false,
+						content: {
+							input: 99
+						}
+					}
+				]
+			},
+			{
+				id: 'obj1',
+				enable: {
+					start: 50,
+					end: 60
+				},
+				layer: '0',
+				content: {
+					input: 1
+				},
+				keyframes: []
+			}
+		]
+
+		const resolved = Resolver.resolveTimeline(timeline, { time: 0, limitCount: 10, limitTime: 999 })
+
+		expect(resolved.objects).toMatchObject({
+			'obj0': {
+				resolved: {
+					instances: [
+						{ start: 10, end: 100 }
+					]
+				}
+			},
+			'obj1': {
+				resolved: {
+					instances: [
+						{ start: 50, end: 60 }
+					]
+				}
+			},
+			'kf0': {
+				resolved: {
+					instances: [
+						{ start: 10, end: 100 }
+					]
+				}
+			}
+		})
+
+		const resolvedAllStates = Resolver.resolveAllStates(resolved)
+
+		expect(resolvedAllStates.objects).toMatchObject({
+			'obj0': {
+				resolved: {
+					instances: [
+						{ start: 10, end: 50 },
+						{ start: 60, end: 100 }
+					]
+				}
+			},
+			'obj1': {
+				resolved: {
+					instances: [
+						{ start: 50, end: 60 }
+					]
+				}
+			},
+			'kf0': {
+				resolved: {
+					instances: [
+						{ start: 10, end: 50 },
+						{ start: 60, end: 100 }
+					]
+				}
+			}
+		})
+
+	})
 })
