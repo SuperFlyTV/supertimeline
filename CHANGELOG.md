@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [8.1.2](https://github.com/SuperFlyTV/supertimeline/compare/8.1.1...8.1.2) (2020-10-15)
+
+
+### Bug Fixes
+
+* rewrite capInstances(), to fix issues with instances being split across multiple parent instances ([cdb5599](https://github.com/SuperFlyTV/supertimeline/commit/cdb5599aa98d8fbcbdf65fa52bde40785ef0e6b9))
+* rewrite of resolveStates() to handle keyframes inside split objects ([f412a9a](https://github.com/SuperFlyTV/supertimeline/commit/f412a9a3fef2b9b2f37b5102bdcec6fde2fe9d77))
+
 ### [8.1.1](https://github.com/SuperFlyTV/supertimeline/compare/8.1.0...8.1.1) (2020-09-11)
 
 
