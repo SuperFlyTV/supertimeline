@@ -421,7 +421,7 @@ describe('Resolver, keyframes', () => {
 		})
 	})
 
-	test('Keyframe TEST', () => {
+	test('Keyframes in resuming objects 1', () => {
 		const timeline: TimelineObject[] = [
 			{
 				'id': 'obj0',
@@ -462,7 +462,8 @@ describe('Resolver, keyframes', () => {
 					{
 						'id': 'kf0',
 						'enable': {
-							'while': '1'
+							'start': '0',
+							'end': '2000'
 						},
 						'disabled': false,
 						'content': {
@@ -478,6 +479,34 @@ describe('Resolver, keyframes', () => {
 		expect(resolved.statistics.resolvedObjectCount).toEqual(3)
 		expect(resolved.statistics.unresolvedCount).toEqual(0)
 
+		expect(resolved.objects).toMatchObject({
+			'kf0': {
+				resolved: {
+					instances: [
+						{ start: 0, end: 1 },
+						{ start: 500, end: 500.5 },
+						{ start: 500.5, end: 2000 }
+					]
+				}
+			},
+			'obj2': {
+				resolved: {
+					instances: [
+						{ start: 0, end: 1 },
+						{ start: 500, end: 500.5 },
+						{ start: 500.5, end: null }
+					]
+				}
+			},
+			'obj1': {
+				resolved: {
+					instances: [
+						{ start: 1, end: 500 }
+					]
+				}
+			}
+		})
+
 		// Before obj1 end
 		const state = Resolver.getState(resolved, 490, 10)
 		expect(state.layers['0']).toBeTruthy()
@@ -491,5 +520,105 @@ describe('Resolver, keyframes', () => {
 		expect(state2.layers['0'].content).toEqual({
 			input: 9
 		})
+		// After kf0 end
+		const state3 = Resolver.getState(resolved, 3000, 10)
+		expect(state3.layers['0']).toBeTruthy()
+		expect(state3.layers['0'].content).toEqual({
+			input: 1000
+		})
+	})
+	test('Keyframes in resuming objects 1', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'obj0',
+				enable: {
+					start: 10,
+					end: 100
+				},
+				layer: '0',
+				content: {
+					input: 0
+				},
+				keyframes: [
+					{
+						id: 'kf0',
+						enable: {
+							while: '1'
+						},
+						disabled: false,
+						content: {
+							input: 99
+						}
+					}
+				]
+			},
+			{
+				id: 'obj1',
+				enable: {
+					start: 50,
+					end: 60
+				},
+				layer: '0',
+				content: {
+					input: 1
+				},
+				keyframes: []
+			}
+		]
+
+		const resolved = Resolver.resolveTimeline(timeline, { time: 0, limitCount: 10, limitTime: 999 })
+
+		expect(resolved.objects).toMatchObject({
+			'obj0': {
+				resolved: {
+					instances: [
+						{ start: 10, end: 100 }
+					]
+				}
+			},
+			'obj1': {
+				resolved: {
+					instances: [
+						{ start: 50, end: 60 }
+					]
+				}
+			},
+			'kf0': {
+				resolved: {
+					instances: [
+						{ start: 10, end: 100 }
+					]
+				}
+			}
+		})
+
+		const resolvedAllStates = Resolver.resolveAllStates(resolved)
+
+		expect(resolvedAllStates.objects).toMatchObject({
+			'obj0': {
+				resolved: {
+					instances: [
+						{ start: 10, end: 50 },
+						{ start: 60, end: 100 }
+					]
+				}
+			},
+			'obj1': {
+				resolved: {
+					instances: [
+						{ start: 50, end: 60 }
+					]
+				}
+			},
+			'kf0': {
+				resolved: {
+					instances: [
+						{ start: 10, end: 50 },
+						{ start: 60, end: 100 }
+					]
+				}
+			}
+		})
+
 	})
 })
