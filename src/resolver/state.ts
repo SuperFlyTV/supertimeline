@@ -33,10 +33,13 @@ export function getState (resolved: ResolvedTimeline | ResolvedStates, time: Tim
 	}
 	if (eventLimit) state.nextEvents = state.nextEvents.slice(0, eventLimit)
 
-	_.each(_.keys(resolvedStates.layers), (layer: string) => {
+	const layerKeys = Object.keys(resolvedStates.layers)
+	for (let i = 0; i < layerKeys.length; i++) {
+		const layer = layerKeys[i]
+
 		const o = getStateAtTime(resolvedStates.state, layer, time)
 		if (o) state.layers[layer] = o
-	})
+	}
 
 	return state
 }
@@ -352,11 +355,13 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time, c
 							)
 						}
 						// Make the instance id unique:
-						_.each(newObj.resolved.instances, instance => {
+						for (let i = 0; i < newObj.resolved.instances.length; i++) {
+							const instance = newObj.resolved.instances[i]
+
 							if (instance.id === newInstance.id) {
 								newInstance.id = newInstance.id + '_$' + newObj.resolved.instances.length
 							}
-						})
+						}
 						newObj.resolved.instances.push(newInstance)
 
 						const newObjInstance = {
@@ -561,10 +566,10 @@ function getTimesFromParents (resolved: ResolvedTimeline, obj: ResolvedTimelineO
 		null
 	)
 	if (parentObj && parentObj.resolved.resolved) {
-		_.each(parentObj.resolved.instances, instance => {
+		for (const instance of parentObj.resolved.instances) {
 			times.push({ time: instance.start, enable: true })
 			if (instance.end) times.push({ time: instance.end, enable: false })
-		})
+		}
 		times = times.concat(getTimesFromParents(resolved, parentObj))
 	}
 	return times

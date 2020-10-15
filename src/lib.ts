@@ -347,7 +347,8 @@ export function invertInstances (
 				references: joinReferences(instances[0].references, instances[0].id)
 			})
 		}
-		_.each(instances, (instance) => {
+		for (let i = 0; i < instances.length; i++) {
+			const instance = instances[i]
 			const last = _.last(invertedInstances)
 			if (last) {
 				last.end = instance.start
@@ -361,7 +362,7 @@ export function invertInstances (
 					caps: instance.caps
 				})
 			}
-		})
+		}
 		return invertedInstances
 	} else {
 		return [{
@@ -507,7 +508,9 @@ export function applyRepeatingInstances (
 		}]
 	}
 	const repeatedInstances: TimelineObjectInstance[] = []
-	_.each(instances, (instance) => {
+	for (let i = 0; i < instances.length; i++) {
+		const instance = instances[i]
+
 		let startTime = Math.max(
 			options.time - (options.time - instance.start) % repeatTime,
 			instance.start
@@ -553,7 +556,7 @@ export function applyRepeatingInstances (
 			startTime += repeatTime
 			if (endTime !== null) endTime += repeatTime
 		}
-	})
+	}
 	return cleanInstances(repeatedInstances, false)
 }
 /**
@@ -666,7 +669,9 @@ export function joinReferences (...references: Array<Array<string> | string>): A
 export function addCapsToResuming (instance: TimelineObjectInstance, ...caps: Array<Array<Cap> | undefined>): void {
 
 	const capsToAdd: Cap[] = []
-	_.each(joinCaps(...caps), (cap) => {
+	const joinedCaps = joinCaps(...caps)
+	for (let i = 0; i < joinedCaps.length; i++) {
+		const cap = joinedCaps[i]
 
 		if (
 			cap.end &&
@@ -679,7 +684,7 @@ export function addCapsToResuming (instance: TimelineObjectInstance, ...caps: Ar
 				end: cap.end
 			})
 		}
-	})
+	}
 	instance.caps = joinCaps(instance.caps, capsToAdd)
 }
 export function joinCaps (...caps: Array<Array<Cap> | undefined>): Array<Cap> {

@@ -137,11 +137,13 @@ function words2Expression (operatorList: Array<string>, words: Array<any>): Expr
 
 	// Find the operator with the highest priority:
 	let operatorI = -1
-	_.each(operatorList,function (operator) {
+	for (let i = 0; i < operatorList.length; i++) {
+		const operator = operatorList[i]
+
 		if (operatorI === -1) {
 			operatorI = words.lastIndexOf(operator)
 		}
-	})
+	}
 
 	if (operatorI !== -1) {
 		const l = words.slice(0, operatorI)
