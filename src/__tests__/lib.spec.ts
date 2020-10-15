@@ -191,6 +191,26 @@ describe('lib', () => {
 			{ id: '%a', start: 1, end: null, references: ['a', 'b'] }
 		])
 	})
+	test('cleanInstances 3', () => {
+		expect(cleanInstances([
+			{ id: '%a', start: 50, end: 60, references: ['a'], originalStart: 10, originalEnd: 100 }
+		], true, true)).toEqual([
+			{ id: '%a', start: 50, end: 60, references: ['a'], originalStart: 10, originalEnd: 100 }
+		])
+		expect(cleanInstances([
+			{ id: '%b', start: 30, end: 40, references: [] },
+			{ id: '%c', start: 50, end: 55, references: [], originalEnd: 60 },
+			{ id: '%c1', start: 60, end: 60, references: [], originalStart: 50 },
+			{ id: '%d', start: 75, end: 80, references: [], originalStart: 70 },
+			{ id: '%e', start: 90, end: 95, references: [], originalEnd: 100 }
+		], true, true)).toEqual([
+			{ id: '%b', start: 30, end: 40, references: [], caps: undefined },
+			{ id: '%c', start: 50, end: 55, references: [], caps: undefined, originalEnd: 60 },
+			{ id: '%c1', start: 60, end: 60, references: [], caps: undefined, originalStart: 50 },
+			{ id: '%d', start: 75, end: 80, references: [], caps: undefined, originalStart: 70 },
+			{ id: '%e', start: 90, end: 95, references: [], caps: undefined, originalEnd: 100 }
+		])
+	})
 	test('convertEventsToInstances', () => {
 		expect(convertEventsToInstances([
 			{
@@ -391,37 +411,75 @@ describe('lib', () => {
 	test('capInstances', () => {
 
 		expect(capInstances([
-			{ id: '%a', start: 10, end: 20, references: [''] },
-			{ id: '%b', start: 30, end: 40, references: [''] },
-			{ id: '%c', start: 50, end: 60, references: [''] },
-			{ id: '%d', start: 70, end: 80, references: [''] },
-			{ id: '%e', start: 90, end: 100, references: [''] }
+			{ id: '%a', start: 10, end: 20, references: ['abc'] },
 		], [
-			{ id: '%x', start: 25, end: 55, references: [''] },
-			{ id: '%y', start: 60, end: 65, references: [''] },
-			{ id: '%z', start: 75, end: 95, references: [''] }
+			{ id: '%x', start: 1, end: 100, references: ['def'] },
 		])).toMatchObject([
-			{ id: '%b', start: 30, end: 40, references: [''] },
-			{ id: '%c', start: 50, end: 55, references: [''] }, // capped
-			// { id: '%d', start: 60, end: 60, references: [''] }, // ?
-			{ id: '%d', start: 75, end: 80, references: [''] }, // capped
-			{ id: '%e', start: 90, end: 95, references: [''] } // capped
+			{ id: '%a', start: 10, end: 20, references: ['abc', 'def'] },
 		])
 
 		expect(capInstances([
-			{ id: '%a', start: 10, end: 20, references: [''] }
+			{ id: '%a', start: 10, end: 100, references: ['abc'] },
 		], [
-			{ id: '%x', start: 15, end: 15, references: [''] }
+			{ id: '%x', start: 50, end: 60, references: ['def'] },
 		])).toMatchObject([
-			{ id: '%a', start: 15, end: 15, references: [''] } // capped
+			{ id: '%a', start: 50, end: 60, references: ['abc', 'def'], originalStart: 10, originalEnd: 100 },
 		])
 
 		expect(capInstances([
-			{ id: '%a', start: 10, end: null, references: [''] }
+			{ id: '%a', start: 10, end: 20, references: [] },
+			{ id: '%b', start: 30, end: 40, references: [] },
+			{ id: '%c', start: 50, end: 60, references: [] },
+			{ id: '%d', start: 70, end: 80, references: [] },
+			{ id: '%e', start: 90, end: 100, references: [] }
 		], [
-			{ id: '%x', start: 10, end: 10, references: [''] }
+			{ id: '%x', start: 25, end: 55, references: [] },
+			{ id: '%y', start: 60, end: 65, references: [] },
+			{ id: '%z', start: 75, end: 95, references: [] }
 		])).toMatchObject([
-			{ id: '%a', start: 10, end: 10, references: [''] } // capped
+			{ id: '%b', start: 30, end: 40, references: [] },
+			{ id: '%c', start: 50, end: 55, references: [], originalEnd: 60 }, // capped
+			{ id: '%c1', start: 60, end: 60, references: [] }, // ?
+			{ id: '%d', start: 75, end: 80, references: [] }, // capped
+			{ id: '%e', start: 90, end: 95, references: [] } // capped
+		])
+
+		expect(capInstances([
+			{ id: '%a', start: 10, end: 20, references: [] }
+		], [
+			{ id: '%x', start: 15, end: 15, references: [] }
+		])).toMatchObject([
+			{ id: '%a', start: 15, end: 15, references: [] } // capped
+		])
+
+		expect(capInstances([
+			{ id: '%a', start: 10, end: null, references: [] }
+		], [
+			{ id: '%x', start: 10, end: 10, references: [] }
+		])).toMatchObject([
+			{ id: '%a', start: 10, end: 10, references: [] } // capped
+		])
+
+		expect(capInstances([
+			{ id: '%a', start: 0, end: null, references: [] }
+		], [
+			{ id: '%x', start: 10, end: 20, references: [] },
+			{ id: '%y', start: 30, end: 31, references: [] },
+			{ id: '%z', start: 31, end: 50, references: [] }
+		])).toMatchObject([
+			{ id: '%a', start: 10, end: 20, references: [] }, // capped
+			{ id: '%a1', start: 30, end: 31, references: [] }, // capped
+			{ id: '%a2', start: 31, end: 50, references: [] } // capped
+		])
+
+		expect(capInstances([
+			{ id: '%a', start: 0, end: null, references: [] }
+		], [
+			{ id: '%x', start: 10, end: 50, references: [] },
+			{ id: '%y', start: 20, end: 100, references: [] }
+		])).toMatchObject([
+			{ id: '%a', start: 10, end: 100, references: [] } // capped
+			// { id: '%a1', start: 50, end: 100, references: [] }, // capped
 		])
 	})
 })
