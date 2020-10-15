@@ -17,7 +17,7 @@ import {
 import * as _ from 'underscore'
 import { addObjectToResolvedTimeline } from './common'
 import { EventType } from '../api/enums'
-import { setInstanceEndTime } from '../lib'
+import { capInstances, setInstanceEndTime } from '../lib'
 
 export function getState (resolved: ResolvedTimeline | ResolvedStates, time: Time, eventLimit: number = 0): TimelineState {
 	const resolvedStates: ResolvedStates = (
@@ -94,76 +94,78 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time, c
 		if (!pointsInTime[time + '']) pointsInTime[time + ''] = []
 		pointsInTime[time + ''].push({ obj, instance, enable: enable })
 	}
-	const eventObjectTimes: {[time: string]: EventType} = {}
 
-	_.each(resolvedObjects, (obj: ResolvedTimelineObject) => {
+	for (const obj of resolvedObjects) {
 		if (
 			!obj.disabled &&
-			obj.resolved.resolved &&
-			!obj.resolved.isKeyframe
+			obj.resolved.resolved
 		) {
-			const parentTimes = getTimesFromParents(resolved, obj)
-			if (obj.layer) { // if layer is empty, don't put in state
-				_.each(obj.resolved.instances, (instance: TimelineObjectInstance) => {
+			if (!obj.resolved.isKeyframe) {
+				const parentTimes = getTimesFromParents(resolved, obj)
+				if (obj.layer) { // if layer is empty, don't put in state
+					for (const instance of obj.resolved.instances) {
 
-					let useInstance: boolean = true
-					if (onlyForTime) {
-						useInstance = (
-							(instance.start || 0) <= onlyForTime &&
-							(instance.end || Infinity) > onlyForTime
-						)
-					}
-					if (useInstance) {
-						const timeEvents: Array<TimeEvent> = []
+						let useInstance: boolean = true
+						if (onlyForTime) {
+							useInstance = (
+								(instance.start || 0) <= onlyForTime &&
+								(instance.end || Infinity) > onlyForTime
+							)
+						}
+						if (useInstance) {
+							const timeEvents: Array<TimeEvent> = []
 
-						timeEvents.push({ time: instance.start, enable: true })
-						if (instance.end) timeEvents.push({ time: instance.end, enable: false })
+							timeEvents.push({ time: instance.start, enable: true })
+							if (instance.end) timeEvents.push({ time: instance.end, enable: false })
 
-						// Also include times from parents, as they could affect the state of this instance:
-						_.each(parentTimes, (parentTime) => {
-							if (
-								parentTime && (
-									parentTime.time > (instance.start || 0) &&
-									parentTime.time < (instance.end || Infinity)
-								)
-							) {
-								timeEvents.push(parentTime)
+							// Also include times from parents, as they could affect the state of this instance:
+							for (let i = 0; i < parentTimes.length; i++) {
+								const parentTime = parentTimes[i]
+
+								if (
+									parentTime && (
+										parentTime.time > (instance.start || 0) &&
+										parentTime.time < (instance.end || Infinity)
+									)
+								) {
+									timeEvents.push(parentTime)
+								}
 							}
-						})
-						// Save a reference to this instance on all points in time that could affect it:
-						_.each(timeEvents, (timeEvent) => {
-							addPointInTime(timeEvent.time, timeEvent.enable, obj, instance)
-						})
+							// Save a reference to this instance on all points in time that could affect it:
+							for (let i = 0; i < timeEvents.length; i++) {
+								const timeEvent = timeEvents[i]
+
+								addPointInTime(timeEvent.time, timeEvent.enable, obj, instance)
+							}
+						}
 					}
-				})
+				}
+			} else if (
+				obj.resolved.isKeyframe &&
+				obj.resolved.parentId
+			) {
+				const keyframe = obj
+				// Also add keyframes to pointsInTime:
+
+				for (const instance of keyframe.resolved.instances) {
+					// Keyframe start time
+					addPointInTime(instance.start, true, keyframe, instance)
+
+					// Keyframe end time
+					if (instance.end !== null) {
+						addPointInTime(instance.end, false, keyframe, instance)
+					}
+				}
 			}
 		}
-	})
-	// Also add keyframes to pointsInTime:
-	_.each(resolvedObjects, (obj: ResolvedTimelineObject) => {
-		if (
-			!obj.disabled &&
-			obj.resolved.resolved &&
-			obj.resolved.isKeyframe &&
-			obj.resolved.parentId
-		) {
-			_.each(obj.resolved.instances, (instance: TimelineObjectInstance) => {
-				// Keyframe start time
-				addPointInTime(instance.start, true, obj, instance)
-
-				// Keyframe end time
-				if (instance.end !== null) {
-					addPointInTime(instance.end, false, obj, instance)
-				}
-
-			})
-		}
-	})
+	}
 
 	// Step 2: Resolve the state for the points-of-interest
 	// This is done by sweeping the points-of-interest chronologically,
 	// determining the state for every point in time by adding & removing objects from aspiringInstances
 	// Then sorting it to determine who takes precedence
+
+	const eventObjectTimes: {[time: string]: EventType} = {}
 
 	const currentState: StateInTime = {}
 	const activeObjIds: {[id: string]: ResolvedTimelineObjectInstance} = {}
@@ -175,13 +177,15 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time, c
 
 	const keyframeEvents: NextEvent[] = []
 
-	const times: number[] = _.map(_.keys(pointsInTime), time => parseFloat(time))
-	// Sort chronologically:
-	times.sort((a,b) => {
-		return a - b
-	})
+	const times: number[] = Object.keys(pointsInTime)
+		.map(time => parseFloat(time))
+		// Sort chronologically:
+		.sort((a,b) => a - b)
+
+	// Iterate through all points-of-interest times:
 	for (let i = 0; i < times.length; i++) {
 		const time = times[i]
+
 		const instancesToCheck = pointsInTime[time]
 		const checkedObjectsThisTime: {[instanceId: string]: true} = {}
 
@@ -400,19 +404,23 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time, c
 
 					if (toBeEnabled) {
 						const newObjInstance = {
-							...obj,
+							...keyframe,
 							instance: instance
 						}
-						activeKeyframes[obj.id] = newObjInstance
+						activeKeyframes[keyframe.id] = newObjInstance
 					} else {
-						delete activeKeyframes[obj.id]
-						delete activeKeyframesChecked[obj.id]
+						delete activeKeyframes[keyframe.id]
+						delete activeKeyframesChecked[keyframe.id]
 					}
 				}
 			}
 		}
+
 		// Go through keyframes:
-		_.each(activeKeyframes, (objInstance: ResolvedTimelineObjectInstance, objId: string) => {
+		const activeKeyframesObjIds = Object.keys(activeKeyframes)
+		for (let i = 0; i < activeKeyframesObjIds.length; i++) {
+			const objId: string = activeKeyframesObjIds[i]
+			const objInstance: ResolvedTimelineObjectInstance = activeKeyframes[objId]
 
 			const keyframe = objInstance
 			const instance = objInstance.instance
@@ -429,17 +437,8 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time, c
 						if (!activeKeyframesChecked[objId]) { // hasn't started before
 							activeKeyframesChecked[objId] = true
 
-							const keyframeInstance: ResolvedTimelineObjectInstanceKeyframe = {
-								...keyframe,
-								instance: instance,
-								isKeyframe: true,
-								keyframeEndTime: instance.end
-							}
 							// Note: The keyframes are a little bit special, since their contents are applied to their parents.
 							// That application is done in the getStateAtTime function.
-
-							// Add keyframe to the tracking state:
-							addKeyframeAtTime(resolvedStates.state, parentObj.layer + '', time, keyframeInstance)
 
 							// Add keyframe to nextEvents:
 							keyframeEvents.push({
@@ -447,27 +446,64 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time, c
 								time: instance.start,
 								objId: keyframe.id
 							})
-							if (
-								instance.end !== null && (
-									parentObjInstance.instance.end === null ||
-									instance.end < parentObjInstance.instance.end // Only add the keyframe if it ends before its parent
-								)
-							) {
+							// Cap end within parent
+							let instanceEnd: number | null = Math.min(
+								instance.end || Infinity,
+								parentObjInstance.instance.end || Infinity
+							)
+							if (instanceEnd === Infinity) instanceEnd = null
+
+							if (instanceEnd !== null) {
 								keyframeEvents.push({
 									type: EventType.KEYFRAME,
-									time: instance.end,
+									time: instanceEnd,
 									objId: keyframe.id
 								})
 							}
 						}
-						return
+						continue
 					}
 				}
 			}
 			// else: the keyframe:s parent isn't active, remove/stop the keyframe then:
 			delete activeKeyframesChecked[objId]
-		})
+		}
 	}
+
+	// At this point, the instances of all objects (excluding keyframes) are properly calculated,
+	// taking into account priorities, clashes etc.
+
+	for (const id of Object.keys(resolvedStates.objects)) {
+		const keyframe = resolvedStates.objects[id]
+		if (
+			keyframe.resolved.isKeyframe &&
+			keyframe.resolved.parentId
+		) {
+			const parent = resolvedStates.objects[keyframe.resolved.parentId]
+			if (parent) {
+
+				// Cap the keyframe instances within its parents instances:
+				keyframe.resolved.instances = capInstances(keyframe.resolved.instances, parent.resolved.instances)
+
+				// Ensure sure the instances are in the state
+				for (let i = 0; i < keyframe.resolved.instances.length; i++) {
+					const instance = keyframe.resolved.instances[i]
+
+					const keyframeInstance: ResolvedTimelineObjectInstanceKeyframe = {
+						...keyframe,
+						instance: instance,
+						isKeyframe: true,
+						keyframeEndTime: instance.end
+					}
+					// Add keyframe to the tracking state:
+					addKeyframeAtTime(resolvedStates.state, parent.layer + '', instance.start, keyframeInstance)
+				}
+			}
+		}
+	}
+
+	// At this point, ALL instances are properly calculated.
+
 	// Go through the keyframe events and add them to nextEvents:
 	for (let i = 0; i < keyframeEvents.length; i++) {
 		const keyframeEvent = keyframeEvents[i]
@@ -538,14 +574,14 @@ function setStateAtTime (states: AllStates, layer: string, time: number, objInst
 	if (!states[layer]) states[layer] = {}
 	states[layer][time + ''] = objInstance ? [objInstance] : objInstance
 }
-function addKeyframeAtTime (states: AllStates, layer: string, time: number, objInstanceKf: ResolvedTimelineObjectInstanceKeyframe) {
+function addKeyframeAtTime (states: AllStates, layer: string, time: number, objInstanceKf: ResolvedTimelineObjectInstanceKeyframe | null) {
 	if (!states[layer]) states[layer] = {}
 
 	if (!states[layer][time + '']) states[layer][time + ''] = []
 	// @ts-ignore object is possibly null
 	states[layer][time + ''].push(objInstanceKf)
 }
-function getStateAtTime (states: AllStates, layer: string, requestTime: number) {
+function getStateAtTime (states: AllStates, layer: string, requestTime: number): ResolvedTimelineObjectInstance | null {
 	const layerStates = states[layer] || {}
 
 	const times: number[] = _.map(_.keys(layerStates), time => parseFloat(time))
@@ -554,47 +590,49 @@ function getStateAtTime (states: AllStates, layer: string, requestTime: number) 
 	})
 	let state: ResolvedTimelineObjectInstance | null = null
 	let isCloned: boolean = false
-	_.find(times, (time) => {
+	for (let i = 0; i < times.length; i++) {
+		const time = times[i]
 		if (time <= requestTime) {
 			const currentStateInstances = layerStates[time + '']
 			if (currentStateInstances && currentStateInstances.length) {
+				const keyframes: ResolvedTimelineObjectInstanceKeyframe[] = []
+				for (let i = 0; i < currentStateInstances.length; i++) {
+					const currentState = currentStateInstances[i]
 
-				_.each(currentStateInstances, currentState => {
 					if (
 						currentState &&
 						currentState.isKeyframe
 					) {
-						const keyframe = currentState
-						if (state && keyframe.resolved.parentId === state.id) {
-							if (
-								(keyframe.keyframeEndTime || Infinity) > requestTime
-							) {
-								if (!isCloned) {
-									isCloned = true
-									state = {
-										...state,
-										content: JSON.parse(JSON.stringify(state.content))
-									}
-								}
-								// Apply the keyframe on the state:
-								applyKeyframeContent(state.content, keyframe.content)
-							}
-						}
+						keyframes.push(currentState)
 					} else {
 						state = currentState
 						isCloned = false
 					}
-				})
+				}
+				for (let i = 0; i < keyframes.length; i++) {
+					const keyframe = keyframes[i]
+					if (state && keyframe.resolved.parentId === state.id) {
+						if ((keyframe.keyframeEndTime || Infinity) > requestTime) {
+							if (!isCloned) {
+								isCloned = true
+								state = {
+									...state,
+									content: JSON.parse(JSON.stringify(state.content))
+								}
+							}
+							// Apply the keyframe on the state:
+							applyKeyframeContent(state.content, keyframe.content)
+						}
+					}
+				}
 			} else {
 				state = null
 				isCloned = false
 			}
-
-			return false
 		} else {
-			return true
+			break
 		}
-	})
+	}
 	return state
 }
 function isResolvedStates (resolved: any): resolved is ResolvedStates {
