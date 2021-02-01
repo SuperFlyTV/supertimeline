@@ -436,7 +436,7 @@ describe('Resolver, basic', () => {
 		expect(resolved.objects['video0']).toBeTruthy()
 		expect(resolved.objects['video1']).toBeTruthy()
 
-		const instanceIds: {[id: string]: true} = {}
+		const instanceIds: { [id: string]: true } = {}
 		_.each(resolved.objects, (obj) => {
 			_.each(obj.resolved.instances, instance => {
 				expect(instanceIds[instance.id]).toBeFalsy()
@@ -604,7 +604,7 @@ describe('Resolver, basic', () => {
 					duration: 8
 				},
 				content: {},
-				classes: [ 'insert_after' ]
+				classes: ['insert_after']
 			},
 			{
 				id: 'video1',
@@ -615,7 +615,7 @@ describe('Resolver, basic', () => {
 					duration: 2
 				},
 				content: {},
-				classes: [ 'insert_after' ]
+				classes: ['insert_after']
 			},
 			{
 				id: 'video2',
@@ -626,7 +626,7 @@ describe('Resolver, basic', () => {
 					duration: 2
 				},
 				content: {},
-				classes: [ 'insert_after' ]
+				classes: ['insert_after']
 			}
 		]
 		for (let i = 0; i < 2; i++) {
@@ -669,7 +669,7 @@ describe('Resolver, basic', () => {
 					duration: 100 // 200
 				},
 				content: {},
-				classes: [ 'a']
+				classes: ['a']
 			},
 			{
 				id: 'b',
@@ -680,7 +680,7 @@ describe('Resolver, basic', () => {
 					duration: 100 // 300
 				},
 				content: {},
-				classes: [ 'b' ]
+				classes: ['b']
 			},
 			{
 				id: 'test0',
@@ -735,7 +735,7 @@ describe('Resolver, basic', () => {
 					duration: 100
 				},
 				content: {},
-				classes: [ 'playout', 'muted' ]
+				classes: ['playout', 'muted']
 			},
 			{
 				id: 'muted_playout2',
@@ -746,7 +746,7 @@ describe('Resolver, basic', () => {
 					duration: 100
 				},
 				content: {},
-				classes: [ 'playout', 'muted' ]
+				classes: ['playout', 'muted']
 			},
 			{
 				id: 'unmuted_playout1',
@@ -757,7 +757,7 @@ describe('Resolver, basic', () => {
 					duration: 100
 				},
 				content: {},
-				classes: [ 'playout' ]
+				classes: ['playout']
 			}
 		]
 		const resolved0 = Resolver.resolveTimeline(timeline, { time: 0, limitCount: 10, limitTime: 999 })
@@ -821,8 +821,8 @@ describe('Resolver, basic', () => {
 				id: 'obj0',
 				layer: 'L1',
 				enable: {
-				  start: 10,
-				  end: '#obj1.start' // turns this into a zero-duration
+					start: 10,
+					end: '#obj1.start' // turns this into a zero-duration
 				},
 				content: {}
 			},
@@ -830,7 +830,7 @@ describe('Resolver, basic', () => {
 				id: 'obj1',
 				layer: 'L2',
 				enable: {
-				  start: 10
+					start: 10
 				},
 				content: {}
 			},
@@ -838,8 +838,8 @@ describe('Resolver, basic', () => {
 				id: 'obj2',
 				layer: 'L3',
 				enable: {
-				  start: '#obj0.start', // 10
-				  duration: 10 // 20
+					start: '#obj0.start', // 10
+					duration: 10 // 20
 				},
 				content: {}
 			}
@@ -867,8 +867,8 @@ describe('Resolver, basic', () => {
 				id: 'obj0',
 				layer: 'L1',
 				enable: {
-				  start: 10,
-				  end: '#obj1.start'
+					start: 10,
+					end: '#obj1.start'
 				},
 				content: {}
 			},
@@ -876,8 +876,8 @@ describe('Resolver, basic', () => {
 				id: 'obj1',
 				layer: 'L2',
 				enable: {
-				  start: 10,
-				  end: '#obj2.start'
+					start: 10,
+					end: '#obj2.start'
 				},
 				content: {}
 			},
@@ -885,7 +885,7 @@ describe('Resolver, basic', () => {
 				id: 'obj2',
 				layer: 'L3',
 				enable: {
-				  start: 10
+					start: 10
 				},
 				content: {}
 			}
@@ -903,8 +903,8 @@ describe('Resolver, basic', () => {
 				id: 'obj0',
 				layer: 'L1',
 				enable: {
-				  start: 15,
-				  end: 10
+					start: 15,
+					end: 10
 				},
 				content: {}
 			}
@@ -997,8 +997,8 @@ describe('Resolver, basic', () => {
 				id: 'obj0',
 				layer: 'L1',
 				enable: {
-				  start: 10,
-				  end: '#obj1.start'
+					start: 10,
+					end: '#obj1.start'
 				},
 				content: {}
 			},
@@ -1006,8 +1006,8 @@ describe('Resolver, basic', () => {
 				id: 'obj1',
 				layer: 'L2',
 				enable: {
-				  start: 20,
-				  end: '#obj2.start'
+					start: 20,
+					end: '#obj2.start'
 				},
 				content: {}
 			},
@@ -1015,8 +1015,8 @@ describe('Resolver, basic', () => {
 				id: 'obj2',
 				layer: 'L3',
 				enable: {
-				  start: 30,
-				  duration: 10
+					start: 30,
+					duration: 10
 				},
 				content: {}
 			}
@@ -1050,5 +1050,111 @@ describe('Resolver, basic', () => {
 		expect(state2.layers.L2).toBeUndefined()
 		expect(state2.layers.L3).toMatchObject({ id: 'obj2' })
 
+	})
+
+	test('instances from end boundary', () => {
+		const boundary = 1612197165872.5
+		const timeline: TimelineObject[] = [
+			{
+				"id": "enable0",
+				"priority": 0,
+				"enable": {
+					"start": 1612197140716.5,
+					"end": boundary
+				},
+				"layer": "run_helper",
+				"classes": [
+					"class0"
+				],
+				"content": {
+				},
+			},
+			{
+				"id": "enable1",
+				"priority": 0,
+				"enable": {
+					"start": boundary
+				},
+				"layer": "run_helper",
+				"classes": [
+					"class0"
+				],
+				"content": {
+				},
+			},
+			{
+				"id": "obj0",
+				"enable": {
+					"while": ".class0"
+				},
+				"priority": 1,
+				"layer": "layer0",
+				"content": {
+				},
+			},
+		]
+
+		const resolved0 = Resolver.resolveTimeline(timeline, { time: boundary - 50 })
+		const allStates0 = Resolver.resolveAllStates(resolved0)
+		const state0 = Resolver.getState(allStates0, boundary + 50)
+		expect(state0.layers['layer0'].resolved.instances).toMatchObject([
+			// Wrong:
+			// { start: 1612197140716.5, end: 1612197165872.5, originalStart: 1612197140716.5 },
+			// { start: 1612197165872.5, end: null, originalStart: 1612197165872.5 }
+			// Correct:
+			{ start: 1612197140716.5, end: null, originalStart: 1612197140716.5 },
+		])
+	})
+	test('instances from end boundary: no boundary', () => {
+		const boundary = 1612197165872.5
+		const timeline: TimelineObject[] = [
+			{
+				"id": "enable0",
+				"priority": 0,
+				"enable": {
+					"start": 1612197140716.5,
+				},
+				"layer": "run_helper",
+				"classes": [
+					"class0"
+				],
+				"content": {
+				},
+			},
+			{
+				"id": "enable1",
+				"priority": 0,
+				"enable": {
+					"start": boundary
+				},
+				"layer": "run_helper",
+				"classes": [
+					"class0"
+				],
+				"content": {
+				},
+			},
+			{
+				"id": "obj0",
+				"enable": {
+					"while": ".class0"
+				},
+				"priority": 1,
+				"layer": "layer0",
+				"content": {
+				},
+			},
+		]
+
+		const resolved0 = Resolver.resolveTimeline(timeline, { time: boundary - 50 })
+		const allStates0 = Resolver.resolveAllStates(resolved0)
+		const state0 = Resolver.getState(allStates0, boundary + 50)
+		expect(state0.layers['layer0'].resolved.instances).toMatchObject([
+			// Wrong:
+			// { start: 1612197140716.5, end: 1612197165872.5, originalStart: 1612197140716.5 },
+			// { start: 1612197165872.5, end: null, originalStart: 1612197165872.5 }
+			// Correct:
+			{ start: 1612197140716.5, end: null, originalStart: 1612197140716.5 },
+		])
 	})
 })
