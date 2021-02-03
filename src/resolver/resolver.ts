@@ -184,10 +184,10 @@ export class Resolver {
 
 				_.each(resolvedTimeline.objects, obj => {
 					// Add everything that this object affects:
+					const cachedObj = cache.resolvedTimeline.objects[obj.id]
 					let affectedReferences = getAllReferencesThisObjectAffects(obj)
-					const oldObj = cache.resolvedTimeline.objects[obj.id]
-					if (oldObj) {
-						affectedReferences = _.uniq(affectedReferences.concat(getAllReferencesThisObjectAffects(oldObj)))
+					if (cachedObj) {
+						affectedReferences = _.uniq(affectedReferences.concat(getAllReferencesThisObjectAffects(cachedObj)))
 					}
 					for (let i = 0; i < affectedReferences.length; i++) {
 						const ref = affectedReferences[i]
@@ -205,12 +205,11 @@ export class Resolver {
 					} else {
 						// Note: we only have to check for the OLD object, since if the old and the new object differs,
 						// that would mean it'll be directly invalidated anyway.
-						const oldObj = cache.resolvedTimeline.objects[obj.id]
-						if (oldObj) {
+						if (cachedObj) {
 							// Fetch all references for the object from the last time it was resolved.
 							// Note: This can be done, since _if_ the object was changed in any way since last resolve
 							// it'll be invalidated anyway
-							const dependOnReferences = getObjectReferences(oldObj)
+							const dependOnReferences = getObjectReferences(cachedObj)
 							for (let i = 0; i < dependOnReferences.length; i++) {
 								const ref = dependOnReferences[i]
 								if (!affectReferenceMap[ref]) affectReferenceMap[ref] = []
@@ -221,37 +220,8 @@ export class Resolver {
 				})
 				// Invalidate all changed objects, and recursively invalidate all objects that reference those objects:
 				const handledReferences: {[ref: string]: true} = {}
-				const invalidateObjectsWithReference = (
-					reference: string,
-					affectReferenceMap: {[ref: string]: string[]},
-					validObjects: ResolvedTimelineObjects
-				) => {
-					if (handledReferences[reference]) return // to avoid infinite loops
-					handledReferences[reference] = true
-
-					if (reference[0] === '#') { // an id
-						const objId = reference.slice(1)
-						if (validObjects[objId]) {
-
-							delete validObjects[objId]
-							// const obj = validObjects[objId]
-							// const affectedReferences = getAllReferencesThisObjectAffects(obj)
-
-						}
-					}
-
-					// Invalidate all objects that depend on any of the references that this reference affects:
-
-					const affectedReferences = affectReferenceMap[reference]
-					if (affectedReferences) {
-						for (let i = 0; i < affectedReferences.length; i++) {
-							const referencingReference = affectedReferences[i]
-							invalidateObjectsWithReference(referencingReference, affectReferenceMap, validObjects)
-						}
-					}
-				}
 				for (const reference of Object.keys(changedReferences)) {
-					invalidateObjectsWithReference(reference, affectReferenceMap, validObjects)
+					invalidateObjectsWithReference(handledReferences, reference, affectReferenceMap, validObjects)
 				}
 				// The objects that are left in validObjects at this point are still valid.
 				// We can reuse the old resolving for those:
@@ -400,7 +370,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 					events.push({
 						time: instance.start,
 						value: true,
-						data: { instance: instance, id: obj.id + '_' + iStart++ },
+						data: { instance: instance, id: obj.id + '_' + (iStart++) },
 						references: instance.references
 					})
 				}
@@ -572,6 +542,33 @@ function updateStatistics (resolvedTimeline: ResolvedTimeline, obj: ResolvedTime
 		}
 	} else {
 		resolvedTimeline.statistics.unresolvedCount += 1
+	}
+}
+
+/** Invalidate all changed objects, and recursively invalidate all objects that reference those objects */
+function invalidateObjectsWithReference (
+	handledReferences: {[ref: string]: true},
+	reference: string,
+	affectReferenceMap: {[ref: string]: string[]},
+	validObjects: ResolvedTimelineObjects
+) {
+	if (handledReferences[reference]) return // to avoid infinite loops
+	handledReferences[reference] = true
+
+	if (reference[0] === '#') { // an id
+		const objId = reference.slice(1)
+		if (validObjects[objId]) {
+			delete validObjects[objId]
+		}
+	}
+
+	// Invalidate all objects that depend on any of the references that this reference affects:
+	const affectedReferences = affectReferenceMap[reference]
+	if (affectedReferences) {
+		for (let i = 0; i < affectedReferences.length; i++) {
+			const referencingReference = affectedReferences[i]
+			invalidateObjectsWithReference(handledReferences, referencingReference, affectReferenceMap, validObjects)
+		}
 	}
 }
 
@@ -880,10 +877,6 @@ export function lookupExpression (
 					let rightInstance: TimelineObjectInstance | null = null
 
 					let resultValue: boolean = calcResult(leftValue, rightValue)
-					const resultReferences: Array<string> = joinReferences(
-						(isReference(lookupExpr.l) ? lookupExpr.l.references : []),
-						(isReference(lookupExpr.r) ? lookupExpr.r.references : [])
-					)
 
 					const instances: Array<TimelineObjectInstance> = []
 					const updateInstance = (time: Time, value: boolean, references: Array<string>, caps: Array<Cap>) => {
@@ -903,7 +896,15 @@ export function lookupExpression (
 							}
 						}
 					}
-					updateInstance(0, resultValue, resultReferences, [])
+					updateInstance(
+						0,
+						resultValue,
+						joinReferences(
+							(isReference(lookupExpr.l) ? lookupExpr.l.references : []),
+							(isReference(lookupExpr.r) ? lookupExpr.r.references : [])
+						),
+						[]
+					)
 					for (let i = 0; i < events.length; i++) {
 						const e = events[i]
 						const next = events[i + 1]
@@ -918,10 +919,6 @@ export function lookupExpression (
 
 						if (!next || next.time !== e.time) {
 							const newResultValue = calcResult(leftValue, rightValue)
-							const resultReferences: Array<string> = joinReferences(
-								leftInstance ? leftInstance.references : [],
-								rightInstance ? rightInstance.references : []
-							)
 							const resultCaps: Array<Cap> = (
 								(
 									leftInstance ? 	leftInstance.caps 	|| [] : []
@@ -931,7 +928,15 @@ export function lookupExpression (
 							)
 
 							if (newResultValue !== resultValue) {
-								updateInstance(e.time, newResultValue, resultReferences, resultCaps)
+								updateInstance(
+									e.time,
+									newResultValue,
+									joinReferences(
+										leftInstance ? leftInstance.references : [],
+										rightInstance ? rightInstance.references : []
+									),
+									resultCaps
+								)
 								resultValue = newResultValue
 							}
 						}

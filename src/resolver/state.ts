@@ -89,7 +89,7 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time, c
 		}>
 	} = {}
 	const addPointInTime = (
-		time: Number,
+		time: number,
 		enable: boolean,
 		obj: ResolvedTimelineObject,
 		instance: TimelineObjectInstance
@@ -356,9 +356,7 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time, c
 						}
 						// Make the instance id unique:
 						for (let i = 0; i < newObj.resolved.instances.length; i++) {
-							const instance = newObj.resolved.instances[i]
-
-							if (instance.id === newInstance.id) {
+							if (newObj.resolved.instances[i].id === newInstance.id) {
 								newInstance.id = newInstance.id + '_$' + newObj.resolved.instances.length
 							}
 						}
