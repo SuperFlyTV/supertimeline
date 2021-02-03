@@ -1091,6 +1091,7 @@ describe('Resolver, basic', () => {
 				"layer": "layer0",
 				"content": {
 				},
+				"seamless": true
 			},
 		]
 		{
