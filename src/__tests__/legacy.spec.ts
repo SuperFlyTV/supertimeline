@@ -2243,8 +2243,8 @@ function convertTimelineObject (obj: TimelineObject): NewTimelineObject {
 	if (obj.isGroup && obj.content.objects) {
 		newObj.isGroup = true
 		const children: NewTimelineObject[] = []
-		_.each(obj.content.objects, (obj: TimelineObject) => {
-			children.push(convertTimelineObject(obj))
+		_.each(obj.content.objects, (contentObj: TimelineObject) => {
+			children.push(convertTimelineObject(contentObj))
 		})
 		newObj.children = children
 		delete obj.content.objects
@@ -2307,7 +2307,7 @@ let tests: Tests = {
 	'Basic timeline': () => {
 		expect(() => {
 			// @ts-ignore bad input
-			const tl = Resolver.resolveTimeline()
+			Resolver.resolveTimeline()
 		}).toThrowError()
 		const data = getTestData('basic')
 		const tl = Resolver.resolveAllStates(Resolver.resolveTimeline(data, stdOpts))

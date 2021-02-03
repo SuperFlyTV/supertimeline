@@ -124,7 +124,6 @@ export function convertEventsToInstances (
 
 	const negativeInstances: {[id: string]: InstanceEvent} = {}
 	let previousNegative: boolean = false
-	previousNegative = previousNegative
 	let negativeInstanceId: string | null = null
 
 	const returnInstances: Array<TimelineObjectInstance> = []
@@ -246,13 +245,13 @@ function handleActiveInstances (
 		// The active instance stopped playing, but another is still playing
 		const latestInstance: {event: InstanceEvent, id: string} | null = _.reduce(
 			activeInstances,
-			(memo, event, id) => {
+			(memo, instanceEvent, id) => {
 				if (
 					memo === null ||
-					memo.event.time < event.time
+					memo.event.time < instanceEvent.time
 				) {
 					return {
-						event: event,
+						event: instanceEvent,
 						id: id
 					}
 				}
@@ -700,15 +699,15 @@ export function joinCaps (...caps: Array<Array<Cap> | undefined>): Array<Cap> {
 	}
 	return Object.values(capMap)
 }
-let i: number = 0
+let idCount: number = 0
 /**
  * Returns a unique id
  */
 export function getId (): string {
-	return '@' + (i++).toString(36)
+	return '@' + (idCount++).toString(36)
 }
 export function resetId (): void {
-	i = 0
+	idCount = 0
 }
 export function setInstanceEndTime (instance: TimelineObjectInstance, endTime: number | null) {
 	instance.originalEnd = (
