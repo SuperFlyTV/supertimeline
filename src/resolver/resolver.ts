@@ -559,6 +559,12 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 		ids[instance.id] = true
 	}
 
+	if (obj.seamless && instances.length > 1) {
+		instances = cleanInstances(
+			instances, true, false
+		)
+	}
+
 	obj.resolved.resolved = true
 	obj.resolved.resolving = false
 	obj.resolved.instances = instances
