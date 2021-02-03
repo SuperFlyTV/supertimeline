@@ -1124,4 +1124,48 @@ describe('Resolver, basic', () => {
 			])
 		}
 	})
+	test('seamless', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'obj0',
+				enable: [
+					{ start: 10, end: 20 },
+					{ start: 20, end: 30 },
+
+					{ start: 40, end: 50 },
+					{ start: 50, end: 50 },
+					{ start: 50, end: 51 },
+
+					{ start: 60, end: 60 },
+					{ start: 60 },
+				],
+				layer: 'L0',
+				content: {},
+				seamless: false
+			},
+		]
+		{
+			const resolved0 = Resolver.resolveTimeline(timeline, { time: 0 })
+			const allStates0 = Resolver.resolveAllStates(resolved0)
+			expect(allStates0.objects['obj0'].resolved.instances).toMatchObject([
+				{ start: 10, end: 20, originalStart: 10 },
+				{ start: 20, end: 30, originalStart: 20 },
+				{ start: 40, end: 50, originalStart: 40 },
+				{ start: 50, end: 51, originalStart: 50 },
+				{ start: 60, end: null, originalStart: 60 },
+			])
+		}
+		// Now check when seamless is enabled:
+		timeline[0].seamless = true
+		{
+			const resolved0 = Resolver.resolveTimeline(timeline, { time: 0 })
+			const allStates0 = Resolver.resolveAllStates(resolved0)
+			expect(allStates0.objects['obj0'].resolved.instances).toMatchObject([
+				{ start: 10, end: 30, originalStart: 10 },
+				{ start: 40, end: 51, originalStart: 40 },
+				{ start: 60, end: null, originalStart: 60 },
+			])
+		}
+
+	})
 })

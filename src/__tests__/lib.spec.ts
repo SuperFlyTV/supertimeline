@@ -122,6 +122,21 @@ describe('lib', () => {
 			{ id: '%c', start: 100, end: null, references: ['c', 'd'] }
 		])
 
+		expect(cleanInstances([
+			{ id: '%a', start: 10, end: 50, references: ['a'] },
+			{ id: '%b', start: 50, end: 50, references: ['b'] },
+			{ id: '%c', start: 50, end: 51, references: ['c'] },
+		], true)).toEqual([
+			{ id: '%a', start: 10, end: 51, references: ['a', 'b', 'c'] },
+		])
+
+		expect(cleanInstances([
+			{ id: '%a', start: 10, end: 10, references: ['a'] },
+			{ id: '%b', start: 10, end: null, references: ['b'] },
+		], true)).toEqual([
+			{ id: '%a', start: 10, end: null, references: ['a', 'b'] },
+		])
+
 		// no merge:
 
 		expect(cleanInstances([
