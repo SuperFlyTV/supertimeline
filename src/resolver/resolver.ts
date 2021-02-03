@@ -552,7 +552,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 
 	// Make sure the instance ids are unique:
 	const ids: {[id: string]: true} = {}
-	for (const instance of instances ) {
+	for (const instance of instances) {
 		if (ids[instance.id]) {
 			instance.id = `${instance.id}_${getId()}`
 		}

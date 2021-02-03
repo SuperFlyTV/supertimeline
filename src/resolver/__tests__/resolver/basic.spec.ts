@@ -1056,43 +1056,35 @@ describe('Resolver, basic', () => {
 		const boundary = 20
 		const timeline: TimelineObject[] = [
 			{
-				"id": "enable0",
-				"priority": 0,
-				"enable": {
-					"start": 10,
-					// "end": boundary
+				id: 'enable0',
+				priority: 0,
+				enable: {
+					start: 10
 				},
-				"layer": "run_helper",
-				"classes": [
-					"class0"
-				],
-				"content": {
-				},
+				layer: 'run_helper',
+				classes: [ 'class0' ],
+				content: {}
 			},
 			{
-				"id": "enable1",
-				"priority": 0,
-				"enable": {
-					"start": boundary
+				id: 'enable1',
+				priority: 0,
+				enable: {
+					start: boundary
 				},
-				"layer": "run_helper",
-				"classes": [
-					"class0"
-				],
-				"content": {
-				},
+				layer: 'run_helper',
+				classes: [ 'class0' ],
+				content: {}
 			},
 			{
-				"id": "obj0",
-				"enable": {
-					"while": ".class0"
+				id: 'obj0',
+				enable: {
+					while: '.class0'
 				},
-				"priority": 1,
-				"layer": "layer0",
-				"content": {
-				},
-				"seamless": true
-			},
+				priority: 1,
+				layer: 'layer0',
+				content: {},
+				seamless: true
+			}
 		]
 		{
 			const resolved0 = Resolver.resolveTimeline(timeline, { time: boundary - 50 })
@@ -1103,7 +1095,7 @@ describe('Resolver, basic', () => {
 				// { start: 10, end: 20, originalStart: 10 },
 				// { start: 20, end: null, originalStart: 20 }
 				// Correct:
-				{ start: 10, end: null, originalStart: 10 },
+				{ start: 10, end: null, originalStart: 10 }
 			])
 		}
 
@@ -1120,7 +1112,7 @@ describe('Resolver, basic', () => {
 				// { start: 10, end: 20, originalStart: 10 },
 				// { start: 20, end: null, originalStart: 20 }
 				// Correct:
-				{ start: 10, end: null, originalStart: 10 },
+				{ start: 10, end: null, originalStart: 10 }
 			])
 		}
 	})
@@ -1137,12 +1129,12 @@ describe('Resolver, basic', () => {
 					{ start: 50, end: 51 },
 
 					{ start: 60, end: 60 },
-					{ start: 60 },
+					{ start: 60 }
 				],
 				layer: 'L0',
 				content: {},
 				seamless: false
-			},
+			}
 		]
 		{
 			const resolved0 = Resolver.resolveTimeline(timeline, { time: 0 })
@@ -1152,7 +1144,7 @@ describe('Resolver, basic', () => {
 				{ start: 20, end: 30, originalStart: 20 },
 				{ start: 40, end: 50, originalStart: 40 },
 				{ start: 50, end: 51, originalStart: 50 },
-				{ start: 60, end: null, originalStart: 60 },
+				{ start: 60, end: null, originalStart: 60 }
 			])
 		}
 		// Now check when seamless is enabled:
@@ -1163,7 +1155,7 @@ describe('Resolver, basic', () => {
 			expect(allStates0.objects['obj0'].resolved.instances).toMatchObject([
 				{ start: 10, end: 30, originalStart: 10 },
 				{ start: 40, end: 51, originalStart: 40 },
-				{ start: 60, end: null, originalStart: 60 },
+				{ start: 60, end: null, originalStart: 60 }
 			])
 		}
 
