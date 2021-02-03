@@ -546,7 +546,17 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 			lookedupRepeating,
 			resolvedTimeline.options
 		)
+
 		instances = instances.concat(newInstances)
+	}
+
+	// Make sure the instance ids are unique:
+	const ids: {[id: string]: true} = {}
+	for (const instance of instances ) {
+		if (ids[instance.id]) {
+			instance.id = `${instance.id}_${getId()}`
+		}
+		ids[instance.id] = true
 	}
 
 	obj.resolved.resolved = true
