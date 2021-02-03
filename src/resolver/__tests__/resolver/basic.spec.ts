@@ -1087,14 +1087,16 @@ describe('Resolver, basic', () => {
 			}
 		]
 		{
-			const resolved0 = Resolver.resolveTimeline(timeline, { time: boundary - 50 })
+			const resolved0 = Resolver.resolveTimeline(timeline, { time: boundary + 50 })
 			const allStates0 = Resolver.resolveAllStates(resolved0)
 			const state0 = Resolver.getState(allStates0, boundary + 50)
 			expect(state0.layers['layer0'].resolved.instances).toMatchObject([
-				// Wrong:
-				// { start: 10, end: 20, originalStart: 10 },
-				// { start: 20, end: null, originalStart: 20 }
-				// Correct:
+				{ start: 10, end: null, originalStart: 10 }
+			])
+			expect(state0.layers['layer0'].instance).toMatchObject(state0.layers['layer0'].resolved.instances[0])
+
+			const state1 = Resolver.getState(resolved0, boundary + 50)
+			expect(state1.layers['layer0'].resolved.instances).toMatchObject([
 				{ start: 10, end: null, originalStart: 10 }
 			])
 		}
@@ -1108,10 +1110,12 @@ describe('Resolver, basic', () => {
 			const allStates0 = Resolver.resolveAllStates(resolved0)
 			const state0 = Resolver.getState(allStates0, boundary + 50)
 			expect(state0.layers['layer0'].resolved.instances).toMatchObject([
-				// Wrong:
-				// { start: 10, end: 20, originalStart: 10 },
-				// { start: 20, end: null, originalStart: 20 }
-				// Correct:
+				{ start: 10, end: null, originalStart: 10 }
+			])
+			expect(state0.layers['layer0'].instance).toMatchObject(state0.layers['layer0'].resolved.instances[0])
+
+			const state1 = Resolver.getState(resolved0, boundary + 50)
+			expect(state1.layers['layer0'].resolved.instances).toMatchObject([
 				{ start: 10, end: null, originalStart: 10 }
 			])
 		}
