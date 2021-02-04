@@ -3,27 +3,27 @@
  */
 import { TriggerType, EventType } from './legacyEnums.spec'
 export interface TimelineTrigger {
-	type: TriggerType,
+	type: TriggerType
 	value: number | string
 }
 export interface TimelineObject {
-	id: ObjectId,
-	trigger: TimelineTrigger,
-	duration?: number | string,
-	LLayer: string | number,
+	id: ObjectId
+	trigger: TimelineTrigger
+	duration?: number | string
+	LLayer: string | number
 	content: {
-		objects?: Array<TimelineObject>,
+		objects?: Array<TimelineObject>
 
-		keyframes?: Array<TimelineKeyframe>,
+		keyframes?: Array<TimelineKeyframe>
 		// templateData?: any,
 
 		[key: string]: any
-	},
+	}
 	classes?: Array<string>
-	disabled?: boolean,
-	isGroup?: boolean,
-	repeating?: boolean,
-	priority?: number,
+	disabled?: boolean
+	isGroup?: boolean
+	repeating?: boolean
+	priority?: number
 	externalFunction?: string
 }
 export interface TimelineGroup extends TimelineObject {
@@ -40,29 +40,27 @@ export type SomeTime = number
 export type ObjectId = string
 
 export interface TimelineEvent {
-	type: EventType,
-	time: SomeTime,
-	obj: TimelineObject,
+	type: EventType
+	time: SomeTime
+	obj: TimelineObject
 	kf?: TimelineResolvedKeyframe
 }
 export interface TimelineKeyframe {
-	id: string,
+	id: string
 	trigger: {
-		type: TriggerType,
+		type: TriggerType
 		value: number | string
-	},
-	duration?: number | string,
+	}
+	duration?: number | string
 	content?: {
-
 		// templateData?: any,
 		[key: string]: any
-	},
+	}
 	classes?: Array<string>
 }
 export interface UnresolvedLogicObject {
-	prevOnTimeline?: string | boolean | null,
+	prevOnTimeline?: string | boolean | null
 	obj: TimelineResolvedObject
-
 }
 export interface TimelineResolvedObject extends TimelineObject {
 	resolved: ResolvedDetails
@@ -73,21 +71,21 @@ export interface TimelineResolvedKeyframe extends TimelineKeyframe {
 	parent?: TimelineResolvedObject
 }
 export interface ResolvedDetails {
-	startTime?: StartTime,
-	endTime?: EndTime,
-	innerStartTime?: StartTime,
-	innerEndTime?: EndTime,
+	startTime?: StartTime
+	endTime?: EndTime
+	innerStartTime?: StartTime
+	innerEndTime?: EndTime
 	innerDuration?: Duration
-	outerDuration?: Duration,
+	outerDuration?: Duration
 
-	parentStart?: StartTime,
+	parentStart?: StartTime
 
-	parentId?: ObjectId,
-	disabled?: boolean,
+	parentId?: ObjectId
+	disabled?: boolean
 
-	referredObjectIds?: Array<ResolvedObjectId> | null,
+	referredObjectIds?: Array<ResolvedObjectId> | null
 
-	repeatingStartTime?: StartTime,
+	repeatingStartTime?: StartTime
 
 	templateData?: any
 	developed?: boolean
@@ -95,34 +93,30 @@ export interface ResolvedDetails {
 	[key: string]: any
 }
 export interface ResolvedObjectId {
-	id: string,
+	id: string
 	hook: string
 }
 export interface ResolvedTimeline {
-	resolved: Array<TimelineResolvedObject>,
+	resolved: Array<TimelineResolvedObject>
 	unresolved: Array<TimelineObject>
 }
 export interface DevelopedTimeline {
-	resolved: Array<TimelineResolvedObject>,
+	resolved: Array<TimelineResolvedObject>
 	unresolved: Array<TimelineObject>
-	groups: Array<TimelineGroup>,
+	groups: Array<TimelineGroup>
 }
 
 export interface TimelineState {
-	time: SomeTime,
+	time: SomeTime
 	GLayers: {
 		[GLayer: string]: TimelineResolvedObject
-	},
+	}
 	LLayers: {
 		[LLayer: string]: TimelineResolvedObject
 	}
 }
 export interface ExternalFunctions {
-	[fcnName: string]: (
-		obj: TimelineResolvedObject,
-		state: TimelineState,
-		tld: DevelopedTimeline
-	) => boolean
+	[fcnName: string]: (obj: TimelineResolvedObject, state: TimelineState, tld: DevelopedTimeline) => boolean
 }
 export type UnresolvedTimeline = Array<TimelineObject>
 
@@ -135,16 +129,21 @@ export interface ResolvedObjectTouches {
 
 export type Expression = number | string | ExpressionObj
 export interface ExpressionObj {
-	l: Expression,
-	o: string,
+	l: Expression
+	o: string
 	r: Expression
 }
 export interface Filter {
-	startTime?: StartTime,
-	endTime?: EndTime,
+	startTime?: StartTime
+	endTime?: EndTime
 }
 export type WhosAskingTrace = Array<string>
-export type objAttributeFunction = (objId: string, hook: 'start' | 'end' | 'duration' | 'parentStart', whosAsking: WhosAskingTrace, supressAlreadyAskedWarning?: boolean) => number | null
+export type objAttributeFunction = (
+	objId: string,
+	hook: 'start' | 'end' | 'duration' | 'parentStart',
+	whosAsking: WhosAskingTrace,
+	supressAlreadyAskedWarning?: boolean
+) => number | null
 
 // -----------
 export interface ResolveOptions {

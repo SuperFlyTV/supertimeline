@@ -1,10 +1,5 @@
 import * as _ from 'underscore'
-import {
-	TimelineObject,
-	EventType,
-	Resolver,
-	TimelineObjectInstance
-} from '../../..'
+import { TimelineObject, EventType, Resolver, TimelineObjectInstance } from '../../..'
 
 describe('Resolver, groups', () => {
 	beforeEach(() => {
@@ -17,7 +12,7 @@ describe('Resolver, groups', () => {
 				layer: '0',
 				enable: {
 					start: 10,
-					end: 100
+					end: 100,
 				},
 				content: {},
 				isGroup: true,
@@ -27,30 +22,30 @@ describe('Resolver, groups', () => {
 						layer: '1',
 						enable: {
 							start: '5', // 15
-							duration: 10 // 25
+							duration: 10, // 25
 						},
-						content: {}
+						content: {},
 					},
 					{
 						id: 'child1',
 						layer: '1',
 						enable: {
 							start: '#child0.end', // 25
-							duration: 10 // 35
+							duration: 10, // 35
 						},
-						content: {}
+						content: {},
 					},
 					{
 						id: 'child2',
 						layer: '2',
 						enable: {
 							start: '-1', // 9, will be capped in parent
-							end: 150 // 160, will be capped in parent
+							end: 150, // 160, will be capped in parent
 						},
-						content: {}
-					}
-				]
-			}
+						content: {},
+					},
+				],
+			},
 		]
 
 		const resolved = Resolver.resolveTimeline(timeline, { time: 0 })
@@ -64,47 +59,47 @@ describe('Resolver, groups', () => {
 		expect(resolved.objects['child1']).toBeTruthy()
 		expect(resolved.objects['child0'].resolved).toMatchObject({
 			resolved: true,
-			instances: [{ start: 15, end: 25 }]
+			instances: [{ start: 15, end: 25 }],
 		})
 		expect(resolved.objects['child1'].resolved).toMatchObject({
 			resolved: true,
-			instances: [{ start: 25, end: 35 }]
+			instances: [{ start: 25, end: 35 }],
 		})
 		expect(resolved.objects['child2'].resolved).toMatchObject({
 			resolved: true,
-			instances: [{ start: 10, end: 100 }]
+			instances: [{ start: 10, end: 100 }],
 		})
 
 		const state0 = Resolver.getState(resolved, 11)
 		expect(state0.layers).toMatchObject({
 			'0': {
-				id: 'group'
-			}
+				id: 'group',
+			},
 		})
 		expect(state0.layers['1']).toBeFalsy()
 
 		expect(Resolver.getState(resolved, 15)).toMatchObject({
 			layers: {
 				'0': {
-					id: 'group'
+					id: 'group',
 				},
 				'1': {
-					id: 'child0'
+					id: 'child0',
 				},
 				'2': {
-					id: 'child2'
-				}
-			}
+					id: 'child2',
+				},
+			},
 		})
 		expect(Resolver.getState(resolved, 30)).toMatchObject({
 			layers: {
 				'0': {
-					id: 'group'
+					id: 'group',
 				},
 				'1': {
-					id: 'child1'
-				}
-			}
+					id: 'child1',
+				},
+			},
 		})
 	})
 	test('etheral groups', () => {
@@ -115,7 +110,7 @@ describe('Resolver, groups', () => {
 				layer: '',
 				enable: {
 					start: 10,
-					end: 100
+					end: 100,
 				},
 				content: {},
 				isGroup: true,
@@ -124,18 +119,18 @@ describe('Resolver, groups', () => {
 						id: 'child0',
 						layer: '1',
 						enable: {
-							start: '5' // 15
+							start: '5', // 15
 						},
-						content: {}
-					}
-				]
+						content: {},
+					},
+				],
 			},
 			{
 				id: 'group1',
 				layer: '',
 				enable: {
 					start: 50,
-					end: 100
+					end: 100,
 				},
 				content: {},
 				isGroup: true,
@@ -144,12 +139,12 @@ describe('Resolver, groups', () => {
 						id: 'child1',
 						layer: '2',
 						enable: {
-							start: '5' // 55
+							start: '5', // 55
 						},
-						content: {}
-					}
-				]
-			}
+						content: {},
+					},
+				],
+			},
 		]
 
 		const resolved = Resolver.resolveTimeline(timeline, { time: 0 })
@@ -164,39 +159,39 @@ describe('Resolver, groups', () => {
 
 		expect(resolved.objects['group0'].resolved).toMatchObject({
 			resolved: true,
-			instances: [{ start: 10, end: 100 }]
+			instances: [{ start: 10, end: 100 }],
 		})
 		expect(resolved.objects['child0'].resolved).toMatchObject({
 			resolved: true,
-			instances: [{ start: 15, end: 100 }]
+			instances: [{ start: 15, end: 100 }],
 		})
 		expect(resolved.objects['group1'].resolved).toMatchObject({
 			resolved: true,
-			instances: [{ start: 50, end: 100 }]
+			instances: [{ start: 50, end: 100 }],
 		})
 		expect(resolved.objects['child1'].resolved).toMatchObject({
 			resolved: true,
-			instances: [{ start: 55, end: 100 }]
+			instances: [{ start: 55, end: 100 }],
 		})
 
 		expect(Resolver.getState(resolved, 16).layers).toMatchObject({
 			'1': {
-				id: 'child0'
-			}
+				id: 'child0',
+			},
 		})
 		expect(Resolver.getState(resolved, 56)).toMatchObject({
 			layers: {
 				'1': {
-					id: 'child0'
+					id: 'child0',
 				},
 				'2': {
-					id: 'child1'
-				}
+					id: 'child1',
+				},
 			},
 			nextEvents: [
 				{ objId: 'child0', time: 100, type: EventType.END },
-				{ objId: 'child1', time: 100, type: EventType.END }
-			]
+				{ objId: 'child1', time: 100, type: EventType.END },
+			],
 		})
 
 		// objects should be capped inside their parent:
@@ -212,7 +207,7 @@ describe('Resolver, groups', () => {
 				layer: 'g0',
 				enable: {
 					start: 10,
-					end: 100
+					end: 100,
 				},
 				content: {},
 				isGroup: true,
@@ -221,18 +216,18 @@ describe('Resolver, groups', () => {
 						id: 'child0',
 						layer: '1',
 						enable: {
-							start: '5' // 15
+							start: '5', // 15
 						},
-						content: {}
-					}
-				]
+						content: {},
+					},
+				],
 			},
 			{
 				id: 'group1',
 				layer: 'g0',
 				enable: {
 					start: 50,
-					end: 100
+					end: 100,
 				},
 				content: {},
 				isGroup: true,
@@ -241,12 +236,12 @@ describe('Resolver, groups', () => {
 						id: 'child1',
 						layer: '2',
 						enable: {
-							start: '5' // 55
+							start: '5', // 55
 						},
-						content: {}
-					}
-				]
-			}
+						content: {},
+					},
+				],
+			},
 		]
 
 		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0 }))
@@ -261,29 +256,29 @@ describe('Resolver, groups', () => {
 
 		expect(resolved.objects['group0'].resolved).toMatchObject({
 			resolved: true,
-			instances: [{ start: 10, end: 50 }] // because group 1 started
+			instances: [{ start: 10, end: 50 }], // because group 1 started
 		})
 		expect(resolved.objects['child0'].resolved).toMatchObject({
 			resolved: true,
-			instances: [{ start: 15, end: 100 }]
+			instances: [{ start: 15, end: 100 }],
 		})
 		expect(resolved.objects['group1'].resolved).toMatchObject({
 			resolved: true,
-			instances: [{ start: 50, end: 100 }]
+			instances: [{ start: 50, end: 100 }],
 		})
 		expect(resolved.objects['child1'].resolved).toMatchObject({
 			resolved: true,
-			instances: [{ start: 55, end: 100 }]
+			instances: [{ start: 55, end: 100 }],
 		})
 
 		expect(Resolver.getState(resolved, 16)).toMatchObject({
 			layers: {
-				'g0': {
-					id: 'group0'
+				g0: {
+					id: 'group0',
 				},
 				'1': {
-					id: 'child0'
-				}
+					id: 'child0',
+				},
 			},
 			nextEvents: [
 				{ objId: 'group0', time: 50, type: EventType.END },
@@ -291,23 +286,23 @@ describe('Resolver, groups', () => {
 				{ objId: 'child1', time: 55, type: EventType.START },
 				{ objId: 'child0', time: 100, type: EventType.END },
 				{ objId: 'child1', time: 100, type: EventType.END },
-				{ objId: 'group1', time: 100, type: EventType.END }
-			]
+				{ objId: 'group1', time: 100, type: EventType.END },
+			],
 		})
 		expect(Resolver.getState(resolved, 56)).toMatchObject({
 			layers: {
-				'g0': {
-					id: 'group1'
+				g0: {
+					id: 'group1',
 				},
 				'2': {
-					id: 'child1'
-				}
+					id: 'child1',
+				},
 			},
 			nextEvents: [
 				{ objId: 'child0', time: 100, type: EventType.END },
 				{ objId: 'child1', time: 100, type: EventType.END },
-				{ objId: 'group1', time: 100, type: EventType.END }
-			]
+				{ objId: 'group1', time: 100, type: EventType.END },
+			],
 		})
 		const state1 = Resolver.getState(resolved, 120)
 		expect(state1.layers['g0']).toBeFalsy()
@@ -322,7 +317,7 @@ describe('Resolver, groups', () => {
 				enable: {
 					start: 0, // 0, 100
 					duration: 80, // 80, 180
-					repeating: 100
+					repeating: 100,
 				},
 				content: {},
 				isGroup: true,
@@ -332,21 +327,21 @@ describe('Resolver, groups', () => {
 						layer: '1',
 						enable: {
 							start: '50', // 50, 150
-							duration: 20 // 70, 170
+							duration: 20, // 70, 170
 						},
-						content: {}
+						content: {},
 					},
 					{
 						id: 'child1',
 						layer: '2',
 						enable: {
 							start: '#child0.end', // 70, 170
-							duration: 50 // 120 (to be capped at 100), 220 (to be capped at 200)
+							duration: 50, // 120 (to be capped at 100), 220 (to be capped at 200)
 						},
-						content: {}
-					}
-				]
-			}
+						content: {},
+					},
+				],
+			},
 		]
 
 		const resolved = Resolver.resolveTimeline(timeline, { time: 0, limitCount: 99, limitTime: 199 })
@@ -362,90 +357,89 @@ describe('Resolver, groups', () => {
 			resolved: true,
 			instances: [
 				{ start: 0, end: 80 },
-				{ start: 100, end: 180 }
-			]
+				{ start: 100, end: 180 },
+			],
 		})
 		expect(resolved.objects['child0'].resolved).toMatchObject({
 			resolved: true,
 			instances: [
 				{ start: 50, end: 70 },
-				{ start: 150, end: 170 }
-			]
+				{ start: 150, end: 170 },
+			],
 		})
 		expect(resolved.objects['child1'].resolved).toMatchObject({
 			resolved: true,
 			instances: [
 				{ start: 70, end: 80 },
-				{ start: 170, end: 180 }
-			]
+				{ start: 170, end: 180 },
+			],
 		})
 		expect(Resolver.getState(resolved, 10)).toMatchObject({
 			layers: {
-				'g0': {
-					id: 'group0'
-				}
-			}
+				g0: {
+					id: 'group0',
+				},
+			},
 		})
 		expect(Resolver.getState(resolved, 55)).toMatchObject({
 			layers: {
-				'g0': {
-					id: 'group0'
+				g0: {
+					id: 'group0',
 				},
 				'1': {
-					id: 'child0'
-				}
-			}
+					id: 'child0',
+				},
+			},
 		})
 		expect(Resolver.getState(resolved, 78)).toMatchObject({
 			layers: {
-				'g0': {
-					id: 'group0'
+				g0: {
+					id: 'group0',
 				},
 				'2': {
-					id: 'child1'
-				}
-			}
+					id: 'child1',
+				},
+			},
 		})
 		expect(Resolver.getState(resolved, 85).layers).toEqual({})
 
 		expect(Resolver.getState(resolved, 110)).toMatchObject({
 			layers: {
-				'g0': {
-					id: 'group0'
-				}
-			}
+				g0: {
+					id: 'group0',
+				},
+			},
 		})
 		expect(Resolver.getState(resolved, 155)).toMatchObject({
 			layers: {
-				'g0': {
-					id: 'group0'
+				g0: {
+					id: 'group0',
 				},
 				'1': {
-					id: 'child0'
-				}
-			}
+					id: 'child0',
+				},
+			},
 		})
 		expect(Resolver.getState(resolved, 178)).toMatchObject({
 			layers: {
-				'g0': {
-					id: 'group0'
+				g0: {
+					id: 'group0',
 				},
 				'2': {
-					id: 'child1'
-				}
-			}
+					id: 'child1',
+				},
+			},
 		})
 		expect(Resolver.getState(resolved, 185).layers).toEqual({})
 	})
 	test('referencing child in parent group', () => {
-
 		const timeline: TimelineObject[] = [
 			{
 				id: 'group0',
 				layer: 'g0',
 				enable: {
 					start: 0,
-					duration: 80
+					duration: 80,
 				},
 				content: {},
 				isGroup: true,
@@ -454,28 +448,28 @@ describe('Resolver, groups', () => {
 						id: 'child0',
 						layer: '1',
 						enable: {
-							while: '#other'
+							while: '#other',
 						},
-						content: {}
-					}
-				]
+						content: {},
+					},
+				],
 			},
 			{
 				id: 'other',
 				layer: 'other',
 				enable: {
-					while: '1'
+					while: '1',
 				},
-				content: {}
+				content: {},
 			},
 			{
 				id: 'refChild0',
 				layer: '42',
 				enable: {
-					while: '#child0'
+					while: '#child0',
 				},
-				content: {}
-			}
+				content: {},
+			},
 		]
 
 		const resolved0 = Resolver.resolveTimeline(timeline, { time: 0, limitCount: 99, limitTime: 199 })
@@ -495,11 +489,9 @@ describe('Resolver, groups', () => {
 		expect(states1.layers['42']).toBeFalsy()
 
 		const omitProperties = (instances: TimelineObjectInstance[]) => {
-			return _.map(instances, i => _.omit(i, ['references', 'originalEnd', 'originalStart']))
+			return _.map(instances, (i) => _.omit(i, ['references', 'originalEnd', 'originalStart']))
 		}
-		expect(
-			omitProperties(resolved0.objects['refChild0'].resolved.instances)
-		).toEqual(
+		expect(omitProperties(resolved0.objects['refChild0'].resolved.instances)).toEqual(
 			omitProperties(resolved1.objects['refChild0'].resolved.instances)
 		)
 	})
@@ -510,58 +502,57 @@ describe('Resolver, groups', () => {
 				layer: 'e0',
 				enable: {
 					start: 10,
-					duration: 200
+					duration: 200,
 				},
-				content: {}
+				content: {},
 			},
 			{
 				id: 'myGroup',
 				layer: 'g0',
 				enable: {
 					start: 50,
-					end: 100
+					end: 100,
 				},
 				content: {},
 				isGroup: true,
 				children: [
-
 					{
 						id: 'video',
 						layer: '1',
 						enable: {
 							start: '#extRef',
-							duration: 200
+							duration: 200,
 						},
-						content: {}
+						content: {},
 					},
 					{
 						id: 'interrupting',
 						layer: '1',
 						enable: {
 							start: 10, // 60, will interrupt video in the middle of it
-							duration: 10
+							duration: 10,
 						},
-						content: {}
+						content: {},
 					},
 					{
 						id: 'video2',
 						layer: '2',
 						enable: {
 							start: '-10', // 40
-							duration: 200
+							duration: 200,
 						},
-						content: {}
+						content: {},
 					},
 					{
 						id: 'interrupting2',
 						layer: '2',
 						enable: {
-							while: '#interrupting'
+							while: '#interrupting',
 						},
-						content: {}
-					}
-				]
-			}
+						content: {},
+					},
+				],
+			},
 		]
 		const resolved0 = Resolver.resolveTimeline(timeline, { time: 0, limitCount: 100, limitTime: 99999 })
 		const resolved = Resolver.resolveAllStates(resolved0)
@@ -578,7 +569,7 @@ describe('Resolver, groups', () => {
 
 		expect(resolved.objects['interrupting'].resolved.instances[0]).toMatchObject({
 			start: 60,
-			end: 70
+			end: 70,
 		})
 
 		expect(resolved.objects['video']).toBeTruthy()
@@ -588,13 +579,13 @@ describe('Resolver, groups', () => {
 			start: 50,
 			end: 60,
 			originalStart: 10,
-			originalEnd: 210
+			originalEnd: 210,
 		})
 		expect(resolved.objects['video'].resolved.instances[1]).toMatchObject({
 			start: 70,
 			end: 100,
 			originalStart: 10,
-			originalEnd: 210
+			originalEnd: 210,
 		})
 
 		expect(resolved.objects['video2']).toBeTruthy()
@@ -603,13 +594,13 @@ describe('Resolver, groups', () => {
 			start: 50,
 			end: 60,
 			originalStart: 40,
-			originalEnd: 240
+			originalEnd: 240,
 		})
 		expect(resolved.objects['video2'].resolved.instances[1]).toMatchObject({
 			start: 70,
 			end: 100,
 			originalStart: 40,
-			originalEnd: 240
+			originalEnd: 240,
 		})
 	})
 	test('Parent references', () => {
@@ -619,7 +610,7 @@ describe('Resolver, groups', () => {
 				layer: 'p0',
 				priority: 0,
 				enable: {
-					start: '100'
+					start: '100',
 				},
 				content: {},
 				isGroup: true,
@@ -630,9 +621,9 @@ describe('Resolver, groups', () => {
 						priority: 0,
 						enable: {
 							start: 20 + 30,
-							duration: 10
+							duration: 10,
 						},
-						content: {}
+						content: {},
 					},
 					{
 						id: 'video1',
@@ -640,11 +631,11 @@ describe('Resolver, groups', () => {
 						priority: 0,
 						enable: {
 							start: '20 + 30',
-							duration: 10
+							duration: 10,
 						},
-						content: {}
-					}
-				]
+						content: {},
+					},
+				],
 			},
 			{
 				id: 'video2',
@@ -652,13 +643,15 @@ describe('Resolver, groups', () => {
 				priority: 0,
 				enable: {
 					start: '150',
-					duration: 10
+					duration: 10,
 				},
-				content: {}
-			}
+				content: {},
+			},
 		]
 
-		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitCount: 10, limitTime: 999 }))
+		const resolved = Resolver.resolveAllStates(
+			Resolver.resolveTimeline(timeline, { time: 0, limitCount: 10, limitTime: 999 })
+		)
 
 		expect(resolved.statistics.resolvedObjectCount).toEqual(4)
 
@@ -672,15 +665,15 @@ describe('Resolver, groups', () => {
 
 		expect(resolved.objects['video0'].resolved.instances[0]).toMatchObject({
 			start: 150,
-			end: 160
+			end: 160,
 		})
 		expect(resolved.objects['video1'].resolved.instances[0]).toMatchObject({
 			start: 150,
-			end: 160
+			end: 160,
 		})
 		expect(resolved.objects['video2'].resolved.instances[0]).toMatchObject({
 			start: 150,
-			end: 160
+			end: 160,
 		})
 	})
 	test('Child object with end time - numeric start', () => {
@@ -689,7 +682,7 @@ describe('Resolver, groups', () => {
 			{
 				id: 'grp0',
 				enable: {
-					start: baseTime
+					start: baseTime,
 				},
 				layer: 'parent',
 				content: {},
@@ -700,24 +693,26 @@ describe('Resolver, groups', () => {
 						content: {},
 						enable: {
 							start: 0,
-							duration: 480
+							duration: 480,
 						},
-						layer: 'layer0'
+						layer: 'layer0',
 					},
 					{
 						id: 'obj1',
 						content: {},
 						enable: {
 							start: 0,
-							end: 86400000
+							end: 86400000,
 						},
-						layer: 'layer1'
-					}
-				]
-			}
+						layer: 'layer1',
+					},
+				],
+			},
 		]
 
-		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: baseTime + 1000, limitCount: 10, limitTime: 999 }))
+		const resolved = Resolver.resolveAllStates(
+			Resolver.resolveTimeline(timeline, { time: baseTime + 1000, limitCount: 10, limitTime: 999 })
+		)
 		expect(resolved.statistics.resolvedObjectCount).toEqual(3)
 
 		// // All 3 videos should start at the same time:
@@ -730,15 +725,15 @@ describe('Resolver, groups', () => {
 
 		expect(resolved.objects['grp0'].resolved.instances[0]).toMatchObject({
 			start: baseTime,
-			end: null
+			end: null,
 		})
 		expect(resolved.objects['obj0'].resolved.instances[0]).toMatchObject({
 			start: baseTime,
-			end: baseTime + 480
+			end: baseTime + 480,
 		})
 		expect(resolved.objects['obj1'].resolved.instances[0]).toMatchObject({
 			start: baseTime,
-			end: baseTime + 86400000
+			end: baseTime + 86400000,
 		})
 	})
 	test('Child object with end time - reference start', () => {
@@ -747,7 +742,7 @@ describe('Resolver, groups', () => {
 			{
 				id: 'grp0',
 				enable: {
-					start: baseTime
+					start: baseTime,
 				},
 				layer: 'parent',
 				content: {},
@@ -758,24 +753,26 @@ describe('Resolver, groups', () => {
 						content: {},
 						enable: {
 							start: 0,
-							duration: 480
+							duration: 480,
 						},
-						layer: 'layer0'
+						layer: 'layer0',
 					},
 					{
 						id: 'obj1',
 						content: {},
 						enable: {
 							start: '#obj0.start + 0',
-							end: 86400000
+							end: 86400000,
 						},
-						layer: 'layer1'
-					}
-				]
-			}
+						layer: 'layer1',
+					},
+				],
+			},
 		]
 
-		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: baseTime + 1000, limitCount: 10, limitTime: 999 }))
+		const resolved = Resolver.resolveAllStates(
+			Resolver.resolveTimeline(timeline, { time: baseTime + 1000, limitCount: 10, limitTime: 999 })
+		)
 		expect(resolved.statistics.resolvedObjectCount).toEqual(3)
 
 		// // All 3 videos should start at the same time:
@@ -788,15 +785,15 @@ describe('Resolver, groups', () => {
 
 		expect(resolved.objects['grp0'].resolved.instances[0]).toMatchObject({
 			start: baseTime,
-			end: null
+			end: null,
 		})
 		expect(resolved.objects['obj0'].resolved.instances[0]).toMatchObject({
 			start: baseTime,
-			end: baseTime + 480
+			end: baseTime + 480,
 		})
 		expect(resolved.objects['obj1'].resolved.instances[0]).toMatchObject({
 			start: baseTime,
-			end: baseTime + 86400000
+			end: baseTime + 86400000,
 		})
 	})
 })

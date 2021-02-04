@@ -3,5 +3,6 @@
 	"exclude": ["node_modules/**"],
 	"compilerOptions": {
 		"types": ["jest", "node"]
-	}
+	},
+	"include": ["src/**/*.ts", "examples/**/*.ts", "scratch/**/*.ts"]
 }

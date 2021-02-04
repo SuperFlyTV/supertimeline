@@ -1,6 +1,6 @@
 import { ResolvedTimeline, ResolvedTimelineObject } from '../api/api'
 
-export function addObjectToResolvedTimeline (resolvedTimeline: ResolvedTimeline, obj: ResolvedTimelineObject) {
+export function addObjectToResolvedTimeline(resolvedTimeline: ResolvedTimeline, obj: ResolvedTimelineObject): void {
 	resolvedTimeline.objects[obj.id] = obj
 
 	if (obj.classes) {

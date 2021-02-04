@@ -17,8 +17,8 @@ import {
 	ResolverCacheInternal,
 	ResolvedTimelineObjects,
 	ResolverCache,
-	TimelineEnable
- } from '../api/api'
+	TimelineEnable,
+} from '../api/api'
 import {
 	extendMandadory,
 	operateOnArrays,
@@ -35,7 +35,7 @@ import {
 	getId,
 	isConstant,
 	resetId,
-	applyParentInstances
+	applyParentInstances,
 } from '../lib'
 import { validateTimeline } from './validate'
 import { interpretExpression, simplifyExpression } from './expression'
@@ -44,14 +44,13 @@ import { addObjectToResolvedTimeline } from './common'
 import { objectHash, initializeCache, getObjectReferences } from './cache'
 
 export class Resolver {
-
 	/**
 	 * Go through all objects on the timeline and calculate all the timings.
 	 * Returns a ResolvedTimeline which can be piped into Resolver.getState()
 	 * @param timeline Array of timeline objects
 	 * @param options Resolve options
 	 */
-	static resolveTimeline (timeline: Array<TimelineObject>, options: ResolveOptions): ResolvedTimeline {
+	static resolveTimeline(timeline: Array<TimelineObject>, options: ResolveOptions): ResolvedTimeline {
 		if (!_.isArray(timeline)) throw new Error('resolveTimeline: parameter timeline missing')
 		if (!options) throw new Error('resolveTimeline: parameter options missing')
 
@@ -70,8 +69,8 @@ export class Resolver {
 				resolvedObjectCount: 0,
 				resolvedGroupCount: 0,
 				resolvedKeyframeCount: 0,
-				resolvingCount: 0
-			}
+				resolvingCount: 0,
+			},
 		}
 		// Step 1: pre-populate resolvedTimeline with objects
 		const addToResolvedTimeline = (
@@ -80,7 +79,8 @@ export class Resolver {
 			parentId?: string,
 			isKeyframe?: boolean
 		) => {
-			if (resolvedTimeline.objects[obj.id]) throw Error(`All timelineObjects must be unique! (duplicate: "${obj.id}")`)
+			if (resolvedTimeline.objects[obj.id])
+				throw Error(`All timelineObjects must be unique! (duplicate: "${obj.id}")`)
 
 			const o: ResolvedTimelineObject = extendMandadory<TimelineObject, ResolvedTimelineObject>(_.clone(obj), {
 				resolved: {
@@ -89,8 +89,8 @@ export class Resolver {
 					instances: [],
 					levelDeep: levelDeep,
 					isSelfReferencing: false,
-					directReferences: []
-				}
+					directReferences: [],
+				},
 			})
 			if (parentId) {
 				o.resolved.parentId = parentId
@@ -111,9 +111,12 @@ export class Resolver {
 			if (obj.keyframes) {
 				for (let i = 0; i < obj.keyframes.length; i++) {
 					const keyframe = obj.keyframes[i]
-					const kf2: TimelineObjectKeyframe = extendMandadory<TimelineKeyframe, TimelineObjectKeyframe>(_.clone(keyframe), {
-						layer: ''
-					})
+					const kf2: TimelineObjectKeyframe = extendMandadory<TimelineKeyframe, TimelineObjectKeyframe>(
+						_.clone(keyframe),
+						{
+							layer: '',
+						}
+					)
 					addToResolvedTimeline(kf2, levelDeep + 1, obj.id, true)
 				}
 			}
@@ -128,8 +131,8 @@ export class Resolver {
 			const cache: ResolverCacheInternal = initializeCache(options.cache, resolvedTimeline)
 
 			// Go through all new objects, and determine whether they have changed:
-			const allNewObjects: {[objId: string]: true} = {}
-			const changedReferences: {[reference: string]: true} = {}
+			const allNewObjects: { [objId: string]: true } = {}
+			const changedReferences: { [reference: string]: true } = {}
 
 			const getAllReferencesThisObjectAffects = (newObj: ResolvedTimelineObject): string[] => {
 				const references: string[] = ['#' + newObj.id]
@@ -152,10 +155,7 @@ export class Resolver {
 				const oldHash = cache.objHashes[obj.id]
 				const newHash = objectHash(obj)
 				allNewObjects[obj.id] = true
-				if (
-					!oldHash ||
-					oldHash !== newHash
-				) {
+				if (!oldHash || oldHash !== newHash) {
 					cache.objHashes[obj.id] = newHash
 					addChangedObject(obj)
 
@@ -164,7 +164,6 @@ export class Resolver {
 				}
 			})
 			if (cache.hasOldData) {
-
 				// Go through all old hashes, removing the ones that doesn't exist anymore
 				for (const objId in cache.resolvedTimeline.objects) {
 					if (!allNewObjects[objId]) {
@@ -176,18 +175,20 @@ export class Resolver {
 				// Invalidate objects, by gradually removing the invalidated ones from validObjects
 				// Prepare validObjects:
 				const validObjects: ResolvedTimelineObjects = {}
-				_.each(resolvedTimeline.objects, obj => {
+				_.each(resolvedTimeline.objects, (obj) => {
 					validObjects[obj.id] = obj
 				})
 				/** All references that depend on another reference (ie objects, classs or layers): */
-				const affectReferenceMap: {[ref: string]: string[]} = {}
+				const affectReferenceMap: { [ref: string]: string[] } = {}
 
-				_.each(resolvedTimeline.objects, obj => {
+				_.each(resolvedTimeline.objects, (obj) => {
 					// Add everything that this object affects:
 					const cachedObj = cache.resolvedTimeline.objects[obj.id]
 					let affectedReferences = getAllReferencesThisObjectAffects(obj)
 					if (cachedObj) {
-						affectedReferences = _.uniq(affectedReferences.concat(getAllReferencesThisObjectAffects(cachedObj)))
+						affectedReferences = _.uniq(
+							affectedReferences.concat(getAllReferencesThisObjectAffects(cachedObj))
+						)
 					}
 					for (let i = 0; i < affectedReferences.length; i++) {
 						const ref = affectedReferences[i]
@@ -219,14 +220,17 @@ export class Resolver {
 					}
 				})
 				// Invalidate all changed objects, and recursively invalidate all objects that reference those objects:
-				const handledReferences: {[ref: string]: true} = {}
+				const handledReferences: { [ref: string]: true } = {}
 				for (const reference of Object.keys(changedReferences)) {
 					invalidateObjectsWithReference(handledReferences, reference, affectReferenceMap, validObjects)
 				}
 				// The objects that are left in validObjects at this point are still valid.
 				// We can reuse the old resolving for those:
 				_.each(validObjects, (obj: ResolvedTimelineObject) => {
-					if (!cache.resolvedTimeline.objects[obj.id]) throw new Error(`Something went wrong: "${obj.id}" does not exist in cache.resolvedTimeline.objects`)
+					if (!cache.resolvedTimeline.objects[obj.id])
+						throw new Error(
+							`Something went wrong: "${obj.id}" does not exist in cache.resolvedTimeline.objects`
+						)
 					resolvedTimeline.objects[obj.id] = cache.resolvedTimeline.objects[obj.id]
 				})
 			}
@@ -245,7 +249,7 @@ export class Resolver {
 			resolvedTimeline.statistics.resolvedObjectCount = 0
 			resolvedTimeline.statistics.resolvedGroupCount = 0
 			resolvedTimeline.statistics.resolvedKeyframeCount = 0
-			_.each(resolvedTimeline.objects, obj => {
+			_.each(resolvedTimeline.objects, (obj) => {
 				updateStatistics(resolvedTimeline, obj)
 			})
 
@@ -259,7 +263,7 @@ export class Resolver {
 		}
 	}
 	/** Calculate the state for all points in time.  */
-	static resolveAllStates (resolvedTimeline: ResolvedTimeline, cache?: ResolverCache): ResolvedStates {
+	static resolveAllStates(resolvedTimeline: ResolvedTimeline, cache?: ResolverCache): ResolvedStates {
 		return resolveStates(resolvedTimeline, undefined, cache)
 	}
 	/**
@@ -270,12 +274,12 @@ export class Resolver {
 	 * @param time The point in time where to calculate the state
 	 * @param eventLimit (Optional) Limits the number of returned upcoming events.
 	 */
-	static getState (resolved: ResolvedTimeline | ResolvedStates, time: Time, eventLimit?: number): TimelineState {
+	static getState(resolved: ResolvedTimeline | ResolvedStates, time: Time, eventLimit?: number): TimelineState {
 		return getState(resolved, time, eventLimit)
 	}
 }
 
-export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: ResolvedTimelineObject) {
+export function resolveTimelineObj(resolvedTimeline: ResolvedTimeline, obj: ResolvedTimelineObject): void {
 	if (obj.resolved.resolved) return
 	if (obj.resolved.resolving) throw new Error(`Circular dependency when trying to resolve "${obj.id}"`)
 
@@ -285,20 +289,13 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 	let instances: Array<TimelineObjectInstance> = []
 	let directReferences: string[] = []
 
-	const enables: TimelineEnable[] = (
-		_.isArray(obj.enable) ?
-		obj.enable :
-		[obj.enable]
-	)
+	const enables: TimelineEnable[] = _.isArray(obj.enable) ? obj.enable : [obj.enable]
 	for (let i = 0; i < enables.length; i++) {
 		const enable = enables[i]
 		let newInstances: Array<TimelineObjectInstance> = []
 
-		const repeatingExpr: Expression | null = (
-			enable.repeating !== undefined ?
-			interpretExpression(enable.repeating) :
-			null
-		)
+		const repeatingExpr: Expression | null =
+			enable.repeating !== undefined ? interpretExpression(enable.repeating) : null
 		const lookedRepeating = lookupExpression(resolvedTimeline, obj, repeatingExpr, 'duration')
 		const lookedupRepeating = lookedRepeating.instances
 		directReferences = directReferences.concat(lookedRepeating.allReferences)
@@ -306,13 +303,8 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 			throw new Error(`lookupExpression should never return an array for .duration lookup`) // perhaps tmp? maybe revisit this at some point
 		}
 
-		let start: Expression = (
-			enable.while !== undefined ?
-				enable.while :
-			enable.start !== undefined ?
-				enable.start :
-			''
-		)
+		let start: Expression =
+			enable.while !== undefined ? enable.while : enable.start !== undefined ? enable.start : ''
 		if (enable.while + '' === '1') {
 			start = 'true'
 		} else if (enable.while + '' === '0') {
@@ -322,8 +314,8 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 		const startExpr: Expression = simplifyExpression(start)
 
 		let parentInstances: TimelineObjectInstance[] | null = null
-		let hasParent: boolean = false
-		let startRefersToParent: boolean = false
+		let hasParent = false
+		let startRefersToParent = false
 		if (obj.resolved.parentId) {
 			hasParent = true
 
@@ -353,39 +345,49 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 			if (_.isArray(lookedupStarts)) {
 				newInstances = lookedupStarts
 			} else if (lookedupStarts !== null) {
-				newInstances = [{
-					id: getId(),
-					start: lookedupStarts.value,
-					end: null,
-					references: lookedupStarts.references
-				}]
+				newInstances = [
+					{
+						id: getId(),
+						start: lookedupStarts.value,
+						end: null,
+						references: lookedupStarts.references,
+					},
+				]
 			}
 		} else {
 			const events: Array<EventForInstance> = []
-			let iStart: number = 0
-			let iEnd: number = 0
+			let iStart = 0
+			let iEnd = 0
 			if (_.isArray(lookedupStarts)) {
 				for (let i = 0; i < lookedupStarts.length; i++) {
 					const instance = lookedupStarts[i]
 					events.push({
 						time: instance.start,
 						value: true,
-						data: { instance: instance, id: obj.id + '_' + (iStart++) },
-						references: instance.references
+						data: { instance: instance, id: obj.id + '_' + iStart++ },
+						references: instance.references,
 					})
 				}
 			} else if (lookedupStarts !== null) {
 				events.push({
 					time: lookedupStarts.value,
 					value: true,
-					data: { instance: { id: getId(), start: lookedupStarts.value, end: null, references:  lookedupStarts.references }, id: obj.id + '_' + iStart++ },
-					references: lookedupStarts.references
+					data: {
+						instance: {
+							id: getId(),
+							start: lookedupStarts.value,
+							end: null,
+							references: lookedupStarts.references,
+						},
+						id: obj.id + '_' + iStart++,
+					},
+					references: lookedupStarts.references,
 				})
 			}
 
 			if (enable.end !== undefined) {
 				const endExpr: Expression = interpretExpression(enable.end)
-				let endRefersToParent: boolean = false
+				let endRefersToParent = false
 				if (obj.resolved.parentId) {
 					if (isConstant(endExpr)) {
 						// Only use parent if the expression resolves to a number (ie doesn't contain any references)
@@ -407,18 +409,25 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 							time: instance.start,
 							value: false,
 							data: { instance: instance, id: obj.id + '_' + iEnd++ },
-							references: instance.references
+							references: instance.references,
 						})
 					}
 				} else if (lookedupEnds !== null) {
 					events.push({
 						time: lookedupEnds.value,
 						value: false,
-						data: { instance: { id: getId(), start: lookedupEnds.value, end: null, references: lookedupEnds.references }, id: obj.id + '_' + iEnd++ },
-						references: lookedupEnds.references
+						data: {
+							instance: {
+								id: getId(),
+								start: lookedupEnds.value,
+								end: null,
+								references: lookedupEnds.references,
+							},
+							id: obj.id + '_' + iEnd++,
+						},
+						references: lookedupEnds.references,
 					})
 				}
-
 			} else if (enable.duration !== undefined) {
 				const durationExpr: Expression = interpretExpression(enable.duration)
 				const lookupDuration = lookupExpression(resolvedTimeline, obj, durationExpr, 'duration')
@@ -428,7 +437,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 				if (_.isArray(lookedupDuration) && lookedupDuration.length === 1) {
 					lookedupDuration = {
 						value: lookedupDuration[0].start,
-						references: lookedupDuration[0].references
+						references: lookedupDuration[0].references,
 					} as ValueWithReference
 				}
 				if (_.isArray(lookedupDuration) && !lookedupDuration.length) lookedupDuration = null
@@ -436,11 +445,8 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 				if (_.isArray(lookedupDuration)) {
 					throw new Error(`lookupExpression should never return an array for .duration lookup`) // perhaps tmp? maybe revisit this at some point
 				} else if (lookedupDuration !== null) {
-
-					if (
-						lookedupRepeating !== null &&
-						lookedupDuration.value > lookedupRepeating.value
-					) lookedupDuration.value = lookedupRepeating.value
+					if (lookedupRepeating !== null && lookedupDuration.value > lookedupRepeating.value)
+						lookedupDuration.value = lookedupRepeating.value
 
 					const tmpLookedupDuration: ValueWithReference = lookedupDuration // cast type
 
@@ -453,8 +459,16 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 							events.push({
 								time: time,
 								value: false,
-								data: { id: e.data.id, instance: { id: e.data.instance.id, start: time, end: null, references: references } },
-								references: references
+								data: {
+									id: e.data.id,
+									instance: {
+										id: e.data.instance.id,
+										start: time,
+										end: null,
+										references: references,
+									},
+								},
+								references: references,
 							})
 						}
 					}
@@ -468,7 +482,6 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 			for (let i = 0; i < newInstances.length; i++) {
 				const instance = newInstances[i]
 				if (parentInstances) {
-
 					const referredParentInstance = _.find(parentInstances, (parentInstance) => {
 						return instance.references.indexOf(parentInstance.id) !== -1
 					})
@@ -478,12 +491,11 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 						const cappedInstance = capInstances([instance], [referredParentInstance])[0]
 
 						if (cappedInstance) {
-
 							if (!cappedInstance.caps) cappedInstance.caps = []
 							cappedInstance.caps.push({
 								id: referredParentInstance.id,
 								start: referredParentInstance.start,
-								end: referredParentInstance.end
+								end: referredParentInstance.end,
 							})
 							cappedInstances.push(cappedInstance)
 						}
@@ -500,7 +512,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 									cappedInstance.caps.push({
 										id: parentInstance.id,
 										start: parentInstance.start,
-										end: parentInstance.end
+										end: parentInstance.end,
 									})
 								}
 								cappedInstances.push(cappedInstance)
@@ -511,17 +523,13 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 			}
 			newInstances = cappedInstances
 		}
-		newInstances = applyRepeatingInstances(
-			newInstances,
-			lookedupRepeating,
-			resolvedTimeline.options
-		)
+		newInstances = applyRepeatingInstances(newInstances, lookedupRepeating, resolvedTimeline.options)
 
 		instances = instances.concat(newInstances)
 	}
 
 	// Make sure the instance ids are unique:
-	const ids: {[id: string]: true} = {}
+	const ids: { [id: string]: true } = {}
 	for (const instance of instances) {
 		if (ids[instance.id]) {
 			instance.id = `${instance.id}_${getId()}`
@@ -530,9 +538,7 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 	}
 
 	if (obj.seamless && instances.length > 1) {
-		instances = cleanInstances(
-			instances, true, false
-		)
+		instances = cleanInstances(instances, true, false)
 	}
 
 	obj.resolved.resolved = true
@@ -541,9 +547,8 @@ export function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: Res
 	obj.resolved.directReferences = directReferences
 
 	updateStatistics(resolvedTimeline, obj)
-
 }
-function updateStatistics (resolvedTimeline: ResolvedTimeline, obj: ResolvedTimelineObject) {
+function updateStatistics(resolvedTimeline: ResolvedTimeline, obj: ResolvedTimelineObject) {
 	if (obj.resolved.instances.length) {
 		resolvedTimeline.statistics.resolvedInstanceCount += obj.resolved.instances.length
 		resolvedTimeline.statistics.resolvedCount += 1
@@ -562,16 +567,17 @@ function updateStatistics (resolvedTimeline: ResolvedTimeline, obj: ResolvedTime
 }
 
 /** Invalidate all changed objects, and recursively invalidate all objects that reference those objects */
-function invalidateObjectsWithReference (
-	handledReferences: {[ref: string]: true},
+function invalidateObjectsWithReference(
+	handledReferences: { [ref: string]: true },
 	reference: string,
-	affectReferenceMap: {[ref: string]: string[]},
+	affectReferenceMap: { [ref: string]: string[] },
 	validObjects: ResolvedTimelineObjects
 ) {
 	if (handledReferences[reference]) return // to avoid infinite loops
 	handledReferences[reference] = true
 
-	if (reference[0] === '#') { // an id
+	if (reference[0] === '#') {
+		// an id
 		const objId = reference.slice(1)
 		if (validObjects[objId]) {
 			delete validObjects[objId]
@@ -601,31 +607,28 @@ type ObjectRefType = 'start' | 'end' | 'duration'
  * @param expr
  * @param context
  */
-export function lookupExpression (
+export function lookupExpression(
 	resolvedTimeline: ResolvedTimeline,
 	obj: ResolvedTimelineObject,
 	expr: Expression | null,
 	context: ObjectRefType
-): { instances: Array<TimelineObjectInstance> | ValueWithReference | null, allReferences: string[]} {
+): { instances: Array<TimelineObjectInstance> | ValueWithReference | null; allReferences: string[] } {
 	if (expr === null) return { instances: null, allReferences: [] }
-	if (
-		_.isString(expr) &&
-		isNumeric(expr)
-	) {
+	if (_.isString(expr) && isNumeric(expr)) {
 		return {
 			instances: {
 				value: parseFloat(expr),
-				references: []
+				references: [],
 			},
-			allReferences: []
+			allReferences: [],
 		}
 	} else if (_.isNumber(expr)) {
 		return {
 			instances: {
 				value: expr,
-				references: []
+				references: [],
 			},
-			allReferences: []
+			allReferences: [],
 		}
 	} else if (_.isString(expr)) {
 		expr = expr.trim()
@@ -635,29 +638,29 @@ export function lookupExpression (
 				return {
 					instances: {
 						value: 0,
-						references: []
+						references: [],
 					},
-					allReferences: []
+					allReferences: [],
 				}
 			} else if (expr.match(/^false$/i)) {
 				return {
 					instances: [],
-					allReferences: []
+					allReferences: [],
 				}
 			}
 		}
 
 		// Look up string
-		let invert: boolean = false
-		let ignoreFirstIfZero: boolean = false
+		let invert = false
+		let ignoreFirstIfZero = false
 		let referencedObjs: ResolvedTimelineObject[] = []
 		let ref: ObjectRefType = context
-		let rest: string = ''
+		let rest = ''
 
 		let objIdsToReference: string[] = []
 		const allReferences: string[] = []
 
-		let referenceIsOk: boolean = false
+		let referenceIsOk = false
 		// Match id, example: "#objectId.start"
 		const m = expr.match(/^\W*#([^.]+)(.*)/)
 		if (m) {
@@ -710,7 +713,7 @@ export function lookupExpression (
 
 		if (obj.resolved.isSelfReferencing) {
 			// Exclude any self-referencing objects:
-			referencedObjs = _.filter(referencedObjs, refObj => {
+			referencedObjs = _.filter(referencedObjs, (refObj) => {
 				return !refObj.resolved.isSelfReferencing
 			})
 		}
@@ -726,24 +729,18 @@ export function lookupExpression (
 					const referencedObj: ResolvedTimelineObject = referencedObjs[i]
 					resolveTimelineObj(resolvedTimeline, referencedObj)
 					if (referencedObj.resolved.resolved) {
-						if (
-							obj.resolved.isSelfReferencing &&
-							referencedObj.resolved.isSelfReferencing
-						) {
+						if (obj.resolved.isSelfReferencing && referencedObj.resolved.isSelfReferencing) {
 							// If the querying object is self-referencing, exclude any other self-referencing objects,
 							// ignore the object
 						} else {
 							const firstInstance = _.first(referencedObj.resolved.instances)
 							if (firstInstance) {
-								const duration: number | null = (
-									firstInstance.end !== null ?
-									firstInstance.end - firstInstance.start :
-									null
-								)
+								const duration: number | null =
+									firstInstance.end !== null ? firstInstance.end - firstInstance.start : null
 								if (duration !== null) {
 									instanceDurations.push({
 										value: duration,
-										references: joinReferences(referencedObj.id, firstInstance.references)
+										references: joinReferences(referencedObj.id, firstInstance.references),
 									})
 								}
 							}
@@ -770,10 +767,7 @@ export function lookupExpression (
 					const referencedObj: ResolvedTimelineObject = referencedObjs[i]
 					resolveTimelineObj(resolvedTimeline, referencedObj)
 					if (referencedObj.resolved.resolved) {
-						if (
-							obj.resolved.isSelfReferencing &&
-							referencedObj.resolved.isSelfReferencing
-						) {
+						if (obj.resolved.isSelfReferencing && referencedObj.resolved.isSelfReferencing) {
 							// If the querying object is self-referencing, exclude any other self-referencing objects,
 							// ignore the object
 						} else {
@@ -783,11 +777,8 @@ export function lookupExpression (
 				}
 
 				if (returnInstances.length) {
-
 					if (invert) {
-						returnInstances = invertInstances(
-							returnInstances
-						)
+						returnInstances = invertInstances(returnInstances)
 					} else {
 						returnInstances = cleanInstances(returnInstances, true, true)
 					}
@@ -807,13 +798,12 @@ export function lookupExpression (
 		}
 	} else {
 		if (expr) {
-
 			const l = lookupExpression(resolvedTimeline, obj, expr.l, context)
 			const r = lookupExpression(resolvedTimeline, obj, expr.r, context)
 			const lookupExpr = {
 				l: l.instances,
 				o: expr.o,
-				r: r.instances
+				r: r.instances,
 			}
 
 			const allReferences = l.allReferences.concat(r.allReferences)
@@ -822,27 +812,20 @@ export function lookupExpression (
 				if (lookupExpr.r && _.isArray(lookupExpr.r)) {
 					return {
 						instances: invertInstances(lookupExpr.r),
-						allReferences: allReferences
+						allReferences: allReferences,
 					}
 				} else {
 					// We can't invert a value
 					return {
 						instances: lookupExpr.r,
-						allReferences: allReferences
+						allReferences: allReferences,
 					}
 				}
 			} else {
-
-				if (
-					_.isNull(lookupExpr.l) ||
-					_.isNull(lookupExpr.r)
-				) {
+				if (_.isNull(lookupExpr.l) || _.isNull(lookupExpr.r)) {
 					return { instances: null, allReferences: allReferences }
 				}
-				if (
-					lookupExpr.o === '&' ||
-					lookupExpr.o === '|'
-				) {
+				if (lookupExpr.o === '&' || lookupExpr.o === '|') {
 					interface SideEvent extends InstanceEvent<boolean> {
 						left: boolean // true = left, false = right side
 						instance: TimelineObjectInstance
@@ -851,7 +834,8 @@ export function lookupExpression (
 					const addEvents = (instances: Array<TimelineObjectInstance>, left: boolean) => {
 						for (let i = 0; i < instances.length; i++) {
 							const instance = instances[i]
-							if (instance.start !== instance.end) { // event doesn't actually exist...
+							if (instance.start !== instance.end) {
+								// event doesn't actually exist...
 
 								events.push({
 									left: left,
@@ -859,7 +843,7 @@ export function lookupExpression (
 									value: true,
 									references: [], // not used
 									data: true,
-									instance: instance
+									instance: instance,
 								})
 								if (instance.end !== null) {
 									events.push({
@@ -868,7 +852,7 @@ export function lookupExpression (
 										value: false,
 										references: [], // not used
 										data: false,
-										instance: instance
+										instance: instance,
 									})
 								}
 							}
@@ -879,15 +863,16 @@ export function lookupExpression (
 
 					events = sortEvents(events)
 
-					const calcResult: (left: any, right: any) => boolean = (
-						lookupExpr.o === '&' ?
-							(left: any, right: any): boolean => !!(left && right) :
-						lookupExpr.o === '|' ?
-							(left: any, right: any): boolean => !!(left || right) :
-						() => { return false }
-					)
-					let leftValue: boolean = (isReference(lookupExpr.l) ? !!lookupExpr.l.value : false)
-					let rightValue: boolean = (isReference(lookupExpr.r) ? !!lookupExpr.r.value : false)
+					const calcResult: (left: any, right: any) => boolean =
+						lookupExpr.o === '&'
+							? (left: any, right: any): boolean => !!(left && right)
+							: lookupExpr.o === '|'
+							? (left: any, right: any): boolean => !!(left || right)
+							: () => {
+									return false
+							  }
+					let leftValue: boolean = isReference(lookupExpr.l) ? !!lookupExpr.l.value : false
+					let rightValue: boolean = isReference(lookupExpr.r) ? !!lookupExpr.r.value : false
 
 					let leftInstance: TimelineObjectInstance | null = null
 					let rightInstance: TimelineObjectInstance | null = null
@@ -895,14 +880,19 @@ export function lookupExpression (
 					let resultValue: boolean = calcResult(leftValue, rightValue)
 
 					const instances: Array<TimelineObjectInstance> = []
-					const updateInstance = (time: Time, value: boolean, references: Array<string>, caps: Array<Cap>) => {
+					const updateInstance = (
+						time: Time,
+						value: boolean,
+						references: Array<string>,
+						caps: Array<Cap>
+					) => {
 						if (value) {
 							instances.push({
 								id: getId(),
 								start: time,
 								end: null,
 								references: references,
-								caps: caps
+								caps: caps,
 							})
 						} else {
 							const last = _.last(instances)
@@ -916,8 +906,8 @@ export function lookupExpression (
 						0,
 						resultValue,
 						joinReferences(
-							(isReference(lookupExpr.l) ? lookupExpr.l.references : []),
-							(isReference(lookupExpr.r) ? lookupExpr.r.references : [])
+							isReference(lookupExpr.l) ? lookupExpr.l.references : [],
+							isReference(lookupExpr.r) ? lookupExpr.r.references : []
 						),
 						[]
 					)
@@ -935,12 +925,8 @@ export function lookupExpression (
 
 						if (!next || next.time !== e.time) {
 							const newResultValue = calcResult(leftValue, rightValue)
-							const resultCaps: Array<Cap> = (
-								(
-									leftInstance ? 	leftInstance.caps 	|| [] : []
-								).concat(
-									rightInstance ? rightInstance.caps 	|| [] : []
-								)
+							const resultCaps: Array<Cap> = (leftInstance ? leftInstance.caps || [] : []).concat(
+								rightInstance ? rightInstance.caps || [] : []
 							)
 
 							if (newResultValue !== resultValue) {
@@ -959,20 +945,47 @@ export function lookupExpression (
 					}
 					return { instances: instances, allReferences: allReferences }
 				} else {
-					const operateInner: (a: ValueWithReference, b: ValueWithReference) => ValueWithReference | null = (
-						lookupExpr.o === '+' ?
-						(a, b) => { return { value: a.value + b.value, references: joinReferences(a.references, b.references) } } :
-						lookupExpr.o === '-' ?
-						(a, b) => { return { value: a.value - b.value, references: joinReferences(a.references, b.references) } } :
-						lookupExpr.o === '*' ?
-						(a, b) => { return { value: a.value * b.value, references: joinReferences(a.references, b.references) } } :
-						lookupExpr.o === '/' ?
-						(a, b) => { return { value: a.value / b.value, references: joinReferences(a.references, b.references) } } :
-						lookupExpr.o === '%' ?
-						(a, b) => { return { value: a.value % b.value, references: joinReferences(a.references, b.references) } } :
-						() => null
-					)
-					const operate = (a: ValueWithReference | null, b: ValueWithReference | null): ValueWithReference | null => {
+					const operateInner: (a: ValueWithReference, b: ValueWithReference) => ValueWithReference | null =
+						lookupExpr.o === '+'
+							? (a, b) => {
+									return {
+										value: a.value + b.value,
+										references: joinReferences(a.references, b.references),
+									}
+							  }
+							: lookupExpr.o === '-'
+							? (a, b) => {
+									return {
+										value: a.value - b.value,
+										references: joinReferences(a.references, b.references),
+									}
+							  }
+							: lookupExpr.o === '*'
+							? (a, b) => {
+									return {
+										value: a.value * b.value,
+										references: joinReferences(a.references, b.references),
+									}
+							  }
+							: lookupExpr.o === '/'
+							? (a, b) => {
+									return {
+										value: a.value / b.value,
+										references: joinReferences(a.references, b.references),
+									}
+							  }
+							: lookupExpr.o === '%'
+							? (a, b) => {
+									return {
+										value: a.value % b.value,
+										references: joinReferences(a.references, b.references),
+									}
+							  }
+							: () => null
+					const operate = (
+						a: ValueWithReference | null,
+						b: ValueWithReference | null
+					): ValueWithReference | null => {
 						if (a === null || b === null) return null
 						return operateInner(a, b)
 					}
@@ -980,7 +993,6 @@ export function lookupExpression (
 					return { instances: result, allReferences: allReferences }
 				}
 			}
-
 		}
 	}
 	return { instances: null, allReferences: [] }

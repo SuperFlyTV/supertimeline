@@ -1,7 +1,4 @@
-import {
-	TimelineObject,
-	Resolver
-} from '../../..'
+import { TimelineObject, Resolver } from '../../..'
 
 describe('Resolver, using Cache', () => {
 	beforeEach(() => {
@@ -14,33 +11,31 @@ describe('Resolver, using Cache', () => {
 				layer: '0',
 				enable: {
 					start: 0,
-					end: 100
+					end: 100,
 				},
-				content: {}
+				content: {},
 			},
 			{
 				id: 'graphic0',
 				layer: '1',
 				enable: {
 					start: '#video.start + 10', // 10
-					duration: 10
+					duration: 10,
 				},
-				content: {}
+				content: {},
 			},
 			{
 				id: 'graphic1',
 				layer: '1',
 				enable: {
 					start: '#graphic0.end + 10', // 30
-					duration: 15
+					duration: 15,
 				},
-				content: {}
-			}
+				content: {},
+			},
 		]
 		const cache = {}
-		const resolved = Resolver.resolveAllStates(
-			Resolver.resolveTimeline(timeline, { time: 0, cache })
-		)
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, cache }))
 
 		expect(resolved.statistics.resolvingCount).toEqual(3)
 		expect(resolved.statistics.resolvedObjectCount).toEqual(3)
@@ -53,9 +48,7 @@ describe('Resolver, using Cache', () => {
 		// @ts-ignore
 		timeline[2].enable.start = '#graphic0.end + 15' // 35
 
-		const resolved2 = Resolver.resolveAllStates(
-			Resolver.resolveTimeline(timeline, { time: 0, cache })
-		)
+		const resolved2 = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, cache }))
 		expect(resolved2.statistics.resolvingCount).toEqual(1)
 		expect(resolved2.objects['video'].resolved).toMatchObject({ instances: [{ start: 0, end: 100 }] })
 		expect(resolved2.objects['graphic0'].resolved).toMatchObject({ instances: [{ start: 10, end: 20 }] })
@@ -65,18 +58,14 @@ describe('Resolver, using Cache', () => {
 		// @ts-ignore
 		timeline[0].enable.start = 10
 
-		const resolved3 = Resolver.resolveAllStates(
-			Resolver.resolveTimeline(timeline, { time: 0, cache })
-		)
+		const resolved3 = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, cache }))
 		expect(resolved3.statistics.resolvingCount).toEqual(3)
 		expect(resolved3.objects['video'].resolved).toMatchObject({ instances: [{ start: 10, end: 100 }] })
 		expect(resolved3.objects['graphic0'].resolved).toMatchObject({ instances: [{ start: 20, end: 30 }] })
 		expect(resolved3.objects['graphic1'].resolved).toMatchObject({ instances: [{ start: 45, end: 60 }] })
 
 		// run the exact thing again, with no timeline changes:
-		const resolved4 = Resolver.resolveAllStates(
-			Resolver.resolveTimeline(timeline, { time: 0, cache })
-		)
+		const resolved4 = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, cache }))
 		expect(resolved4.statistics.resolvingCount).toEqual(0)
 		expect(resolved4.objects['video'].resolved).toMatchObject({ instances: [{ start: 10, end: 100 }] })
 		expect(resolved4.objects['graphic0'].resolved).toMatchObject({ instances: [{ start: 20, end: 30 }] })
@@ -89,34 +78,32 @@ describe('Resolver, using Cache', () => {
 				layer: '0',
 				enable: {
 					start: 10,
-					duration: 10
+					duration: 10,
 				},
 				content: {},
-				classes: ['someVideo0']
+				classes: ['someVideo0'],
 			},
 			{
 				id: 'graphic0',
 				layer: '1',
 				enable: {
 					start: '.someVideo0.end',
-					duration: 10
+					duration: 10,
 				},
-				content: {}
+				content: {},
 			},
 			{
 				id: 'graphic1',
 				layer: '1',
 				enable: {
 					start: '.someVideo1.end',
-					duration: 10
+					duration: 10,
 				},
-				content: {}
-			}
+				content: {},
+			},
 		]
 		const cache = {}
-		const resolved = Resolver.resolveAllStates(
-			Resolver.resolveTimeline(timeline, { time: 0, cache })
-		)
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, cache }))
 
 		expect(resolved.statistics.resolvingCount).toEqual(3)
 		expect(resolved.objects['video0'].resolved).toMatchObject({ instances: [{ start: 10, end: 20 }] })
@@ -127,9 +114,7 @@ describe('Resolver, using Cache', () => {
 		// @ts-ignore
 		timeline[0].enable.start = 20
 
-		const resolved2 = Resolver.resolveAllStates(
-			Resolver.resolveTimeline(timeline, { time: 0, cache })
-		)
+		const resolved2 = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, cache }))
 
 		expect(resolved2.statistics.resolvingCount).toEqual(2)
 		expect(resolved2.objects['video0'].resolved).toMatchObject({ instances: [{ start: 20, end: 30 }] })
@@ -139,9 +124,7 @@ describe('Resolver, using Cache', () => {
 		// change the class
 		timeline[0].classes = ['someVideo1']
 
-		const resolved3 = Resolver.resolveAllStates(
-			Resolver.resolveTimeline(timeline, { time: 0, cache })
-		)
+		const resolved3 = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, cache }))
 
 		expect(resolved3.statistics.resolvingCount).toEqual(3)
 		expect(resolved3.objects['video0'].resolved).toMatchObject({ instances: [{ start: 20, end: 30 }] })
@@ -155,34 +138,32 @@ describe('Resolver, using Cache', () => {
 				layer: '0',
 				enable: {
 					start: 10,
-					duration: 10
+					duration: 10,
 				},
 				content: {},
-				classes: ['someVideo0']
+				classes: ['someVideo0'],
 			},
 			{
 				id: 'graphic0',
 				layer: '9',
 				enable: {
 					start: '$0.end',
-					duration: 10
+					duration: 10,
 				},
-				content: {}
+				content: {},
 			},
 			{
 				id: 'graphic1',
 				layer: '10',
 				enable: {
 					start: '$1.end',
-					duration: 10
+					duration: 10,
 				},
-				content: {}
-			}
+				content: {},
+			},
 		]
 		const cache = {}
-		const resolved = Resolver.resolveAllStates(
-			Resolver.resolveTimeline(timeline, { time: 0, cache })
-		)
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, cache }))
 
 		expect(resolved.statistics.resolvingCount).toEqual(3)
 		expect(resolved.objects['video0'].resolved).toMatchObject({ instances: [{ start: 10, end: 20 }] })
@@ -193,9 +174,7 @@ describe('Resolver, using Cache', () => {
 		// @ts-ignore
 		timeline[0].enable.start = 20
 
-		const resolved2 = Resolver.resolveAllStates(
-			Resolver.resolveTimeline(timeline, { time: 0, cache })
-		)
+		const resolved2 = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, cache }))
 
 		expect(resolved2.statistics.resolvingCount).toEqual(2)
 		expect(resolved2.objects['video0'].resolved).toMatchObject({ instances: [{ start: 20, end: 30 }] })
@@ -205,9 +184,7 @@ describe('Resolver, using Cache', () => {
 		// change the layer
 		timeline[0].layer = '1'
 
-		const resolved3 = Resolver.resolveAllStates(
-			Resolver.resolveTimeline(timeline, { time: 0, cache })
-		)
+		const resolved3 = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, cache }))
 
 		expect(resolved3.statistics.resolvingCount).toEqual(3)
 		expect(resolved3.objects['video0'].resolved).toMatchObject({ instances: [{ start: 20, end: 30 }] })
@@ -221,34 +198,32 @@ describe('Resolver, using Cache', () => {
 				layer: '1',
 				enable: {
 					start: '#video0.start + 10',
-					duration: 10
+					duration: 10,
 				},
-				content: {}
+				content: {},
 			},
 			{
 				id: 'graphic1',
 				layer: '1',
 				enable: {
 					start: '#graphic0.start | #video1.start',
-					duration: 15
+					duration: 15,
 				},
-				content: {}
+				content: {},
 			},
 			{
 				id: 'video1',
 				layer: '2',
 				enable: {
 					start: 100,
-					duration: 10
+					duration: 10,
 				},
 				content: {},
-				classes: ['someVideo']
-			}
+				classes: ['someVideo'],
+			},
 		]
 		const cache = {}
-		const resolved = Resolver.resolveAllStates(
-			Resolver.resolveTimeline(timeline, { time: 0, cache })
-		)
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, cache }))
 
 		expect(resolved.statistics.resolvingCount).toEqual(3)
 		expect(resolved.objects['graphic0']).toBeFalsy()
@@ -261,25 +236,26 @@ describe('Resolver, using Cache', () => {
 			layer: '0',
 			enable: {
 				start: 0,
-				end: 100
+				end: 100,
 			},
-			content: {}
+			content: {},
 		})
-		const resolved2 = Resolver.resolveAllStates(
-			Resolver.resolveTimeline(timeline, { time: 0, cache })
-		)
+		const resolved2 = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, cache }))
 		expect(resolved2.statistics.resolvingCount).toEqual(3)
 		expect(resolved2.objects['video0'].resolved).toMatchObject({ instances: [{ start: 0, end: 100 }] })
 		expect(resolved2.objects['graphic0'].resolved).toMatchObject({ instances: [{ start: 10, end: 20 }] })
 		expect(resolved2.objects['video1'].resolved).toMatchObject({ instances: [{ start: 100, end: 110 }] })
-		expect(resolved2.objects['graphic1'].resolved).toMatchObject({ instances: [{ start: 20, end: 25 }, { start: 100, end: 115 } ] })
+		expect(resolved2.objects['graphic1'].resolved).toMatchObject({
+			instances: [
+				{ start: 20, end: 25 },
+				{ start: 100, end: 115 },
+			],
+		})
 
 		// Remove an object from the timeline
 		timeline.splice(2, 1) // video1
 
-		const resolved3 = Resolver.resolveAllStates(
-			Resolver.resolveTimeline(timeline, { time: 0, cache })
-		)
+		const resolved3 = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, cache }))
 		expect(resolved3.statistics.resolvingCount).toEqual(1)
 		expect(resolved3.objects['video0'].resolved).toMatchObject({ instances: [{ start: 0, end: 100 }] })
 		expect(resolved3.objects['graphic0'].resolved).toMatchObject({ instances: [{ start: 10, end: 20 }] })
@@ -293,7 +269,7 @@ describe('Resolver, using Cache', () => {
 				layer: '0',
 				enable: {
 					start: 10,
-					duration: 100
+					duration: 100,
 				},
 				content: {},
 				classes: [],
@@ -304,26 +280,24 @@ describe('Resolver, using Cache', () => {
 						layer: '9',
 						enable: {
 							start: '0',
-							duration: 10
+							duration: 10,
 						},
-						content: {}
-					}
-				]
+						content: {},
+					},
+				],
 			},
 			{
 				id: 'video1',
 				layer: '10',
 				enable: {
 					start: '#video0.end',
-					duration: 10
+					duration: 10,
 				},
-				content: {}
-			}
+				content: {},
+			},
 		]
 		const cache = {}
-		const resolved = Resolver.resolveAllStates(
-			Resolver.resolveTimeline(timeline, { time: 0, cache })
-		)
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, cache }))
 
 		expect(resolved.statistics.resolvingCount).toEqual(3)
 		expect(resolved.objects['group0'].resolved).toMatchObject({ instances: [{ start: 10, end: 110 }] })
@@ -334,9 +308,7 @@ describe('Resolver, using Cache', () => {
 		// @ts-ignore
 		timeline[0].enable.start = 20
 
-		const resolved2 = Resolver.resolveAllStates(
-			Resolver.resolveTimeline(timeline, { time: 0, cache })
-		)
+		const resolved2 = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, cache }))
 
 		expect(resolved2.statistics.resolvingCount).toEqual(3)
 		expect(resolved2.objects['group0'].resolved).toMatchObject({ instances: [{ start: 20, end: 120 }] })

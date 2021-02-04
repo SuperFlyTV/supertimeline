@@ -1,13 +1,11 @@
 /* tslint:disable:strict-type-predicates */
-import {
-	TimelineObject, TimelineKeyframe, TimelineEnable
-} from '../api/api'
+import { TimelineObject, TimelineKeyframe, TimelineEnable } from '../api/api'
 import _ = require('underscore')
 
 interface Ids {
 	[id: string]: true
 }
-function validateObject0 (obj: TimelineObject, strict?: boolean, uniqueIds?: Ids): void {
+function validateObject0(obj: TimelineObject, strict?: boolean, uniqueIds?: Ids): void {
 	if (!uniqueIds) uniqueIds = {}
 
 	if (!obj) throw new Error(`Object is undefined`)
@@ -19,34 +17,26 @@ function validateObject0 (obj: TimelineObject, strict?: boolean, uniqueIds?: Ids
 	if (uniqueIds[obj.id]) throw new Error(`Object id "${obj.id}" is not unique`)
 	uniqueIds[obj.id] = true
 
-	// @ts-ignore
 	if (obj.layer === undefined) throw new Error(`Object "${obj.id}": "layer" attribute is undefined`)
 
 	if (!obj.content) throw new Error(`Object "${obj.id}": "content" attribute must be set`)
 	if (!obj.enable) throw new Error(`Object "${obj.id}": "enable" attribute must be set`)
 
-	const enables: TimelineEnable[] = (
-		_.isArray(obj.enable) ?
-		obj.enable :
-		[obj.enable]
-	)
+	const enables: TimelineEnable[] = _.isArray(obj.enable) ? obj.enable : [obj.enable]
 	for (let i = 0; i < enables.length; i++) {
 		const enable = enables[i]
 
 		if (enable.start !== undefined) {
-			if (strict && enable.while !== undefined) throw new Error(`Object "${obj.id}": "enable.start" and "enable.while" cannot be combined`)
+			if (strict && enable.while !== undefined)
+				throw new Error(`Object "${obj.id}": "enable.start" and "enable.while" cannot be combined`)
 
-			if (
-				strict &&
-				enable.end !== undefined &&
-				enable.duration !== undefined
-			) throw new Error(`Object "${obj.id}": "enable.end" and "enable.duration" cannot be combined`)
-
+			if (strict && enable.end !== undefined && enable.duration !== undefined)
+				throw new Error(`Object "${obj.id}": "enable.end" and "enable.duration" cannot be combined`)
 		} else if (enable.while !== undefined) {
-
-			if (strict && enable.end !== undefined) throw new Error(`Object "${obj.id}": "enable.while" and "enable.end" cannot be combined`)
-			if (strict && enable.duration !== undefined) throw new Error(`Object "${obj.id}": "enable.while" and "enable.duration" cannot be combined`)
-
+			if (strict && enable.end !== undefined)
+				throw new Error(`Object "${obj.id}": "enable.while" and "enable.end" cannot be combined`)
+			if (strict && enable.duration !== undefined)
+				throw new Error(`Object "${obj.id}": "enable.while" and "enable.duration" cannot be combined`)
 		} else throw new Error(`Object "${obj.id}": "enable.start" or "enable.while" must be set`)
 	}
 	if (obj.keyframes) {
@@ -62,12 +52,15 @@ function validateObject0 (obj: TimelineObject, strict?: boolean, uniqueIds?: Ids
 	if (obj.classes) {
 		for (let i = 0; i < obj.classes.length; i++) {
 			const className = obj.classes[i]
-			if (className && typeof className !== 'string') throw new Error(`Object "${obj.id}": "classes[${i}]" is not a string`)
+			if (className && typeof className !== 'string')
+				throw new Error(`Object "${obj.id}": "classes[${i}]" is not a string`)
 		}
 	}
 
-	if (obj.children && !obj.isGroup) throw new Error(`Object "${obj.id}": attribute "children" is set but "isGroup" is not`)
-	if (obj.isGroup && !obj.children) throw new Error(`Object "${obj.id}": attribute "isGroup" is set but "children" missing`)
+	if (obj.children && !obj.isGroup)
+		throw new Error(`Object "${obj.id}": attribute "children" is set but "isGroup" is not`)
+	if (obj.isGroup && !obj.children)
+		throw new Error(`Object "${obj.id}": attribute "isGroup" is set but "children" missing`)
 
 	if (obj.children) {
 		for (let i = 0; i < obj.children.length; i++) {
@@ -79,9 +72,10 @@ function validateObject0 (obj: TimelineObject, strict?: boolean, uniqueIds?: Ids
 			}
 		}
 	}
-	if (obj.priority !== undefined && !_.isNumber(obj.priority)) throw new Error(`Object "${obj.id}": attribute "priority" is not a number`)
+	if (obj.priority !== undefined && !_.isNumber(obj.priority))
+		throw new Error(`Object "${obj.id}": attribute "priority" is not a number`)
 }
-function validateKeyframe0 (keyframe: TimelineKeyframe, strict?: boolean, uniqueIds?: Ids): void {
+function validateKeyframe0(keyframe: TimelineKeyframe, strict?: boolean, uniqueIds?: Ids): void {
 	if (!uniqueIds) uniqueIds = {}
 
 	if (!keyframe) throw new Error(`Keyframe is undefined`)
@@ -95,34 +89,28 @@ function validateKeyframe0 (keyframe: TimelineKeyframe, strict?: boolean, unique
 
 	if (!keyframe.content) throw new Error(`Keyframe "${keyframe.id}": "content" attribute must be set`)
 	if (!keyframe.enable) throw new Error(`Keyframe "${keyframe.id}": "enable" attribute must be set`)
-	const enables: TimelineEnable[] = (
-		_.isArray(keyframe.enable) ?
-		keyframe.enable :
-		[keyframe.enable]
-	)
+	const enables: TimelineEnable[] = _.isArray(keyframe.enable) ? keyframe.enable : [keyframe.enable]
 	for (let i = 0; i < enables.length; i++) {
 		const enable = enables[i]
 
 		if (enable.start !== undefined) {
-			if (strict && enable.while !== undefined) throw new Error(`Keyframe "${keyframe.id}": "enable.start" and "enable.while" cannot be combined`)
+			if (strict && enable.while !== undefined)
+				throw new Error(`Keyframe "${keyframe.id}": "enable.start" and "enable.while" cannot be combined`)
 
-			if (
-				strict &&
-				enable.end !== undefined &&
-				enable.duration !== undefined
-			) throw new Error(`Keyframe "${keyframe.id}": "enable.end" and "enable.duration" cannot be combined`)
-
+			if (strict && enable.end !== undefined && enable.duration !== undefined)
+				throw new Error(`Keyframe "${keyframe.id}": "enable.end" and "enable.duration" cannot be combined`)
 		} else if (enable.while !== undefined) {
-
-			if (strict && enable.end !== undefined) throw new Error(`Keyframe "${keyframe.id}": "enable.while" and "enable.end" cannot be combined`)
-			if (strict && enable.duration !== undefined) throw new Error(`Keyframe "${keyframe.id}": "enable.while" and "enable.duration" cannot be combined`)
-
+			if (strict && enable.end !== undefined)
+				throw new Error(`Keyframe "${keyframe.id}": "enable.while" and "enable.end" cannot be combined`)
+			if (strict && enable.duration !== undefined)
+				throw new Error(`Keyframe "${keyframe.id}": "enable.while" and "enable.duration" cannot be combined`)
 		} else throw new Error(`Keyframe "${keyframe.id}": "enable.start" or "enable.while" must be set`)
 	}
 	if (keyframe.classes) {
 		for (let i = 0; i < keyframe.classes.length; i++) {
 			const className = keyframe.classes[i]
-			if (className && !_.isString(className)) throw new Error(`Keyframe "${keyframe.id}": "classes[${i}]" is not a string`)
+			if (className && !_.isString(className))
+				throw new Error(`Keyframe "${keyframe.id}": "classes[${i}]" is not a string`)
 		}
 	}
 }
@@ -132,8 +120,8 @@ function validateKeyframe0 (keyframe: TimelineKeyframe, strict?: boolean, unique
  * @param timeline The timeline to validate
  * @param strict Set to true to enable some strict rules (rules that can possibly be ignored)
  */
-export function validateTimeline (timeline: Array<TimelineObject>, strict?: boolean): void {
-	const uniqueIds: {[id: string]: true} = {}
+export function validateTimeline(timeline: Array<TimelineObject>, strict?: boolean): void {
+	const uniqueIds: { [id: string]: true } = {}
 	for (let i = 0; i < timeline.length; i++) {
 		const obj = timeline[i]
 		validateObject0(obj, strict, uniqueIds)
@@ -144,7 +132,7 @@ export function validateTimeline (timeline: Array<TimelineObject>, strict?: bool
  * @param timeline The timeline to validate
  * @param strict Set to true to enable some strict rules (rules that can possibly be ignored)
  */
-export function validateObject (obj: TimelineObject, strict?: boolean): void {
+export function validateObject(obj: TimelineObject, strict?: boolean): void {
 	validateObject0(obj, strict)
 }
 /**
@@ -152,6 +140,6 @@ export function validateObject (obj: TimelineObject, strict?: boolean): void {
  * @param timeline The timeline to validate
  * @param strict Set to true to enable some strict rules (rules that can possibly be ignored)
  */
-export function validateKeyframe (keyframe: TimelineKeyframe, strict?: boolean): void {
+export function validateKeyframe(keyframe: TimelineKeyframe, strict?: boolean): void {
 	validateKeyframe0(keyframe, strict)
 }

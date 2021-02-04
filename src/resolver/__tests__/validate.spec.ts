@@ -6,36 +6,36 @@ describe('validate', () => {
 	const obj: TimelineObject = {
 		id: 'obj0',
 		enable: {
-			start: 10
+			start: 10,
 		},
 		layer: '1',
-		content: {}
+		content: {},
 	}
 	const keyframe: TimelineKeyframe = {
 		id: 'kf0',
 		enable: {
 			start: 10,
-			end: 14
+			end: 14,
 		},
-		content: {}
+		content: {},
 	}
 	const timeline: TimelineObject[] = [
 		{
 			id: 'obj1',
 			enable: {
-				start: 1000
+				start: 1000,
 			},
 			layer: '1',
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj2',
 			enable: {
-				while: 1
+				while: 1,
 			},
 			layer: '1',
-			content: {}
-		}
+			content: {},
+		},
 	]
 	test('validateObject', () => {
 		expect(() => {
@@ -82,7 +82,7 @@ describe('validate', () => {
 			o.enable = {
 				start: 10,
 				end: 32,
-				duration: 22
+				duration: 22,
 			}
 			validateObject(o, true)
 		}).toThrowError()
@@ -91,7 +91,7 @@ describe('validate', () => {
 			const o = _.clone(obj)
 			o.enable = {
 				while: 1,
-				end: 32
+				end: 32,
 			}
 			validateObject(o, true)
 		}).toThrowError()
@@ -100,7 +100,7 @@ describe('validate', () => {
 			const o = _.clone(obj)
 			o.enable = {
 				while: 1,
-				duration: 10
+				duration: 10,
 			}
 			validateObject(o, true)
 		}).toThrowError()
@@ -146,10 +146,7 @@ describe('validate', () => {
 
 		expect(() => {
 			const o = _.clone(obj)
-			o.children = [
-				_.clone(timeline[0]),
-				_.clone(timeline[1])
-			]
+			o.children = [_.clone(timeline[0]), _.clone(timeline[1])]
 			o.isGroup = true
 			// @ts-ignore
 			o.children[0].id = 123
@@ -202,7 +199,7 @@ describe('validate', () => {
 			o.enable = {
 				start: 10,
 				end: 32,
-				duration: 22
+				duration: 22,
 			}
 			validateKeyframe(o, true)
 		}).toThrowError()
@@ -211,7 +208,7 @@ describe('validate', () => {
 			const o = _.clone(keyframe)
 			o.enable = {
 				while: 1,
-				end: 32
+				end: 32,
 			}
 			validateKeyframe(o, true)
 		}).toThrowError()
@@ -220,7 +217,7 @@ describe('validate', () => {
 			const o = _.clone(keyframe)
 			o.enable = {
 				while: 1,
-				duration: 10
+				duration: 10,
 			}
 			validateKeyframe(o, true)
 		}).toThrowError()
@@ -247,17 +244,13 @@ describe('validate', () => {
 
 		expect(() => {
 			const o = _.clone(obj)
-			o.keyframes = [
-				_.clone(keyframe)
-			]
+			o.keyframes = [_.clone(keyframe)]
 			validateObject(o, true)
 		}).not.toThrowError()
 
 		expect(() => {
 			const o = _.clone(obj)
-			o.keyframes = [
-				_.clone(keyframe)
-			]
+			o.keyframes = [_.clone(keyframe)]
 			// @ts-ignore
 			o.keyframes[0].id = 13
 			validateObject(o, true)
@@ -265,9 +258,7 @@ describe('validate', () => {
 
 		expect(() => {
 			const o = _.clone(obj)
-			o.keyframes = [
-				_.clone(keyframe)
-			]
+			o.keyframes = [_.clone(keyframe)]
 			// @ts-ignore
 			o.keyframes[0].id = obj.id
 			validateObject(o, true)

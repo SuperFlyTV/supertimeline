@@ -79,17 +79,16 @@ export interface TimelineKeyframe {
 	disabled?: boolean
 }
 
-export interface TimelineObjectKeyframe extends TimelineObject, TimelineKeyframe {
-}
+export interface TimelineObjectKeyframe extends TimelineObject, TimelineKeyframe {}
 export interface ResolvedTimeline {
 	/** The options used to resolve the timeline */
 	options: ResolveOptions
 	/** Map of all objects on timeline */
 	objects: ResolvedTimelineObjects
 	/** Map of all classes on timeline, maps className to object ids */
-	classes: {[className: string]: Array<string>}
+	classes: { [className: string]: Array<string> }
 	/** Map of the object ids, per layer */
-	layers: {[layer: string]: Array<string>}
+	layers: { [layer: string]: Array<string> }
 	statistics: {
 		/** Number of objects that were unable to resolve */
 		unresolvedCount: number
@@ -224,7 +223,7 @@ export interface TimeEvent {
 }
 export type ResolverCache = Partial<ResolverCacheInternal>
 export interface ResolverCacheInternal {
-	objHashes: {[id: string]: string}
+	objHashes: { [id: string]: string }
 
 	resolvedTimeline: ResolvedTimeline
 	hasOldData?: boolean

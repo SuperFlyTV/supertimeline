@@ -2,26 +2,22 @@
  * Note: The tests in this file where originally created for version 1, but has been converted to apply for version 2
  */
 import { TriggerType, EventType } from './legacyEnums.spec'
-import {
-	TimelineObject,
-	TimelineKeyframe
-} from './legacyAPI.spec'
+import { TimelineObject, TimelineKeyframe } from './legacyAPI.spec'
 import {
 	ResolvedTimelineObject as NewResolvedTimelineObject,
 	TimelineObject as NewTimelineObject,
 	TimelineKeyframe as NewTimelineKeyframe,
 	ResolveOptions,
-	TimelineEnable
+	TimelineEnable,
 } from '../api/api'
-import {
-	Resolver
-} from '../resolver/resolver'
+import { Resolver } from '../resolver/resolver'
 
 import * as _ from 'underscore'
 import { resetId } from '../lib'
 // let assert = require('assert')
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const clone0 = require('fast-clone')
-function clone<T> (o: T): T {
+function clone<T>(o: T): T {
 	return clone0(o)
 }
 const now = 1000
@@ -29,54 +25,53 @@ const now = 1000
 const testDataOld: {
 	[dataset: string]: Array<TimelineObject>
 } = {
-	'basic': [
+	basic: [
 		{
 			id: 'obj0', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now - 10 // 10 seconds ago
+				value: now - 10, // 10 seconds ago
 			},
 			duration: 60, // 1 minute long
 			LLayer: 1,
 			classes: ['obj0Class', 'L1'],
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj1', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_RELATIVE,
-				value: '#obj0.end'
+				value: '#obj0.end',
 			},
 			duration: 60, // 1 minute long
 			LLayer: 1,
 			content: {},
-			classes: ['L1']
-		}
+			classes: ['L1'],
+		},
 	],
-	'basic2': [
+	basic2: [
 		{
-
 			id: 'obj0', // Unique id
 
 			duration: 100, // in seconds
 
 			content: {
 				media: 'AMB',
-				GLayer: 10 // Graphical layer
+				GLayer: 10, // Graphical layer
 			},
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: '950'
+				value: '950',
 			},
 
 			LLayer: 10, // Logical layer
 
-			classes: ['main'] // used by logical expressions
-		}
+			classes: ['main'], // used by logical expressions
+		},
 	],
-	'basic3': [
+	basic3: [
 		{
 			id: 'obj1',
 
@@ -84,16 +79,16 @@ const testDataOld: {
 
 			content: {
 				media: 'AMB',
-				GLayer: 10 // Graphical layer
+				GLayer: 10, // Graphical layer
 			},
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: 960
+				value: 960,
 			},
 
 			LLayer: 10, // Logical layer
 
-			classes: ['main'] // used by logical expressions
+			classes: ['main'], // used by logical expressions
 		},
 		{
 			id: 'obj2',
@@ -102,19 +97,19 @@ const testDataOld: {
 
 			content: {
 				media: 'AMB',
-				GLayer: 11 // Graphical layer
+				GLayer: 11, // Graphical layer
 			},
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: 950
+				value: 950,
 			},
 
 			LLayer: 11, // Logical layer
 
-			classes: ['main'] // used by logical expressions
-		}
+			classes: ['main'], // used by logical expressions
+		},
 	],
-	'override': [
+	override: [
 		{
 			id: 'obj3',
 
@@ -122,53 +117,56 @@ const testDataOld: {
 
 			content: {
 				media: 'AMB',
-				GLayer: 10 // Graphical layer
+				GLayer: 10, // Graphical layer
 			},
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: 960
+				value: 960,
 			},
 
 			LLayer: 10, // Logical layer
 			priority: 1,
-			classes: ['main'] // used by logical expressions
+			classes: ['main'], // used by logical expressions
 		},
-		{ // This should be overridden by 'obj3'
+		{
+			// This should be overridden by 'obj3'
 			id: 'obj4',
 
 			duration: 100, // in seconds
 
 			content: {
 				media: 'AMB',
-				GLayer: 10 // Graphical layer
+				GLayer: 10, // Graphical layer
 			},
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: 970
+				value: 970,
 			},
 
 			LLayer: 10, // Logical layer
 
-			classes: ['main'] // used by logical expressions
-		}
+			classes: ['main'], // used by logical expressions
+		},
 	],
-	'override2': [{
-		id: 'obj5',
+	override2: [
+		{
+			id: 'obj5',
 
-		content: {
-			media: 'AMB',
-			GLayer: 10 // Graphical layer
-		},
-		trigger: {
-			type: TriggerType.TIME_ABSOLUTE,
-			value: 970
-		},
+			content: {
+				media: 'AMB',
+				GLayer: 10, // Graphical layer
+			},
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: 970,
+			},
 
-		LLayer: 10, // Logical layer
-		priority: 1,
-		classes: ['main'] // used by logical expressions
-	}],
-	'override3': [
+			LLayer: 10, // Logical layer
+			priority: 1,
+			classes: ['main'], // used by logical expressions
+		},
+	],
+	override3: [
 		{
 			id: 'obj6',
 
@@ -176,174 +174,167 @@ const testDataOld: {
 
 			content: {
 				media: 'AMB',
-				GLayer: 10 // Graphical layer
+				GLayer: 10, // Graphical layer
 			},
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: 980
+				value: 980,
 			},
 
 			LLayer: 10, // Logical layer
 			priority: 1,
-			classes: ['main'] // used by logical expressions
-		}
+			classes: ['main'], // used by logical expressions
+		},
 	],
-	'relative1': [
+	relative1: [
 		{
-
 			id: 'obj0', // Unique id
 
 			duration: 100, // in seconds
 
 			content: {
 				media: 'AMB',
-				GLayer: 10 // Graphical layer
+				GLayer: 10, // Graphical layer
 			},
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: 950
+				value: 950,
 			},
 
 			LLayer: 10, // Logical layer
 
-			classes: ['main'] // used by logical expressions
+			classes: ['main'], // used by logical expressions
 		},
 		{
-
 			id: 'obj1', // Unique id
 
 			duration: 10, // in seconds
 
 			content: {
 				media: 'AMB',
-				GLayer: 10 // Graphical layer
+				GLayer: 10, // Graphical layer
 			},
 			trigger: {
 				type: TriggerType.TIME_RELATIVE,
-				value: '#obj0.end + 5 - 1'
+				value: '#obj0.end + 5 - 1',
 			},
 
 			LLayer: 10, // Logical layer
 
-			classes: ['main'] // used by logical expressions
+			classes: ['main'], // used by logical expressions
 		},
 		{
-
 			id: 'obj2', // Unique id
 
 			duration: 50, // in seconds
 
 			content: {
 				media: 'AMB',
-				GLayer: 10 // Graphical layer
+				GLayer: 10, // Graphical layer
 			},
 			trigger: {
 				type: TriggerType.TIME_RELATIVE,
-				value: '#obj0.end + (9 * 2)'
+				value: '#obj0.end + (9 * 2)',
 			},
 
 			LLayer: 10, // Logical layer
 
-			classes: ['main'] // used by logical expressions
+			classes: ['main'], // used by logical expressions
 		},
 		{
-
 			id: 'obj3', // Unique id
 
 			duration: 10, // in seconds
 
 			content: {
 				media: 'AMB',
-				GLayer: 10 // Graphical layer
+				GLayer: 10, // Graphical layer
 			},
 			trigger: {
 				type: TriggerType.TIME_RELATIVE,
-				value: '#obj2.start - 10'
+				value: '#obj2.start - 10',
 			},
 
 			LLayer: 10, // Logical layer
 
-			classes: ['main'] // used by logical expressions
+			classes: ['main'], // used by logical expressions
 		},
 		{
-
 			id: 'obj4', // Unique id
 
 			duration: 10, // in seconds
 
 			content: {
 				media: 'AMB',
-				GLayer: 10 // Graphical layer
+				GLayer: 10, // Graphical layer
 			},
 			trigger: {
 				type: TriggerType.TIME_RELATIVE,
-				value: '#obj3.end + #obj2.duration'
+				value: '#obj3.end + #obj2.duration',
 			},
 
 			LLayer: 10, // Logical layer
 
-			classes: ['main'] // used by logical expressions
+			classes: ['main'], // used by logical expressions
 		},
 		{
-
 			id: 'obj5', // Unique id
 
 			duration: 10, // in seconds
 
 			content: {
 				media: 'AMB',
-				GLayer: 10 // Graphical layer
+				GLayer: 10, // Graphical layer
 			},
 			trigger: {
 				type: TriggerType.TIME_RELATIVE,
-				value: '(#obj4.start + #obj4.end)/ 2'
+				value: '(#obj4.start + #obj4.end)/ 2',
 			},
 
 			LLayer: 10, // Logical layer
 
-			classes: ['main'] // used by logical expressions
+			classes: ['main'], // used by logical expressions
 		},
 		{
-
 			id: 'badObj0',
 
 			duration: 50, // in seconds
 
 			content: {
 				media: 'AMB',
-				GLayer: 10 // Graphical layer
+				GLayer: 10, // Graphical layer
 			},
 			trigger: {
 				type: TriggerType.TIME_RELATIVE,
-				value: '#badReference + (9 * 2)'
+				value: '#badReference + (9 * 2)',
 			},
 
 			LLayer: 10, // Logical layer
 
-			classes: ['main'] // used by logical expressions
-		}
+			classes: ['main'], // used by logical expressions
+		},
 	],
-	'relative2': [
+	relative2: [
 		{
-
 			id: 'obj0', // Unique id
 
 			// duration: 100, // in seconds
 
 			content: {
 				media: 'AMB',
-				GLayer: 10 // Graphical layer
+				GLayer: 10, // Graphical layer
 			},
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: 950
+				value: 950,
 			},
 
 			LLayer: 10, // Logical layer
 
-			classes: ['myMainClass'] // used by logical expressions
+			classes: ['myMainClass'], // used by logical expressions
 		},
-		{ // will be unresolved, due to referenced object doesn't have any endTime
+		{
+			// will be unresolved, due to referenced object doesn't have any endTime
 
 			id: 'obj1',
 
@@ -351,59 +342,56 @@ const testDataOld: {
 
 			content: {
 				media: 'AMB',
-				GLayer: 10 // Graphical layer
+				GLayer: 10, // Graphical layer
 			},
 			trigger: {
 				type: TriggerType.TIME_RELATIVE,
-				value: '.myMainClass.end + 5'
+				value: '.myMainClass.end + 5',
 			},
 
 			LLayer: 10, // Logical layer
 
-			classes: ['main'] // used by logical expressions
+			classes: ['main'], // used by logical expressions
 		},
 		{
-
 			id: 'obj2',
 
 			duration: 50, // in seconds
 
 			content: {
 				media: 'AMB',
-				GLayer: 10 // Graphical layer
+				GLayer: 10, // Graphical layer
 			},
 			trigger: {
 				type: TriggerType.TIME_RELATIVE,
-				value: '#obj0.start + 15'
+				value: '#obj0.start + 15',
 			},
 
 			LLayer: 10, // Logical layer
 
-			classes: ['main'] // used by logical expressions
-		}
+			classes: ['main'], // used by logical expressions
+		},
 	],
-	'keyframes1': [
+	keyframes1: [
 		{
-
 			id: 'obj0', // Unique id
 
 			duration: 100, // in seconds
 
 			content: {
 				media: 'AMB',
-				GLayer: 10 // Graphical layer
+				GLayer: 10, // Graphical layer
 			},
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: 950
+				value: 950,
 			},
 
 			LLayer: 10, // Logical layer
 
-			classes: ['main'] // used by logical expressions
+			classes: ['main'], // used by logical expressions
 		},
 		{
-
 			id: 'obj2',
 
 			duration: 50, // in seconds
@@ -418,82 +406,79 @@ const testDataOld: {
 						duration: 5,
 						trigger: {
 							type: TriggerType.TIME_ABSOLUTE,
-							value: '1' // relative to parent start time // 966
+							value: '1', // relative to parent start time // 966
 						},
 						content: {
 							mixer: {
 								opacity: 0.1,
-								brightness: 0.1
-							}
-						}
+								brightness: 0.1,
+							},
+						},
 					},
 					{
 						id: 'K1',
 						duration: 5,
 						trigger: {
 							type: TriggerType.TIME_RELATIVE,
-							value: '#K0.start + 1' // 967
+							value: '#K0.start + 1', // 967
 						},
 						content: {
 							mixer: {
-								opacity: 0.2
-							}
-						}
+								opacity: 0.2,
+							},
+						},
 					},
 					{
 						id: 'K2',
 						duration: 5,
 						trigger: {
 							type: TriggerType.TIME_RELATIVE,
-							value: '#obj3.start - 1' // 986
+							value: '#obj3.start - 1', // 986
 						},
 						content: {
 							mixer: {
 								opacity: 0.3,
-								myCustomAttribute: 1
-							}
-						}
-					}
-				]
-
+								myCustomAttribute: 1,
+							},
+						},
+					},
+				],
 			},
 			trigger: {
 				type: TriggerType.TIME_RELATIVE,
-				value: '#obj0.start + 15' // 965
+				value: '#obj0.start + 15', // 965
 			},
 
 			LLayer: 10, // Logical layer
 
-			classes: ['main'] // used by logical expressions
+			classes: ['main'], // used by logical expressions
 		},
 		{
-
 			id: 'obj3', // Unique id
 
 			duration: 10, // in seconds
 
 			content: {
 				media: 'AMB',
-				GLayer: 12 // Graphical layer
+				GLayer: 12, // Graphical layer
 			},
 			trigger: {
 				type: TriggerType.TIME_RELATIVE,
-				value: '#obj2.start + 20' // 985
+				value: '#obj2.start + 20', // 985
 			},
 
 			LLayer: 12, // Logical layer
 
-			classes: ['main'] // used by logical expressions
-		}
+			classes: ['main'], // used by logical expressions
+		},
 	],
-	'abskeyframe': [
+	abskeyframe: [
 		{
-
 			id: 'obj0',
 			duration: 50,
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: 1000
+				value: 1000,
 			},
 			LLayer: 1,
 			content: {
@@ -501,7 +486,7 @@ const testDataOld: {
 				attributes: {
 					positionY: 0,
 					positionX: 0,
-					scale: 1
+					scale: 1,
 				},
 				keyframes: [
 					{
@@ -509,138 +494,128 @@ const testDataOld: {
 						duration: 5, // duration of keyframe
 						trigger: {
 							type: TriggerType.TIME_ABSOLUTE,
-							value: 5 // Abslute time means "relative to parent start time" for a keyframe
+							value: 5, // Abslute time means "relative to parent start time" for a keyframe
 						},
 						content: {
 							attributes: {
 								scale: 0.5,
-								opacity: 0.5
-							}
-						}
-					}
-				]
-			}
-		}
+								opacity: 0.5,
+							},
+						},
+					},
+				],
+			},
+		},
 	],
-	'logical1': [
+	logical1: [
 		{
-
 			id: 'logical0',
 			duration: 50,
 			trigger: {
 				type: TriggerType.LOGICAL,
-				value: '1'
+				value: '1',
 			},
 			LLayer: 2,
-			content: {
-			}
+			content: {},
 		},
 		{
 			id: 'logical1',
 			duration: 50,
 			trigger: {
 				type: TriggerType.LOGICAL,
-				value: '#obj0 & #logical0'
+				value: '#obj0 & #logical0',
 			},
 			LLayer: 3,
-			content: {
-			}
+			content: {},
 		},
 		{
 			id: 'logical2',
 			duration: 50,
 			trigger: {
 				type: TriggerType.LOGICAL,
-				value: '.obj0Class | #logical0'
+				value: '.obj0Class | #logical0',
 			},
 			LLayer: 4,
-			content: {
-			}
-		}
+			content: {},
+		},
 	],
-	'logical2': [
+	logical2: [
 		{
-
 			id: 'logical0',
 			duration: 50,
 			trigger: {
 				type: TriggerType.LOGICAL,
-				value: '.L1'
+				value: '.L1',
 			},
 			LLayer: 2,
-			content: {
-			},
-			classes: ['class0']
+			content: {},
+			classes: ['class0'],
 		},
 		{
 			id: 'logical1',
 			duration: 50,
 			trigger: {
 				type: TriggerType.LOGICAL,
-				value: '!.L1'
+				value: '!.L1',
 			},
 			LLayer: 3,
-			content: {
-			}
-		}
+			content: {},
+		},
 	],
-	'logical3': [
+	logical3: [
 		{
-
 			id: 'logical0',
 			duration: 50,
 			trigger: {
 				type: TriggerType.LOGICAL,
-				value: '$1' // LLayer 1
+				value: '$1', // LLayer 1
 			},
 			LLayer: 2,
-			content: {
-			},
-			classes: ['class0']
+			content: {},
+			classes: ['class0'],
 		},
 		{
 			id: 'logical1',
 			duration: 50,
 			trigger: {
 				type: TriggerType.LOGICAL,
-				value: '!$1' // GLayer 1
+				value: '!$1', // GLayer 1
 			},
 			LLayer: 3,
-			content: {
-			}
-		}
+			content: {},
+		},
 	],
-	'infiniteduration': [
+	infiniteduration: [
 		{
 			id: 'obj0', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now - 10 // 10 seconds ago
+				value: now - 10, // 10 seconds ago
 			},
 			duration: 0, // infinite
 			LLayer: 1,
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj1', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_RELATIVE,
-				value: '#obj0.end' // will essentially never play
+				value: '#obj0.end', // will essentially never play
 			},
 			duration: 60, // 1 minute long
 			LLayer: 1,
-			content: {}
-		}
+			content: {},
+		},
 	],
-	'simplegroup': [
+	simplegroup: [
 		{
 			id: 'group0', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now - 10 // 10 seconds ago
+				value: now - 10, // 10 seconds ago
 			},
 			duration: 60, // 1 minute long
 			LLayer: 1,
@@ -652,45 +627,45 @@ const testDataOld: {
 
 						trigger: {
 							type: TriggerType.TIME_ABSOLUTE,
-							value: 0 // Relative to parent object
+							value: 0, // Relative to parent object
 						},
 						duration: 15,
 						LLayer: 2,
-						content: {}
+						content: {},
 					},
 					{
 						id: 'child1', // the id must be unique
 
 						trigger: {
 							type: TriggerType.TIME_RELATIVE,
-							value: '#child0.end'
+							value: '#child0.end',
 						},
 						duration: 10,
 						LLayer: 2,
-						content: {}
-					}
-				]
-			}
+						content: {},
+					},
+				],
+			},
 		},
 		{
 			id: 'obj1', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_RELATIVE,
-				value: '#group0.end' // will essentially never play
+				value: '#group0.end', // will essentially never play
 			},
 			duration: 60, // 1 minute long
 			LLayer: 2,
-			content: {}
-		}
+			content: {},
+		},
 	],
-	'infinitegroup': [
+	infinitegroup: [
 		{
 			id: 'group0', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now - 10 // 10 seconds ago
+				value: now - 10, // 10 seconds ago
 			},
 			duration: 0, // infinite duration
 			LLayer: 1,
@@ -702,34 +677,34 @@ const testDataOld: {
 
 						trigger: {
 							type: TriggerType.TIME_ABSOLUTE,
-							value: 0 // Relative to parent object
+							value: 0, // Relative to parent object
 						},
 						duration: 15,
 						LLayer: 2,
-						content: {}
+						content: {},
 					},
 					{
 						id: 'child1', // the id must be unique
 
 						trigger: {
 							type: TriggerType.TIME_RELATIVE,
-							value: '#child0.end'
+							value: '#child0.end',
 						},
 						duration: 10,
 						LLayer: 2,
-						content: {}
-					}
-				]
-			}
-		}
+						content: {},
+					},
+				],
+			},
+		},
 	],
-	'logicalInGroup': [
+	logicalInGroup: [
 		{
 			id: 'group0', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now - 10 // 10 seconds ago, 990
+				value: now - 10, // 10 seconds ago, 990
 			},
 			duration: 0, // infinite duration
 			LLayer: 1,
@@ -741,32 +716,32 @@ const testDataOld: {
 
 						trigger: {
 							type: TriggerType.LOGICAL,
-							value: '1'
+							value: '1',
 						},
 						LLayer: 2,
-						content: {}
-					}
-				]
-			}
+						content: {},
+					},
+				],
+			},
 		},
 		{
 			id: 'outside0', // the id must be unique
 
 			trigger: {
 				type: TriggerType.LOGICAL,
-				value: '1'
+				value: '1',
 			},
 			LLayer: 3,
-			content: {}
-		}
+			content: {},
+		},
 	],
-	'logicalInGroupLogical': [
+	logicalInGroupLogical: [
 		{
 			id: 'group0', // the id must be unique
 
 			trigger: {
 				type: TriggerType.LOGICAL,
-				value: '1'
+				value: '1',
 			},
 			// duration: 0, // infinite duration
 			LLayer: 1,
@@ -778,20 +753,20 @@ const testDataOld: {
 
 						trigger: {
 							type: TriggerType.LOGICAL,
-							value: '1'
+							value: '1',
 						},
 						LLayer: 2,
-						content: {}
-					}
-				]
-			}
+						content: {},
+					},
+				],
+			},
 		},
 		{
 			id: 'group1', // the id must be unique
 
 			trigger: {
 				type: TriggerType.LOGICAL,
-				value: '0'
+				value: '0',
 			},
 			// duration: 0, // infinite duration
 			LLayer: 3,
@@ -803,22 +778,22 @@ const testDataOld: {
 
 						trigger: {
 							type: TriggerType.LOGICAL,
-							value: '1'
+							value: '1',
 						},
 						LLayer: 4,
-						content: {}
-					}
-				]
-			}
-		}
+						content: {},
+					},
+				],
+			},
+		},
 	],
-	'repeatinggroup': [
+	repeatinggroup: [
 		{
 			id: 'group0', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now - 10 // 10 seconds ago // 990
+				value: now - 10, // 10 seconds ago // 990
 			},
 			duration: 63, // 63 seconds
 			LLayer: '0',
@@ -833,45 +808,46 @@ const testDataOld: {
 
 						trigger: {
 							type: TriggerType.TIME_ABSOLUTE,
-							value: 0 // Relative to parent object // 990
+							value: 0, // Relative to parent object // 990
 						},
 						duration: 15,
 						LLayer: 1,
-						content: {}
+						content: {},
 					},
 					{
 						id: 'child1', // the id must be unique
 
 						trigger: {
 							type: TriggerType.TIME_RELATIVE,
-							value: '#child0.end' // 1005
+							value: '#child0.end', // 1005
 						},
 						duration: 10, // 1015
 						LLayer: 1,
-						content: {}
-					}
-				]
-			}
+						content: {},
+					},
+				],
+			},
 		},
 		{
 			id: 'obj1', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_RELATIVE,
-				value: '#group0.end'
+				value: '#group0.end',
 			},
 			duration: 6,
 			LLayer: 2,
-			content: {}
-		}
+			content: {},
+		},
 	],
-	'repeatinggroupinrepeatinggroup': [ // repeating group in repeating group
+	repeatinggroupinrepeatinggroup: [
+		// repeating group in repeating group
 		{
 			id: 'group0', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now
+				value: now,
 			},
 			duration: 300, // 5 minutes long
 
@@ -888,18 +864,18 @@ const testDataOld: {
 
 						trigger: {
 							type: TriggerType.TIME_ABSOLUTE,
-							value: 0 // Relative to parent object
+							value: 0, // Relative to parent object
 						},
 						duration: 30,
 						LLayer: 1,
-						content: {}
+						content: {},
 					},
 					{
 						id: 'group1', // the id must be unique
 
 						trigger: {
 							type: TriggerType.TIME_RELATIVE,
-							value: '#child0.end'
+							value: '#child0.end',
 						},
 						duration: 62, // 62 seconds
 						// @ts-ignore
@@ -914,47 +890,47 @@ const testDataOld: {
 
 									trigger: {
 										type: TriggerType.TIME_ABSOLUTE,
-										value: 0 // Relative to parent object
+										value: 0, // Relative to parent object
 									},
 									duration: 10,
 									LLayer: 1,
-									content: {}
+									content: {},
 								},
 								{
 									id: 'child2', // the id must be unique
 
 									trigger: {
 										type: TriggerType.TIME_RELATIVE,
-										value: '#child1.end'
+										value: '#child1.end',
 									},
 									duration: 20,
 									LLayer: 1,
-									content: {}
-								}
-							]
-						}
-					}
-				]
-			}
+									content: {},
+								},
+							],
+						},
+					},
+				],
+			},
 		},
 		{
 			id: 'obj1', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_RELATIVE,
-				value: '#group0.end'
+				value: '#group0.end',
 			},
 			duration: 60, // 1 minute long
 			LLayer: 1,
-			content: {}
-		}
+			content: {},
+		},
 	],
-	'keyframeingroup': [
+	keyframeingroup: [
 		{
 			id: 'obj1',
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now /// 1000
+				value: now, /// 1000
 			},
 			duration: 60, // 1060
 			isGroup: true,
@@ -965,7 +941,7 @@ const testDataOld: {
 						id: 'obj2',
 						trigger: {
 							type: TriggerType.TIME_ABSOLUTE,
-							value: 0 // 1000
+							value: 0, // 1000
 						},
 						LLayer: 2,
 						duration: 60, // 1060
@@ -977,30 +953,31 @@ const testDataOld: {
 									id: 'kf1',
 									trigger: {
 										type: TriggerType.TIME_ABSOLUTE,
-										value: 10 // 1010
+										value: 10, // 1010
 									},
 									duration: 10,
 									content: {
 										name: 'AMB1',
 										mixer: {
-											opacity: 0
-										}
-									}
-								}
-							]
-						}
-					}
-				]
-			}
-		}
+											opacity: 0,
+										},
+									},
+								},
+							],
+						},
+					},
+				],
+			},
+		},
 	],
-	'groupwithduration': [ // group with duration only set on group and not the child
+	groupwithduration: [
+		// group with duration only set on group and not the child
 		{
 			id: 'group0', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now
+				value: now,
 			},
 			duration: 30, // 30s long
 			LLayer: 1,
@@ -1013,72 +990,72 @@ const testDataOld: {
 
 						trigger: {
 							type: TriggerType.TIME_ABSOLUTE,
-							value: 0 // Relative to parent object
+							value: 0, // Relative to parent object
 						},
 						duration: 0,
 						LLayer: 2,
-						content: {}
-					}
-				]
-			}
-		}
+						content: {},
+					},
+				],
+			},
+		},
 	],
-	'relativeduration0': [
+	relativeduration0: [
 		{
 			id: 'obj0', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now // 1000
+				value: now, // 1000
 			},
 			duration: 60, // 60s 1060
 			LLayer: 1,
 			classes: ['obj0Class'],
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj1', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_RELATIVE,
-				value: '#obj0.end' // 1060
+				value: '#obj0.end', // 1060
 			},
 			duration: '#obj0.duration / 2', // 30s 1090
 			LLayer: 1,
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj2', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_RELATIVE,
-				value: '#obj1.end' // 1090
+				value: '#obj1.end', // 1090
 			},
 			duration: '#obj1.end - #obj0.start', // 90s // 1180
 			LLayer: 1,
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj3', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_RELATIVE,
-				value: '#obj2.end'
+				value: '#obj2.end',
 			},
 			// duration: '5400 - #.start', // Self reference has been (temporarily?) deprecated
 			// @ts-ignore
 			legacyEndTime: '5400', // so it ends at 5400
 			LLayer: 1,
-			content: {}
-		}
+			content: {},
+		},
 	],
-	'relativedurationorder0': [
+	relativedurationorder0: [
 		{
 			id: 'group0', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now
+				value: now,
 			},
 			// duration: '#group1.start - #.start', // stop with start of child1
 			// @ts-ignore
@@ -1093,21 +1070,21 @@ const testDataOld: {
 
 						trigger: {
 							type: TriggerType.TIME_ABSOLUTE,
-							value: 0 // Relative to parent object
+							value: 0, // Relative to parent object
 						},
 						duration: 0,
 						LLayer: 2,
-						content: {}
-					}
-				]
-			}
+						content: {},
+					},
+				],
+			},
 		},
 		{
 			id: 'group1', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now + 150
+				value: now + 150,
 			},
 			duration: 0, // infinite
 			LLayer: 3,
@@ -1120,95 +1097,95 @@ const testDataOld: {
 
 						trigger: {
 							type: TriggerType.TIME_ABSOLUTE,
-							value: 0 // Relative to parent object
+							value: 0, // Relative to parent object
 						},
 						duration: 0,
 						LLayer: 4,
-						content: {}
-					}
-				]
-			}
-		}
+						content: {},
+					},
+				],
+			},
+		},
 	],
-	'circulardependency0': [
+	circulardependency0: [
 		{
 			id: 'obj0', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_RELATIVE,
-				value: '#obj2.end'
+				value: '#obj2.end',
 			},
 			duration: '0',
 			LLayer: 1,
 			classes: ['obj0Class'],
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj1', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_RELATIVE,
-				value: '#obj0.end'
+				value: '#obj0.end',
 			},
 			duration: '0',
 			LLayer: 1,
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj2', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_RELATIVE,
-				value: '#obj1.end'
+				value: '#obj1.end',
 			},
 			duration: 10,
 			LLayer: 1,
-			content: {}
-		}
+			content: {},
+		},
 	],
-	'circulardependency1': [
+	circulardependency1: [
 		{
 			id: 'obj0', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now
+				value: now,
 			},
 			duration: '#obj2.end', // 60s
 			LLayer: 1,
 			classes: ['obj0Class'],
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj1', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_RELATIVE,
-				value: '#obj0.end'
+				value: '#obj0.end',
 			},
 			duration: '#obj0.duration / 2', // 30s
 			LLayer: 1,
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj2', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_RELATIVE,
-				value: '#obj1.end'
+				value: '#obj1.end',
 			},
 			duration: 10,
 			LLayer: 1,
-			content: {}
-		}
+			content: {},
+		},
 	],
-	'dependenciesBetweengroupchildren': [
+	dependenciesBetweengroupchildren: [
 		{
 			id: 'group0', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now
+				value: now,
 			},
 			// duration: '', // stop with start of child1
 			LLayer: 1,
@@ -1221,32 +1198,32 @@ const testDataOld: {
 
 						trigger: {
 							type: TriggerType.TIME_ABSOLUTE,
-							value: 0 // Relative to parent object
+							value: 0, // Relative to parent object
 						},
 						duration: 10,
 						LLayer: 1,
-						content: {}
+						content: {},
 					},
 					{
 						id: 'child1', // the id must be unique
 
 						trigger: {
 							type: TriggerType.TIME_RELATIVE,
-							value: '#child0.end'
+							value: '#child0.end',
 						},
 						duration: 20,
 						LLayer: 1,
-						content: {}
-					}
-				]
-			}
+						content: {},
+					},
+				],
+			},
 		},
 		{
 			id: 'group1', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_RELATIVE,
-				value: '#child1.end'
+				value: '#child1.end',
 			},
 			// duration: '', // stop with start of child1
 			LLayer: 1,
@@ -1259,45 +1236,45 @@ const testDataOld: {
 
 						trigger: {
 							type: TriggerType.TIME_ABSOLUTE,
-							value: 0 // Relative to parent object
+							value: 0, // Relative to parent object
 						},
 						duration: '#child0.duration + #child1.duration',
 						LLayer: 1,
-						content: {}
-					}
-				]
-			}
-		}
+						content: {},
+					},
+				],
+			},
+		},
 	],
-	'selfreferenceexpression0': [
+	selfreferenceexpression0: [
 		{
 			id: 'obj0',
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now
+				value: now,
 			},
 			duration: 10,
 			LLayer: 1,
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj1',
 			trigger: {
 				type: TriggerType.TIME_RELATIVE,
-				value: '#obj0.start + 5'
+				value: '#obj0.start + 5',
 			},
 			duration: '#obj0.end - #.start', // make it end at the same time as obj0
 			LLayer: 1,
-			content: {}
-		}
+			content: {},
+		},
 	],
-	'relativeStartOrder0': [
+	relativeStartOrder0: [
 		{
 			id: 'trans0', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now
+				value: now,
 			},
 			duration: 2500,
 			LLayer: 2,
@@ -1310,21 +1287,21 @@ const testDataOld: {
 
 						trigger: {
 							type: TriggerType.TIME_ABSOLUTE,
-							value: 0 // Relative to parent object
+							value: 0, // Relative to parent object
 						},
 						duration: 0,
 						LLayer: 3,
-						content: {}
-					}
-				]
-			}
+						content: {},
+					},
+				],
+			},
 		},
 		{
 			id: 'group0', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now
+				value: now,
 			},
 			duration: 0,
 			LLayer: 1,
@@ -1337,23 +1314,23 @@ const testDataOld: {
 
 						trigger: {
 							type: TriggerType.TIME_RELATIVE,
-							value: '#trans0.start + 1500'
+							value: '#trans0.start + 1500',
 						},
 						duration: 0,
 						LLayer: 3,
-						content: {}
-					}
-				]
-			}
-		}
+						content: {},
+					},
+				],
+			},
+		},
 	],
-	'relativePastEnd': [
+	relativePastEnd: [
 		{
 			id: 'group0', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now
+				value: now,
 			},
 			// duration: '#group3.start + 100 - #.start',
 			// @ts-ignore
@@ -1367,7 +1344,7 @@ const testDataOld: {
 						id: 'group2', // the id must be unique
 						trigger: {
 							type: TriggerType.TIME_ABSOLUTE,
-							value: 0
+							value: 0,
 						},
 						duration: 0,
 						LLayer: 3,
@@ -1379,20 +1356,20 @@ const testDataOld: {
 									id: 'child1', // the id must be unique
 									trigger: {
 										type: TriggerType.TIME_ABSOLUTE,
-										value: 0 // Relative to parent object
+										value: 0, // Relative to parent object
 									},
 									duration: 0,
 									LLayer: 4,
-									content: {}
-								}
-							]
-						}
+									content: {},
+								},
+							],
+						},
 					},
 					{
 						id: 'group4', // the id must be unique
 						trigger: {
 							type: TriggerType.TIME_RELATIVE,
-							value: '#group2.start + 4000' // starts after parent group has finished
+							value: '#group2.start + 4000', // starts after parent group has finished
 						},
 						duration: 2500,
 						LLayer: 5,
@@ -1404,24 +1381,24 @@ const testDataOld: {
 									id: 'child5', // the id must be unique
 									trigger: {
 										type: TriggerType.TIME_ABSOLUTE,
-										value: 0 // Relative to parent object
+										value: 0, // Relative to parent object
 									},
 									duration: 0,
 									LLayer: 6,
-									content: {}
-								}
-							]
-						}
-					}
-				]
-			}
+									content: {},
+								},
+							],
+						},
+					},
+				],
+			},
 		},
 		{
 			id: 'group1', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now + 3000
+				value: now + 3000,
 			},
 			duration: 0,
 			LLayer: 1,
@@ -1433,7 +1410,7 @@ const testDataOld: {
 						id: 'group3', // the id must be unique
 						trigger: {
 							type: TriggerType.TIME_ABSOLUTE,
-							value: 0
+							value: 0,
 						},
 						duration: 0,
 						LLayer: 7,
@@ -1445,26 +1422,26 @@ const testDataOld: {
 									id: 'child0', // the id must be unique
 									trigger: {
 										type: TriggerType.TIME_ABSOLUTE,
-										value: 0
+										value: 0,
 									},
 									duration: 0,
 									LLayer: 8,
-									content: {}
-								}
-							]
-						}
-					}
-				]
-			}
-		}
+									content: {},
+								},
+							],
+						},
+					},
+				],
+			},
+		},
 	],
-	'childEndRelativeParentEnd': [
+	childEndRelativeParentEnd: [
 		{
 			id: 'group0', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now
+				value: now,
 			},
 			// duration: '#group3.start + 600 - #.start',
 			// @ts-ignore
@@ -1478,7 +1455,7 @@ const testDataOld: {
 						id: 'group2', // the id must be unique
 						trigger: {
 							type: TriggerType.TIME_ABSOLUTE,
-							value: 0
+							value: 0,
 						},
 						// duration: '(#group0.end - #.start) - 2000',
 						// @ts-ignore
@@ -1492,24 +1469,24 @@ const testDataOld: {
 									id: 'child1', // the id must be unique
 									trigger: {
 										type: TriggerType.TIME_ABSOLUTE,
-										value: 0 // Relative to parent object
+										value: 0, // Relative to parent object
 									},
 									duration: 0,
 									LLayer: 4,
-									content: {}
-								}
-							]
-						}
-					}
-				]
-			}
+									content: {},
+								},
+							],
+						},
+					},
+				],
+			},
 		},
 		{
 			id: 'group1', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now + 5000
+				value: now + 5000,
 			},
 			duration: 0,
 			LLayer: 1,
@@ -1521,7 +1498,7 @@ const testDataOld: {
 						id: 'group3', // the id must be unique
 						trigger: {
 							type: TriggerType.TIME_ABSOLUTE,
-							value: 0
+							value: 0,
 						},
 						duration: 3600,
 						LLayer: 7,
@@ -1533,26 +1510,26 @@ const testDataOld: {
 									id: 'child0', // the id must be unique
 									trigger: {
 										type: TriggerType.TIME_ABSOLUTE,
-										value: 0
+										value: 0,
 									},
 									duration: 0,
 									LLayer: 8,
-									content: {}
-								}
-							]
-						}
-					}
-				]
-			}
-		}
+									content: {},
+								},
+							],
+						},
+					},
+				],
+			},
+		},
 	],
-	'relativeDurationZeroLength': [
+	relativeDurationZeroLength: [
 		{
 			id: 'group0', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now
+				value: now,
 			},
 			duration: 0,
 			LLayer: 1,
@@ -1564,7 +1541,7 @@ const testDataOld: {
 						id: 'group0_1', // the id must be unique
 						trigger: {
 							type: TriggerType.TIME_ABSOLUTE,
-							value: 0
+							value: 0,
 						},
 						duration: 0,
 						LLayer: 2,
@@ -1576,24 +1553,24 @@ const testDataOld: {
 									id: 'child1', // the id must be unique
 									trigger: {
 										type: TriggerType.TIME_ABSOLUTE,
-										value: 0 // Relative to parent object
+										value: 0, // Relative to parent object
 									},
 									duration: 0,
 									LLayer: 3,
-									content: {}
-								}
-							]
-						}
-					}
-				]
-			}
+									content: {},
+								},
+							],
+						},
+					},
+				],
+			},
 		},
 		{
 			id: 'group1', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now
+				value: now,
 			},
 			duration: 0,
 			LLayer: 1,
@@ -1605,7 +1582,7 @@ const testDataOld: {
 						id: 'group1_1', // the id must be unique
 						trigger: {
 							type: TriggerType.TIME_ABSOLUTE,
-							value: 0
+							value: 0,
 						},
 						// duration: '#group0_1.start - #.start',
 						// @ts-ignore
@@ -1619,134 +1596,134 @@ const testDataOld: {
 									id: 'child0', // the id must be unique
 									trigger: {
 										type: TriggerType.TIME_ABSOLUTE,
-										value: 0
+										value: 0,
 									},
 									duration: 0,
 									LLayer: 3,
-									content: {}
-								}
-							]
-						}
-					}
-				]
-			}
-		}
+									content: {},
+								},
+							],
+						},
+					},
+				],
+			},
+		},
 	],
-	'manyParentheses': [
+	manyParentheses: [
 		{
 			id: 'obj0',
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now + 3000
+				value: now + 3000,
 			},
 			duration: 0,
 			LLayer: 0,
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj1',
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now
+				value: now,
 			},
 			// duration: '((#obj0.start - #.start) - (1000 + (2000 / 2)))',
 			// @ts-ignore
 			legacyEndTime: '((#obj0.start) - (1000 + (2000 / 2)))',
 			LLayer: 1,
-			content: {}
-		}
+			content: {},
+		},
 	],
-	'operatorOrder': [
+	operatorOrder: [
 		{
 			id: 'obj0',
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now + 3000
+				value: now + 3000,
 			},
 			duration: 0,
 			LLayer: 0,
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj1',
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now
+				value: now,
 			},
 			// duration: '(#obj0.start - #.start) - 2000',
 			// @ts-ignore
 			legacyEndTime: '(#obj0.start - 0) - 2000',
 			LLayer: 1,
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj2',
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now
+				value: now,
 			},
 			// duration: '#obj0.start - 2000 - #.start',
 			// @ts-ignore
 			legacyEndTime: '#obj0.start - 2000 - 0',
 			LLayer: 2,
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj3',
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now
+				value: now,
 			},
 			// duration: '#obj0.start - #.start - 2000',
 			// @ts-ignore
 			legacyEndTime: '#obj0.start - 0 - 2000',
 			LLayer: 3,
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj4',
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now
+				value: now,
 			},
 			// duration: '(#obj0.start - #.start) + 2000',
 			// @ts-ignore
 			legacyEndTime: '(#obj0.start - 0) + 2000',
 			LLayer: 4,
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj5',
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now
+				value: now,
 			},
 			// duration: '#obj0.start + 2000 - #.start',
 			// @ts-ignore
 			legacyEndTime: '#obj0.start + 2000 - 0',
 			LLayer: 5,
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj6',
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now
+				value: now,
 			},
 			// duration: '#obj0.start - #.start + 2000',
 			// @ts-ignore
 			legacyEndTime: '#obj0.start - 0 + 2000',
 			LLayer: 6,
-			content: {}
-		}
+			content: {},
+		},
 	],
-	'childWithStartBeforeParent': [
+	childWithStartBeforeParent: [
 		{
 			id: 'group0', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now + 5000
+				value: now + 5000,
 			},
 			duration: 0,
 			LLayer: 1,
@@ -1758,127 +1735,127 @@ const testDataOld: {
 						id: 'child0',
 						trigger: {
 							type: TriggerType.TIME_ABSOLUTE,
-							value: -1000 // Relative to parent object
+							value: -1000, // Relative to parent object
 						},
 						duration: 0,
 						LLayer: 2,
-						content: {}
+						content: {},
 					},
 					{
 						id: 'child1',
 						trigger: {
 							type: TriggerType.TIME_RELATIVE,
-							value: '#group0.start - 1000'
+							value: '#group0.start - 1000',
 						},
 						duration: 0,
 						LLayer: 3,
-						content: {}
-					}
-				]
-			}
-		}
+						content: {},
+					},
+				],
+			},
+		},
 	],
-	'logicalTriggers': [
+	logicalTriggers: [
 		{
 			id: 'obj0', // The default state of llayer0
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now
+				value: now,
 			},
 			duration: 0,
 			LLayer: 'layer0',
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj1', // The object we will trigger on
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now + 3000
+				value: now + 3000,
 			},
 			duration: 0,
 			LLayer: 'layer1', // This ensures it works with string layer names
 			classes: ['class0'],
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj2',
 			trigger: {
 				type: TriggerType.LOGICAL,
-				value: '#obj1' // Obj1 is playing
+				value: '#obj1', // Obj1 is playing
 			},
 			duration: 0,
 			priority: 1, // Needs to be more important than obj0
 			LLayer: 'layer0',
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj3',
 			trigger: {
 				type: TriggerType.LOGICAL,
-				value: '$layer1' // Something exists on layer1
+				value: '$layer1', // Something exists on layer1
 			},
 			duration: 0,
 			LLayer: 'layer3',
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj4',
 			trigger: {
 				type: TriggerType.LOGICAL,
-				value: '$layer1.class0' // layer1 has object with class
+				value: '$layer1.class0', // layer1 has object with class
 			},
 			duration: 0,
 			LLayer: 'layer4',
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj5',
 			trigger: {
 				type: TriggerType.LOGICAL,
-				value: '$layer1.class1' // layer 1 has object with class
+				value: '$layer1.class1', // layer 1 has object with class
 			},
 			duration: 0,
 			LLayer: 'layer5',
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj6',
 			trigger: {
 				type: TriggerType.LOGICAL,
-				value: '!$layer1.class0' // layer 1 does not have object with class
+				value: '!$layer1.class0', // layer 1 does not have object with class
 			},
 			duration: 0,
 			LLayer: 'layer6',
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj7',
 			trigger: {
 				type: TriggerType.LOGICAL,
-				value: '!$layer1.class1' // layer 1 does not have object with class
+				value: '!$layer1.class1', // layer 1 does not have object with class
 			},
 			duration: 0,
 			LLayer: 'layer7',
-			content: {}
-		}
+			content: {},
+		},
 	],
-	'logicalTriggers2': [
+	logicalTriggers2: [
 		{
 			id: 'obj0', // The default state of llayer0
 			trigger: {
 				type: TriggerType.LOGICAL,
-				value: '1'
+				value: '1',
 			},
 			duration: 0,
 			LLayer: 'layer0',
-			content: {}
+			content: {},
 		},
 		{
 			id: 'group0', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now + 1000
+				value: now + 1000,
 			},
 			duration: 0,
 			LLayer: 'layer1',
@@ -1886,37 +1863,38 @@ const testDataOld: {
 			repeating: false,
 			content: {
 				objects: [
-					{ // We can't trigger on a group, but we can on objects inside
+					{
+						// We can't trigger on a group, but we can on objects inside
 						id: 'group0_first', // the id must be unique
 
 						trigger: {
 							type: TriggerType.TIME_ABSOLUTE,
-							value: 0 // Relative to parent object
+							value: 0, // Relative to parent object
 						},
 						duration: 0,
 						LLayer: 'layer1_first',
-						content: {}
+						content: {},
 					},
 					{
 						id: 'obj1', // the id must be unique
 
 						trigger: {
 							type: TriggerType.TIME_ABSOLUTE,
-							value: 0 // Relative to parent object
+							value: 0, // Relative to parent object
 						},
 						duration: 0,
 						LLayer: 'layer0',
-						content: {}
-					}
-				]
-			}
+						content: {},
+					},
+				],
+			},
 		},
 		{
 			id: 'group1', // the id must be unique
 
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now + 1000
+				value: now + 1000,
 			},
 			duration: 0,
 			LLayer: 'layer2',
@@ -1928,80 +1906,76 @@ const testDataOld: {
 						id: 'obj2',
 						trigger: {
 							type: TriggerType.LOGICAL,
-							value: '$layer1_first' // Obj1 is playing
+							value: '$layer1_first', // Obj1 is playing
 						},
 						duration: 1000,
 						priority: 10, // Needs to be more important than obj0
 						LLayer: 'layer0',
-						content: {}
-					}
-				]
-			}
-		}
+						content: {},
+					},
+				],
+			},
+		},
 	],
-	'logicalTriggers3': [
+	logicalTriggers3: [
 		{
-			'id': 'super_default',
-			'trigger': {
-				'type': TriggerType.LOGICAL,
-				'value': '1'
+			id: 'super_default',
+			trigger: {
+				type: TriggerType.LOGICAL,
+				value: '1',
 			},
-			'priority': 0,
-			'duration': 0,
-			'LLayer': 'nora_primary_super',
-			'content': {},
-			'classes': [
-				'nora_super_is_clear'
-			]
+			priority: 0,
+			duration: 0,
+			LLayer: 'nora_primary_super',
+			content: {},
+			classes: ['nora_super_is_clear'],
 		},
 		{
-			'id': 'head_default',
-			'trigger': {
-				'type': TriggerType.LOGICAL,
-				'value': '1'
+			id: 'head_default',
+			trigger: {
+				type: TriggerType.LOGICAL,
+				value: '1',
 			},
-			'priority': 0,
-			'duration': 0,
-			'LLayer': 'nora_primary_headline',
-			'content': {}
+			priority: 0,
+			duration: 0,
+			LLayer: 'nora_primary_headline',
+			content: {},
 		},
 		{
-			'id': 'head_force_clear',
-			'trigger': {
-				'type': TriggerType.LOGICAL,
-				'value': '!$nora_primary_super.nora_super_is_clear'
+			id: 'head_force_clear',
+			trigger: {
+				type: TriggerType.LOGICAL,
+				value: '!$nora_primary_super.nora_super_is_clear',
 			},
-			'priority': 20,
-			'duration': 0,
-			'LLayer': 'nora_primary_headline',
-			'content': {}
+			priority: 20,
+			duration: 0,
+			LLayer: 'nora_primary_headline',
+			content: {},
 		},
 		{
-			'id': 'real_head',
-			'trigger': {
-				'type': TriggerType.TIME_ABSOLUTE,
-				'value': now + 200
+			id: 'real_head',
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now + 200,
 			},
-			'priority': 1,
-			'duration': 0,
-			'LLayer': 'nora_primary_headline',
-			'content': {}
-		}
+			priority: 1,
+			duration: 0,
+			LLayer: 'nora_primary_headline',
+			content: {},
+		},
 	],
-	'logicalTriggers3b': [
+	logicalTriggers3b: [
 		{
-			'id': 'super_default',
-			'trigger': {
-				'type': TriggerType.LOGICAL,
-				'value': '1'
+			id: 'super_default',
+			trigger: {
+				type: TriggerType.LOGICAL,
+				value: '1',
 			},
-			'priority': 0,
-			'duration': 0,
-			'LLayer': 'nora_primary_super',
-			'content': {},
-			'classes': [
-				'nora_super_is_clear'
-			]
+			priority: 0,
+			duration: 0,
+			LLayer: 'nora_primary_super',
+			content: {},
+			classes: ['nora_super_is_clear'],
 		},
 		// {
 		// 	'id': 'head_default',
@@ -2015,94 +1989,94 @@ const testDataOld: {
 		// 	'content': {}
 		// },
 		{
-			'id': 'head_force_clear',
-			'trigger': {
-				'type': TriggerType.LOGICAL,
-				'value': '!$nora_primary_super.nora_super_is_clear'
+			id: 'head_force_clear',
+			trigger: {
+				type: TriggerType.LOGICAL,
+				value: '!$nora_primary_super.nora_super_is_clear',
 			},
-			'priority': 20,
-			'duration': 0,
-			'LLayer': 'nora_primary_headline',
-			'content': {}
+			priority: 20,
+			duration: 0,
+			LLayer: 'nora_primary_headline',
+			content: {},
 		},
 		{
-			'id': 'real_head',
-			'trigger': {
-				'type': TriggerType.TIME_ABSOLUTE,
-				'value': now + 200
+			id: 'real_head',
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now + 200,
 			},
-			'priority': 1,
-			'duration': 0,
-			'LLayer': 'nora_primary_headline',
-			'content': {}
-		}
+			priority: 1,
+			duration: 0,
+			LLayer: 'nora_primary_headline',
+			content: {},
+		},
 	],
-	'logical_object_order': [
+	logical_object_order: [
 		{
 			id: 'obj0',
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now
+				value: now,
 			},
 			duration: 10000,
 			LLayer: 'layer0',
 			classes: ['class0'],
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj1',
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now + 5000
+				value: now + 5000,
 			},
 			duration: 10000,
 			LLayer: 'layer1',
 			classes: ['class1'],
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj2',
 			trigger: {
 				type: TriggerType.LOGICAL,
-				value: '#obj0'
+				value: '#obj0',
 			},
 			LLayer: 'layer2',
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj3',
 			trigger: {
 				type: TriggerType.LOGICAL,
-				value: '#obj1'
+				value: '#obj1',
 			},
 			LLayer: 'layer2',
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj4',
 			trigger: {
 				type: TriggerType.LOGICAL,
-				value: '.class0'
+				value: '.class0',
 			},
 			LLayer: 'layer3',
-			content: {}
+			content: {},
 		},
 		{
 			id: 'obj5',
 			trigger: {
 				type: TriggerType.LOGICAL,
-				value: '.class1'
+				value: '.class1',
 			},
 			LLayer: 'layer3',
-			content: {}
-		}
+			content: {},
+		},
 	],
-	'logical_object_order_grouped': [
+	logical_object_order_grouped: [
 		{
 			id: 'group0',
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now + 1000
+				value: now + 1000,
 			},
 			duration: 10000,
 			LLayer: 'g0',
@@ -2114,39 +2088,39 @@ const testDataOld: {
 						id: 'obj0',
 						trigger: {
 							type: TriggerType.TIME_ABSOLUTE,
-							value: 0
+							value: 0,
 						},
 						duration: 0,
 						LLayer: 'layer0',
 						classes: ['class0'],
-						content: {}
+						content: {},
 					},
 					{
 						id: 'obj2',
 						trigger: {
 							type: TriggerType.LOGICAL,
-							value: '#obj0'
+							value: '#obj0',
 						},
 						LLayer: 'layer2',
-						content: {}
+						content: {},
 					},
 					{
 						id: 'obj4',
 						trigger: {
 							type: TriggerType.LOGICAL,
-							value: '.class0'
+							value: '.class0',
 						},
 						LLayer: 'layer3',
-						content: {}
-					}
-				]
-			}
+						content: {},
+					},
+				],
+			},
 		},
 		{
 			id: 'group1',
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now + 5000
+				value: now + 5000,
 			},
 			duration: 10000,
 			LLayer: 'g1',
@@ -2158,41 +2132,41 @@ const testDataOld: {
 						id: 'obj1',
 						trigger: {
 							type: TriggerType.TIME_ABSOLUTE,
-							value: 0
+							value: 0,
 						},
 						duration: 0,
 						LLayer: 'layer1',
 						classes: ['class1'],
-						content: {}
+						content: {},
 					},
 					{
 						id: 'obj3',
 						trigger: {
 							type: TriggerType.LOGICAL,
-							value: '#obj1'
+							value: '#obj1',
 						},
 						LLayer: 'layer2',
-						content: {}
+						content: {},
 					},
 					{
 						id: 'obj5',
 						trigger: {
 							type: TriggerType.LOGICAL,
-							value: '.class1'
+							value: '.class1',
 						},
 						LLayer: 'layer3',
-						content: {}
-					}
-				]
-			}
-		}
-	]
+						content: {},
+					},
+				],
+			},
+		},
+	],
 }
 const testData: {
 	[dataset: string]: Array<NewTimelineObject>
 } = {}
 // Convert test-data to new data structure:
-function convertTimelineObject (obj: TimelineObject): NewTimelineObject {
+function convertTimelineObject(obj: TimelineObject): NewTimelineObject {
 	const enable: TimelineEnable = {}
 	const newObj: NewTimelineObject = {
 		id: obj.id,
@@ -2204,7 +2178,7 @@ function convertTimelineObject (obj: TimelineObject): NewTimelineObject {
 		disabled: obj.disabled,
 		isGroup: obj.isGroup,
 		priority: obj.priority,
-		content: obj.content
+		content: obj.content,
 	}
 
 	if (obj.trigger.type === TriggerType.TIME_ABSOLUTE) {
@@ -2251,7 +2225,7 @@ function convertTimelineObject (obj: TimelineObject): NewTimelineObject {
 	}
 	return newObj
 }
-function convertTimelineKeyframe (obj: TimelineKeyframe): NewTimelineKeyframe {
+function convertTimelineKeyframe(obj: TimelineKeyframe): NewTimelineKeyframe {
 	const enable: TimelineEnable = {}
 	const newKf: NewTimelineKeyframe = {
 		id: obj.id,
@@ -2260,7 +2234,7 @@ function convertTimelineKeyframe (obj: TimelineKeyframe): NewTimelineKeyframe {
 		// keyframes?: Array<TimelineKeyframe>
 		classes: obj.classes,
 		// disabled: boolean
-		content: obj.content as any
+		content: obj.content as any,
 	}
 	if (obj.trigger.type === TriggerType.TIME_ABSOLUTE) {
 		enable.start = obj.trigger.value
@@ -2299,10 +2273,10 @@ const getTestData = (dataset: string): NewTimelineObject[] => {
 	return data
 }
 const stdOpts: ResolveOptions = {
-	time: 1000
+	time: 1000,
 }
 
-type Tests = {[key: string]: any}
+type Tests = { [key: string]: any }
 let tests: Tests = {
 	'Basic timeline': () => {
 		expect(() => {
@@ -2322,12 +2296,21 @@ let tests: Tests = {
 
 		expect(nextEvents).toHaveLength(4)
 		expect(nextEvents[0]).toMatchObject({
-			type: EventType.START, time: 990, objId: 'obj0' })
+			type: EventType.START,
+			time: 990,
+			objId: 'obj0',
+		})
 
 		expect(nextEvents[1]).toMatchObject({
-			type: EventType.END, time: 1050, objId: 'obj0' })
+			type: EventType.END,
+			time: 1050,
+			objId: 'obj0',
+		})
 		expect(nextEvents[2]).toMatchObject({
-			type: EventType.START, time: 1050, objId: 'obj1' })
+			type: EventType.START,
+			time: 1050,
+			objId: 'obj1',
+		})
 
 		const state = Resolver.getState(tl, now)
 		expect(data).toEqual(getTestData('basic')) // Make sure the original data was unmodified
@@ -2340,10 +2323,8 @@ let tests: Tests = {
 
 		expect(state2.layers['1'].id).toBe('obj0')
 		expect(data).toEqual(getTestData('basic')) // Make sure the original data was unmodified
-
 	},
 	'Basic timeline 2': () => {
-
 		const data = getTestData('basic2')
 
 		const tl = Resolver.resolveAllStates(Resolver.resolveTimeline(data, stdOpts))
@@ -2369,9 +2350,7 @@ let tests: Tests = {
 		expect(data).toEqual(getTestData('basic2')) // Make sure the original data is unmodified
 	},
 	'Basic timeline 3': () => {
-
-		const data = getTestData('basic2')
-			.concat(getTestData('basic3'))
+		const data = getTestData('basic2').concat(getTestData('basic3'))
 
 		const tl = Resolver.resolveTimeline(data, stdOpts)
 		expect(tl.statistics.resolvedObjectCount).toEqual(3)
@@ -2386,14 +2365,10 @@ let tests: Tests = {
 		const state = Resolver.getState(tl, 1000)
 		expect(state.layers['10'].id).toBe('obj1')
 		expect(state.layers['11'].id).toBe('obj2')
-		expect(data).toEqual(getTestData('basic2')
-			.concat(getTestData('basic3'))) // Make sure the original data is unmodified
+		expect(data).toEqual(getTestData('basic2').concat(getTestData('basic3'))) // Make sure the original data is unmodified
 	},
 	'Timeline, override object': () => {
-
-		const data = getTestData('basic2')
-			.concat(getTestData('basic3'))
-			.concat(getTestData('override'))
+		const data = getTestData('basic2').concat(getTestData('basic3')).concat(getTestData('override'))
 		const tl = Resolver.resolveTimeline(data, stdOpts)
 		const state = Resolver.getState(tl, 1000)
 		expect(state.layers['10'].id).toBe('obj3')
@@ -2411,7 +2386,6 @@ let tests: Tests = {
 		expect(stateInFuture.layers['10'].id).toBe('obj5')
 	},
 	'Timeline, override object 3': () => {
-
 		const data = getTestData('basic2')
 			.concat(getTestData('basic3'))
 			.concat(getTestData('override'))
@@ -2425,7 +2399,6 @@ let tests: Tests = {
 		expect(stateInFuture.layers['10'].id).toBe('obj5')
 	},
 	'Timeline, relative timing': () => {
-
 		const data = getTestData('relative1')
 
 		const tl = Resolver.resolveAllStates(Resolver.resolveTimeline(data, stdOpts))
@@ -2471,34 +2444,69 @@ let tests: Tests = {
 
 		expect(nextEvents).toHaveLength(12)
 		expect(nextEvents[0]).toMatchObject({
-			type: EventType.START, time: 950, objId: 'obj0' })
+			type: EventType.START,
+			time: 950,
+			objId: 'obj0',
+		})
 		expect(nextEvents[1]).toMatchObject({
-			type: EventType.END, time: 1050, objId: 'obj0' })
+			type: EventType.END,
+			time: 1050,
+			objId: 'obj0',
+		})
 		expect(nextEvents[2]).toMatchObject({
-			type: EventType.START, time: 1054, objId: 'obj1' })
+			type: EventType.START,
+			time: 1054,
+			objId: 'obj1',
+		})
 		expect(nextEvents[3]).toMatchObject({
-			type: EventType.END, time: 1058, objId: 'obj1' })
+			type: EventType.END,
+			time: 1058,
+			objId: 'obj1',
+		})
 		expect(nextEvents[4]).toMatchObject({
-			type: EventType.START, time: 1058, objId: 'obj3' })
+			type: EventType.START,
+			time: 1058,
+			objId: 'obj3',
+		})
 		expect(nextEvents[5]).toMatchObject({
-			type: EventType.END, time: 1068, objId: 'obj3' })
+			type: EventType.END,
+			time: 1068,
+			objId: 'obj3',
+		})
 		expect(nextEvents[6]).toMatchObject({
-			type: EventType.START, time: 1068, objId: 'obj2' })
+			type: EventType.START,
+			time: 1068,
+			objId: 'obj2',
+		})
 		expect(nextEvents[7]).toMatchObject({
-			type: EventType.END, time: 1118, objId: 'obj2' })
+			type: EventType.END,
+			time: 1118,
+			objId: 'obj2',
+		})
 		expect(nextEvents[8]).toMatchObject({
-			type: EventType.START, time: 1118, objId: 'obj4' })
+			type: EventType.START,
+			time: 1118,
+			objId: 'obj4',
+		})
 		expect(nextEvents[9]).toMatchObject({
-			type: EventType.END, time: 1123, objId: 'obj4' })
+			type: EventType.END,
+			time: 1123,
+			objId: 'obj4',
+		})
 		expect(nextEvents[10]).toMatchObject({
-			type: EventType.START, time: 1123, objId: 'obj5' })
+			type: EventType.START,
+			time: 1123,
+			objId: 'obj5',
+		})
 		expect(nextEvents[11]).toMatchObject({
-			type: EventType.END, time: 1133, objId: 'obj5' })
+			type: EventType.END,
+			time: 1133,
+			objId: 'obj5',
+		})
 
 		expect(data).toEqual(getTestData('relative1')) // Make sure the original data is unmodified
 	},
 	'Timeline, relative timing 2': () => {
-
 		const data = getTestData('relative2')
 
 		const tl = Resolver.resolveTimeline(data, stdOpts)
@@ -2574,7 +2582,6 @@ let tests: Tests = {
 		expect(data).toEqual(getTestData('keyframes1')) // Make sure the original data is unmodified
 	},
 	'Timeline, absolute keyframe': () => {
-
 		const data = getTestData('abskeyframe')
 
 		const tl = Resolver.resolveTimeline(data, stdOpts)
@@ -2597,9 +2604,9 @@ let tests: Tests = {
 		expect(sobj0.resolved).toBeTruthy() // TimelineResolvedObject
 
 		expect(sobj0.content.attributes).toMatchObject({
-			positionX: 	0,
-			positionY: 	0,
-			scale: 		1
+			positionX: 0,
+			positionY: 0,
+			scale: 1,
 		})
 		expect(sobj0.content.attributes.opacity).toBeFalsy()
 
@@ -2608,19 +2615,19 @@ let tests: Tests = {
 		const sobj1 = state1.layers['1']
 		expect(sobj1).toBeTruthy() // TimelineResolvedObject
 		expect(sobj1.content.attributes).toMatchObject({
-			positionX: 	0,
-			positionY: 	0,
-			scale: 		0.5,
-			opacity: 	0.5
+			positionX: 0,
+			positionY: 0,
+			scale: 0.5,
+			opacity: 0.5,
 		})
 		const state2 = Resolver.getState(tl, 1010)
 
 		const sobj2 = state2.layers['1']
 		expect(sobj2).toBeTruthy() // TimelineResolvedObject
 		expect(sobj2.content.attributes).toMatchObject({
-			positionX: 	0,
-			positionY: 	0,
-			scale: 		1
+			positionX: 0,
+			positionY: 0,
+			scale: 1,
 		})
 
 		expect(sobj2.content.attributes).toBeTruthy()
@@ -2629,9 +2636,7 @@ let tests: Tests = {
 		expect(data).toEqual(getTestData('abskeyframe')) // Make sure the original data is unmodified
 	},
 	'logical objects, references': () => {
-
-		const data = getTestData('basic')
-			.concat(getTestData('logical1'))
+		const data = getTestData('basic').concat(getTestData('logical1'))
 
 		const tl = Resolver.resolveTimeline(data, stdOpts)
 
@@ -2655,13 +2660,10 @@ let tests: Tests = {
 		expect(state1.layers['3']).toBeFalsy() // TimelineResolvedObject
 		expect(state1.layers['4']).toBeTruthy() // TimelineResolvedObject
 
-		expect(data).toEqual(getTestData('basic')
-			.concat(getTestData('logical1'))) // Make sure the original data is unmodified
+		expect(data).toEqual(getTestData('basic').concat(getTestData('logical1'))) // Make sure the original data is unmodified
 	},
 	'logical objects, references 2': () => {
-
-		const data = getTestData('basic')
-			.concat(getTestData('logical2'))
+		const data = getTestData('basic').concat(getTestData('logical2'))
 
 		const tl = Resolver.resolveTimeline(data, stdOpts)
 
@@ -2677,13 +2679,10 @@ let tests: Tests = {
 		expect(state1.layers['2']).toBeFalsy() // TimelineResolvedObject
 		expect(state1.layers['3']).toBeTruthy() // TimelineResolvedObject
 
-		expect(data).toEqual(getTestData('basic')
-			.concat(getTestData('logical2'))) // Make sure the original data is unmodified
+		expect(data).toEqual(getTestData('basic').concat(getTestData('logical2'))) // Make sure the original data is unmodified
 	},
 	'logical objects, references 3': () => {
-
-		const data = getTestData('basic')
-			.concat(getTestData('logical3'))
+		const data = getTestData('basic').concat(getTestData('logical3'))
 
 		const tl = Resolver.resolveTimeline(data, stdOpts)
 
@@ -2698,7 +2697,6 @@ let tests: Tests = {
 		expect(state1.layers['1']).toBeFalsy() // TimelineResolvedObject
 		expect(state1.layers['2']).toBeFalsy() // TimelineResolvedObject
 		expect(state1.layers['3']).toBeTruthy() // TimelineResolvedObject
-
 	},
 	// 'setTraceLevel': () => {
 	// 	Resolver.setTraceLevel(TraceLevel.INFO)
@@ -2753,66 +2751,51 @@ let tests: Tests = {
 	// 	expect(state1.layers['1']).toBeFalsy() // TimelineObject
 
 	// },
-	'Expressions': () => {
-
+	Expressions: () => {
 		// expect(Resolver.interpretExpression('1 + 2')).toMatchObject({
 		// 	l: '1',
 		// 	o: '+',
 		// 	r: '2'
 		// })
-
 		// expect(Resolver.resolveExpression(
 		// 	Resolver.interpretExpression('1 + 2')
 		// )).toEqual(3)
-
 		// expect(Resolver.resolveExpression(
 		// 	Resolver.interpretExpression('5 + 4 - 2 + 1 - 5 + 7')
 		// )).toEqual(10)
-
 		// expect(Resolver.resolveExpression(
 		// 	Resolver.interpretExpression('5 - 4 - 3')
 		// )).toEqual(-2)
-
 		// expect(Resolver.resolveExpression(
 		// 	Resolver.interpretExpression('5 - 4 - 3 - 10 + 2')
 		// )).toEqual(-10)
-
 		// expect(Resolver.resolveExpression(
 		// 	Resolver.interpretExpression('4 * 5.5')
 		// )).toEqual(22)
-
 		// expect(Resolver.resolveExpression(
 		// 	Resolver.interpretExpression('2 * 3 * 4')
 		// )).toEqual(24)
-
 		// expect(Resolver.resolveExpression(
 		// 	Resolver.interpretExpression('20 / 4 / 2')
 		// )).toEqual(2.5)
-
 		// expect(Resolver.resolveExpression(
 		// 	Resolver.interpretExpression('2 * (2 + 3) - 2 * 2')
 		// )).toEqual(6)
-
 		// expect(Resolver.resolveExpression(
 		// 	Resolver.interpretExpression('2 * 2 + 3 - 2 * 2')
 		// )).toEqual(3)
-
 		// expect(Resolver.resolveExpression(
 		// 	Resolver.interpretExpression('2 * 2 + 3 - 2 * 2')
 		// )).toEqual(3)
-
 		// expect(Resolver.resolveExpression(
 		// 	Resolver.interpretExpression('5 + -3')
 		// )).toEqual(2)yarn
-
 		// expect(Resolver.resolveExpression(
 		// 	Resolver.interpretExpression('5 + - 3')
 		// )).toEqual(2)
-
 		// expect(Resolver.resolveExpression(
 		// 	Resolver.interpretExpression('')
 		// )).toEqual(NaN)
-
 		// expect(() => {
 		// 	Resolver.resolveLogicalExpression(
 		// 		Resolver.interpretExpression('5 + ) 2') // unbalanced paranthesis
@@ -2828,41 +2811,34 @@ let tests: Tests = {
 		// 		Resolver.interpretExpression('5 * ') // unbalanced expression
 		// 	)
 		// }).toThrowError()
-
 		// expect(Resolver.resolveLogicalExpression(
 		// 	Resolver.interpretExpression('1 | 0', true)
 		// )).toEqual(true)
 		// expect(Resolver.resolveLogicalExpression(
 		// 	Resolver.interpretExpression('1 & 0', true)
 		// )).toEqual(false)
-
 		// expect(Resolver.resolveLogicalExpression(
 		// 	Resolver.interpretExpression('1 | 0 & 0', true)
 		// )).toEqual(false)
-
 		// expect(Resolver.resolveLogicalExpression(
 		// 	Resolver.interpretExpression('0 & 1 | 1', true)
 		// )).toEqual(false)
 		// expect(Resolver.resolveLogicalExpression(
 		// 	Resolver.interpretExpression('(0 & 1) | 1', true)
 		// )).toEqual(true)
-
 		// expect(() => {
 		// 	Resolver.resolveLogicalExpression(
 		// 		Resolver.interpretExpression('(0 & 1) | 1 a', true) // strange operator
 		// 	)
 		// }).toThrowError()
-
 		// expect(Resolver.resolveLogicalExpression(
 		// 	Resolver.interpretExpression('(0 & 1) | a', true) // strange operand
 		// )).toEqual(false)
-
 		// expect(() => {
 		// 	Resolver.resolveLogicalExpression(
 		// 		Resolver.interpretExpression('14 + #badReference.start', true)
 		// 	)
 		// }).toThrowError()
-
 		// const data = clone(getTestData('logical1'))
 		// const state: TimelineState = {
 		// 	time: now,
@@ -2871,10 +2847,8 @@ let tests: Tests = {
 		// }
 		// const val = Resolver.decipherLogicalValue('1', data[0], state)
 		// expect(val).toBeTruthy()
-
 	},
 	'disabled objects on timeline': () => {
-
 		const data = clone(getTestData('basic'))
 		const obj0: NewTimelineObject = _.findWhere(data, { id: 'obj0' }) as NewTimelineObject
 		obj0.disabled = true
@@ -2889,7 +2863,6 @@ let tests: Tests = {
 		expect(state0.layers['1']).toBeFalsy()
 	},
 	'object with infinite duration': () => {
-
 		const data = clone(getTestData('infiniteduration'))
 
 		const tl = Resolver.resolveTimeline(data, stdOpts)
@@ -2903,7 +2876,6 @@ let tests: Tests = {
 		expect(state0.layers['1'].id).toBe('obj0')
 	},
 	'bad objects on timeline': () => {
-
 		expect(() => {
 			const data = clone(getTestData('basic'))
 			delete data[0].id
@@ -2996,7 +2968,7 @@ let tests: Tests = {
 			{ objId: 'child1', time: 1015, type: EventType.END },
 			{ objId: 'group0', time: 1050, type: EventType.END },
 			{ objId: 'obj1', time: 1050, type: EventType.START },
-			{ objId: 'obj1', time: 1110, type: EventType.END }
+			{ objId: 'obj1', time: 1110, type: EventType.END },
 		])
 		const state0 = Resolver.getState(tl, now)
 		expect(state0.layers['2']).toBeTruthy()
@@ -3009,7 +2981,7 @@ let tests: Tests = {
 			{ objId: 'child1', time: 1015, type: EventType.END },
 			{ objId: 'group0', time: 1050, type: EventType.END },
 			{ objId: 'obj1', time: 1050, type: EventType.START },
-			{ objId: 'obj1', time: 1110, type: EventType.END }
+			{ objId: 'obj1', time: 1110, type: EventType.END },
 		])
 
 		const state1 = Resolver.getState(tl, now + 10)
@@ -3022,7 +2994,7 @@ let tests: Tests = {
 		expect(events2).toMatchObject([
 			{ objId: 'group0', time: 1050, type: EventType.END },
 			{ objId: 'obj1', time: 1050, type: EventType.START },
-			{ objId: 'obj1', time: 1110, type: EventType.END }
+			{ objId: 'obj1', time: 1110, type: EventType.END },
 		])
 
 		const state2 = Resolver.getState(tl, now + 25)
@@ -3037,9 +3009,10 @@ let tests: Tests = {
 		expect(data).toEqual(getTestData('simplegroup')) // Make sure the original data was unmodified
 	},
 	'repeating group': () => {
-
 		const data = clone(getTestData('repeatinggroup'))
-		const tl = Resolver.resolveAllStates(Resolver.resolveTimeline(data, _.extend(stdOpts, { limitCount: 99, limitTime: 1050 })))
+		const tl = Resolver.resolveAllStates(
+			Resolver.resolveTimeline(data, _.extend(stdOpts, { limitCount: 99, limitTime: 1050 }))
+		)
 		expect(tl.statistics.resolvedObjectCount).toEqual(4)
 		expect(tl.statistics.unresolvedCount).toEqual(0)
 
@@ -3051,22 +3024,22 @@ let tests: Tests = {
 		expect(tl.objects['group0'].resolved.instances).toMatchObject([
 			{ start: 990, end: 1015 },
 			{ start: 1015, end: 1040 },
-			{ start: 1040, end: 1065 }
+			{ start: 1040, end: 1065 },
 		])
 		expect(tl.objects['child0'].resolved.instances).toMatchObject([
 			{ start: 990, end: 1005 },
 			{ start: 1015, end: 1030 },
-			{ start: 1040, end: 1055 }
+			{ start: 1040, end: 1055 },
 		])
 		expect(tl.objects['child1'].resolved.instances).toMatchObject([
 			{ start: 1005, end: 1015 },
 			{ start: 1030, end: 1040 },
-			{ start: 1055, end: 1065 }
+			{ start: 1055, end: 1065 },
 		])
 		expect(tl.objects['obj1'].resolved.instances).toMatchObject([
 			{ start: 1015, end: 1021 },
 			{ start: 1040, end: 1046 },
-			{ start: 1065, end: 1071 }
+			{ start: 1065, end: 1071 },
 		])
 		expect(tl.objects['child1']).toBeTruthy()
 		expect(tl.objects['child1'].resolved.instances[0].start).toBe(1005)
@@ -3098,36 +3071,35 @@ let tests: Tests = {
 			{ time: 1065, type: EventType.END, objId: 'child1' },
 			{ time: 1065, type: EventType.END, objId: 'group0' },
 			{ time: 1065, type: EventType.START, objId: 'obj1' },
-			{ time: 1071, type: EventType.END, objId: 'obj1' }
+			{ time: 1071, type: EventType.END, objId: 'obj1' },
 		])
 
 		expect(Resolver.getState(tl, now).layers).toMatchObject({
 			'1': {
-				id: 'child0'
-			}
+				id: 'child0',
+			},
 		})
 
 		expect(Resolver.getState(tl, now + 10).layers).toMatchObject({
 			'1': {
-				id: 'child1'
-			}
+				id: 'child1',
+			},
 		})
 		// Next loop:
 
 		expect(Resolver.getState(tl, now + 25).layers).toMatchObject({
 			'1': {
-				id: 'child0'
-			}
+				id: 'child0',
+			},
 		})
 		expect(Resolver.getState(tl, now + 35).layers).toMatchObject({
 			'1': {
-				id: 'child1'
-			}
+				id: 'child1',
+			},
 		})
 		expect(data).toEqual(getTestData('repeatinggroup')) // Make sure the original data is unmodified
 	},
 	'repeating group in repeating group': () => {
-
 		const data = clone(getTestData('repeatinggroupinrepeatinggroup'))
 		const tl = Resolver.resolveTimeline(data, _.extend(stdOpts, { limitCount: 99, limitTime: 1180 }))
 		expect(tl.statistics.resolvedObjectCount).toEqual(6)
@@ -3142,11 +3114,11 @@ let tests: Tests = {
 
 		expect(tl.objects['group0'].resolved.instances).toMatchObject([
 			{ start: 1000, end: 1092 },
-			{ start: 1092, end: 1184 }
+			{ start: 1092, end: 1184 },
 		])
 		expect(tl.objects['child0'].resolved.instances).toMatchObject([
 			{ start: 1000, end: 1030 },
-			{ start: 1092, end: 1122 }
+			{ start: 1092, end: 1122 },
 		])
 		expect(tl.objects['group1'].resolved.instances).toMatchObject([
 			{ start: 1030, end: 1055 },
@@ -3156,7 +3128,7 @@ let tests: Tests = {
 			// next loop:
 			{ start: 1122, end: 1147 },
 			{ start: 1147, end: 1172 }, // 1172
-			{ start: 1172, end: 1184 } // capped in parent
+			{ start: 1172, end: 1184 }, // capped in parent
 		])
 
 		expect(tl.objects['child1'].resolved.instances).toMatchObject([
@@ -3165,7 +3137,7 @@ let tests: Tests = {
 			{ start: 1080, end: 1090 },
 			{ start: 1122, end: 1132 },
 			{ start: 1147, end: 1157 },
-			{ start: 1172, end: 1182 }
+			{ start: 1172, end: 1182 },
 		])
 		expect(tl.objects['child2'].resolved.instances).toMatchObject([
 			{ start: 1040, end: 1055 }, // capped in group1
@@ -3173,7 +3145,7 @@ let tests: Tests = {
 			{ start: 1090, end: 1092 }, // capped in group1
 			{ start: 1132, end: 1147 }, // capped in group1
 			{ start: 1157, end: 1172 }, // capped in group1
-			{ start: 1182, end: 1184 } // capped in group1
+			{ start: 1182, end: 1184 }, // capped in group1
 		])
 		/*
 		const tmpState0 = Resolver.getState(tl, 990, 99)
@@ -3227,7 +3199,6 @@ let tests: Tests = {
 		*/
 	},
 	'test group with duration and infinite child': () => {
-
 		const data = clone(getTestData('groupwithduration'))
 
 		const tl = Resolver.resolveTimeline(data, stdOpts)
@@ -3236,39 +3207,35 @@ let tests: Tests = {
 		expect(tl.statistics.unresolvedCount).toEqual(0)
 
 		expect(tl.objects['group0'].resolved).toMatchObject({
-			instances: [
-				{ start: 1000, end: 1030 }
-			]
+			instances: [{ start: 1000, end: 1030 }],
 		})
 		expect(tl.objects['child0'].resolved).toMatchObject({
-			instances: [
-				{ start: 1000, end: 1030 }
-			]
+			instances: [{ start: 1000, end: 1030 }],
 		})
 
 		expect(Resolver.getState(tl, 1000).layers).toMatchObject({
 			'1': {
-				id: 'group0'
+				id: 'group0',
 			},
 			'2': {
-				id: 'child0'
-			}
+				id: 'child0',
+			},
 		})
 
 		expect(Resolver.getState(tl, 1000)).toMatchObject({
 			layers: {
 				'1': {
-					id: 'group0'
+					id: 'group0',
 				},
 				'2': {
-					id: 'child0'
-				}
+					id: 'child0',
+				},
 			},
 			nextEvents: [
 				// { type: EventType.START, time: 1000, objId: 'child0' },
 				{ type: EventType.END, time: 1030, objId: 'child0' },
-				{ type: EventType.END, time: 1030, objId: 'group0' }
-			]
+				{ type: EventType.END, time: 1030, objId: 'group0' },
+			],
 		})
 		// a bit in:
 		expect(Resolver.getState(tl, 1050).layers).toEqual({})
@@ -3277,16 +3244,16 @@ let tests: Tests = {
 		expect(Resolver.getState(tl, 1029)).toMatchObject({
 			layers: {
 				'1': {
-					id: 'group0'
+					id: 'group0',
 				},
 				'2': {
-					id: 'child0'
-				}
+					id: 'child0',
+				},
 			},
 			nextEvents: [
 				{ type: EventType.END, time: 1030, objId: 'child0' },
-				{ type: EventType.END, time: 1030, objId: 'group0' }
-			]
+				{ type: EventType.END, time: 1030, objId: 'group0' },
+			],
 		})
 
 		expect(data).toEqual(getTestData('groupwithduration')) // Make sure the original data is unmodified
@@ -3304,28 +3271,28 @@ let tests: Tests = {
 		expect(Resolver.getState(tl, 1000)).toMatchObject({
 			layers: {
 				'1': {
-					id: 'group0'
+					id: 'group0',
 				},
 				'2': {
-					id: 'child0'
-				}
+					id: 'child0',
+				},
 			},
 			nextEvents: [
 				{ type: EventType.END, time: 1005, objId: 'child0' },
 				{ type: EventType.START, time: 1005, objId: 'child1' },
-				{ type: EventType.END, time: 1015, objId: 'child1' }
-			]
+				{ type: EventType.END, time: 1015, objId: 'child1' },
+			],
 		})
 
 		expect(Resolver.getState(tl, 1010)).toMatchObject({
 			layers: {
 				'1': {
-					id: 'group0'
+					id: 'group0',
 				},
 				'2': {
-					id: 'child1'
-				}
-			}
+					id: 'child1',
+				},
+			},
 		})
 		expect(data).toEqual(getTestData('infinitegroup')) // Make sure the original data is unmodified
 	},
@@ -3340,28 +3307,28 @@ let tests: Tests = {
 		expect(Resolver.getState(tl, 800)).toMatchObject({
 			layers: {
 				'3': {
-					id: 'outside0'
-				}
+					id: 'outside0',
+				},
 			},
 			nextEvents: [
 				{ type: EventType.START, time: 990, objId: 'child0' },
-				{ type: EventType.START, time: 990, objId: 'group0' }
-			]
+				{ type: EventType.START, time: 990, objId: 'group0' },
+			],
 		})
 
 		expect(Resolver.getState(tl, 1000)).toMatchObject({
 			layers: {
 				'1': {
-					id: 'group0'
+					id: 'group0',
 				},
 				'2': {
-					id: 'child0'
+					id: 'child0',
 				},
 				'3': {
-					id: 'outside0'
-				}
+					id: 'outside0',
+				},
 			},
-			nextEvents: []
+			nextEvents: [],
 		})
 
 		expect(data).toEqual(getTestData('logicalInGroup')) // Make sure the original data is unmodified
@@ -3375,11 +3342,11 @@ let tests: Tests = {
 		const state0 = Resolver.getState(tl, 1000)
 		expect(state0.layers).toMatchObject({
 			'1': {
-				id: 'group0'
+				id: 'group0',
 			},
 			'2': {
-				id: 'child0'
-			}
+				id: 'child0',
+			},
 		})
 		expect(state0.layers['3']).toBeFalsy()
 		expect(state0.layers['4']).toBeFalsy()
@@ -3395,28 +3362,28 @@ let tests: Tests = {
 		expect(Resolver.getState(tl, 1000)).toMatchObject({
 			layers: {
 				'1': {
-					id: 'obj1'
+					id: 'obj1',
 				},
 				'2': {
 					id: 'obj2',
 					content: {
 						type: 'file',
-						name: 'AMB'
-					}
-				}
+						name: 'AMB',
+					},
+				},
 			},
 			nextEvents: [
 				{ type: EventType.KEYFRAME, time: 1010, objId: 'kf1' },
 				{ type: EventType.KEYFRAME, time: 1020, objId: 'kf1' },
 				{ type: EventType.END, time: 1060, objId: 'obj1' },
-				{ type: EventType.END, time: 1060, objId: 'obj2' }
-			]
+				{ type: EventType.END, time: 1060, objId: 'obj2' },
+			],
 		})
 
 		expect(Resolver.getState(tl, 1015)).toMatchObject({
 			layers: {
 				'1': {
-					id: 'obj1'
+					id: 'obj1',
 				},
 				'2': {
 					id: 'obj2',
@@ -3424,25 +3391,25 @@ let tests: Tests = {
 						type: 'file',
 						name: 'AMB1',
 						mixer: {
-							opacity: 0
-						}
-					}
-				}
-			}
+							opacity: 0,
+						},
+					},
+				},
+			},
 		})
 		expect(Resolver.getState(tl, 1025)).toMatchObject({
 			layers: {
 				'1': {
-					id: 'obj1'
+					id: 'obj1',
 				},
 				'2': {
 					id: 'obj2',
 					content: {
 						type: 'file',
-						name: 'AMB'
-					}
-				}
-			}
+						name: 'AMB',
+					},
+				},
+			},
 		})
 	},
 	'relative durations': () => {
@@ -3459,34 +3426,33 @@ let tests: Tests = {
 				{ type: EventType.START, time: 1090, objId: 'obj2' },
 				{ type: EventType.END, time: 1180, objId: 'obj2' },
 				{ type: EventType.START, time: 1180, objId: 'obj3' },
-				{ type: EventType.END, time: 5400, objId: 'obj3' }
-			]
+				{ type: EventType.END, time: 5400, objId: 'obj3' },
+			],
 		})
 
 		expect(Resolver.getState(tl, 1030)).toMatchObject({
 			layers: {
-				'1': { id: 'obj0' }
-			}
+				'1': { id: 'obj0' },
+			},
 		})
 		expect(Resolver.getState(tl, 1070)).toMatchObject({
 			layers: {
-				'1': { id: 'obj1' }
-			}
+				'1': { id: 'obj1' },
+			},
 		})
 		expect(Resolver.getState(tl, 1100)).toMatchObject({
 			layers: {
-				'1': { id: 'obj2' }
-			}
+				'1': { id: 'obj2' },
+			},
 		})
 		expect(Resolver.getState(tl, 1190)).toMatchObject({
 			layers: {
-				'1': { id: 'obj3' }
-			}
+				'1': { id: 'obj3' },
+			},
 		})
 		expect(Resolver.getState(tl, 5401).layers).toEqual({})
 	},
 	'Circular dependency 1': () => {
-
 		const data = clone(getTestData('circulardependency0'))
 
 		expect(() => {
@@ -3516,37 +3482,29 @@ let tests: Tests = {
 		expect(tl.statistics.resolvedGroupCount).toEqual(2)
 
 		expect(tl.objects['group0'].resolved).toMatchObject({
-			instances: [
-				{ start: 1000, end: 1150 }
-			]
+			instances: [{ start: 1000, end: 1150 }],
 		})
 		expect(tl.objects['child0'].resolved).toMatchObject({
-			instances: [
-				{ start: 1000, end: 1150 }
-			]
+			instances: [{ start: 1000, end: 1150 }],
 		})
 		expect(tl.objects['group1'].resolved).toMatchObject({
-			instances: [
-				{ start: 1150, end: null }
-			]
+			instances: [{ start: 1150, end: null }],
 		})
 		expect(tl.objects['child1'].resolved).toMatchObject({
-			instances: [
-				{ start: 1150, end: null }
-			]
+			instances: [{ start: 1150, end: null }],
 		})
 
 		expect(Resolver.getState(tl, 1030)).toMatchObject({
 			layers: {
 				'1': { id: 'group0' },
-				'2': { id: 'child0' }
-			}
+				'2': { id: 'child0' },
+			},
 		})
 		expect(Resolver.getState(tl, 1150)).toMatchObject({
 			layers: {
 				'3': { id: 'group1' },
-				'4': { id: 'child1' }
-			}
+				'4': { id: 'child1' },
+			},
 		})
 	},
 	'Cross-dependencies between group children': () => {
@@ -3557,29 +3515,19 @@ let tests: Tests = {
 		expect(tl.statistics.unresolvedCount).toEqual(0)
 
 		expect(tl.objects['group0'].resolved).toMatchObject({
-			instances: [
-				{ start: 1000, end: null }
-			]
+			instances: [{ start: 1000, end: null }],
 		})
 		expect(tl.objects['child0'].resolved).toMatchObject({
-			instances: [
-				{ start: 1000, end: 1010 }
-			]
+			instances: [{ start: 1000, end: 1010 }],
 		})
 		expect(tl.objects['child1'].resolved).toMatchObject({
-			instances: [
-				{ start: 1010, end: 1030 }
-			]
+			instances: [{ start: 1010, end: 1030 }],
 		})
 		expect(tl.objects['group1'].resolved).toMatchObject({
-			instances: [
-				{ start: 1030, end: null }
-			]
+			instances: [{ start: 1030, end: null }],
 		})
 		expect(tl.objects['child2'].resolved).toMatchObject({
-			instances: [
-				{ start: 1030, end: 1060 }
-			]
+			instances: [{ start: 1030, end: 1060 }],
 		})
 	},
 	// 'self-reference expression': () => {
@@ -3604,15 +3552,11 @@ let tests: Tests = {
 			data.push({
 				id: 'obj' + i,
 				enable: {
-					start: (
-						i === 0 ?
-						now :
-						'#obj' + (i - 1) + '.end'
-					),
-					duration: 10
+					start: i === 0 ? now : '#obj' + (i - 1) + '.end',
+					duration: 10,
 				},
 				layer: 1,
-				content: {}
+				content: {},
 			})
 		}
 		data = _.sortBy(data, Math.random)
@@ -3630,40 +3574,32 @@ let tests: Tests = {
 		expect(tl.statistics.unresolvedCount).toEqual(0)
 
 		expect(tl.objects['trans0'].resolved).toMatchObject({
-			instances: [
-				{ start: 1000, end: 3500 }
-			]
+			instances: [{ start: 1000, end: 3500 }],
 		})
 		expect(tl.objects['child1'].resolved).toMatchObject({
-			instances: [
-				{ start: 1000, end: 3500 }
-			]
+			instances: [{ start: 1000, end: 3500 }],
 		})
 		expect(tl.objects['group0'].resolved).toMatchObject({
-			instances: [
-				{ start: 1000, end: null }
-			]
+			instances: [{ start: 1000, end: null }],
 		})
 		expect(tl.objects['child0'].resolved).toMatchObject({
-			instances: [
-				{ start: 2500, end: null }
-			]
+			instances: [{ start: 2500, end: null }],
 		})
 
 		expect(Resolver.getState(tl, 1500)).toMatchObject({
 			layers: {
-				'3': { id: 'child1' }
-			}
+				'3': { id: 'child1' },
+			},
 		})
 		expect(Resolver.getState(tl, 3500)).toMatchObject({
 			layers: {
-				'3': { id: 'child0' }
-			}
+				'3': { id: 'child0' },
+			},
 		})
 		expect(Resolver.getState(tl, 4500)).toMatchObject({
 			layers: {
-				'3': { id: 'child0' }
-			}
+				'3': { id: 'child0' },
+			},
 		})
 	},
 	'Relative with something past the end': () => {
@@ -3671,44 +3607,32 @@ let tests: Tests = {
 		const tl = Resolver.resolveTimeline(data, stdOpts)
 
 		expect(tl.objects['group0'].resolved).toMatchObject({
-			instances: [
-				{ start: 1000, end: 4100 }
-			]
+			instances: [{ start: 1000, end: 4100 }],
 		})
 		expect(tl.objects['group2'].resolved).toMatchObject({
-			instances: [
-				{ start: 1000, end: 4100 }
-			]
+			instances: [{ start: 1000, end: 4100 }],
 		})
 		expect(tl.objects['child1'].resolved).toMatchObject({
-			instances: [
-				{ start: 1000, end: 4100 }
-			]
+			instances: [{ start: 1000, end: 4100 }],
 		})
 		expect(tl.objects['group4'].resolved).toMatchObject({
 			instances: [
 				// { start: 5000, end: 7500 } // capped by parent
-			]
+			],
 		})
 		expect(tl.objects['child5'].resolved).toMatchObject({
 			instances: [
 				// { start: 5000, end: 7500 } // capped by parent
-			]
+			],
 		})
 		expect(tl.objects['group1'].resolved).toMatchObject({
-			instances: [
-				{ start: 4000, end: null }
-			]
+			instances: [{ start: 4000, end: null }],
 		})
 		expect(tl.objects['group3'].resolved).toMatchObject({
-			instances: [
-				{ start: 4000, end: null }
-			]
+			instances: [{ start: 4000, end: null }],
 		})
 		expect(tl.objects['child0'].resolved).toMatchObject({
-			instances: [
-				{ start: 4000, end: null }
-			]
+			instances: [{ start: 4000, end: null }],
 		})
 
 		expect(tl.statistics.resolvedObjectCount).toEqual(6)
@@ -3724,34 +3648,22 @@ let tests: Tests = {
 		const tl = Resolver.resolveTimeline(data, stdOpts)
 
 		expect(tl.objects['group0'].resolved).toMatchObject({
-			instances: [
-				{ start: 1000, end: 6600 }
-			]
+			instances: [{ start: 1000, end: 6600 }],
 		})
 		expect(tl.objects['group2'].resolved).toMatchObject({
-			instances: [
-				{ start: 1000, end: 4600 }
-			]
+			instances: [{ start: 1000, end: 4600 }],
 		})
 		expect(tl.objects['child1'].resolved).toMatchObject({
-			instances: [
-				{ start: 1000, end: 4600 }
-			]
+			instances: [{ start: 1000, end: 4600 }],
 		})
 		expect(tl.objects['group1'].resolved).toMatchObject({
-			instances: [
-				{ start: 6000, end: null }
-			]
+			instances: [{ start: 6000, end: null }],
 		})
 		expect(tl.objects['group3'].resolved).toMatchObject({
-			instances: [
-				{ start: 6000, end: 9600 }
-			]
+			instances: [{ start: 6000, end: 9600 }],
 		})
 		expect(tl.objects['child0'].resolved).toMatchObject({
-			instances: [
-				{ start: 6000 , end: 9600 }
-			]
+			instances: [{ start: 6000, end: 9600 }],
 		})
 
 		expect(tl.statistics.resolvedObjectCount).toEqual(6)
@@ -3766,39 +3678,26 @@ let tests: Tests = {
 		const tl = Resolver.resolveTimeline(data, stdOpts)
 
 		expect(tl.objects['group0'].resolved).toMatchObject({
-			instances: [
-				{ start: 1000 , end: null }
-			]
+			instances: [{ start: 1000, end: null }],
 		})
 		expect(tl.objects['group0_1'].resolved).toMatchObject({
-			instances: [
-				{ start: 1000 , end: null }
-			]
+			instances: [{ start: 1000, end: null }],
 		})
 		expect(tl.objects['child1'].resolved).toMatchObject({
-			instances: [
-				{ start: 1000 , end: null }
-			]
+			instances: [{ start: 1000, end: null }],
 		})
 		expect(tl.objects['group1'].resolved).toMatchObject({
-			instances: [
-				{ start: 1000 , end: null }
-			]
+			instances: [{ start: 1000, end: null }],
 		})
 		expect(tl.objects['group1_1'].resolved).toMatchObject({
-			instances: [
-				{ start: 1000 , end: 1000 }
-			]
+			instances: [{ start: 1000, end: 1000 }],
 		})
 		expect(tl.objects['child0'].resolved).toMatchObject({
-			instances: [
-				{ start: 1000 , end: 1000 }
-			]
+			instances: [{ start: 1000, end: 1000 }],
 		})
 
 		expect(tl.statistics.unresolvedCount).toEqual(0)
 		expect(tl.statistics.resolvedObjectCount).toEqual(6)
-
 	},
 	'Many parentheses': () => {
 		const data = clone(getTestData('manyParentheses'))
@@ -3807,14 +3706,10 @@ let tests: Tests = {
 		expect(tl.statistics.resolvedObjectCount).toEqual(2)
 
 		expect(tl.objects['obj0'].resolved).toMatchObject({
-			instances: [
-				{ start: 4000 , end: null }
-			]
+			instances: [{ start: 4000, end: null }],
 		})
 		expect(tl.objects['obj1'].resolved).toMatchObject({
-			instances: [
-				{ start: 1000 , end: 2000 }
-			]
+			instances: [{ start: 1000, end: 2000 }],
 		})
 	},
 	'Operator order': () => {
@@ -3824,39 +3719,25 @@ let tests: Tests = {
 		expect(tl.statistics.resolvedObjectCount).toEqual(7)
 
 		expect(tl.objects['obj0'].resolved).toMatchObject({
-			instances: [
-				{ start:  4000, end: null }
-			]
+			instances: [{ start: 4000, end: null }],
 		})
 		expect(tl.objects['obj1'].resolved).toMatchObject({
-			instances: [
-				{ start: 1000, end: 2000 }
-			]
+			instances: [{ start: 1000, end: 2000 }],
 		})
 		expect(tl.objects['obj2'].resolved).toMatchObject({
-			instances: [
-				{ start: 1000, end: 2000 }
-			]
+			instances: [{ start: 1000, end: 2000 }],
 		})
 		expect(tl.objects['obj3'].resolved).toMatchObject({
-			instances: [
-				{ start: 1000, end: 2000 }
-			]
+			instances: [{ start: 1000, end: 2000 }],
 		})
 		expect(tl.objects['obj4'].resolved).toMatchObject({
-			instances: [
-				{ start: 1000, end: 6000 }
-			]
+			instances: [{ start: 1000, end: 6000 }],
 		})
 		expect(tl.objects['obj5'].resolved).toMatchObject({
-			instances: [
-				{ start: 1000, end: 6000 }
-			]
+			instances: [{ start: 1000, end: 6000 }],
 		})
 		expect(tl.objects['obj6'].resolved).toMatchObject({
-			instances: [
-				{ start: 1000, end: 6000 }
-			]
+			instances: [{ start: 1000, end: 6000 }],
 		})
 	},
 	'Child with a start before parent': () => {
@@ -3868,27 +3749,21 @@ let tests: Tests = {
 		expect(tl.statistics.resolvedObjectCount).toEqual(3)
 
 		expect(tl.objects['group0'].resolved).toMatchObject({
-			instances: [
-				{ start: 6000, end: null }
-			]
+			instances: [{ start: 6000, end: null }],
 		})
 		expect(tl.objects['child0'].resolved).toMatchObject({
-			instances: [
-				{ start: 6000, end: null }
-			]
+			instances: [{ start: 6000, end: null }],
 		})
 		expect(tl.objects['child1'].resolved).toMatchObject({
-			instances: [
-				{ start: 6000, end: null }
-			]
+			instances: [{ start: 6000, end: null }],
 		})
 
 		expect(Resolver.getState(tl, 1000)).toMatchObject({
 			nextEvents: [
 				{ type: EventType.START, time: 6000, objId: 'child0' },
 				{ type: EventType.START, time: 6000, objId: 'child1' },
-				{ type: EventType.START, time: 6000, objId: 'group0' }
-			]
+				{ type: EventType.START, time: 6000, objId: 'group0' },
+			],
 		})
 
 		expect(Resolver.getState(tl, 5999).layers).toEqual({})
@@ -3992,29 +3867,19 @@ let tests: Tests = {
 		const tl = Resolver.resolveTimeline(data, stdOpts)
 
 		expect(tl.objects['obj0'].resolved).toMatchObject({
-			instances: [
-				{ start: 0, end: null }
-			]
+			instances: [{ start: 0, end: null }],
 		})
 		expect(tl.objects['group0'].resolved).toMatchObject({
-			instances: [
-				{ start: 2000, end: null }
-			]
+			instances: [{ start: 2000, end: null }],
 		})
 		expect(tl.objects['group0_first'].resolved).toMatchObject({
-			instances: [
-				{ start: 2000, end: null }
-			]
+			instances: [{ start: 2000, end: null }],
 		})
 		expect(tl.objects['group1'].resolved).toMatchObject({
-			instances: [
-				{ start: 2000, end: null }
-			]
+			instances: [{ start: 2000, end: null }],
 		})
 		expect(tl.objects['obj2'].resolved).toMatchObject({
-			instances: [
-				{ start: 2000, end: null }
-			]
+			instances: [{ start: 2000, end: null }],
 		})
 
 		// Sample before logical trigger is true
@@ -4034,14 +3899,14 @@ let tests: Tests = {
 		const data = clone(getTestData('logicalTriggers3'))
 		const tl = Resolver.resolveTimeline(data, stdOpts)
 
- 		// Sample at base
+		// Sample at base
 		const state0 = Resolver.getState(tl, now)
 		expect(state0.layers['nora_primary_super']).toBeTruthy()
 		expect(state0.layers['nora_primary_super'].id).toEqual('super_default')
 		expect(state0.layers['nora_primary_headline']).toBeTruthy()
 		expect(state0.layers['nora_primary_headline'].id).toEqual('head_default')
 
- 		// Sample after real_head has started
+		// Sample after real_head has started
 		const state1 = Resolver.getState(tl, now + 350)
 		expect(state1.layers['nora_primary_super']).toBeTruthy()
 		expect(state1.layers['nora_primary_super'].id).toEqual('super_default')
@@ -4052,13 +3917,13 @@ let tests: Tests = {
 		const data = clone(getTestData('logicalTriggers3b'))
 		const tl = Resolver.resolveTimeline(data, stdOpts)
 
- 		// Sample at base
+		// Sample at base
 		const state0 = Resolver.getState(tl, now)
 		expect(state0.layers['nora_primary_super']).toBeTruthy()
 		expect(state0.layers['nora_primary_super'].id).toEqual('super_default')
 		expect(state0.layers['nora_primary_headline']).toBeFalsy()
 
- 		// Sample after real_head has started
+		// Sample after real_head has started
 		const state1 = Resolver.getState(tl, now + 350)
 		expect(state1.layers['nora_primary_super']).toBeTruthy()
 		expect(state1.layers['nora_primary_super'].id).toEqual('super_default')
@@ -4105,53 +3970,37 @@ let tests: Tests = {
 		const tl = Resolver.resolveTimeline(data, stdOpts)
 
 		expect(tl.objects['group0'].resolved).toMatchObject({
-			instances: [
-				{ start: 2000, end: 12000 }
-			]
+			instances: [{ start: 2000, end: 12000 }],
 		})
 		expect(tl.objects['obj0'].resolved).toMatchObject({
-			instances: [
-				{ start: 2000, end: 12000 }
-			]
+			instances: [{ start: 2000, end: 12000 }],
 		})
 		expect(tl.objects['obj2'].resolved).toMatchObject({
-			instances: [
-				{ start: 2000, end: 12000 }
-			]
+			instances: [{ start: 2000, end: 12000 }],
 		})
 		expect(tl.objects['obj4'].resolved).toMatchObject({
-			instances: [
-				{ start: 2000, end: 12000 }
-			]
+			instances: [{ start: 2000, end: 12000 }],
 		})
 		expect(tl.objects['group1'].resolved).toMatchObject({
-			instances: [
-				{ start: 6000, end: 16000 }
-			]
+			instances: [{ start: 6000, end: 16000 }],
 		})
 		expect(tl.objects['obj1'].resolved).toMatchObject({
-			instances: [
-				{ start: 6000, end: 16000 }
-			]
+			instances: [{ start: 6000, end: 16000 }],
 		})
 		expect(tl.objects['obj3'].resolved).toMatchObject({
-			instances: [
-				{ start: 6000, end: 16000 }
-			]
+			instances: [{ start: 6000, end: 16000 }],
 		})
 		expect(tl.objects['obj5'].resolved).toMatchObject({
-			instances: [
-				{ start: 6000, end: 16000 }
-			]
+			instances: [{ start: 6000, end: 16000 }],
 		})
 
 		// Sample while first obj is active
 		const state0 = Resolver.getState(tl, 2000)
 
 		expect(state0.layers).toMatchObject({
-			'layer0': { id: 'obj0' },
-			'layer2': { id: 'obj2' },
-			'layer3': { id: 'obj4' }
+			layer0: { id: 'obj0' },
+			layer2: { id: 'obj2' },
+			layer3: { id: 'obj4' },
 		})
 		expect(state0.layers['layer1']).toBeFalsy()
 
@@ -4159,26 +4008,26 @@ let tests: Tests = {
 		const state1 = Resolver.getState(tl, 7000)
 
 		expect(state1.layers).toMatchObject({
-			'layer0': { id: 'obj0' },
-			'layer1': { id: 'obj1' },
-			'layer2': { id: 'obj3' },
-			'layer3': { id: 'obj5' }
+			layer0: { id: 'obj0' },
+			layer1: { id: 'obj1' },
+			layer2: { id: 'obj3' },
+			layer3: { id: 'obj5' },
 		})
 
 		// Sample while second obj is active
 		const state2 = Resolver.getState(tl, 12000)
 		expect(state2.layers).toMatchObject({
 			// 'layer0': { id: 'obj0' },
-			'layer1': { id: 'obj1' },
-			'layer2': { id: 'obj3' },
-			'layer3': { id: 'obj5' }
+			layer1: { id: 'obj1' },
+			layer2: { id: 'obj3' },
+			layer3: { id: 'obj5' },
 		})
 		expect(state2.layers['layer0']).toBeFalsy()
-	}
+	},
 }
 const onlyTests: Tests = {}
 _.each(tests, (t, key: string) => {
-	if ((key.match(/^only/))) {
+	if (key.match(/^only/)) {
 		onlyTests[key] = t
 	}
 })

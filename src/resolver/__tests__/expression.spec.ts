@@ -1,7 +1,6 @@
 import { interpretExpression, wrapInnerExpressions, simplifyExpression, validateExpression } from '../expression'
 
 describe('Expression', () => {
-
 	test('interpretExpression from string', () => {
 		expect(interpretExpression('42.5')).toEqual(42.5)
 		expect(interpretExpression('+42.5')).toEqual(42.5)
@@ -12,38 +11,38 @@ describe('Expression', () => {
 		expect(interpretExpression('1+2')).toMatchObject({
 			l: '1',
 			o: '+',
-			r: '2'
+			r: '2',
 		})
 		expect(interpretExpression('   1   *   2   ')).toMatchObject({
 			l: '1',
 			o: '*',
-			r: '2'
+			r: '2',
 		})
 
 		expect(interpretExpression('1 + 2')).toMatchObject({
 			l: '1',
 			o: '+',
-			r: '2'
+			r: '2',
 		})
 		expect(interpretExpression('1 - 2')).toMatchObject({
 			l: '1',
 			o: '-',
-			r: '2'
+			r: '2',
 		})
 		expect(interpretExpression('1 * 2')).toMatchObject({
 			l: '1',
 			o: '*',
-			r: '2'
+			r: '2',
 		})
 		expect(interpretExpression('1 / 2')).toMatchObject({
 			l: '1',
 			o: '/',
-			r: '2'
+			r: '2',
 		})
 		expect(interpretExpression('1 % 2')).toMatchObject({
 			l: '1',
 			o: '%',
-			r: '2'
+			r: '2',
 		})
 		expect(interpretExpression('1 + 2 * 3')).toMatchObject({
 			l: '1',
@@ -51,17 +50,17 @@ describe('Expression', () => {
 			r: {
 				l: '2',
 				o: '*',
-				r: '3'
-			}
+				r: '3',
+			},
 		})
 		expect(interpretExpression('1 * 2 + 3')).toMatchObject({
 			l: {
 				l: '1',
 				o: '*',
-				r: '2'
+				r: '2',
 			},
 			o: '+',
-			r: '3'
+			r: '3',
 		})
 		expect(interpretExpression('1 * (2 + 3)')).toMatchObject({
 			l: '1',
@@ -69,26 +68,26 @@ describe('Expression', () => {
 			r: {
 				l: '2',
 				o: '+',
-				r: '3'
-			}
+				r: '3',
+			},
 		})
 		expect(interpretExpression('#first & #second')).toMatchObject({
 			l: '#first',
 			o: '&',
-			r: '#second'
+			r: '#second',
 		})
 
 		expect(interpretExpression('!thisOne')).toMatchObject({
 			l: '',
 			o: '!',
-			r: 'thisOne'
+			r: 'thisOne',
 		})
 
 		expect(interpretExpression('!thisOne & !(that | !those)')).toMatchObject({
 			l: {
 				l: '',
 				o: '!',
-				r: 'thisOne'
+				r: 'thisOne',
 			},
 			o: '&',
 			r: {
@@ -100,28 +99,28 @@ describe('Expression', () => {
 					r: {
 						l: '',
 						o: '!',
-						r: 'those'
-					}
-				}
-			}
+						r: 'those',
+					},
+				},
+			},
 		})
 
 		expect(interpretExpression('(!.classA | !$layer.classB) & #obj')).toMatchObject({
-			'l': {
-				'l': {
-					'l': '',
-					'o': '!',
-					'r': '.classA'
+			l: {
+				l: {
+					l: '',
+					o: '!',
+					r: '.classA',
 				},
-				'o': '|',
-				'r': {
-					'l': '',
-					'o': '!',
-					'r': '$layer.classB'
-				}
+				o: '|',
+				r: {
+					l: '',
+					o: '!',
+					r: '$layer.classB',
+				},
 			},
-			'o': '&',
-			'r': '#obj'
+			o: '&',
+			r: '#obj',
 		})
 
 		expect(interpretExpression('#obj.start')).toEqual('#obj.start')
@@ -130,31 +129,20 @@ describe('Expression', () => {
 		expect(interpretExpression(null)).toEqual(null)
 	})
 	test('wrapInnerExpressions', () => {
-		expect(wrapInnerExpressions(
-			['a', '(', 'b', 'c', ')']
-		)).toEqual({rest: [], inner:
-			['a', ['b', 'c']]
-		})
-		expect(wrapInnerExpressions(
-			['a', '&', '!', 'b']
-		)).toEqual({rest: [], inner:
-			['a', '&', ['', '!', 'b']]
-		})
+		expect(wrapInnerExpressions(['a', '(', 'b', 'c', ')'])).toEqual({ rest: [], inner: ['a', ['b', 'c']] })
+		expect(wrapInnerExpressions(['a', '&', '!', 'b'])).toEqual({ rest: [], inner: ['a', '&', ['', '!', 'b']] })
 	})
 	test('simplifyExpression', () => {
-		expect(simplifyExpression('1+2+3'
-		)).toEqual(6)
+		expect(simplifyExpression('1+2+3')).toEqual(6)
 
-		expect(simplifyExpression('1+2*2+(4-2)'
-		)).toEqual(7)
+		expect(simplifyExpression('1+2*2+(4-2)')).toEqual(7)
 
-		expect(simplifyExpression('10 / 2 + 1'
-		)).toEqual(6)
+		expect(simplifyExpression('10 / 2 + 1')).toEqual(6)
 
 		expect(simplifyExpression('40+2+asdf')).toEqual({
 			l: 42,
 			o: '+',
-			r: 'asdf'
+			r: 'asdf',
 		})
 	})
 	test('validateExpression ', () => {
@@ -175,8 +163,11 @@ describe('Expression', () => {
 		expect(() => validateExpression(['+', '-'], { l: 1, o: '+', r: [] })).toThrowError(/invalid type/)
 
 		expect(() => validateExpression(['+', '-'], { l: 1, o: '+', r: { l: 1, o: '+', r: 1 } })).not.toThrowError()
-		expect(() => validateExpression(['+', '-'], { l: 1, o: '+', r: { l: 1, o: '*', r: 1 } })).toThrowError(/not valid/)
-		expect(() => validateExpression(['+', '-'], { r: 1, o: '+', l: { l: 1, o: '*', r: 1 } })).toThrowError(/not valid/)
-
+		expect(() => validateExpression(['+', '-'], { l: 1, o: '+', r: { l: 1, o: '*', r: 1 } })).toThrowError(
+			/not valid/
+		)
+		expect(() => validateExpression(['+', '-'], { r: 1, o: '+', l: { l: 1, o: '*', r: 1 } })).toThrowError(
+			/not valid/
+		)
 	})
 })

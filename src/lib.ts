@@ -6,7 +6,7 @@ import {
 	Duration,
 	Time,
 	ValueWithReference,
-	Cap
+	Cap,
 } from './api/api'
 
 /**
@@ -30,29 +30,20 @@ type Difference<A, B extends A> = Pick<B, Exclude<keyof B, keyof RequiredPropert
  * @param original Object to be extended
  * @param extendObj properties to add
  */
-export function extendMandadory<A, B extends A> (original: A, extendObj: Difference<A, B> & Partial<A>): B {
+export function extendMandadory<A, B extends A>(original: A, extendObj: Difference<A, B> & Partial<A>): B {
 	return _.extend(original, extendObj)
 }
 
-export function isConstant (str: string | number | null | any): str is string | number {
-	return !!(
-		isNumeric(str) ||
-		(
-			_.isString(str) &&
-			(
-				str.match(/^true$/) ||
-				str.match(/^false$/)
-			)
-		)
-	)
+export function isConstant(str: string | number | null | any): str is string | number {
+	return !!(isNumeric(str) || (_.isString(str) && (str.match(/^true$/) || str.match(/^false$/))))
 }
-export function isNumeric (str: string | number | null | any): str is string | number {
+export function isNumeric(str: string | number | null | any): str is string | number {
 	if (str === null) return false
 	if (_.isNumber(str)) return true
-	if (_.isString(str)) return !!(str.match(/^[\-\+]?[0-9\.]+$/) && !_.isNaN(parseFloat(str)))
+	if (_.isString(str)) return !!(str.match(/^[-+]?[0-9.]+$/) && !_.isNaN(parseFloat(str)))
 	return false
 }
-export function sortEvents<T extends InstanceEvent> (events: Array<T>): Array<T> {
+export function sortEvents<T extends InstanceEvent>(events: Array<T>): Array<T> {
 	return events.sort((a: InstanceEvent, b: InstanceEvent) => {
 		if (a.time > b.time) return 1
 		if (a.time < b.time) return -1
@@ -75,10 +66,10 @@ export function sortEvents<T extends InstanceEvent> (events: Array<T>): Array<T>
  * Clean up instances, join overlapping etc..
  * @param instances
  */
-export function cleanInstances (
+export function cleanInstances(
 	instances: Array<TimelineObjectInstance>,
 	allowMerge: boolean,
-	allowZeroGaps: boolean = false
+	allowZeroGaps = false
 ): Array<TimelineObjectInstance> {
 	// First, optimize for certain common situations:
 	if (instances.length === 0) return []
@@ -97,33 +88,33 @@ export function cleanInstances (
 			time: instance.start,
 			value: true,
 			data: { instance: instance },
-			references: instance.references
+			references: instance.references,
 		})
 		if (instance.end !== null) {
 			events.push({
 				time: instance.end,
 				value: false,
 				data: { instance: instance },
-				references: instance.references
+				references: instance.references,
 			})
 		}
 	}
 	return convertEventsToInstances(events, allowMerge, allowZeroGaps)
 }
-export type EventForInstance = InstanceEvent<{id?: string, instance: TimelineObjectInstance}>
-export function convertEventsToInstances (
+export type EventForInstance = InstanceEvent<{ id?: string; instance: TimelineObjectInstance }>
+export function convertEventsToInstances(
 	events: Array<EventForInstance>,
 	allowMerge: boolean,
-	allowZeroGaps: boolean = false
+	allowZeroGaps = false
 ): Array<TimelineObjectInstance> {
 	sortEvents(events)
 
-	const activeInstances: {[id: string]: InstanceEvent} = {}
+	const activeInstances: { [id: string]: InstanceEvent } = {}
 	let activeInstanceId: string | null = null
-	let previousActive: boolean = false
+	let previousActive = false
 
-	const negativeInstances: {[id: string]: InstanceEvent} = {}
-	let previousNegative: boolean = false
+	const negativeInstances: { [id: string]: InstanceEvent } = {}
+	let previousNegative = false
 	let negativeInstanceId: string | null = null
 
 	const returnInstances: Array<TimelineObjectInstance> = []
@@ -140,12 +131,7 @@ export function convertEventsToInstances (
 		}
 		if (Object.keys(activeInstances).length) {
 			// There is an active instance
-			if (
-				!allowMerge &&
-				!allowZeroGaps &&
-				lastInstance &&
-				previousNegative
-			) {
+			if (!allowMerge && !allowZeroGaps && lastInstance && previousNegative) {
 				// There is previously an inActive (negative) instance
 				lastInstance.start = event.time
 			} else {
@@ -168,10 +154,7 @@ export function convertEventsToInstances (
 			previousNegative = false
 		} else {
 			// No instances are active
-			if (
-				lastInstance &&
-				previousActive
-			) {
+			if (lastInstance && previousActive) {
 				lastInstance.end = event.time
 			} else {
 				if (Object.keys(negativeInstances).length) {
@@ -191,7 +174,7 @@ export function convertEventsToInstances (
 						returnInstances.push({
 							...o.returnInstance,
 							start: o.returnInstance.end || 0,
-							end: o.returnInstance.start
+							end: o.returnInstance.start,
 						})
 					}
 					previousNegative = true
@@ -202,7 +185,7 @@ export function convertEventsToInstances (
 	}
 	return returnInstances
 }
-function handleActiveInstances (
+function handleActiveInstances(
 	event: EventForInstance,
 	lastInstance: TimelineObjectInstance,
 	activeInstanceId: string | null,
@@ -210,7 +193,7 @@ function handleActiveInstances (
 	activeInstances: { [id: string]: InstanceEvent<any> },
 
 	allowMerge: boolean,
-	allowZeroGaps: boolean = false
+	allowZeroGaps = false
 ): {
 	activeInstanceId: string | null
 	returnInstance: TimelineObjectInstance | null
@@ -232,32 +215,23 @@ function handleActiveInstances (
 			end: null,
 			references: event.references,
 			originalEnd: event.data.instance.originalEnd,
-			originalStart: event.data.instance.originalStart
-
+			originalStart: event.data.instance.originalStart,
 		}
 		activeInstanceId = eventId
-	} else if (
-		!allowMerge &&
-		!event.value &&
-		lastInstance &&
-		activeInstanceId === eventId
-	) {
+	} else if (!allowMerge && !event.value && lastInstance && activeInstanceId === eventId) {
 		// The active instance stopped playing, but another is still playing
-		const latestInstance: {event: InstanceEvent, id: string} | null = _.reduce(
+		const latestInstance: { event: InstanceEvent; id: string } | null = _.reduce(
 			activeInstances,
 			(memo, instanceEvent, id) => {
-				if (
-					memo === null ||
-					memo.event.time < instanceEvent.time
-				) {
+				if (memo === null || memo.event.time < instanceEvent.time) {
 					return {
 						event: instanceEvent,
-						id: id
+						id: id,
 					}
 				}
 				return memo
 			},
-			null as ({event: InstanceEvent, id: string} | null)
+			null as { event: InstanceEvent; id: string } | null
 		)
 
 		if (latestInstance) {
@@ -269,25 +243,17 @@ function handleActiveInstances (
 				end: null,
 				references: latestInstance.event.references,
 				originalEnd: event.data.instance.originalEnd,
-				originalStart: event.data.instance.originalStart
+				originalStart: event.data.instance.originalStart,
 			}
 			activeInstanceId = latestInstance.id
 		}
-	} else if (
-		allowMerge &&
-		!allowZeroGaps &&
-		lastInstance &&
-		lastInstance.end === event.time
-	) {
+	} else if (allowMerge && !allowZeroGaps && lastInstance && lastInstance.end === event.time) {
 		// The previously running ended just now
 		// resume previous instance:
 		lastInstance.end = null
 		lastInstance.references = joinReferences(lastInstance.references, event.references)
 		addCapsToResuming(lastInstance, event.data.instance.caps)
-	} else if (
-		!lastInstance ||
-		lastInstance.end !== null
-	) {
+	} else if (!lastInstance || lastInstance.end !== null) {
 		// There is no previously running instance
 		// Start a new instance:
 		returnInstance = {
@@ -297,7 +263,7 @@ function handleActiveInstances (
 			references: event.references,
 			caps: event.data.instance.caps,
 			originalEnd: event.data.instance.originalEnd,
-			originalStart: event.data.instance.originalStart
+			originalStart: event.data.instance.originalStart,
 		}
 		activeInstanceId = eventId
 	} else {
@@ -327,13 +293,10 @@ function handleActiveInstances (
 
 	return {
 		activeInstanceId,
-		returnInstance
+		returnInstance,
 	}
 }
-export function invertInstances (
-	instances: Array<TimelineObjectInstance>
-): Array<TimelineObjectInstance> {
-
+export function invertInstances(instances: Array<TimelineObjectInstance>): Array<TimelineObjectInstance> {
 	if (instances.length) {
 		instances = cleanInstances(instances, true, true)
 		const invertedInstances: Array<TimelineObjectInstance> = []
@@ -343,7 +306,7 @@ export function invertInstances (
 				isFirst: true,
 				start: 0,
 				end: null,
-				references: joinReferences(instances[0].references, instances[0].id)
+				references: joinReferences(instances[0].references, instances[0].id),
 			})
 		}
 		for (let i = 0; i < instances.length; i++) {
@@ -358,19 +321,21 @@ export function invertInstances (
 					start: instance.end,
 					end: null,
 					references: joinReferences(instance.references, instance.id),
-					caps: instance.caps
+					caps: instance.caps,
 				})
 			}
 		}
 		return invertedInstances
 	} else {
-		return [{
-			id: getId(),
-			isFirst: true,
-			start: 0,
-			end: null,
-			references: []
-		}]
+		return [
+			{
+				id: getId(),
+				isFirst: true,
+				start: 0,
+				end: null,
+				references: [],
+			},
+		]
 	}
 }
 /**
@@ -379,20 +344,14 @@ export function invertInstances (
  * @param array1
  * @param operate
  */
-export function operateOnArrays (
+export function operateOnArrays(
 	array0: Array<TimelineObjectInstance> | ValueWithReference | null,
 	array1: Array<TimelineObjectInstance> | ValueWithReference | null,
 	operate: (a: ValueWithReference | null, b: ValueWithReference | null) => ValueWithReference | null
 ): Array<TimelineObjectInstance> | ValueWithReference | null {
-	if (
-		array0 === null ||
-		array1 === null
-	) return null
+	if (array0 === null || array1 === null) return null
 
-	if (
-		isReference(array0) &&
-		isReference(array1)
-	) {
+	if (isReference(array0) && isReference(array1)) {
 		return operate(array0, array1)
 	}
 
@@ -403,37 +362,33 @@ export function operateOnArrays (
 		_.isArray(array1) ? array1.length : Infinity
 	)
 	for (let i = 0; i < minLength; i++) {
-		const a: TimelineObjectInstance = (
-			_.isArray(array0) ?
-			array0[i] :
-			{ id: '', start: array0.value, end: array0.value, references: array0.references }
-		)
-		const b: TimelineObjectInstance = (
-			_.isArray(array1) ?
-			array1[i] :
-			{ id: '', start: array1.value, end: array1.value, references: array1.references }
-		)
+		const a: TimelineObjectInstance = _.isArray(array0)
+			? array0[i]
+			: { id: '', start: array0.value, end: array0.value, references: array0.references }
+		const b: TimelineObjectInstance = _.isArray(array1)
+			? array1[i]
+			: { id: '', start: array1.value, end: array1.value, references: array1.references }
 
-		const start: ValueWithReference | null = (
-			a.isFirst ?
-				{ value: a.start, references: a.references } :
-			b.isFirst ?
-				{ value: b.start, references: b.references } :
-			operate(
-				{ value: a.start, references: joinReferences(a.id, a.references) },
-				{ value: b.start, references: joinReferences(b.id, b.references) }
-			)
-		)
-		const end: ValueWithReference | null = (
-			a.isFirst ?
-				(a.end !== null ? { value: a.end, references: a.references } : null) :
-			b.isFirst ?
-				(b.end !== null ? { value: b.end, references: b.references } : null) :
-			operate(
-				a.end !== null ? { value: a.end, references: joinReferences(a.id, a.references) } : null,
-				b.end !== null ? { value: b.end, references: joinReferences(b.id, b.references) } : null
-			)
-		)
+		const start: ValueWithReference | null = a.isFirst
+			? { value: a.start, references: a.references }
+			: b.isFirst
+			? { value: b.start, references: b.references }
+			: operate(
+					{ value: a.start, references: joinReferences(a.id, a.references) },
+					{ value: b.start, references: joinReferences(b.id, b.references) }
+			  )
+		const end: ValueWithReference | null = a.isFirst
+			? a.end !== null
+				? { value: a.end, references: a.references }
+				: null
+			: b.isFirst
+			? b.end !== null
+				? { value: b.end, references: b.references }
+				: null
+			: operate(
+					a.end !== null ? { value: a.end, references: joinReferences(a.id, a.references) } : null,
+					b.end !== null ? { value: b.end, references: joinReferences(b.id, b.references) } : null
+			  )
 
 		if (start !== null) {
 			result.push({
@@ -441,7 +396,7 @@ export function operateOnArrays (
 				start: start.value,
 				end: end === null ? null : end.value,
 				references: joinReferences(start.references, end !== null ? end.references : []),
-				caps: joinCaps(a.caps, b.caps)
+				caps: joinCaps(a.caps, b.caps),
 			})
 		}
 	}
@@ -486,69 +441,48 @@ export function operateOnArrays (
 	}
 }
 */
-export function applyRepeatingInstances (
+export function applyRepeatingInstances(
 	instances: TimelineObjectInstance[],
 	repeatTime0: ValueWithReference | null,
 	options: ResolveOptions
 ): TimelineObjectInstance[] {
-	if (
-		repeatTime0 === null ||
-		!repeatTime0.value
-	) return instances
+	if (repeatTime0 === null || !repeatTime0.value) return instances
 
 	const repeatTime: Duration = repeatTime0.value
 
 	if (isReference(instances)) {
-		instances = [{
-			id: '',
-			start: instances.value,
-			end: null,
-			references: instances.references
-		}]
+		instances = [
+			{
+				id: '',
+				start: instances.value,
+				end: null,
+				references: instances.references,
+			},
+		]
 	}
 	const repeatedInstances: TimelineObjectInstance[] = []
 	for (let i = 0; i < instances.length; i++) {
 		const instance = instances[i]
 
-		let startTime = Math.max(
-			options.time - (options.time - instance.start) % repeatTime,
-			instance.start
-		)
-		let endTime: Time | null = (
-			instance.end === null ?
-			null :
-			instance.end + (startTime - instance.start)
-		)
+		let startTime = Math.max(options.time - ((options.time - instance.start) % repeatTime), instance.start)
+		let endTime: Time | null = instance.end === null ? null : instance.end + (startTime - instance.start)
 
-		const cap: Cap | null = (
-			instance.caps ?
-			_.find(instance.caps, (cap) => instance.references.indexOf(cap.id) !== -1)
-			: null
-		) || null
+		const cap: Cap | null =
+			(instance.caps ? _.find(instance.caps, (cap) => instance.references.indexOf(cap.id) !== -1) : null) || null
 
 		const limit = options.limitCount || 2
 		for (let i = 0; i < limit; i++) {
-			if (
-				options.limitTime &&
-				startTime >= options.limitTime
-			) break
+			if (options.limitTime && startTime >= options.limitTime) break
 
-			const cappedStartTime: Time = (
-				cap ?
-				Math.max(cap.start, startTime) :
-				startTime
-			)
-			const cappedEndTime: Time | null = (
-				cap && cap.end !== null && endTime !== null ?
-				Math.min(cap.end, endTime) :
-				endTime
-			)
+			const cappedStartTime: Time = cap ? Math.max(cap.start, startTime) : startTime
+			const cappedEndTime: Time | null =
+				cap && cap.end !== null && endTime !== null ? Math.min(cap.end, endTime) : endTime
 			if ((cappedEndTime || Infinity) > cappedStartTime) {
 				repeatedInstances.push({
 					id: getId(),
 					start: cappedStartTime,
 					end: cappedEndTime,
-					references: joinReferences(instance.id, instance.references, repeatTime0.references)
+					references: joinReferences(instance.id, instance.references, repeatTime0.references),
 				})
 			}
 
@@ -563,14 +497,11 @@ export function applyRepeatingInstances (
  * @param instances
  * @param parentInstances
  */
-export function capInstances (
+export function capInstances(
 	instances: TimelineObjectInstance[],
 	parentInstances: ValueWithReference | TimelineObjectInstance[] | null
 ): TimelineObjectInstance[] {
-	if (
-		isReference(parentInstances) ||
-		parentInstances === null
-	) return instances
+	if (isReference(parentInstances) || parentInstances === null) return instances
 
 	let returnInstances: TimelineObjectInstance[] = []
 	for (let i = 0; i < instances.length; i++) {
@@ -582,10 +513,7 @@ export function capInstances (
 			const parent = parentInstances[j]
 
 			// First, check if the instance crosses the parent at all:
-			if (
-				instanceOrg.start <= (parent.end || Infinity) &&
-				(instanceOrg.end || Infinity) >= parent.start
-			) {
+			if (instanceOrg.start <= (parent.end || Infinity) && (instanceOrg.end || Infinity) >= parent.start) {
 				const instance = _.clone(instanceOrg)
 
 				// Cap start
@@ -597,10 +525,7 @@ export function capInstances (
 					setInstanceEndTime(instance, parent.end)
 				}
 
-				if (
-					instance.start >= parent.start &&
-					(instance.end || Infinity) <= (parent.end || Infinity)
-				) {
+				if (instance.start >= parent.start && (instance.end || Infinity) <= (parent.end || Infinity)) {
 					// The instance is within the parent
 					instance.references = joinReferences(instance.references, parent.references)
 					returnInstances.push(instance)
@@ -612,13 +537,13 @@ export function capInstances (
 	returnInstances.sort((a, b) => a.start - b.start)
 
 	// Ensure unique ids:
-	const ids: {[id: string]: number} = {}
+	const ids: { [id: string]: number } = {}
 	for (let i = 0; i < returnInstances.length; i++) {
 		const instance = returnInstances[i]
 
 		// tslint:disable-next-line
 		if (ids[instance.id] !== undefined) {
-			instance.id = instance.id + (++ids[instance.id])
+			instance.id = instance.id + ++ids[instance.id]
 		} else {
 			ids[instance.id] = 0
 		}
@@ -629,7 +554,8 @@ export function capInstances (
 
 	return returnInstances
 }
-export function isReference (ref: any): ref is ValueWithReference {
+export function isReference(ref0: unknown): ref0 is ValueWithReference {
+	const ref = ref0 as ValueWithReference
 	return (
 		typeof ref === 'object' &&
 		!_.isArray(ref) &&
@@ -638,8 +564,8 @@ export function isReference (ref: any): ref is ValueWithReference {
 		ref !== null
 	)
 }
-export function joinReferences (...references: Array<Array<string> | string>): Array<string> {
-	const refMap: {[reference: string]: true} = {}
+export function joinReferences(...references: Array<Array<string> | string>): Array<string> {
+	const refMap: { [reference: string]: true } = {}
 	const refs: string[] = []
 
 	for (let i = 0; i < references.length; i++) {
@@ -665,29 +591,24 @@ export function joinReferences (...references: Array<Array<string> | string>): A
 		return 0
 	})
 }
-export function addCapsToResuming (instance: TimelineObjectInstance, ...caps: Array<Array<Cap> | undefined>): void {
-
+export function addCapsToResuming(instance: TimelineObjectInstance, ...caps: Array<Array<Cap> | undefined>): void {
 	const capsToAdd: Cap[] = []
 	const joinedCaps = joinCaps(...caps)
 	for (let i = 0; i < joinedCaps.length; i++) {
 		const cap = joinedCaps[i]
 
-		if (
-			cap.end &&
-			instance.end &&
-			cap.end > instance.end
-		) {
+		if (cap.end && instance.end && cap.end > instance.end) {
 			capsToAdd.push({
 				id: cap.id,
 				start: 0,
-				end: cap.end
+				end: cap.end,
 			})
 		}
 	}
 	instance.caps = joinCaps(instance.caps, capsToAdd)
 }
-export function joinCaps (...caps: Array<Array<Cap> | undefined>): Array<Cap> {
-	const capMap: {[capReference: string]: Cap} = {}
+export function joinCaps(...caps: Array<Array<Cap> | undefined>): Array<Cap> {
+	const capMap: { [capReference: string]: Cap } = {}
 	for (let i = 0; i < caps.length; i++) {
 		const caps2 = caps[i]
 		if (caps2) {
@@ -699,38 +620,33 @@ export function joinCaps (...caps: Array<Array<Cap> | undefined>): Array<Cap> {
 	}
 	return Object.values(capMap)
 }
-let idCount: number = 0
+let idCount = 0
 /**
  * Returns a unique id
  */
-export function getId (): string {
+export function getId(): string {
 	return '@' + (idCount++).toString(36)
 }
-export function resetId (): void {
+export function resetId(): void {
 	idCount = 0
 }
-export function setInstanceEndTime (instance: TimelineObjectInstance, endTime: number | null) {
-	instance.originalEnd = (
-		instance.originalEnd !== undefined ?
-		instance.originalEnd :
-		instance.end
-	)
+export function setInstanceEndTime(instance: TimelineObjectInstance, endTime: number | null): void {
+	instance.originalEnd = instance.originalEnd !== undefined ? instance.originalEnd : instance.end
 	instance.end = endTime
 }
-export function setInstanceStartTime (instance: TimelineObjectInstance, startTime: number) {
-	instance.originalStart = (
-		instance.originalStart !== undefined ?
-		instance.originalStart :
-		instance.start
-	)
+export function setInstanceStartTime(instance: TimelineObjectInstance, startTime: number): void {
+	instance.originalStart = instance.originalStart !== undefined ? instance.originalStart : instance.start
 	instance.start = startTime
 }
-export function applyParentInstances (parentInstances: TimelineObjectInstance[] | null, value: TimelineObjectInstance[] | null | ValueWithReference): TimelineObjectInstance[] | null | ValueWithReference {
+export function applyParentInstances(
+	parentInstances: TimelineObjectInstance[] | null,
+	value: TimelineObjectInstance[] | null | ValueWithReference
+): TimelineObjectInstance[] | null | ValueWithReference {
 	const operate = (a: ValueWithReference | null, b: ValueWithReference | null): ValueWithReference | null => {
 		if (a === null || b === null) return null
 		return {
 			value: a.value + b.value,
-			references: joinReferences(a.references, b.references)
+			references: joinReferences(a.references, b.references),
 		}
 	}
 	return operateOnArrays(parentInstances, value, operate)
@@ -738,13 +654,12 @@ export function applyParentInstances (parentInstances: TimelineObjectInstance[] 
 
 const cacheResultCache: {
 	[name: string]: {
-		ttl: number,
+		ttl: number
 		value: any
 	}
 } = {}
 /** Cache the result of function for a limited time */
-export function cacheResult<T> (name: string, fcn: () => T, limitTime: number = 1000) {
-
+export function cacheResult<T>(name: string, fcn: () => T, limitTime = 1000): T {
 	if (Math.random() < 0.01) {
 		setTimeout(cleanCacheResult, 100)
 	}
@@ -753,14 +668,14 @@ export function cacheResult<T> (name: string, fcn: () => T, limitTime: number = 
 		const value = fcn()
 		cacheResultCache[name] = {
 			ttl: Date.now() + limitTime,
-			value: value
+			value: value,
 		}
 		return value
 	} else {
 		return cache.value
 	}
 }
-function cleanCacheResult () {
+function cleanCacheResult() {
 	_.each(cacheResultCache, (cache, name) => {
 		if (cache.ttl < Date.now()) delete cacheResultCache[name]
 	})

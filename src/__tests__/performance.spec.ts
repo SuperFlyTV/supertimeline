@@ -1,8 +1,4 @@
-import {
-	TimelineObject,
-	Resolver,
-	ResolveOptions
-} from '../index'
+import { TimelineObject, Resolver, ResolveOptions } from '../index'
 import * as _ from 'underscore'
 import { generateTimeline } from './timelineGenerator'
 
@@ -12,19 +8,19 @@ const startTimer = () => {
 		stop: () => {
 			const end = process.hrtime(startTime)
 			return end[0] + end[1] / 1000000
-		}
+		},
 	}
 }
 
 const doPerformanceTest = (useCache: boolean) => {
 	let seed = -1
 
-	let executionTimeAvg: number = 0
-	let executionTimeCount: number = 0
+	let executionTimeAvg = 0
+	let executionTimeCount = 0
 
 	const cache = {}
 
-	const stats: {[key: string]: number} = {}
+	const stats: { [key: string]: number } = {}
 
 	for (let i = 0; i < 200; i++) {
 		seed++
@@ -34,7 +30,7 @@ const doPerformanceTest = (useCache: boolean) => {
 		const timer = startTimer()
 		const options: ResolveOptions = {
 			time: 0,
-			cache: useCache ? cache : undefined
+			cache: useCache ? cache : undefined,
 		}
 		// Resolve the timeline
 		const resolvedTimeline = Resolver.resolveTimeline(timeline, options)
@@ -58,15 +54,17 @@ const doPerformanceTest = (useCache: boolean) => {
 	}
 	executionTimeAvg /= executionTimeCount
 
-	const sortedTimes = _.sortBy(_.map(stats, (time, key) => {
-		return { time, key }
-	}), t => t.time)
+	const sortedTimes = _.sortBy(
+		_.map(stats, (time, key) => {
+			return { time, key }
+		}),
+		(t) => t.time
+	)
 
 	return {
 		sortedTimes,
-		executionTimeAvg
+		executionTimeAvg,
 	}
-
 }
 const round = (num: number) => {
 	return Math.floor(num * 10) / 10
@@ -77,26 +75,28 @@ describe('performance', () => {
 		expect(1 + 1).toEqual(2)
 	})
 	test('performance test, no cache', () => {
-
-		const {
-			sortedTimes,
-			executionTimeAvg
-		} = doPerformanceTest(false)
+		const { sortedTimes, executionTimeAvg } = doPerformanceTest(false)
 		console.log(
 			`No Cache: Average time of execution: ${round(executionTimeAvg)} ms\n` +
-			'Worst 5:\n' + sortedTimes.slice(-5).map(t => `${t.key}: ${round(t.time)} ms`).join('\n'))
+				'Worst 5:\n' +
+				sortedTimes
+					.slice(-5)
+					.map((t) => `${t.key}: ${round(t.time)} ms`)
+					.join('\n')
+		)
 
 		expect(executionTimeAvg).toBeLessThan(50)
 	})
 	test('performance test, with cache', () => {
-
-		const {
-			sortedTimes,
-			executionTimeAvg
-		} = doPerformanceTest(true)
+		const { sortedTimes, executionTimeAvg } = doPerformanceTest(true)
 		console.log(
 			`With cache: Average time of execution: ${round(executionTimeAvg)} ms\n` +
-			'Worst 5:\n' + sortedTimes.slice(-5).map(t => `${t.key}: ${round(t.time)} ms`).join('\n'))
+				'Worst 5:\n' +
+				sortedTimes
+					.slice(-5)
+					.map((t) => `${t.key}: ${round(t.time)} ms`)
+					.join('\n')
+		)
 
 		expect(executionTimeAvg).toBeLessThan(50)
 	})
