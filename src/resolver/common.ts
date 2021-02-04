@@ -1,5 +1,4 @@
 import { ResolvedTimeline, ResolvedTimelineObject } from '../api/api'
-import * as _ from 'underscore'
 
 export function addObjectToResolvedTimeline (resolvedTimeline: ResolvedTimeline, obj: ResolvedTimelineObject) {
 	resolvedTimeline.objects[obj.id] = obj

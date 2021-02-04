@@ -17,7 +17,7 @@ import {
 import * as _ from 'underscore'
 import { addObjectToResolvedTimeline } from './common'
 import { EventType } from '../api/enums'
-import { capInstances, setInstanceEndTime } from '../lib'
+import { capInstances, cleanInstances, setInstanceEndTime } from '../lib'
 
 export function getState (resolved: ResolvedTimeline | ResolvedStates, time: Time, eventLimit: number = 0): TimelineState {
 	const resolvedStates: ResolvedStates = (
@@ -89,7 +89,7 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time, c
 		}>
 	} = {}
 	const addPointInTime = (
-		time: Number,
+		time: number,
 		enable: boolean,
 		obj: ResolvedTimelineObject,
 		instance: TimelineObjectInstance
@@ -356,9 +356,7 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time, c
 						}
 						// Make the instance id unique:
 						for (let i = 0; i < newObj.resolved.instances.length; i++) {
-							const instance = newObj.resolved.instances[i]
-
-							if (instance.id === newInstance.id) {
+							if (newObj.resolved.instances[i].id === newInstance.id) {
 								newInstance.id = newInstance.id + '_$' + newObj.resolved.instances.length
 							}
 						}
@@ -504,6 +502,14 @@ export function resolveStates (resolved: ResolvedTimeline, onlyForTime?: Time, c
 					addKeyframeAtTime(resolvedStates.state, parent.layer + '', instance.start, keyframeInstance)
 				}
 			}
+		}
+
+		const obj = resolvedStates.objects[id]
+		if (obj.seamless && obj.resolved.instances.length > 1) {
+			obj.resolved.instances = cleanInstances(
+				obj.resolved.instances, true, false
+
+			)
 		}
 	}
 

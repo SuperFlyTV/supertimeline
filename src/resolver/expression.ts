@@ -6,18 +6,18 @@ export const OPERATORS = ['&', '|', '+', '-', '*', '/', '%', '!']
 
 const REGEXP_OPERATORS = _.map(OPERATORS, o => '\\' + o).join('')
 
-export function interpretExpression (expr: null): null
-export function interpretExpression (expr: number): number
-export function interpretExpression (expr: ExpressionObj): ExpressionObj
-export function interpretExpression (expr: string | Expression): Expression
-export function interpretExpression (expr: Expression): Expression {
-	if (isNumeric(expr)) {
-		return parseFloat(expr as string)
-	} else if (_.isString(expr)) {
+export function interpretExpression (expression: null): null
+export function interpretExpression (expression: number): number
+export function interpretExpression (expression: ExpressionObj): ExpressionObj
+export function interpretExpression (expression: string | Expression): Expression
+export function interpretExpression (expression: Expression): Expression {
+	if (isNumeric(expression)) {
+		return parseFloat(expression as string)
+	} else if (_.isString(expression)) {
 
-		const expr0 = expr
-		return cacheResult(expr0, () => {
-			const expr = expr0.replace(new RegExp('([' + REGEXP_OPERATORS + '\\(\\)])','g'),' $1 ') // Make sure there's a space between every operator & operand
+		const expressionString: string = expression
+		return cacheResult(expressionString, () => {
+			const expr = expressionString.replace(new RegExp('([' + REGEXP_OPERATORS + '\\(\\)])','g'),' $1 ') // Make sure there's a space between every operator & operand
 
 			const words: Array<string> = _.compact(expr.split(' '))
 
@@ -40,7 +40,7 @@ export function interpretExpression (expr: Expression): Expression {
 		}, 100 * 1000)
 
 	} else {
-		return expr
+		return expression
 	}
 }
 /** Try to simplify an expression, this includes:
