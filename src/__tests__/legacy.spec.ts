@@ -2878,12 +2878,14 @@ let tests: Tests = {
 	'bad objects on timeline': () => {
 		expect(() => {
 			const data = clone(getTestData('basic'))
+			// @ts-expect-error
 			delete data[0].id
 			const tl = Resolver.resolveTimeline(data, stdOpts)
 			Resolver.getState(tl, now)
 		}).toThrowError()
 		expect(() => {
 			const data = clone(getTestData('basic'))
+			// @ts-expect-error
 			delete data[0].enable
 			const tl = Resolver.resolveTimeline(data, stdOpts)
 			Resolver.getState(tl, now)
@@ -2897,12 +2899,14 @@ let tests: Tests = {
 		}).toThrowError()
 		expect(() => {
 			const data = clone(getTestData('basic'))
+			// @ts-expect-error
 			delete data[0].layer
 			const tl = Resolver.resolveTimeline(data, stdOpts)
 			Resolver.getState(tl, now)
 		}).toThrowError()
 		expect(() => {
 			const data = clone(getTestData('basic'))
+			// @ts-expect-error
 			delete data[0].content
 			const tl = Resolver.resolveTimeline(data, stdOpts)
 			Resolver.getState(tl, now)

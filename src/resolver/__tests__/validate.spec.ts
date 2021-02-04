@@ -53,6 +53,7 @@ describe('validate', () => {
 
 		expect(() => {
 			const o = _.clone(obj)
+			// @ts-expect-error
 			delete o.id
 			validateObject(o, true)
 		}).toThrowError()
@@ -66,6 +67,7 @@ describe('validate', () => {
 
 		expect(() => {
 			const o = _.clone(obj)
+			// @ts-expect-error
 			delete o.enable
 			validateObject(o, true)
 		}).toThrowError()
@@ -107,12 +109,14 @@ describe('validate', () => {
 
 		expect(() => {
 			const o = _.clone(obj)
+			// @ts-expect-error
 			delete o.layer
 			validateObject(o, true)
 		}).toThrowError()
 
 		expect(() => {
 			const o = _.clone(obj)
+			// @ts-expect-error
 			delete o.content
 			validateObject(o, true)
 		}).toThrowError()
@@ -170,6 +174,7 @@ describe('validate', () => {
 
 		expect(() => {
 			const o = _.clone(keyframe)
+			// @ts-expect-error
 			delete o.id
 			validateKeyframe(o, true)
 		}).toThrowError()
@@ -183,6 +188,7 @@ describe('validate', () => {
 
 		expect(() => {
 			const o = _.clone(keyframe)
+			// @ts-expect-error
 			delete o.enable
 			validateKeyframe(o, true)
 		}).toThrowError()
@@ -231,6 +237,7 @@ describe('validate', () => {
 
 		expect(() => {
 			const o = _.clone(keyframe)
+			// @ts-expect-error
 			delete o.content
 			validateKeyframe(o, true)
 		}).toThrowError()
