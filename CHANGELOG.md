@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [8.2.0](https://github.com/SuperFlyTV/supertimeline/compare/8.1.2...8.2.0) (2021-02-04)
+
+
+### Features
+
+* introduce new property: "seamless" ([8bd91e5](https://github.com/SuperFlyTV/supertimeline/commit/8bd91e56807071f37f964e9456ae0a55a78f4885))
+* use @sofie-automation/code-standard-preset ([6f22c15](https://github.com/SuperFlyTV/supertimeline/commit/6f22c159dd0b4cd38d8d54df42acedb4c3ad98fa))
+
+
+### Bug Fixes
+
+* bug fix for when having multiple enable-expressions ([5f4ebf6](https://github.com/SuperFlyTV/supertimeline/commit/5f4ebf65dbdbd430a7a5a187b75c32f0520a2500))
+* bug fix: merge instances better for when using .seamless property. ([a183f82](https://github.com/SuperFlyTV/supertimeline/commit/a183f828f01c5320715f143974e219b75e1d1a93))
+* refine tests ([35d6199](https://github.com/SuperFlyTV/supertimeline/commit/35d6199805045022d9857b50f4930b41ec26f7a4))
+
 ### [8.1.2](https://github.com/SuperFlyTV/supertimeline/compare/8.1.1...8.1.2) (2020-10-15)
 
 
