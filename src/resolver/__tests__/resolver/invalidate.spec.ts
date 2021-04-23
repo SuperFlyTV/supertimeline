@@ -262,6 +262,58 @@ describe('Resolver, using Cache', () => {
 		expect(resolved3.objects['graphic1'].resolved).toMatchObject({ instances: [{ start: 20, end: 25 }] })
 		expect(resolved3.objects['video1']).toBeFalsy()
 	})
+
+	test('Updating objects', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'obj0',
+				layer: '1',
+				enable: {
+					start: 0,
+				},
+				content: {
+					a: 1,
+				},
+			},
+		]
+		const timeline2: TimelineObject[] = [
+			{
+				id: 'obj0',
+				layer: '1',
+				enable: {
+					start: 0,
+				},
+				content: {
+					a: 2,
+				},
+			},
+		]
+		const cache = {}
+
+		{
+			const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, cache }))
+
+			expect(resolved.statistics.resolvingCount).toEqual(1)
+			expect(resolved.objects['obj0'].resolved).toMatchObject({ instances: [{ start: 0, end: null }] })
+
+			const state = Resolver.getState(resolved, 1000)
+			expect(state.layers['1']).toBeTruthy()
+			expect(state.layers['1'].content).toEqual({ a: 1 })
+		}
+
+		{
+			const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline2, { time: 0, cache }))
+
+			// TODO - should these be enabled?
+			// expect(resolved.statistics.resolvingCount).toEqual(1)
+			// expect(resolved.objects['obj0'].resolved).toMatchObject({ instances: [{ start: 0, end: null }] })
+
+			const state = Resolver.getState(resolved, 1000)
+			expect(state.layers['1']).toBeTruthy()
+			expect(state.layers['1'].content).toEqual({ a: 2 })
+		}
+	})
+
 	test('Reference group', () => {
 		const timeline: TimelineObject[] = [
 			{
