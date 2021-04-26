@@ -95,10 +95,10 @@
 		"/LICENSE"
 	],
 	"devDependencies": {
-		"@sofie-automation/code-standard-preset": "^0.2.2",
-		"@types/jest": "^26.0.20",
-		"@types/node": "^12.19.16",
-		"@types/underscore": "^1.10.24",
+		"@sofie-automation/code-standard-preset": "^0.2.4",
+		"@types/jest": "^26.0.22",
+		"@types/node": "^12.20.10",
+		"@types/underscore": "^1.11.2",
 		"codecov": "^3.8.1",
 		"fast-clone": "^1.5.13",
 		"gh-pages": "^3.1.0",
@@ -106,9 +106,9 @@
 		"npm-scripts-info": "^0.3.9",
 		"open-cli": "^6.0.1",
 		"rimraf": "^3.0.2",
-		"standard-version": "^9.1.0",
-		"ts-jest": "^26.5.0",
-		"typedoc": "^0.20.20",
+		"standard-version": "^9.2.0",
+		"ts-jest": "^26.5.5",
+		"typedoc": "^0.20.36",
 		"typescript": "~4.0"
 	},
 	"keywords": [
@@ -119,8 +119,8 @@
 		"source"
 	],
 	"dependencies": {
-		"tslib": "^2.1.0",
-		"underscore": "^1.12.0"
+		"tslib": "^2.2.0",
+		"underscore": "^1.13.1"
 	},
 	"standard-version": {
 		"message": "chore(release): %s [skip ci]",
