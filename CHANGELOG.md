@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [8.2.1](https://github.com/SuperFlyTV/supertimeline/compare/8.2.0...8.2.1) (2021-04-26)
+
+
+### Bug Fixes
+
+* bug when using the cache, and only changing the content of a timeline-object ([#78](https://github.com/SuperFlyTV/supertimeline/issues/78)) ([c5ac319](https://github.com/SuperFlyTV/supertimeline/commit/c5ac319d5d979f15b38c97a4c3e64aa33206e97c))
+
 ## [8.2.0](https://github.com/SuperFlyTV/supertimeline/compare/8.1.2...8.2.0) (2021-02-04)
 
 
