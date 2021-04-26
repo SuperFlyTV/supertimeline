@@ -41,7 +41,7 @@ import { validateTimeline } from './validate'
 import { interpretExpression, simplifyExpression } from './expression'
 import { getState, resolveStates } from './state'
 import { addObjectToResolvedTimeline } from './common'
-import { objectHash, initializeCache, getObjectReferences } from './cache'
+import { hashTimelineObject, initializeCache, getObjectReferences } from './cache'
 
 export class Resolver {
 	/**
@@ -153,7 +153,7 @@ export class Resolver {
 			}
 			_.each(resolvedTimeline.objects, (obj: ResolvedTimelineObject) => {
 				const oldHash = cache.objHashes[obj.id]
-				const newHash = objectHash(obj)
+				const newHash = hashTimelineObject(obj)
 				allNewObjects[obj.id] = true
 				if (!oldHash || oldHash !== newHash) {
 					cache.objHashes[obj.id] = newHash
@@ -161,6 +161,17 @@ export class Resolver {
 
 					const oldObj = cache.resolvedTimeline.objects[obj.id]
 					if (oldObj) addChangedObject(oldObj)
+				} else {
+					// No timing-affecting changes detected
+
+					// Even though the timeline-properties hasn't changed,
+					// the content (and other properties) might have:
+					const oldObj = cache.resolvedTimeline.objects[obj.id]
+
+					cache.resolvedTimeline.objects[obj.id] = {
+						...obj,
+						resolved: oldObj.resolved,
+					}
 				}
 			})
 			if (cache.hasOldData) {

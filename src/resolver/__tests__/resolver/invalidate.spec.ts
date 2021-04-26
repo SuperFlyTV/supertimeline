@@ -1,5 +1,8 @@
 import { TimelineObject, Resolver } from '../../..'
 
+function clone<T>(o: T): T {
+	return JSON.parse(JSON.stringify(o))
+}
 describe('Resolver, using Cache', () => {
 	beforeEach(() => {
 		// resetId()
@@ -262,6 +265,52 @@ describe('Resolver, using Cache', () => {
 		expect(resolved3.objects['graphic1'].resolved).toMatchObject({ instances: [{ start: 20, end: 25 }] })
 		expect(resolved3.objects['video1']).toBeFalsy()
 	})
+
+	test('Updating objects', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'obj0',
+				layer: '1',
+				enable: {
+					start: 0,
+				},
+				content: {
+					a: 1,
+				},
+			},
+		]
+
+		const cache = {}
+
+		{
+			const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, cache }))
+
+			expect(resolved.statistics.resolvingCount).toEqual(1)
+			expect(resolved.objects['obj0'].resolved).toMatchObject({ instances: [{ start: 0, end: null }] })
+
+			const state = Resolver.getState(resolved, 1000)
+			expect(state.layers['1']).toBeTruthy()
+			expect(state.layers['1'].content).toEqual({ a: 1 })
+		}
+
+		{
+			const timeline2: TimelineObject[] = clone(timeline)
+			timeline2[0].content.a = 2
+			// @ts-ignore illegal, but possible
+			timeline2[0].otherProperty = 42
+
+			const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline2, { time: 0, cache }))
+
+			expect(resolved.objects['obj0'].resolved).toMatchObject({ instances: [{ start: 0, end: null }] })
+
+			const state = Resolver.getState(resolved, 1000)
+			expect(state.layers['1']).toBeTruthy()
+			expect(state.layers['1'].content).toEqual({ a: 2 })
+			// @ts-ignore
+			expect(state.layers['1'].otherProperty).toEqual(42)
+		}
+	})
+
 	test('Reference group', () => {
 		const timeline: TimelineObject[] = [
 			{
