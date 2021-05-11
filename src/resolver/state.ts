@@ -265,14 +265,31 @@ export function resolveStates(resolved: ResolvedTimeline, onlyForTime?: Time, ca
 							// Update activeObjIds:
 							delete activeObjIds[prevObj.id]
 
-							// Add to nextEvents:
-							if (!onlyForTime || time > onlyForTime) {
-								resolvedStates.nextEvents.push({
-									type: EventType.END,
-									time: time,
-									objId: prevObj.id,
-								})
-								eventObjectTimes[instance.end + ''] = EventType.END
+							if (prevObj.instance.start === prevObj.instance.end) {
+								// Strip out this zero-length instance
+
+								const index = prevObj.resolved.instances.findIndex((i) => i.id === prevObj.instance.id)
+								if (index !== -1) {
+									prevObj.resolved.instances.splice(index, 1)
+								}
+
+								const index2 = resolvedStates.nextEvents.findIndex(
+									(e) => e.objId === prevObj.id && e.type === EventType.START && e.time === time
+								)
+								if (index2 !== -1) {
+									resolvedStates.nextEvents.splice(index2, 1)
+								}
+								console.log('ind', index2, index, prevObj.id)
+							} else {
+								// Add to nextEvents:
+								if (!onlyForTime || time > onlyForTime) {
+									resolvedStates.nextEvents.push({
+										type: EventType.END,
+										time: time,
+										objId: prevObj.id,
+									})
+									eventObjectTimes[instance.end + ''] = EventType.END
+								}
 							}
 						}
 					}

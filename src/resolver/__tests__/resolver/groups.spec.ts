@@ -366,7 +366,7 @@ describe('Resolver, groups', () => {
 
 		expect(resolved.objects['group1'].resolved).toMatchObject({
 			resolved: true,
-			instances: [{ start: 10, end: 50 }], // because group 1 started
+			instances: [{ start: 10, end: 50 }], // because group 0 started
 		})
 		expect(resolved.objects['child0'].resolved).toMatchObject({
 			resolved: true,
@@ -397,6 +397,7 @@ describe('Resolver, groups', () => {
 				{ objId: 'child0', time: 100, type: EventType.END },
 				{ objId: 'child1', time: 100, type: EventType.END },
 				{ objId: 'group0', time: 100, type: EventType.END },
+				// { objId: 'group0', time: 100, type: EventType.START },
 			],
 		})
 		expect(Resolver.getState(resolved, 56)).toMatchObject({
@@ -412,6 +413,7 @@ describe('Resolver, groups', () => {
 				{ objId: 'child0', time: 100, type: EventType.END },
 				{ objId: 'child1', time: 100, type: EventType.END },
 				{ objId: 'group0', time: 100, type: EventType.END },
+				// { objId: 'group0', time: 100, type: EventType.START }
 			],
 		})
 		const state1 = Resolver.getState(resolved, 120)
