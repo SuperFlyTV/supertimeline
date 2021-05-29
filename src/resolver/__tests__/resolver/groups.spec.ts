@@ -309,6 +309,118 @@ describe('Resolver, groups', () => {
 		expect(state1.layers['1']).toBeFalsy()
 		expect(state1.layers['2']).toBeFalsy()
 	})
+	test('solid groups - non alphabetical', () => {
+		// "solid groups" are groups with a layer
+		const timeline: TimelineObject[] = [
+			{
+				id: 'group1',
+				layer: 'g0',
+				enable: {
+					start: 10,
+					end: 100,
+				},
+				content: {},
+				isGroup: true,
+				children: [
+					{
+						id: 'child0',
+						layer: '1',
+						enable: {
+							start: '5', // 15
+						},
+						content: {},
+					},
+				],
+			},
+			{
+				id: 'group0',
+				layer: 'g0',
+				enable: {
+					start: 50,
+					end: 100,
+				},
+				content: {},
+				isGroup: true,
+				children: [
+					{
+						id: 'child1',
+						layer: '2',
+						enable: {
+							start: '5', // 55
+						},
+						content: {},
+					},
+				],
+			},
+		]
+
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0 }))
+
+		expect(resolved.statistics.resolvedObjectCount).toEqual(4)
+		expect(resolved.statistics.unresolvedCount).toEqual(0)
+
+		expect(resolved.objects['group1']).toBeTruthy()
+		expect(resolved.objects['child0']).toBeTruthy()
+		expect(resolved.objects['group0']).toBeTruthy()
+		expect(resolved.objects['child1']).toBeTruthy()
+
+		expect(resolved.objects['group1'].resolved).toMatchObject({
+			resolved: true,
+			instances: [{ start: 10, end: 50 }], // because group 0 started
+		})
+		expect(resolved.objects['child0'].resolved).toMatchObject({
+			resolved: true,
+			instances: [{ start: 15, end: 100 }],
+		})
+		expect(resolved.objects['group0'].resolved).toMatchObject({
+			resolved: true,
+			instances: [{ start: 50, end: 100 }],
+		})
+		expect(resolved.objects['child1'].resolved).toMatchObject({
+			resolved: true,
+			instances: [{ start: 55, end: 100 }],
+		})
+
+		expect(Resolver.getState(resolved, 16)).toMatchObject({
+			layers: {
+				g0: {
+					id: 'group1',
+				},
+				'1': {
+					id: 'child0',
+				},
+			},
+			nextEvents: [
+				{ objId: 'group1', time: 50, type: EventType.END },
+				{ objId: 'group0', time: 50, type: EventType.START },
+				{ objId: 'child1', time: 55, type: EventType.START },
+				{ objId: 'child0', time: 100, type: EventType.END },
+				{ objId: 'child1', time: 100, type: EventType.END },
+				{ objId: 'group0', time: 100, type: EventType.END },
+				// { objId: 'group0', time: 100, type: EventType.START },
+			],
+		})
+		expect(Resolver.getState(resolved, 56)).toMatchObject({
+			layers: {
+				g0: {
+					id: 'group0',
+				},
+				'2': {
+					id: 'child1',
+				},
+			},
+			nextEvents: [
+				{ objId: 'child0', time: 100, type: EventType.END },
+				{ objId: 'child1', time: 100, type: EventType.END },
+				{ objId: 'group0', time: 100, type: EventType.END },
+				// { objId: 'group0', time: 100, type: EventType.START }
+			],
+		})
+		const state1 = Resolver.getState(resolved, 120)
+		expect(state1.layers['g0']).toBeFalsy()
+		expect(state1.layers['1']).toBeFalsy()
+		expect(state1.layers['2']).toBeFalsy()
+	})
 	test('cap in repeating parent group', () => {
 		const timeline: TimelineObject[] = [
 			{
