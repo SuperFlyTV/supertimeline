@@ -796,4 +796,186 @@ describe('Resolver, groups', () => {
 			end: baseTime + 86400000,
 		})
 	})
+	test('Nested children not starting with parent', () => {
+		const baseTime = 3000 // Some real point in time
+		const timeline: TimelineObject[] = [
+			{
+				id: 'grp0',
+				enable: {
+					start: 1000,
+					end: '#grp1.start + 1000',
+				},
+				priority: -1,
+				layer: '',
+				content: {},
+				children: [
+					{
+						id: 'grp0_0',
+						content: {},
+						children: [],
+						enable: {
+							start: 0,
+						},
+						layer: 'layer0',
+						isGroup: true,
+						priority: 5,
+					},
+				],
+				isGroup: true,
+			},
+			{
+				id: 'grp1',
+				enable: {
+					start: 5000,
+				},
+				priority: 1,
+				layer: '',
+				content: {},
+				children: [
+					{
+						id: 'grp1_0',
+						content: {},
+						children: [
+							{
+								id: 'obj0',
+								enable: {
+									start: 0,
+								},
+								priority: 1,
+								layer: 'layer1',
+								content: {},
+							},
+						],
+						isGroup: true,
+						enable: {
+							start: 0,
+						},
+						layer: 'layer0',
+						priority: 2,
+					},
+				],
+				isGroup: true,
+			},
+		]
+
+		const resolved = Resolver.resolveAllStates(
+			Resolver.resolveTimeline(timeline, { time: baseTime + 1000, limitCount: 10, limitTime: 999 })
+		)
+		expect(resolved.statistics.resolvedObjectCount).toEqual(5)
+
+		// grp0_0 runs for a while
+		expect(resolved.objects['grp0_0']).toBeTruthy()
+		expect(resolved.objects['grp0_0'].resolved.instances).toHaveLength(1)
+		expect(resolved.objects['grp0_0'].resolved.instances[0]).toMatchObject({
+			start: 1000,
+			end: 6000,
+		})
+
+		// grp1_0 runs once grp0_0 has cleared
+		expect(resolved.objects['grp1_0']).toBeTruthy()
+		expect(resolved.objects['grp1_0'].resolved.instances).toHaveLength(1)
+		expect(resolved.objects['grp1_0'].resolved.instances[0]).toMatchObject({
+			start: 6000,
+			end: null,
+		})
+
+		// obj0 runs the same as grp1_0
+		expect(resolved.objects['obj0']).toBeTruthy()
+		expect(resolved.objects['obj0'].resolved.instances).toHaveLength(1)
+		expect(resolved.objects['obj0'].resolved.instances[0]).toMatchObject({
+			start: 6000,
+			end: null,
+		})
+	})
+	test('Nested children starting with parent', () => {
+		const baseTime = 3000 // Some real point in time
+		const timeline: TimelineObject[] = [
+			{
+				id: 'grp0',
+				enable: {
+					start: 1000,
+					end: '#grp1.start + 1000',
+				},
+				priority: -1,
+				layer: '',
+				content: {},
+				children: [
+					{
+						id: 'grp0_0',
+						content: {},
+						children: [],
+						enable: {
+							start: 0,
+						},
+						layer: 'layer0',
+						isGroup: true,
+						priority: 5,
+					},
+				],
+				isGroup: true,
+			},
+			{
+				id: 'grp1',
+				enable: {
+					start: 5000,
+				},
+				priority: 1,
+				layer: '',
+				content: {},
+				children: [
+					{
+						id: 'grp1_0',
+						content: {},
+						children: [
+							{
+								id: 'obj0',
+								enable: {
+									start: 1000,
+								},
+								priority: 1,
+								layer: 'layer1',
+								content: {},
+							},
+						],
+						isGroup: true,
+						enable: {
+							start: 0,
+						},
+						layer: 'layer0',
+						priority: 2,
+					},
+				],
+				isGroup: true,
+			},
+		]
+
+		const resolved = Resolver.resolveAllStates(
+			Resolver.resolveTimeline(timeline, { time: baseTime + 1000, limitCount: 10, limitTime: 999 })
+		)
+		expect(resolved.statistics.resolvedObjectCount).toEqual(5)
+
+		// grp0_0 runs for a while
+		expect(resolved.objects['grp0_0']).toBeTruthy()
+		expect(resolved.objects['grp0_0'].resolved.instances).toHaveLength(1)
+		expect(resolved.objects['grp0_0'].resolved.instances[0]).toMatchObject({
+			start: 1000,
+			end: 6000,
+		})
+
+		// grp1_0 runs once grp0_0 has cleared
+		expect(resolved.objects['grp1_0']).toBeTruthy()
+		expect(resolved.objects['grp1_0'].resolved.instances).toHaveLength(1)
+		expect(resolved.objects['grp1_0'].resolved.instances[0]).toMatchObject({
+			start: 6000,
+			end: null,
+		})
+
+		// obj0 runs the same as grp1_0
+		expect(resolved.objects['obj0']).toBeTruthy()
+		expect(resolved.objects['obj0'].resolved.instances).toHaveLength(1)
+		expect(resolved.objects['obj0'].resolved.instances[0]).toMatchObject({
+			start: 6000,
+			end: null,
+		})
+	})
 })
