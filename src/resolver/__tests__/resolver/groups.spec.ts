@@ -796,17 +796,9 @@ describe('Resolver, groups', () => {
 			end: baseTime + 86400000,
 		})
 	})
-	test('A regular object, two groups with children, one referencing the regular one', () => {
+	test('groups replacing each other, capping children', () => {
 		const baseTime = 1599753027264.5 // Some real point in time
 		const timeline: TimelineObject[] = [
-			{
-				id: 'obj0',
-				enable: {
-					start: baseTime,
-				},
-				layer: 'layer0',
-				content: {},
-			},
 			{
 				id: 'grp0',
 				enable: {
@@ -842,12 +834,10 @@ describe('Resolver, groups', () => {
 			Resolver.resolveTimeline(timeline, { time: baseTime + 1000, limitCount: 10, limitTime: 999 })
 		)
 
-		expect(resolved.statistics.resolvedObjectCount).toEqual(4)
-		expect(resolved.objects['obj0']).toBeTruthy()
+		expect(resolved.statistics.resolvedObjectCount).toEqual(3)
 		expect(resolved.objects['grp0']).toBeTruthy()
 		expect(resolved.objects['grp0_obj0']).toBeTruthy()
 		expect(resolved.objects['grp1']).toBeTruthy()
-		expect(resolved.objects['obj0'].resolved.instances).toHaveLength(1)
 		expect(resolved.objects['grp0'].resolved.instances).toHaveLength(1)
 		expect(resolved.objects['grp0_obj0'].resolved.instances).toHaveLength(1)
 		expect(resolved.objects['grp1'].resolved.instances).toHaveLength(1)
