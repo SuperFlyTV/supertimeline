@@ -796,7 +796,7 @@ describe('Resolver, groups', () => {
 			end: baseTime + 86400000,
 		})
 	})
-	test.only('A regular object, two groups with children, one referencing the regular one', () => {
+	test('A regular object, two groups with children, one referencing the regular one', () => {
 		const baseTime = 1599753027264.5 // Some real point in time
 		const timeline: TimelineObject[] = [
 			{
