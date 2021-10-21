@@ -75,18 +75,25 @@ export function resolveStates(resolved: ResolvedTimeline, onlyForTime?: Time, ca
 		[time: string]: Array<{
 			obj: ResolvedTimelineObject
 			instance: TimelineObjectInstance
-			/** if the instance turns on or off at this point */
-			enable: boolean
+
+			/** the same checkId is only going to be checked once per timestamp */
+			checkId: string
+
+			/** The order in which to resolve the instance */
+			order: number
 		}>
 	} = {}
 	const addPointInTime = (
 		time: number,
-		enable: boolean,
+		checkId: string,
+		order: number,
 		obj: ResolvedTimelineObject,
 		instance: TimelineObjectInstance
 	) => {
+		// Note on order: Ending events come before starting events
+
 		if (!pointsInTime[time + '']) pointsInTime[time + ''] = []
-		pointsInTime[time + ''].push({ obj, instance, enable: enable })
+		pointsInTime[time + ''].push({ obj, instance, checkId, order })
 	}
 
 	for (const obj of resolvedObjects) {
@@ -123,7 +130,11 @@ export function resolveStates(resolved: ResolvedTimeline, onlyForTime?: Time, ca
 							for (let i = 0; i < timeEvents.length; i++) {
 								const timeEvent = timeEvents[i]
 
-								addPointInTime(timeEvent.time, timeEvent.enable, obj, instance)
+								if (timeEvent.enable) {
+									addPointInTime(timeEvent.time, 'start', 1, obj, instance)
+								} else {
+									addPointInTime(timeEvent.time, 'end', 0, obj, instance)
+								}
 							}
 						}
 					}
@@ -134,11 +145,11 @@ export function resolveStates(resolved: ResolvedTimeline, onlyForTime?: Time, ca
 
 				for (const instance of keyframe.resolved.instances) {
 					// Keyframe start time
-					addPointInTime(instance.start, true, keyframe, instance)
+					addPointInTime(instance.start, 'start', 1, keyframe, instance)
 
 					// Keyframe end time
 					if (instance.end !== null) {
-						addPointInTime(instance.end, false, keyframe, instance)
+						addPointInTime(instance.end, 'end', 0, keyframe, instance)
 					}
 				}
 			}
@@ -182,9 +193,8 @@ export function resolveStates(resolved: ResolvedTimeline, onlyForTime?: Time, ca
 				if (a.obj.resolved.isKeyframe && !b.obj.resolved.isKeyframe) return -1
 				if (!a.obj.resolved.isKeyframe && b.obj.resolved.isKeyframe) return 1
 
-				// Ending events come before starting events:
-				if (a.enable && !b.enable) return 1
-				if (!a.enable && b.enable) return -1
+				if (a.order > b.order) return 1
+				if (a.order < b.order) return -1
 
 				// Deeper objects (children in groups) comes later, we want to check the parent groups first:
 				if ((a.obj.resolved.levelDeep || 0) > (b.obj.resolved.levelDeep || 0)) return 1
@@ -202,7 +212,8 @@ export function resolveStates(resolved: ResolvedTimeline, onlyForTime?: Time, ca
 			let toBeEnabled: boolean = (instance.start || 0) <= time && (instance.end || Infinity) > time
 
 			const layer: string = obj.layer + ''
-			const identifier = obj.id + '_' + instance.id + '_' + o.enable
+
+			const identifier = obj.id + '_' + instance.id + '_' + o.checkId
 			if (!checkedObjectsThisTime[identifier]) {
 				// Only check each object and event-type once for every point in time
 				checkedObjectsThisTime[identifier] = true
