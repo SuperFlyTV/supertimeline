@@ -430,32 +430,38 @@ export function resolveStates(resolved: ResolvedTimeline, onlyForTime?: Time, ca
 	// taking into account priorities, clashes etc.
 
 	for (const id of Object.keys(resolvedStates.objects)) {
-		const keyframe = resolvedStates.objects[id]
-		if (keyframe.resolved.isKeyframe && keyframe.resolved.parentId) {
-			const parent = resolvedStates.objects[keyframe.resolved.parentId]
-			if (parent) {
-				// Cap the keyframe instances within its parents instances:
-				keyframe.resolved.instances = capInstances(keyframe.resolved.instances, parent.resolved.instances)
+		// Cap keyframes inside their parents:
+		{
+			const keyframe = resolvedStates.objects[id]
+			if (keyframe.resolved.isKeyframe && keyframe.resolved.parentId) {
+				const parent = resolvedStates.objects[keyframe.resolved.parentId]
+				if (parent) {
+					// Cap the keyframe instances within its parents instances:
+					keyframe.resolved.instances = capInstances(keyframe.resolved.instances, parent.resolved.instances)
 
-				// Ensure sure the instances are in the state
-				for (let i = 0; i < keyframe.resolved.instances.length; i++) {
-					const instance = keyframe.resolved.instances[i]
+					// Ensure sure the instances are in the state
+					for (let i = 0; i < keyframe.resolved.instances.length; i++) {
+						const instance = keyframe.resolved.instances[i]
 
-					const keyframeInstance: ResolvedTimelineObjectInstanceKeyframe = {
-						...keyframe,
-						instance: instance,
-						isKeyframe: true,
-						keyframeEndTime: instance.end,
+						const keyframeInstance: ResolvedTimelineObjectInstanceKeyframe = {
+							...keyframe,
+							instance: instance,
+							isKeyframe: true,
+							keyframeEndTime: instance.end,
+						}
+						// Add keyframe to the tracking state:
+						addKeyframeAtTime(resolvedStates.state, parent.layer + '', instance.start, keyframeInstance)
 					}
-					// Add keyframe to the tracking state:
-					addKeyframeAtTime(resolvedStates.state, parent.layer + '', instance.start, keyframeInstance)
 				}
 			}
 		}
 
-		const obj = resolvedStates.objects[id]
-		if (obj.seamless && obj.resolved.instances.length > 1) {
-			obj.resolved.instances = cleanInstances(obj.resolved.instances, true, false)
+		// Fix (merge) instances of seamless objects:
+		{
+			const obj = resolvedStates.objects[id]
+			if (obj.seamless && obj.resolved.instances.length > 1) {
+				obj.resolved.instances = cleanInstances(obj.resolved.instances, true, false)
+			}
 		}
 	}
 
