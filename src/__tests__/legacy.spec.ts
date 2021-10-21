@@ -1441,11 +1441,11 @@ const testDataOld: {
 
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now,
+				value: now, // 1000
 			},
 			// duration: '#group3.start + 600 - #.start',
 			// @ts-ignore
-			legacyEndTime: '#group3.start + 600',
+			legacyEndTime: '#group3.start + 600', // 6600
 			LLayer: 2,
 			isGroup: true,
 			repeating: false,
@@ -1455,11 +1455,11 @@ const testDataOld: {
 						id: 'group2', // the id must be unique
 						trigger: {
 							type: TriggerType.TIME_ABSOLUTE,
-							value: 0,
+							value: 0, // 1000
 						},
 						// duration: '(#group0.end - #.start) - 2000',
 						// @ts-ignore
-						legacyEndTime: '#group0.end - 2000',
+						legacyEndTime: '#group0.end - 2000', // 4600
 						LLayer: 3,
 						isGroup: true,
 						repeating: false,
@@ -1469,7 +1469,7 @@ const testDataOld: {
 									id: 'child1', // the id must be unique
 									trigger: {
 										type: TriggerType.TIME_ABSOLUTE,
-										value: 0, // Relative to parent object
+										value: 0, // Relative to parent object, 1000
 									},
 									duration: 0,
 									LLayer: 4,
@@ -1486,7 +1486,7 @@ const testDataOld: {
 
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now + 5000,
+				value: now + 5000, // 6000
 			},
 			duration: 0,
 			LLayer: 1,
@@ -1498,9 +1498,9 @@ const testDataOld: {
 						id: 'group3', // the id must be unique
 						trigger: {
 							type: TriggerType.TIME_ABSOLUTE,
-							value: 0,
+							value: 0, // 6000
 						},
-						duration: 3600,
+						duration: 3600, // end: 9600
 						LLayer: 7,
 						isGroup: true,
 						repeating: false,
@@ -1510,7 +1510,7 @@ const testDataOld: {
 									id: 'child0', // the id must be unique
 									trigger: {
 										type: TriggerType.TIME_ABSOLUTE,
-										value: 0,
+										value: 0, // 6000
 									},
 									duration: 0,
 									LLayer: 8,

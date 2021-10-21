@@ -936,13 +936,12 @@ describe('Resolver, groups', () => {
 		])
 	})
 	test('Nested children not starting with parent', () => {
-		const baseTime = 3000 // Some real point in time
 		const timeline: TimelineObject[] = [
 			{
 				id: 'grp0',
 				enable: {
 					start: 1000,
-					end: '#grp1.start + 1000',
+					end: '#grp1.start + 1000', // 6000
 				},
 				priority: -1,
 				layer: '',
@@ -953,7 +952,7 @@ describe('Resolver, groups', () => {
 						content: {},
 						children: [],
 						enable: {
-							start: 0,
+							start: 0, // 1000, ends at 6000
 						},
 						layer: 'layer0',
 						isGroup: true,
@@ -978,7 +977,7 @@ describe('Resolver, groups', () => {
 							{
 								id: 'obj0',
 								enable: {
-									start: 0,
+									start: 0, // 5000
 								},
 								priority: 1,
 								layer: 'layer1',
@@ -987,7 +986,7 @@ describe('Resolver, groups', () => {
 						],
 						isGroup: true,
 						enable: {
-							start: 0,
+							start: 0, // 5000
 						},
 						layer: 'layer0',
 						priority: 2,
@@ -997,9 +996,8 @@ describe('Resolver, groups', () => {
 			},
 		]
 
-		const resolved = Resolver.resolveAllStates(
-			Resolver.resolveTimeline(timeline, { time: baseTime + 1000, limitCount: 10, limitTime: 999 })
-		)
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0 }))
+
 		expect(resolved.statistics.resolvedObjectCount).toEqual(5)
 
 		// grp0_0 runs for a while
