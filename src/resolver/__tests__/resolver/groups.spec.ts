@@ -797,7 +797,7 @@ describe('Resolver, groups', () => {
 		})
 	})
 	test('groups replacing each other, capping children', () => {
-		const baseTime = 1599753027264.5 // Some real point in time
+		const baseTime = 1000 // Some real point in time
 		const timeline: TimelineObject[] = [
 			{
 				id: 'grp0',
@@ -848,5 +848,91 @@ describe('Resolver, groups', () => {
 		expect(resolved.objects['grp0_obj0'].resolved.instances[0].end).toBe(baseTime + 120)
 		// expect grp1 to be infinite
 		expect(resolved.objects['grp1'].resolved.instances[0].end).toBe(null)
+	})
+	test('groups replacing each other, capping children in lower levels', () => {
+		// ensure that capping of children works multiple levels down, and with repeating parents
+
+		const timeline: TimelineObject[] = [
+			{
+				id: 'grp0',
+				enable: {
+					start: 1000,
+					duration: 400,
+					repeating: 500,
+				},
+				layer: 'layer0',
+				content: {},
+				isGroup: true,
+				children: [
+					{
+						id: 'grp0_grp0',
+						enable: {
+							start: 10, // 1010, 1510
+						},
+						layer: 'layer00',
+						content: {},
+						isGroup: true,
+						children: [
+							{
+								id: 'grp0_grp0_obj0',
+								content: {},
+								enable: {
+									start: 10, // 1020, 1520
+								},
+								layer: 'layer000',
+							},
+						],
+					},
+					{
+						id: 'grp0_grp1',
+						enable: {
+							start: 350, // 1350, 1850
+						},
+						layer: 'layer00',
+						content: {},
+						isGroup: true,
+						children: [],
+					},
+				],
+			},
+			{
+				id: 'grp1',
+				enable: {
+					start: 1700,
+				},
+				layer: 'layer0',
+				content: {},
+				isGroup: true,
+				children: [],
+				// Todo: needs discussion: what should happen when a repeating object is followed by a non-repeating object?
+				// I've set the priority to 1 to force the behavior to what the test needs for now / Johan 2021-10-21
+				priority: 1,
+			},
+		]
+
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitCount: 10 }))
+
+		// The outer group should be capped by the next one:
+		expect(resolved.objects['grp0'].resolved.instances).toMatchObject([
+			{ start: 1000, end: 1400 },
+			{ start: 1500, end: 1700 },
+		])
+		expect(resolved.objects['grp1'].resolved.instances).toMatchObject([{ start: 1700, end: null }])
+
+		// The inner group should be capped by the next one (and capped by the outer group at 1700):
+		expect(resolved.objects['grp0_grp0'].resolved.instances).toMatchObject([
+			{ start: 1010, end: 1350 },
+			{ start: 1510, end: 1700 },
+		])
+		expect(resolved.objects['grp0_grp1'].resolved.instances).toMatchObject([
+			{ start: 1350, end: 1400 },
+			// { start: 1850, end: 1700 },
+		])
+
+		// The inner object should be capped by its parents
+		expect(resolved.objects['grp0_grp0_obj0'].resolved.instances).toMatchObject([
+			{ start: 1020, end: 1350 },
+			{ start: 1520, end: 1700 },
+		])
 	})
 })
