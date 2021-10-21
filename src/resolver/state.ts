@@ -20,7 +20,7 @@ import { EventType } from '../api/enums'
 import { capInstances, cleanInstances, setInstanceEndTime } from '../lib'
 
 export function getState(resolved: ResolvedTimeline | ResolvedStates, time: Time, eventLimit = 0): TimelineState {
-	const resolvedStates: ResolvedStates = isResolvedStates(resolved) ? resolved : resolveStates(resolved, time)
+	const resolvedStates: ResolvedStates = isResolvedStates(resolved) ? resolved : resolveStates(resolved)
 
 	const state: TimelineState = {
 		time: time,
@@ -39,7 +39,7 @@ export function getState(resolved: ResolvedTimeline | ResolvedStates, time: Time
 
 	return state
 }
-export function resolveStates(resolved: ResolvedTimeline, onlyForTime?: Time, cache?: ResolverCache): ResolvedStates {
+export function resolveStates(resolved: ResolvedTimeline, cache?: ResolverCache): ResolvedStates {
 	const resolvedStates: ResolvedStates = {
 		options: resolved.options,
 		statistics: resolved.statistics,
@@ -53,7 +53,7 @@ export function resolveStates(resolved: ResolvedTimeline, onlyForTime?: Time, ca
 		nextEvents: [],
 	}
 
-	if (cache && !onlyForTime && resolved.statistics.resolvingCount === 0 && cache.resolvedStates) {
+	if (cache && resolved.statistics.resolvingCount === 0 && cache.resolvedStates) {
 		// Nothing has changed since last time, just return the states right away:
 		return cache.resolvedStates
 	}
@@ -103,38 +103,31 @@ export function resolveStates(resolved: ResolvedTimeline, onlyForTime?: Time, ca
 				if (obj.layer) {
 					// if layer is empty, don't put in state
 					for (const instance of obj.resolved.instances) {
-						let useInstance = true
-						if (onlyForTime) {
-							useInstance =
-								(instance.start || 0) <= onlyForTime && (instance.end || Infinity) > onlyForTime
-						}
-						if (useInstance) {
-							const timeEvents: Array<TimeEvent> = []
+						const timeEvents: Array<TimeEvent> = []
 
-							timeEvents.push({ time: instance.start, enable: true })
-							if (instance.end) timeEvents.push({ time: instance.end, enable: false })
+						timeEvents.push({ time: instance.start, enable: true })
+						if (instance.end) timeEvents.push({ time: instance.end, enable: false })
 
-							// Also include times from parents, as they could affect the state of this instance:
-							for (let i = 0; i < parentTimes.length; i++) {
-								const parentTime = parentTimes[i]
+						// Also include times from parents, as they could affect the state of this instance:
+						for (let i = 0; i < parentTimes.length; i++) {
+							const parentTime = parentTimes[i]
 
-								if (
-									parentTime &&
-									parentTime.time > (instance.start || 0) &&
-									parentTime.time < (instance.end || Infinity)
-								) {
-									timeEvents.push(parentTime)
-								}
+							if (
+								parentTime &&
+								parentTime.time > (instance.start || 0) &&
+								parentTime.time < (instance.end || Infinity)
+							) {
+								timeEvents.push(parentTime)
 							}
-							// Save a reference to this instance on all points in time that could affect it:
-							for (let i = 0; i < timeEvents.length; i++) {
-								const timeEvent = timeEvents[i]
+						}
+						// Save a reference to this instance on all points in time that could affect it:
+						for (let i = 0; i < timeEvents.length; i++) {
+							const timeEvent = timeEvents[i]
 
-								if (timeEvent.enable) {
-									addPointInTime(timeEvent.time, 'start', 1, obj, instance)
-								} else {
-									addPointInTime(timeEvent.time, 'end', 0, obj, instance)
-								}
+							if (timeEvent.enable) {
+								addPointInTime(timeEvent.time, 'start', 1, obj, instance)
+							} else {
+								addPointInTime(timeEvent.time, 'end', 0, obj, instance)
 							}
 						}
 					}
@@ -277,14 +270,13 @@ export function resolveStates(resolved: ResolvedTimeline, onlyForTime?: Time, ca
 							delete activeObjIds[prevObj.id]
 
 							// Add to nextEvents:
-							if (!onlyForTime || time > onlyForTime) {
-								resolvedStates.nextEvents.push({
-									type: EventType.END,
-									time: time,
-									objId: prevObj.id,
-								})
-								eventObjectTimes[instance.end + ''] = EventType.END
-							}
+
+							resolvedStates.nextEvents.push({
+								type: EventType.END,
+								time: time,
+								objId: prevObj.id,
+							})
+							eventObjectTimes[instance.end + ''] = EventType.END
 						}
 					}
 					let changed = false
@@ -345,14 +337,13 @@ export function resolveStates(resolved: ResolvedTimeline, onlyForTime?: Time, ca
 						setStateAtTime(resolvedStates.state, layer, time, newObjInstance)
 
 						// Add to nextEvents:
-						if (newInstance.start > (onlyForTime || 0)) {
-							resolvedStates.nextEvents.push({
-								type: EventType.START,
-								time: newInstance.start,
-								objId: obj.id,
-							})
-							eventObjectTimes[newInstance.start + ''] = EventType.START
-						}
+						resolvedStates.nextEvents.push({
+							type: EventType.START,
+							time: newInstance.start,
+							objId: obj.id,
+						})
+						eventObjectTimes[newInstance.start + ''] = EventType.START
+
 						changed = true
 					} else if (removeOldObj) {
 						// Remove from current state:
@@ -537,9 +528,6 @@ export function resolveStates(resolved: ResolvedTimeline, onlyForTime?: Time, ca
 		}
 	}
 
-	if (onlyForTime) {
-		resolvedStates.nextEvents = _.filter(resolvedStates.nextEvents, (e) => e.time > onlyForTime)
-	}
 	resolvedStates.nextEvents.sort((a, b) => {
 		if (a.time > b.time) return 1
 		if (a.time < b.time) return -1
@@ -553,7 +541,7 @@ export function resolveStates(resolved: ResolvedTimeline, onlyForTime?: Time, ca
 		return 0
 	})
 
-	if (cache && !onlyForTime) {
+	if (cache) {
 		cache.resolvedStates = resolvedStates
 	}
 
