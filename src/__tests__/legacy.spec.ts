@@ -793,9 +793,9 @@ const testDataOld: {
 
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now - 10, // 10 seconds ago // 990
+				value: now - 10, // 10 seconds ago // 990, 1015, 1040
 			},
-			duration: 63, // 63 seconds
+			duration: 63, // 63 seconds, but is overriden by repeatingTime, so 1015, 1040, 1065
 			LLayer: '0',
 			isGroup: true,
 			repeating: true,
@@ -808,9 +808,9 @@ const testDataOld: {
 
 						trigger: {
 							type: TriggerType.TIME_ABSOLUTE,
-							value: 0, // Relative to parent object // 990
+							value: 0, // Relative to parent object // 990, 1015, 1040
 						},
-						duration: 15,
+						duration: 15, // ends: 1005, 1030, 1055
 						LLayer: 1,
 						content: {},
 					},
@@ -819,9 +819,9 @@ const testDataOld: {
 
 						trigger: {
 							type: TriggerType.TIME_RELATIVE,
-							value: '#child0.end', // 1005
+							value: '#child0.end', // 1005, 1030, 1055
 						},
-						duration: 10, // 1015
+						duration: 10, // ends: 1015, 1040, 1065
 						LLayer: 1,
 						content: {},
 					},
@@ -833,9 +833,9 @@ const testDataOld: {
 
 			trigger: {
 				type: TriggerType.TIME_RELATIVE,
-				value: '#group0.end',
+				value: '#group0.end', // 1015, 1040, 1065
 			},
-			duration: 6,
+			duration: 6, // ends: 1021, 1046, 1071
 			LLayer: 2,
 			content: {},
 		},

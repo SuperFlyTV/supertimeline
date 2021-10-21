@@ -507,7 +507,7 @@ export function capInstances(
 	for (let i = 0; i < instances.length; i++) {
 		const instanceOrg: TimelineObjectInstance = instances[i]
 
-		// let instanceParents: TimelineObjectInstance[] | null = null
+		const addedInstanceTimes = new Set<number>()
 
 		for (let j = 0; j < parentInstances.length; j++) {
 			const parent = parentInstances[j]
@@ -521,14 +521,22 @@ export function capInstances(
 					setInstanceStartTime(instance, parent.start)
 				}
 				// Cap end
-				if (parent.end !== null && (instance.end || Infinity) > (parent.end || Infinity)) {
+				if ((instance.end || Infinity) > (parent.end || Infinity)) {
 					setInstanceEndTime(instance, parent.end)
 				}
 
 				if (instance.start >= parent.start && (instance.end || Infinity) <= (parent.end || Infinity)) {
 					// The instance is within the parent
-					instance.references = joinReferences(instance.references, parent.references)
-					returnInstances.push(instance)
+
+					if (instance.start === instance.end && addedInstanceTimes.has(instance.start)) {
+						// Don't add zero-length instances if there are already is instances covering that time
+					} else {
+						instance.references = joinReferences(instance.references, parent.references)
+						returnInstances.push(instance)
+
+						addedInstanceTimes.add(instance.start)
+						if (instance.end) addedInstanceTimes.add(instance.end)
+					}
 				}
 			}
 		}
