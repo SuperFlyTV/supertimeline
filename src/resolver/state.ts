@@ -259,7 +259,7 @@ export function resolveStates(resolved: ResolvedTimeline, onlyForTime?: Time, ca
 					// Now, the one on top has the throne
 					// Update current state:
 					const currentOnTopOfLayer = aspiringInstances[layer][0]
-					const prevObj = currentState[layer]
+					const prevObj: ResolvedTimelineObjectInstance | undefined = currentState[layer]
 
 					const replaceOldObj: boolean =
 						currentOnTopOfLayer &&
@@ -287,6 +287,7 @@ export function resolveStates(resolved: ResolvedTimeline, onlyForTime?: Time, ca
 							}
 						}
 					}
+					let changed = false
 					if (replaceOldObj) {
 						// Set the new object to State
 
@@ -352,12 +353,36 @@ export function resolveStates(resolved: ResolvedTimeline, onlyForTime?: Time, ca
 							})
 							eventObjectTimes[newInstance.start + ''] = EventType.START
 						}
+						changed = true
 					} else if (removeOldObj) {
 						// Remove from current state:
 						delete currentState[layer]
 
 						// Update the tracking state as well:
 						setStateAtTime(resolvedStates.state, layer, time, null)
+
+						changed = true
+					}
+
+					if (changed) {
+						// Also make sure any children are updated:
+						// Go through the object on hand, but also the one in the currentState
+						const parentsToCheck: ResolvedTimelineObject[] = []
+						if (obj.isGroup) parentsToCheck.push(obj)
+						if (currentState[layer]?.isGroup) parentsToCheck.push(currentState[layer])
+						for (const parent of parentsToCheck) {
+							if (parent.children?.length) {
+								for (const child0 of parent.children) {
+									const child = resolved.objects[child0.id]
+									for (const instance of child.resolved.instances) {
+										if (instance.start <= time && (instance.end || Infinity) > time) {
+											// Add the child instance, because that might be affected:
+											addPointInTime(time, 'child', 99, child, instance)
+										}
+									}
+								}
+							}
+						}
 					}
 				} else {
 					// Is a keyframe
