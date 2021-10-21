@@ -260,7 +260,7 @@ describe('Resolver, groups', () => {
 		})
 		expect(resolved.objects['child0'].resolved).toMatchObject({
 			resolved: true,
-			instances: [{ start: 15, end: 100 }],
+			instances: [{ start: 15, end: 50 }], // capped by parent
 		})
 		expect(resolved.objects['group1'].resolved).toMatchObject({
 			resolved: true,
