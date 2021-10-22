@@ -90,21 +90,23 @@ export function describeVariants(
 			const testWithCaches = makeTest((test, name, fn, timeout) => {
 				test(
 					`Test cache: ${name}`,
-					(...args) => {
+					(...args: any[]) => {
 						if (!fn) return
+
+						const cb = args[0] // Note: we can't use the cb parameter directly, because of some jest magic
 
 						// Reset data
 						c.cache = {}
 						reverse = false
 						// First run the test with an empty cache
-						const resolved0 = fn(...args)
+						const resolved0 = fn(cb)
 
 						// Then run the test again with the previous cache
-						const resolved1 = fn(...args)
+						const resolved1 = fn(cb)
 
 						// Then reverse the timeline and run with the previous cache
 						reverse = true
-						const resolved2 = fn(...args)
+						const resolved2 = fn(cb)
 
 						expect(resolved0).toEqual(resolved1)
 						expect(resolved1).toEqual(resolved2)

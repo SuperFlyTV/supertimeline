@@ -49,28 +49,6 @@
 		"validate:dev-dependencies": "yarn audit --groups devDependencies",
 		"license-validate": "yarn sofie-licensecheck --allowPackages=caniuse-lite@1.0.30001216"
 	},
-	"scripts-info": {
-		"info": "Display information about the scripts",
-		"build": "(Clean and re)build the library",
-		"build:main": "Builds main build command without full clean.",
-		"lint": "Lint all typescript source files",
-		"unit": "Build the library and run unit tests",
-		"test": "Lint, build, and test the library",
-		"watch": "Watch source files, rebuild library on changes, rerun relevant tests",
-		"cov": "Run tests, generate the HTML coverage report, and open it in a browser",
-		"cov-open": "Open current test coverage",
-		"send-coverage": "send coverage to codecov",
-		"docs": "Generate HTML API documentation and open it in a browser",
-		"docs:test": "Running the docs generation for testing.",
-		"docs:html": "Generate HTML documentation",
-		"docs:json": "Generate API documentation in typedoc JSON format",
-		"docs:publish": "Generate HTML API documentation and push it to GitHub Pages",
-		"changelog": "Bump package.json version, update CHANGELOG.md, tag a release",
-		"release": "Clean, build, test, publish docs, and prepare release (a one-step publish process). Updates versions and creates git commits.",
-		"reset": "Delete all untracked files and reset the repo to the last commit",
-		"validate:dependencies": "Scan dependencies for vulnerabilities and check licenses",
-		"license-validate": "Validate licenses for dependencies."
-	},
 	"engines": {
 		"node": ">=10.10"
 	},
@@ -96,20 +74,19 @@
 	],
 	"devDependencies": {
 		"@sofie-automation/code-standard-preset": "^0.4.2",
-		"@types/jest": "^26.0.22",
+		"@types/jest": "^27.0.2",
 		"@types/node": "^12.20.10",
-		"@types/underscore": "^1.11.2",
-		"codecov": "^3.8.1",
+		"@types/underscore": "^1.11.3",
+		"codecov": "^3.8.3",
 		"fast-clone": "^1.5.13",
-		"gh-pages": "^3.1.0",
-		"jest": "^26.6.3",
-		"npm-scripts-info": "^0.3.9",
+		"gh-pages": "^3.2.3",
+		"jest": "^27.3.1",
 		"open-cli": "^6.0.1",
 		"rimraf": "^3.0.2",
-		"standard-version": "^9.2.0",
-		"ts-jest": "^26.5.5",
-		"typedoc": "^0.20.36",
-		"typescript": "~4.0"
+		"standard-version": "^9.3.2",
+		"ts-jest": "^27.0.7",
+		"typedoc": "^0.22.6",
+		"typescript": "^4.2.0"
 	},
 	"keywords": [
 		"broadcast",
