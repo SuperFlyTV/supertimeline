@@ -496,7 +496,7 @@ describe('Resolver, basic', () => {
 		expect(resolved.objects['obj1'].resolved.instances).toMatchObject([
 			{ start: 22, end: 30 },
 			{ start: 35, end: 40 },
-			{ start: 45, end: null },
+			{ start: 45, end: null }, // because the repeating obj0 is limited by limitCount: 5
 		])
 		expect(resolved.objects['obj0'].resolved.instances).toMatchObject([
 			{ start: 0, end: 5 },
