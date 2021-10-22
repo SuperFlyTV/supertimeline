@@ -1,7 +1,7 @@
 /**
  * This file is only for legacy reasons and only used in our internal testing
  */
-import { TriggerType, EventType } from './legacyEnums.spec'
+import { TriggerType, EventType } from './legacyEnums'
 export interface TimelineTrigger {
 	type: TriggerType
 	value: number | string
@@ -154,6 +154,3 @@ export interface ResolveOptions {
 	 */
 	limit?: number
 }
-test('tmp', () => {
-	expect(1).toEqual(1)
-})

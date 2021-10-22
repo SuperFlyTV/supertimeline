@@ -403,44 +403,6 @@ export function operateOnArrays(
 
 	return cleanInstances(result, false)
 }
-/**
- * Like operateOnArrays, but will multiply the number of elements in array0, with the number of elements in array1
- * @param array0
- * @param array1
- * @param operate
- */
-/*export function operateOnArraysMulti (
-	array0: Array<TimelineObjectInstance> | Reference | null,
-	array1: Array<TimelineObjectInstance> | Reference | null,
-	operate: (a: Reference | null, b: Reference | null) => Reference | null
-) {
-	if (array0 === null) return null
-
-	if (_.isArray(array1)) {
-		let resultArray: Array<TimelineObjectInstance> = []
-		_.each(array1, (array1Val) => {
-			const result = operateOnArrays(array0, { value: array1Val.start, references: array1Val.references } , operate)
-			if (_.isArray(result)) {
-				resultArray = resultArray.concat(result)
-			} else if (result !== null) {
-				resultArray.push({
-					id: getId(),
-					start: result.value,
-					end: (
-						array1Val.end !== null ?
-						result.value + (array1Val.end - array1Val.start) :
-						null
-					),
-					references: result.references
-				})
-			}
-		})
-		return resultArray
-	} else {
-		return operateOnArrays(array0, array1, operate)
-	}
-}
-*/
 export function applyRepeatingInstances(
 	instances: TimelineObjectInstance[],
 	repeatTime0: ValueWithReference | null,

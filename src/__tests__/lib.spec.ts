@@ -424,28 +424,6 @@ describe('lib', () => {
 			{ start: 101, end: 115, references: ['%c', '%z', 'c', 'z'] },
 		])
 	})
-	/*test('operateOnArraysMulti', () => {
-
-		expect(operateOnArraysMulti(
-			[
-				{ id: '%a', start: 1, end: 3, references: ['a'] },
-				{ id: '%b', start: 5, end: 7, references: ['b'] }
-			],
-			[
-				{ id: '%x', start: 10, end: 20, references: ['x'] },
-				{ id: '%y', start: 50, end: 60, references: ['y'] },
-				{ id: '%z', start: 60, end: 70, references: ['z'] }
-			],
-			plus
-		)).toMatchObject([
-			{ start: 11, end: 13, references: ['%a', '%x', 'a', 'x'] },
-			{ start: 15, end: 17, references: ['%b', '%x', 'b', 'x'] },
-			{ start: 51, end: 53, references: ['%a', '%y', 'a', 'y'] },
-			{ start: 55, end: 57, references: ['%b', '%y', 'b', 'y'] },
-			{ start: 61, end: 63, references: ['%a', '%z', 'a', 'z'] },
-			{ start: 65, end: 67, references: ['%b', '%z', 'b', 'z'] }
-		])
-	})*/
 	test('applyRepeatingInstances', () => {
 		expect(
 			applyRepeatingInstances(

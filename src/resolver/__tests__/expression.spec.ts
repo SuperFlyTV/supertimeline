@@ -145,7 +145,7 @@ describe('Expression', () => {
 			r: 'asdf',
 		})
 	})
-	test('validateExpression ', () => {
+	test('validateExpression', () => {
 		expect(validateExpression(['+', '-'], '1+1')).toEqual(true)
 		expect(validateExpression(['+', '-'], { l: 1, o: '+', r: 1 })).toEqual(true)
 

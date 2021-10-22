@@ -1,8 +1,9 @@
+/* eslint-disable jest/no-standalone-expect, jest/expect-expect, jest/valid-title */
 /**
  * Note: The tests in this file where originally created for version 1, but has been converted to apply for version 2
  */
-import { TriggerType, EventType } from './legacyEnums.spec'
-import { TimelineObject, TimelineKeyframe } from './legacyAPI.spec'
+import { TriggerType, EventType } from './legacyEnums'
+import { TimelineObject, TimelineKeyframe } from './legacyAPI'
 import {
 	ResolvedTimelineObject as NewResolvedTimelineObject,
 	TimelineObject as NewTimelineObject,

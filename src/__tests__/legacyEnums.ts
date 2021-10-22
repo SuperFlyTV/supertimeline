@@ -25,6 +25,3 @@ export const Enums = {
 	TimelineEventType: EventType,
 	TraceLevel: TraceLevel,
 }
-test('tmp', () => {
-	expect(1).toEqual(1)
-})

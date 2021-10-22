@@ -1,3 +1,4 @@
+/* eslint-disable jest/no-export, jest/valid-title, jest/expect-expect, jest/no-standalone-expect, jest/no-done-callback */
 import { ResolverCache, TimelineObject } from '../..'
 
 interface Test {

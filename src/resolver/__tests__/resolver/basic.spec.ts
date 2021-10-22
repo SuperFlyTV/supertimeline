@@ -1032,6 +1032,7 @@ describeVariants(
 			const state1 = Resolver.getState(resolved, 15)
 			expect(state1.layers.L1).toBeUndefined()
 		})
+		/* eslint-disable jest/no-commented-out-tests */
 		// This test is "temporarily" disabled,
 		// see https://github.com/SuperFlyTV/supertimeline/pull/60
 		// test('negative length object sandwich', () => {
@@ -1102,6 +1103,7 @@ describeVariants(
 		// 	expect(state.layers.L4).toMatchObject({ id: 'obj3' })
 		// 	expect(state.layers.L5).toMatchObject({ id: 'obj4' })
 		// })
+		/* eslint-enable jest/no-commented-out-tests */
 		test('negative length object sandwich 2', () => {
 			const obj0 = {
 				id: 'obj0',

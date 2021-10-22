@@ -535,7 +535,7 @@ describeVariants(
 				input: 1000,
 			})
 		})
-		test('Keyframes in resuming objects 1', () => {
+		test('Keyframes in resuming objects 2', () => {
 			const timeline = fixTimeline([
 				{
 					id: 'obj0',
