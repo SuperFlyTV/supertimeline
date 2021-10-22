@@ -20,7 +20,7 @@ import { EventType } from '../api/enums'
 import { capInstances, cleanInstances, setInstanceEndTime } from '../lib'
 
 export function getState(resolved: ResolvedTimeline | ResolvedStates, time: Time, eventLimit = 0): TimelineState {
-	const resolvedStates: ResolvedStates = isResolvedStates(resolved) ? resolved : resolveStates(resolved, time)
+	const resolvedStates: ResolvedStates = isResolvedStates(resolved) ? resolved : resolveStates(resolved)
 
 	const state: TimelineState = {
 		time: time,
@@ -39,7 +39,7 @@ export function getState(resolved: ResolvedTimeline | ResolvedStates, time: Time
 
 	return state
 }
-export function resolveStates(resolved: ResolvedTimeline, onlyForTime?: Time, cache?: ResolverCache): ResolvedStates {
+export function resolveStates(resolved: ResolvedTimeline, cache?: ResolverCache): ResolvedStates {
 	const resolvedStates: ResolvedStates = {
 		options: resolved.options,
 		statistics: resolved.statistics,
@@ -53,7 +53,7 @@ export function resolveStates(resolved: ResolvedTimeline, onlyForTime?: Time, ca
 		nextEvents: [],
 	}
 
-	if (cache && !onlyForTime && resolved.statistics.resolvingCount === 0 && cache.resolvedStates) {
+	if (cache && resolved.statistics.resolvingCount === 0 && cache.resolvedStates) {
 		// Nothing has changed since last time, just return the states right away:
 		return cache.resolvedStates
 	}
@@ -75,18 +75,25 @@ export function resolveStates(resolved: ResolvedTimeline, onlyForTime?: Time, ca
 		[time: string]: Array<{
 			obj: ResolvedTimelineObject
 			instance: TimelineObjectInstance
-			/** if the instance turns on or off at this point */
-			enable: boolean
+
+			/** the same checkId is only going to be checked once per timestamp */
+			checkId: string
+
+			/** The order in which to resolve the instance */
+			order: number
 		}>
 	} = {}
 	const addPointInTime = (
 		time: number,
-		enable: boolean,
+		checkId: string,
+		order: number,
 		obj: ResolvedTimelineObject,
 		instance: TimelineObjectInstance
 	) => {
+		// Note on order: Ending events come before starting events
+
 		if (!pointsInTime[time + '']) pointsInTime[time + ''] = []
-		pointsInTime[time + ''].push({ obj, instance, enable: enable })
+		pointsInTime[time + ''].push({ obj, instance, checkId, order })
 	}
 
 	for (const obj of resolvedObjects) {
@@ -96,34 +103,31 @@ export function resolveStates(resolved: ResolvedTimeline, onlyForTime?: Time, ca
 				if (obj.layer) {
 					// if layer is empty, don't put in state
 					for (const instance of obj.resolved.instances) {
-						let useInstance = true
-						if (onlyForTime) {
-							useInstance =
-								(instance.start || 0) <= onlyForTime && (instance.end || Infinity) > onlyForTime
-						}
-						if (useInstance) {
-							const timeEvents: Array<TimeEvent> = []
+						const timeEvents: Array<TimeEvent> = []
 
-							timeEvents.push({ time: instance.start, enable: true })
-							if (instance.end) timeEvents.push({ time: instance.end, enable: false })
+						timeEvents.push({ time: instance.start, enable: true })
+						if (instance.end) timeEvents.push({ time: instance.end, enable: false })
 
-							// Also include times from parents, as they could affect the state of this instance:
-							for (let i = 0; i < parentTimes.length; i++) {
-								const parentTime = parentTimes[i]
+						// Also include times from parents, as they could affect the state of this instance:
+						for (let i = 0; i < parentTimes.length; i++) {
+							const parentTime = parentTimes[i]
 
-								if (
-									parentTime &&
-									parentTime.time > (instance.start || 0) &&
-									parentTime.time < (instance.end || Infinity)
-								) {
-									timeEvents.push(parentTime)
-								}
+							if (
+								parentTime &&
+								parentTime.time > (instance.start || 0) &&
+								parentTime.time < (instance.end || Infinity)
+							) {
+								timeEvents.push(parentTime)
 							}
-							// Save a reference to this instance on all points in time that could affect it:
-							for (let i = 0; i < timeEvents.length; i++) {
-								const timeEvent = timeEvents[i]
+						}
+						// Save a reference to this instance on all points in time that could affect it:
+						for (let i = 0; i < timeEvents.length; i++) {
+							const timeEvent = timeEvents[i]
 
-								addPointInTime(timeEvent.time, timeEvent.enable, obj, instance)
+							if (timeEvent.enable) {
+								addPointInTime(timeEvent.time, 'start', 1, obj, instance)
+							} else {
+								addPointInTime(timeEvent.time, 'end', 0, obj, instance)
 							}
 						}
 					}
@@ -134,11 +138,11 @@ export function resolveStates(resolved: ResolvedTimeline, onlyForTime?: Time, ca
 
 				for (const instance of keyframe.resolved.instances) {
 					// Keyframe start time
-					addPointInTime(instance.start, true, keyframe, instance)
+					addPointInTime(instance.start, 'start', 1, keyframe, instance)
 
 					// Keyframe end time
 					if (instance.end !== null) {
-						addPointInTime(instance.end, false, keyframe, instance)
+						addPointInTime(instance.end, 'end', 0, keyframe, instance)
 					}
 				}
 			}
@@ -182,9 +186,8 @@ export function resolveStates(resolved: ResolvedTimeline, onlyForTime?: Time, ca
 				if (a.obj.resolved.isKeyframe && !b.obj.resolved.isKeyframe) return -1
 				if (!a.obj.resolved.isKeyframe && b.obj.resolved.isKeyframe) return 1
 
-				// Ending events come before starting events:
-				if (a.enable && !b.enable) return 1
-				if (!a.enable && b.enable) return -1
+				if (a.order > b.order) return 1
+				if (a.order < b.order) return -1
 
 				// Deeper objects (children in groups) comes later, we want to check the parent groups first:
 				if ((a.obj.resolved.levelDeep || 0) > (b.obj.resolved.levelDeep || 0)) return 1
@@ -202,7 +205,8 @@ export function resolveStates(resolved: ResolvedTimeline, onlyForTime?: Time, ca
 			let toBeEnabled: boolean = (instance.start || 0) <= time && (instance.end || Infinity) > time
 
 			const layer: string = obj.layer + ''
-			const identifier = obj.id + '_' + instance.id + '_' + o.enable
+
+			const identifier = obj.id + '_' + instance.id + '_' + o.checkId
 			if (!checkedObjectsThisTime[identifier]) {
 				// Only check each object and event-type once for every point in time
 				checkedObjectsThisTime[identifier] = true
@@ -248,7 +252,7 @@ export function resolveStates(resolved: ResolvedTimeline, onlyForTime?: Time, ca
 					// Now, the one on top has the throne
 					// Update current state:
 					const currentOnTopOfLayer = aspiringInstances[layer][0]
-					const prevObj = currentState[layer]
+					const prevObj: ResolvedTimelineObjectInstance | undefined = currentState[layer]
 
 					const replaceOldObj: boolean =
 						currentOnTopOfLayer &&
@@ -266,16 +270,16 @@ export function resolveStates(resolved: ResolvedTimeline, onlyForTime?: Time, ca
 							delete activeObjIds[prevObj.id]
 
 							// Add to nextEvents:
-							if (!onlyForTime || time > onlyForTime) {
-								resolvedStates.nextEvents.push({
-									type: EventType.END,
-									time: time,
-									objId: prevObj.id,
-								})
-								eventObjectTimes[instance.end + ''] = EventType.END
-							}
+
+							resolvedStates.nextEvents.push({
+								type: EventType.END,
+								time: time,
+								objId: prevObj.id,
+							})
+							eventObjectTimes[instance.end + ''] = EventType.END
 						}
 					}
+					let changed = false
 					if (replaceOldObj) {
 						// Set the new object to State
 
@@ -333,20 +337,43 @@ export function resolveStates(resolved: ResolvedTimeline, onlyForTime?: Time, ca
 						setStateAtTime(resolvedStates.state, layer, time, newObjInstance)
 
 						// Add to nextEvents:
-						if (newInstance.start > (onlyForTime || 0)) {
-							resolvedStates.nextEvents.push({
-								type: EventType.START,
-								time: newInstance.start,
-								objId: obj.id,
-							})
-							eventObjectTimes[newInstance.start + ''] = EventType.START
-						}
+						resolvedStates.nextEvents.push({
+							type: EventType.START,
+							time: newInstance.start,
+							objId: obj.id,
+						})
+						eventObjectTimes[newInstance.start + ''] = EventType.START
+
+						changed = true
 					} else if (removeOldObj) {
 						// Remove from current state:
 						delete currentState[layer]
 
 						// Update the tracking state as well:
 						setStateAtTime(resolvedStates.state, layer, time, null)
+
+						changed = true
+					}
+
+					if (changed) {
+						// Also make sure any children are updated:
+						// Go through the object on hand, but also the one in the currentState
+						const parentsToCheck: ResolvedTimelineObject[] = []
+						if (obj.isGroup) parentsToCheck.push(obj)
+						if (currentState[layer]?.isGroup) parentsToCheck.push(currentState[layer])
+						for (const parent of parentsToCheck) {
+							if (parent.children?.length) {
+								for (const child0 of parent.children) {
+									const child = resolved.objects[child0.id]
+									for (const instance of child.resolved.instances) {
+										if (instance.start <= time && (instance.end || Infinity) > time) {
+											// Add the child instance, because that might be affected:
+											addPointInTime(time, 'child', 99, child, instance)
+										}
+									}
+								}
+							}
+						}
 					}
 				} else {
 					// Is a keyframe
@@ -501,9 +528,6 @@ export function resolveStates(resolved: ResolvedTimeline, onlyForTime?: Time, ca
 		}
 	}
 
-	if (onlyForTime) {
-		resolvedStates.nextEvents = _.filter(resolvedStates.nextEvents, (e) => e.time > onlyForTime)
-	}
 	resolvedStates.nextEvents.sort((a, b) => {
 		if (a.time > b.time) return 1
 		if (a.time < b.time) return -1
@@ -517,7 +541,7 @@ export function resolveStates(resolved: ResolvedTimeline, onlyForTime?: Time, ca
 		return 0
 	})
 
-	if (cache && !onlyForTime) {
+	if (cache) {
 		cache.resolvedStates = resolvedStates
 	}
 

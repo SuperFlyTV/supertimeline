@@ -275,7 +275,7 @@ export class Resolver {
 	}
 	/** Calculate the state for all points in time.  */
 	static resolveAllStates(resolvedTimeline: ResolvedTimeline, cache?: ResolverCache): ResolvedStates {
-		return resolveStates(resolvedTimeline, undefined, cache)
+		return resolveStates(resolvedTimeline, cache)
 	}
 	/**
 	 * Calculate the state at a given point in time.
