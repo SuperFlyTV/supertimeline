@@ -466,6 +466,81 @@ describe('Resolver, basic', () => {
 		expect(resolved.objects['video0']).toBeTruthy()
 		expect(resolved.objects['video0'].resolved.instances).toHaveLength(100)
 	})
+	test('Repeating interrupted', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'obj0',
+				layer: '0',
+				enable: {
+					start: 0,
+					duration: 5,
+					repeating: 10,
+				},
+				content: {},
+			},
+			{
+				id: 'obj1',
+				layer: '0',
+				enable: {
+					start: 22,
+				},
+				content: {},
+			},
+		]
+
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitCount: 5 }))
+
+		expect(resolved.statistics.resolvedObjectCount).toEqual(2)
+		expect(resolved.statistics.unresolvedCount).toEqual(0)
+
+		expect(resolved.objects['obj1'].resolved.instances).toMatchObject([
+			{ start: 22, end: 30 },
+			{ start: 35, end: 40 },
+			{ start: 45, end: null }, // because the repeating obj0 is limited by limitCount: 5
+		])
+		expect(resolved.objects['obj0'].resolved.instances).toMatchObject([
+			{ start: 0, end: 5 },
+			{ start: 10, end: 15 },
+			{ start: 20, end: 22 },
+			{ start: 30, end: 35 },
+			{ start: 40, end: 45 },
+		])
+	})
+	test('Repeating interrupted by higher prio', () => {
+		const timeline: TimelineObject[] = [
+			{
+				id: 'obj0',
+				layer: '0',
+				enable: {
+					start: 0,
+					duration: 5,
+					repeating: 10,
+				},
+				content: {},
+			},
+			{
+				id: 'obj1',
+				layer: '0',
+				enable: {
+					start: 22,
+				},
+				content: {},
+				priority: 1,
+			},
+		]
+
+		const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, limitCount: 5 }))
+
+		expect(resolved.statistics.resolvedObjectCount).toEqual(2)
+		expect(resolved.statistics.unresolvedCount).toEqual(0)
+
+		expect(resolved.objects['obj1'].resolved.instances).toMatchObject([{ start: 22, end: null }])
+		expect(resolved.objects['obj0'].resolved.instances).toMatchObject([
+			{ start: 0, end: 5 },
+			{ start: 10, end: 15 },
+			{ start: 20, end: 22 },
+		])
+	})
 	test('Class not defined', () => {
 		const timeline: TimelineObject[] = [
 			{
