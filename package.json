@@ -50,7 +50,7 @@
 		"license-validate": "yarn sofie-licensecheck --allowPackages=caniuse-lite@1.0.30001271"
 	},
 	"engines": {
-		"node": ">=10.10"
+		"node": ">=12"
 	},
 	"prettier": "@sofie-automation/code-standard-preset/.prettierrc.json",
 	"husky": {
