@@ -39,7 +39,7 @@
 		"send-coverage": "codecov",
 		"docs": "yarn docs:html && open-cli docs/index.html",
 		"docs:test": "yarn docs:html",
-		"docs:html": "typedoc src/index.ts --excludePrivate --theme minimal --out docs --tsconfig tsconfig.build.json",
+		"docs:html": "typedoc src/index.ts --excludePrivate --theme default --out docs --tsconfig tsconfig.build.json",
 		"docs:json": "typedoc --json docs/typedoc.json src/index.ts --tsconfig tsconfig.build.json",
 		"docs:publish": "yarn docs:html && gh-pages -d docs",
 		"changelog": "standard-version",
