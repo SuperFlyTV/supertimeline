@@ -1103,44 +1103,43 @@ describeVariants(
 		// 	expect(state.layers.L5).toMatchObject({ id: 'obj4' })
 		// })
 		test('negative length object sandwich 2', () => {
-			const timeline = fixTimeline([
-				{
-					id: 'obj0',
-					layer: 'L1',
-					enable: {
-						start: 10,
-						end: '#obj1.start',
-					},
-					content: {},
+			const obj0 = {
+				id: 'obj0',
+				layer: 'L1',
+				enable: {
+					start: 10,
+					end: '#obj1.start',
 				},
-				{
-					id: 'obj1',
-					layer: 'L2',
-					enable: {
-						start: 20,
-						end: '#obj2.start',
-					},
-					content: {},
+				content: {},
+			}
+			const obj1 = {
+				id: 'obj1',
+				layer: 'L2',
+				enable: {
+					start: 20,
+					end: '#obj2.start',
 				},
-				{
-					id: 'obj2',
-					layer: 'L3',
-					enable: {
-						start: 30,
-						duration: 10,
-					},
-					content: {},
+				content: {},
+			}
+			const obj2 = {
+				id: 'obj2',
+				layer: 'L3',
+				enable: {
+					start: 30,
+					duration: 10,
 				},
-			])
-
+				content: {},
+			}
+			const timeline = fixTimeline([obj0, obj1, obj2])
 			const resolved0 = Resolver.resolveTimeline(timeline, { time: 0, cache: getCache() })
 			expect(resolved0.objects['obj0'].resolved.instances).toMatchObject([{ start: 10, end: 20 }])
 			expect(resolved0.objects['obj1'].resolved.instances).toMatchObject([{ start: 20, end: 30 }])
 			expect(resolved0.objects['obj2'].resolved.instances).toMatchObject([{ start: 30, end: 40 }])
 
 			// Move obj2, so that obj1 becomes zero-length
+
 			// @ts-ignore
-			timeline[2].enable.start = 20
+			obj2.enable.start = 20
 
 			const resolved1 = Resolver.resolveTimeline(timeline, { time: 0, cache: getCache() })
 			expect(resolved1.objects['obj0'].resolved.instances).toMatchObject([{ start: 10, end: 20 }])
@@ -1149,7 +1148,7 @@ describeVariants(
 
 			// Move obj2, so that obj1 becomes negative-length
 			// @ts-ignore
-			timeline[2].enable.start = 15
+			obj2.enable.start = 15
 
 			const resolved2 = Resolver.resolveTimeline(timeline, { time: 0, cache: getCache() })
 			expect(resolved2.objects['obj0'].resolved.instances).toMatchObject([{ start: 10, end: 20 }])
@@ -1164,38 +1163,38 @@ describeVariants(
 
 		test('instances from end boundary', () => {
 			const boundary = 20
-			const timeline = fixTimeline([
-				{
-					id: 'enable0',
-					priority: 0,
-					enable: {
-						start: 10,
-					},
-					layer: 'run_helper',
-					classes: ['class0'],
-					content: {},
+			const enable0 = {
+				id: 'enable0',
+				priority: 0,
+				enable: {
+					start: 10,
 				},
-				{
-					id: 'enable1',
-					priority: 0,
-					enable: {
-						start: boundary,
-					},
-					layer: 'run_helper',
-					classes: ['class0'],
-					content: {},
+				layer: 'run_helper',
+				classes: ['class0'],
+				content: {},
+			}
+			const enable1 = {
+				id: 'enable1',
+				priority: 0,
+				enable: {
+					start: boundary,
 				},
-				{
-					id: 'obj0',
-					enable: {
-						while: '.class0',
-					},
-					priority: 1,
-					layer: 'layer0',
-					content: {},
-					seamless: true,
+				layer: 'run_helper',
+				classes: ['class0'],
+				content: {},
+			}
+			const obj0 = {
+				id: 'obj0',
+				enable: {
+					while: '.class0',
 				},
-			])
+				priority: 1,
+				layer: 'layer0',
+				content: {},
+				seamless: true,
+			}
+
+			const timeline = fixTimeline([enable0, enable1, obj0])
 			{
 				const resolved0 = Resolver.resolveTimeline(timeline, { time: boundary + 50 })
 				const allStates0 = Resolver.resolveAllStates(resolved0)
@@ -1212,8 +1211,8 @@ describeVariants(
 			}
 
 			// Also check when setting an end time:
-			// @ts-ignore
-			timeline[0].enable.end = boundary
+			// @ts-expect-error
+			obj0.enable.end = boundary
 
 			{
 				const resolved0 = Resolver.resolveTimeline(timeline, { time: boundary - 50 })
@@ -1231,25 +1230,24 @@ describeVariants(
 			}
 		})
 		test('seamless', () => {
-			const timeline = fixTimeline([
-				{
-					id: 'obj0',
-					enable: [
-						{ start: 10, end: 20 },
-						{ start: 20, end: 30 },
+			const obj0 = {
+				id: 'obj0',
+				enable: [
+					{ start: 10, end: 20 },
+					{ start: 20, end: 30 },
 
-						{ start: 40, end: 50 },
-						{ start: 50, end: 50 },
-						{ start: 50, end: 51 },
+					{ start: 40, end: 50 },
+					{ start: 50, end: 50 },
+					{ start: 50, end: 51 },
 
-						{ start: 60, end: 60 },
-						{ start: 60 },
-					],
-					layer: 'L0',
-					content: {},
-					seamless: false,
-				},
-			])
+					{ start: 60, end: 60 },
+					{ start: 60 },
+				],
+				layer: 'L0',
+				content: {},
+				seamless: false,
+			}
+			const timeline = fixTimeline([obj0])
 			{
 				const resolved0 = Resolver.resolveTimeline(timeline, { time: 0, cache: getCache() })
 				const allStates0 = Resolver.resolveAllStates(resolved0)
@@ -1262,7 +1260,7 @@ describeVariants(
 				])
 			}
 			// Now check when seamless is enabled:
-			timeline[0].seamless = true
+			obj0.seamless = true
 			{
 				const resolved0 = Resolver.resolveTimeline(timeline, { time: 0, cache: getCache() })
 				const allStates0 = Resolver.resolveAllStates(resolved0)

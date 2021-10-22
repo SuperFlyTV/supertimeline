@@ -581,49 +581,26 @@ describeVariants(
 				limitTime: 999,
 			})
 
-			expect(resolved.objects).toMatchObject({
-				obj0: {
-					resolved: {
-						instances: [{ start: 10, end: 100 }],
-					},
-				},
-				obj1: {
-					resolved: {
-						instances: [{ start: 50, end: 60 }],
-					},
-				},
-				kf0: {
-					resolved: {
-						instances: [{ start: 10, end: 100 }],
-					},
-				},
-			})
+			// Note:
+			// I removed these checks, since when running this test with a populated cache
+			// the objects have already been properly resolved by Resolved.resolveAllStates
+			// @nytamin 2021-10-22
+
+			// expect(resolved.objects['obj0'].resolved.instances).toMatchObject([{ start: 10, end: 100 }])
+			// expect(resolved.objects['obj1'].resolved.instances).toMatchObject([{ start: 50, end: 60 }])
+			// expect(resolved.objects['kf0'].resolved.instances).toMatchObject([{ start: 10, end: 100 }])
 
 			const resolvedAllStates = Resolver.resolveAllStates(resolved)
 
-			expect(resolvedAllStates.objects).toMatchObject({
-				obj0: {
-					resolved: {
-						instances: [
-							{ start: 10, end: 50 },
-							{ start: 60, end: 100 },
-						],
-					},
-				},
-				obj1: {
-					resolved: {
-						instances: [{ start: 50, end: 60 }],
-					},
-				},
-				kf0: {
-					resolved: {
-						instances: [
-							{ start: 10, end: 50 },
-							{ start: 60, end: 100 },
-						],
-					},
-				},
-			})
+			expect(resolvedAllStates.objects['obj0'].resolved.instances).toMatchObject([
+				{ start: 10, end: 50 },
+				{ start: 60, end: 100 },
+			])
+			expect(resolvedAllStates.objects['obj1'].resolved.instances).toMatchObject([{ start: 50, end: 60 }])
+			expect(resolvedAllStates.objects['kf0'].resolved.instances).toMatchObject([
+				{ start: 10, end: 50 },
+				{ start: 60, end: 100 },
+			])
 		})
 	},
 	{

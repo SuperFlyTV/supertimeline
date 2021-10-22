@@ -11,35 +11,35 @@ describeVariants(
 			// resetId()
 		})
 		test('Changing timeline', () => {
-			const timeline = fixTimeline([
-				{
-					id: 'video',
-					layer: '0',
-					enable: {
-						start: 0,
-						end: 100,
-					},
-					content: {},
+			const video = {
+				id: 'video',
+				layer: '0',
+				enable: {
+					start: 0,
+					end: 100,
 				},
-				{
-					id: 'graphic0',
-					layer: '1',
-					enable: {
-						start: '#video.start + 10', // 10
-						duration: 10,
-					},
-					content: {},
+				content: {},
+			}
+			const graphic0 = {
+				id: 'graphic0',
+				layer: '1',
+				enable: {
+					start: '#video.start + 10', // 10
+					duration: 10,
 				},
-				{
-					id: 'graphic1',
-					layer: '1',
-					enable: {
-						start: '#graphic0.end + 10', // 30
-						duration: 15,
-					},
-					content: {},
+				content: {},
+			}
+			const graphic1 = {
+				id: 'graphic1',
+				layer: '1',
+				enable: {
+					start: '#graphic0.end + 10', // 30
+					duration: 15,
 				},
-			])
+				content: {},
+			}
+
+			const timeline = fixTimeline([video, graphic0, graphic1])
 			const cache = {}
 			const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, cache }))
 
@@ -52,7 +52,7 @@ describeVariants(
 
 			// make a small change in timeline:
 			// @ts-ignore
-			timeline[2].enable.start = '#graphic0.end + 15' // 35
+			graphic1.enable.start = '#graphic0.end + 15' // 35
 
 			const resolved2 = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, cache }))
 			expect(resolved2.statistics.resolvingCount).toEqual(1)
@@ -62,7 +62,7 @@ describeVariants(
 
 			// make another change in timeline:
 			// @ts-ignore
-			timeline[0].enable.start = 10
+			video.enable.start = 10
 
 			const resolved3 = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, cache }))
 			expect(resolved3.statistics.resolvingCount).toEqual(3)
@@ -78,36 +78,35 @@ describeVariants(
 			expect(resolved4.objects['graphic1'].resolved).toMatchObject({ instances: [{ start: 45, end: 60 }] })
 		})
 		test('Reference class', () => {
-			const timeline = fixTimeline([
-				{
-					id: 'video0',
-					layer: '0',
-					enable: {
-						start: 10,
-						duration: 10,
-					},
-					content: {},
-					classes: ['someVideo0'],
+			const video0 = {
+				id: 'video0',
+				layer: '0',
+				enable: {
+					start: 10,
+					duration: 10,
 				},
-				{
-					id: 'graphic0',
-					layer: '1',
-					enable: {
-						start: '.someVideo0.end',
-						duration: 10,
-					},
-					content: {},
+				content: {},
+				classes: ['someVideo0'],
+			}
+			const graphic0 = {
+				id: 'graphic0',
+				layer: '1',
+				enable: {
+					start: '.someVideo0.end',
+					duration: 10,
 				},
-				{
-					id: 'graphic1',
-					layer: '1',
-					enable: {
-						start: '.someVideo1.end',
-						duration: 10,
-					},
-					content: {},
+				content: {},
+			}
+			const graphic1 = {
+				id: 'graphic1',
+				layer: '1',
+				enable: {
+					start: '.someVideo1.end',
+					duration: 10,
 				},
-			])
+				content: {},
+			}
+			const timeline = fixTimeline([video0, graphic0, graphic1])
 			const cache = {}
 			const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, cache }))
 
@@ -118,7 +117,7 @@ describeVariants(
 
 			// change the timeline
 			// @ts-ignore
-			timeline[0].enable.start = 20
+			video0.enable.start = 20
 
 			const resolved2 = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, cache }))
 
@@ -128,7 +127,7 @@ describeVariants(
 			expect(resolved2.objects['graphic1']).toBeFalsy()
 
 			// change the class
-			timeline[0].classes = ['someVideo1']
+			video0.classes = ['someVideo1']
 
 			const resolved3 = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, cache }))
 
@@ -138,36 +137,35 @@ describeVariants(
 			expect(resolved3.objects['graphic1'].resolved).toMatchObject({ instances: [{ start: 30, end: 40 }] })
 		})
 		test('Reference layer', () => {
-			const timeline = fixTimeline([
-				{
-					id: 'video0',
-					layer: '0',
-					enable: {
-						start: 10,
-						duration: 10,
-					},
-					content: {},
-					classes: ['someVideo0'],
+			const video0 = {
+				id: 'video0',
+				layer: '0',
+				enable: {
+					start: 10,
+					duration: 10,
 				},
-				{
-					id: 'graphic0',
-					layer: '9',
-					enable: {
-						start: '$0.end',
-						duration: 10,
-					},
-					content: {},
+				content: {},
+				classes: ['someVideo0'],
+			}
+			const graphic0 = {
+				id: 'graphic0',
+				layer: '9',
+				enable: {
+					start: '$0.end',
+					duration: 10,
 				},
-				{
-					id: 'graphic1',
-					layer: '10',
-					enable: {
-						start: '$1.end',
-						duration: 10,
-					},
-					content: {},
+				content: {},
+			}
+			const graphic1 = {
+				id: 'graphic1',
+				layer: '10',
+				enable: {
+					start: '$1.end',
+					duration: 10,
 				},
-			])
+				content: {},
+			}
+			const timeline = fixTimeline([video0, graphic0, graphic1])
 			const cache = {}
 			const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, cache }))
 
@@ -178,7 +176,7 @@ describeVariants(
 
 			// change the timeline
 			// @ts-ignore
-			timeline[0].enable.start = 20
+			video0.enable.start = 20
 
 			const resolved2 = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, cache }))
 
@@ -188,7 +186,7 @@ describeVariants(
 			expect(resolved2.objects['graphic1']).toBeFalsy()
 
 			// change the layer
-			timeline[0].layer = '1'
+			video0.layer = '1'
 
 			const resolved3 = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, cache }))
 
@@ -258,8 +256,9 @@ describeVariants(
 				],
 			})
 
-			// Remove an object from the timeline
-			timeline.splice(2, 1) // video1
+			// Remove an object from the timeline:
+			const index = timeline.findIndex((o) => o.id === 'video1')
+			timeline.splice(index, 1)
 
 			const resolved3 = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, cache }))
 			expect(resolved3.statistics.resolvingCount).toEqual(1)
@@ -315,39 +314,38 @@ describeVariants(
 		})
 
 		test('Reference group', () => {
-			const timeline = fixTimeline([
-				{
-					id: 'group0',
-					layer: '0',
-					enable: {
-						start: 10,
-						duration: 100,
-					},
-					content: {},
-					classes: [],
-					isGroup: true,
-					children: [
-						{
-							id: 'video0',
-							layer: '9',
-							enable: {
-								start: '0',
-								duration: 10,
-							},
-							content: {},
+			const group0 = {
+				id: 'group0',
+				layer: '0',
+				enable: {
+					start: 10,
+					duration: 100,
+				},
+				content: {},
+				classes: [],
+				isGroup: true,
+				children: [
+					{
+						id: 'video0',
+						layer: '9',
+						enable: {
+							start: '0',
+							duration: 10,
 						},
-					],
-				},
-				{
-					id: 'video1',
-					layer: '10',
-					enable: {
-						start: '#video0.end',
-						duration: 10,
+						content: {},
 					},
-					content: {},
+				],
+			}
+			const video1 = {
+				id: 'video1',
+				layer: '10',
+				enable: {
+					start: '#video0.end',
+					duration: 10,
 				},
-			])
+				content: {},
+			}
+			const timeline = fixTimeline([group0, video1])
 			const cache = {}
 			const resolved = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, cache }))
 
@@ -358,7 +356,7 @@ describeVariants(
 
 			// change the group
 			// @ts-ignore
-			timeline[0].enable.start = 20
+			group0.enable.start = 20
 
 			const resolved2 = Resolver.resolveAllStates(Resolver.resolveTimeline(timeline, { time: 0, cache }))
 

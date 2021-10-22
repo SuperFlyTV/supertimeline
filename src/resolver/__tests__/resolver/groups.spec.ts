@@ -443,44 +443,43 @@ describeVariants(
 			expect(Resolver.getState(resolved, 185).layers).toEqual({})
 		})
 		test('referencing child in parent group', () => {
-			const timeline = fixTimeline([
-				{
-					id: 'group0',
-					layer: 'g0',
-					enable: {
-						start: 0,
-						duration: 80,
-					},
-					content: {},
-					isGroup: true,
-					children: [
-						{
-							id: 'child0',
-							layer: '1',
-							enable: {
-								while: '#other',
-							},
-							content: {},
+			const group0 = {
+				id: 'group0',
+				layer: 'g0',
+				enable: {
+					start: 0,
+					duration: 80,
+				},
+				content: {},
+				isGroup: true,
+				children: [
+					{
+						id: 'child0',
+						layer: '1',
+						enable: {
+							while: '#other',
 						},
-					],
-				},
-				{
-					id: 'other',
-					layer: 'other',
-					enable: {
-						while: '1',
+						content: {},
 					},
-					content: {},
+				],
+			}
+			const other = {
+				id: 'other',
+				layer: 'other',
+				enable: {
+					while: '1',
 				},
-				{
-					id: 'refChild0',
-					layer: '42',
-					enable: {
-						while: '#child0',
-					},
-					content: {},
+				content: {},
+			}
+			const refChild0 = {
+				id: 'refChild0',
+				layer: '42',
+				enable: {
+					while: '#child0',
 				},
-			])
+				content: {},
+			}
+			const timeline = fixTimeline([group0, other, refChild0])
 
 			const resolved0 = Resolver.resolveTimeline(timeline, {
 				cache: getCache(),
@@ -489,8 +488,11 @@ describeVariants(
 				limitTime: 199,
 			})
 
-			// @ts-ignore object is possibly undefined
-			timeline[0].children[0].enable.while = '1' // This shouldn't change the outcome, since it's changing from a reference that resolves to { while: '1' }
+			const child0 = group0.children.find((o) => o.id === 'child0')
+			expect(child0).toBeTruthy()
+			if (child0) {
+				child0.enable.while = '1' // This shouldn't change the outcome, since it's changing from a reference that resolves to { while: '1' }
+			}
 
 			const resolved1 = Resolver.resolveTimeline(timeline, {
 				cache: getCache(),
@@ -509,7 +511,7 @@ describeVariants(
 			expect(states1.layers['42']).toBeFalsy()
 
 			const omitProperties = (instances: TimelineObjectInstance[]) => {
-				return _.map(instances, (i) => _.omit(i, ['references', 'originalEnd', 'originalStart']))
+				return _.map(instances, (i) => _.omit(i, ['references', 'originalEnd', 'originalStart', 'id']))
 			}
 			expect(omitProperties(resolved0.objects['refChild0'].resolved.instances)).toEqual(
 				omitProperties(resolved1.objects['refChild0'].resolved.instances)
