@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [8.2.2](https://github.com/SuperFlyTV/supertimeline/compare/8.2.1...8.2.2) (2021-10-22)
+
+
+### Bug Fixes
+
+* cap children inside of their parents ([7de10d7](https://github.com/SuperFlyTV/supertimeline/commit/7de10d7d3e5c46f58f8451494546da8c4f9b9bf8))
+* remove onlyForTime in resolveStates, as it causes issues in some situations ([adbe2e6](https://github.com/SuperFlyTV/supertimeline/commit/adbe2e6f34eda3fae716c99c1d641aa2be3d6619))
+* remove redundant zero-length instances of children ([2323d88](https://github.com/SuperFlyTV/supertimeline/commit/2323d88316bb2bf9a80b224cfa999aa84102d2d5))
+* when a parent is affected, also do a check of the children ([cf05ede](https://github.com/SuperFlyTV/supertimeline/commit/cf05ede7457c2fb416e2e01115a07dcc712c8ed1))
+
 ### [8.2.1](https://github.com/SuperFlyTV/supertimeline/compare/8.2.0...8.2.1) (2021-04-26)
 
 
