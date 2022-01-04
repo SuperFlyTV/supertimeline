@@ -548,7 +548,7 @@ export function resolveStates(resolved: ResolvedTimeline, cache?: ResolverCache)
 	return resolvedStates
 }
 export function applyKeyframeContent(parentContent: Content, keyframeContent: Content): void {
-	_.each(keyframeContent, (value: any, attr: string) => {
+	for (const [attr, value] of Object.entries(keyframeContent)) {
 		if (_.isArray(value)) {
 			if (!_.isArray(parentContent[attr])) parentContent[attr] = []
 			applyKeyframeContent(parentContent[attr], value)
@@ -559,7 +559,7 @@ export function applyKeyframeContent(parentContent: Content, keyframeContent: Co
 		} else {
 			parentContent[attr] = value
 		}
-	})
+	}
 }
 function getTimesFromParents(resolved: ResolvedTimeline, obj: ResolvedTimelineObject): TimeEvent[] {
 	let times: TimeEvent[] = []

@@ -612,14 +612,14 @@ export function applyParentInstances(
 	parentInstances: TimelineObjectInstance[] | null,
 	value: TimelineObjectInstance[] | null | ValueWithReference
 ): TimelineObjectInstance[] | null | ValueWithReference {
-	const operate = (a: ValueWithReference | null, b: ValueWithReference | null): ValueWithReference | null => {
-		if (a === null || b === null) return null
-		return {
-			value: a.value + b.value,
-			references: joinReferences(a.references, b.references),
-		}
-	}
 	return operateOnArrays(parentInstances, value, operate)
+}
+function operate(a: ValueWithReference | null, b: ValueWithReference | null): ValueWithReference | null {
+	if (a === null || b === null) return null
+	return {
+		value: a.value + b.value,
+		references: joinReferences(a.references, b.references),
+	}
 }
 
 const cacheResultCache: {
@@ -628,10 +628,14 @@ const cacheResultCache: {
 		value: any
 	}
 } = {}
+let cleanCacheResultTimeout: NodeJS.Timeout | null = null
 /** Cache the result of function for a limited time */
 export function cacheResult<T>(name: string, fcn: () => T, limitTime = 1000): T {
 	if (Math.random() < 0.01) {
-		setTimeout(cleanCacheResult, 100)
+		if (cleanCacheResultTimeout) clearTimeout(cleanCacheResultTimeout)
+		cleanCacheResultTimeout = setTimeout(() => {
+			cleanCacheResult()
+		}, 100)
 	}
 	const cache = cacheResultCache[name]
 	if (!cache || cache.ttl < Date.now()) {
@@ -645,7 +649,11 @@ export function cacheResult<T>(name: string, fcn: () => T, limitTime = 1000): T 
 		return cache.value
 	}
 }
-function cleanCacheResult() {
+export function cleanCacheResult(): void {
+	if (cleanCacheResultTimeout) {
+		clearTimeout(cleanCacheResultTimeout)
+		cleanCacheResultTimeout = null
+	}
 	_.each(cacheResultCache, (cache, name) => {
 		if (cache.ttl < Date.now()) delete cacheResultCache[name]
 	})

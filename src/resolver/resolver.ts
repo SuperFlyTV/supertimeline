@@ -151,7 +151,7 @@ export class Resolver {
 					changedReferences[ref] = true
 				}
 			}
-			_.each(resolvedTimeline.objects, (obj: ResolvedTimelineObject) => {
+			for (const obj of Object.values(resolvedTimeline.objects)) {
 				const oldHash = cache.objHashes[obj.id]
 				const newHash = hashTimelineObject(obj)
 				allNewObjects[obj.id] = true
@@ -173,7 +173,7 @@ export class Resolver {
 						resolved: oldObj.resolved,
 					}
 				}
-			})
+			}
 			if (cache.hasOldData) {
 				// Go through all old hashes, removing the ones that doesn't exist anymore
 				for (const objId in cache.resolvedTimeline.objects) {
@@ -186,13 +186,13 @@ export class Resolver {
 				// Invalidate objects, by gradually removing the invalidated ones from validObjects
 				// Prepare validObjects:
 				const validObjects: ResolvedTimelineObjects = {}
-				_.each(resolvedTimeline.objects, (obj) => {
+				for (const obj of Object.values(resolvedTimeline.objects)) {
 					validObjects[obj.id] = obj
-				})
+				}
 				/** All references that depend on another reference (ie objects, classs or layers): */
 				const affectReferenceMap: { [ref: string]: string[] } = {}
 
-				_.each(resolvedTimeline.objects, (obj) => {
+				for (const obj of Object.values(resolvedTimeline.objects)) {
 					// Add everything that this object affects:
 					const cachedObj = cache.resolvedTimeline.objects[obj.id]
 					let affectedReferences = getAllReferencesThisObjectAffects(obj)
@@ -229,7 +229,7 @@ export class Resolver {
 							}
 						}
 					}
-				})
+				}
 				// Invalidate all changed objects, and recursively invalidate all objects that reference those objects:
 				const handledReferences: { [ref: string]: true } = {}
 				for (const reference of Object.keys(changedReferences)) {
@@ -237,17 +237,17 @@ export class Resolver {
 				}
 				// The objects that are left in validObjects at this point are still valid.
 				// We can reuse the old resolving for those:
-				_.each(validObjects, (obj: ResolvedTimelineObject) => {
+				for (const obj of Object.values(validObjects)) {
 					if (!cache.resolvedTimeline.objects[obj.id])
 						throw new Error(
 							`Something went wrong: "${obj.id}" does not exist in cache.resolvedTimeline.objects`
 						)
 					resolvedTimeline.objects[obj.id] = cache.resolvedTimeline.objects[obj.id]
-				})
+				}
 			}
-			_.each(resolvedTimeline.objects, (obj: ResolvedTimelineObject) => {
+			for (const obj of Object.values(resolvedTimeline.objects)) {
 				resolveTimelineObj(resolvedTimeline, obj)
-			})
+			}
 
 			// Save for next time:
 			cache.resolvedTimeline = resolvedTimeline
@@ -260,16 +260,16 @@ export class Resolver {
 			resolvedTimeline.statistics.resolvedObjectCount = 0
 			resolvedTimeline.statistics.resolvedGroupCount = 0
 			resolvedTimeline.statistics.resolvedKeyframeCount = 0
-			_.each(resolvedTimeline.objects, (obj) => {
+			for (const obj of Object.values(resolvedTimeline.objects)) {
 				updateStatistics(resolvedTimeline, obj)
-			})
+			}
 
 			return resolvedTimeline
 		} else {
 			// If there are no cache provided, just resolve all objects:
-			_.each(resolvedTimeline.objects, (obj: ResolvedTimelineObject) => {
+			for (const obj of Object.values(resolvedTimeline.objects)) {
 				resolveTimelineObj(resolvedTimeline, obj)
-			})
+			}
 			return resolvedTimeline
 		}
 	}
