@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [8.2.3](https://github.com/SuperFlyTV/supertimeline/compare/8.2.2...8.2.3) (2022-01-04)
+
+
+### Bug Fixes
+
+* replace some _.each with for of loops, to conform with convention ([9716f86](https://github.com/SuperFlyTV/supertimeline/commit/9716f862f364532895a9059ee365c8b6acb22b55))
+
 ### [8.2.2](https://github.com/SuperFlyTV/supertimeline/compare/8.2.1...8.2.2) (2021-10-22)
 
 
