@@ -602,6 +602,88 @@ describeVariants(
 				{ start: 60, end: 100 },
 			])
 		})
+		test('Keyframes in capped objects', () => {
+			const timeline = fixTimeline([
+				{
+					id: 'grp0',
+					enable: {
+						start: 1000,
+						end: '#grp1.start + 300',
+					},
+					priority: 1,
+					layer: 'layer1',
+					content: {
+						objects: [],
+					},
+					children: [
+						{
+							id: 'grp0_0',
+							content: {},
+							enable: {
+								start: 0,
+							},
+							layer: 'layer0',
+							priority: 2,
+							keyframes: [
+								{
+									id: 'grp0_0_kf0',
+									enable: {
+										while: '1',
+									},
+									content: {
+										kf: 0,
+									},
+								},
+							],
+						},
+					],
+					isGroup: true,
+				},
+				{
+					id: 'grp1',
+					enable: {
+						start: 5000,
+					},
+					priority: 1,
+					layer: 'layer1',
+					content: {
+						objects: [],
+					},
+					children: [
+						{
+							id: 'grp1_0',
+							content: {},
+							enable: {
+								start: 500,
+							},
+							layer: 'layer0',
+							priority: 2,
+						},
+					],
+					isGroup: true,
+				},
+			])
+
+			const resolved = Resolver.resolveTimeline(timeline, {
+				cache: getCache(),
+				time: 0,
+				limitCount: 10,
+				limitTime: 999,
+			})
+			const states = Resolver.resolveAllStates(resolved)
+			expect(states.objects['grp0'].resolved.instances).toMatchObject([{ start: 1000, end: 5000 }])
+			expect(states.objects['grp1'].resolved.instances).toMatchObject([{ start: 5000, end: null }])
+			expect(states.objects['grp0_0'].resolved.instances).toMatchObject([{ start: 1000, end: 5000 }]) // capped by its parent
+			expect(states.objects['grp0_0_kf0'].resolved.instances).toMatchObject([{ start: 1000, end: 5000 }]) // capped by its parent
+
+			expect(Resolver.getState(states, 4999).layers['layer0']).toMatchObject({
+				id: 'grp0_0',
+				content: {
+					kf: 0,
+				},
+			})
+			expect(Resolver.getState(states, 5100).layers['layer0']).toBeFalsy()
+		})
 	},
 	{
 		normal: true,
