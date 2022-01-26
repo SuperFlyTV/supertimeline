@@ -912,6 +912,14 @@ describeVariants(
 					end: null,
 				},
 			])
+
+			expect(Resolver.getState(resolved, baseTime + 110).layers['layer1']).toMatchObject({ id: 'grp0' })
+			expect(Resolver.getState(resolved, baseTime + 110).layers['layer1_0']).toMatchObject({ id: 'grp0_obj0' })
+
+			expect(Resolver.getState(resolved, baseTime + 130).layers['layer1']).toMatchObject({ id: 'grp1' })
+
+			// Should be empty, since it is capped by its parent (also evidenced by the instances before)
+			expect(Resolver.getState(resolved, baseTime + 130).layers['layer1_0']).toBeFalsy()
 		})
 		test('groups replacing each other, capping children in lower levels', () => {
 			// ensure that capping of children works multiple levels down, and with repeating parents
