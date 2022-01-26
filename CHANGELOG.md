@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [8.2.5](https://github.com/SuperFlyTV/supertimeline/compare/8.2.4...8.2.5) (2022-01-26)
+
 ### [8.2.4](https://github.com/SuperFlyTV/supertimeline/compare/8.2.3...8.2.4) (2022-01-26)
 
 
