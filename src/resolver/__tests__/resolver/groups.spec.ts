@@ -891,11 +891,27 @@ describeVariants(
 			expect(resolved.objects['grp1'].resolved.instances).toHaveLength(1)
 
 			// expect grp0 to be ended by grp1 replacing it on the layer
-			expect(resolved.objects['grp0'].resolved.instances[0].end).toBe(baseTime + 120)
+			expect(resolved.objects['grp0'].resolved.instances).toMatchObject([
+				{
+					start: baseTime + 100,
+					end: baseTime + 120,
+				},
+			])
 			// expect grp0_obj0 to be ended by grp0 ending, ended by grp1 replacing it
-			expect(resolved.objects['grp0_obj0'].resolved.instances[0].end).toBe(baseTime + 120)
+			expect(resolved.objects['grp0_obj0'].resolved.instances).toMatchObject([
+				{
+					start: baseTime + 100,
+					end: baseTime + 120,
+				},
+			])
 			// expect grp1 to be infinite
 			expect(resolved.objects['grp1'].resolved.instances[0].end).toBe(null)
+			expect(resolved.objects['grp1'].resolved.instances).toMatchObject([
+				{
+					start: baseTime + 120,
+					end: null,
+				},
+			])
 		})
 		test('groups replacing each other, capping children in lower levels', () => {
 			// ensure that capping of children works multiple levels down, and with repeating parents
