@@ -333,9 +333,6 @@ export function resolveStates(resolved: ResolvedTimeline, cache?: ResolverCache)
 						// Update activeObjIds:
 						activeObjIds[newObjInstance.id] = newObjInstance
 
-						// Update the tracking state as well:
-						setStateAtTime(resolvedStates.state, layer, time, newObjInstance)
-
 						// Add to nextEvents:
 						resolvedStates.nextEvents.push({
 							type: EventType.START,
@@ -348,9 +345,6 @@ export function resolveStates(resolved: ResolvedTimeline, cache?: ResolverCache)
 					} else if (removeOldObj) {
 						// Remove from current state:
 						delete currentState[layer]
-
-						// Update the tracking state as well:
-						setStateAtTime(resolvedStates.state, layer, time, null)
 
 						changed = true
 					}
@@ -479,8 +473,92 @@ export function resolveStates(resolved: ResolvedTimeline, cache?: ResolverCache)
 		}
 	}
 
+	// At this point, all instances of the objects should be properly calculated.
+	// Go through all instances of all objects to create temporary states of all layers and times:
+	{
+		const states: {
+			[layer: string]: {
+				[time: string]: {
+					/** The number of starts found at this time. (Used to check for fatal bugs) */
+					startCount: number
+					/** The number of ends found at this time. (Used to check for fatal bugs) */
+					endCount: number
+					objectInstance: ResolvedTimelineObjectInstanceKeyframe | null
+				}
+			}
+		} = {}
+		for (const id of Object.keys(resolvedStates.objects)) {
+			const obj = resolvedStates.objects[id]
+			const layer = `${obj.layer}`
+
+			if (!states[layer]) states[layer] = {}
+			const stateLayer = states[layer]
+
+			if (!obj.resolved.isKeyframe) {
+				for (const instance of obj.resolved.instances) {
+					const startTime = instance.start + ''
+					if (!stateLayer[startTime]) {
+						stateLayer[startTime] = {
+							startCount: 0,
+							endCount: 0,
+							objectInstance: null,
+						}
+					}
+
+					const newObjInstance = {
+						...obj,
+						instance: instance,
+					}
+
+					stateLayer[startTime].startCount++
+					stateLayer[startTime].objectInstance = newObjInstance
+
+					if (instance.end) {
+						const endTime = instance.end + ''
+						if (!stateLayer[endTime]) {
+							stateLayer[endTime] = {
+								startCount: 0,
+								endCount: 0,
+								objectInstance: null,
+							}
+						}
+						stateLayer[endTime].endCount++
+					}
+				}
+			}
+		}
+		// Go through the temporary states and apply the changes to the resolvedStates.state:
+		for (const layer of Object.keys(states)) {
+			let sum = 0
+			for (const time of Object.keys(states[layer])) {
+				const s = states[layer][time]
+				sum += s.startCount
+				sum -= s.endCount
+
+				// Check for fatal bugs:
+				// If the sum is larger than one, more than one start was found at the same time, which should not be possible.
+				if (sum > 1) throw new Error(`Too many start events at ${layer} ${time}: ${sum}`)
+				// If the sum is less than zero, there have been more ends than starts, which should not be possible.
+				if (sum < 0) throw new Error(`Too many end events at ${layer} ${time}: ${sum}`)
+
+				// Apply the state:
+				if (!resolvedStates.state[layer]) resolvedStates.state[layer] = {}
+				if (sum) {
+					// This means that the object has started
+					if (!s.objectInstance)
+						throw new Error(`objectInstance not set, event though sum=${sum} at ${layer} ${time}`)
+
+					resolvedStates.state[layer][time] = [s.objectInstance]
+				} else {
+					// This means that the object has ended
+					resolvedStates.state[layer][time] = null
+				}
+			}
+		}
+	}
+
+	// Cap keyframes inside their parents:
 	for (const id of Object.keys(resolvedStates.objects)) {
-		// Cap keyframes inside their parents:
 		{
 			const keyframe = resolvedStates.objects[id]
 			if (keyframe.resolved.isKeyframe && keyframe.resolved.parentId) {
@@ -574,15 +652,6 @@ function getTimesFromParents(resolved: ResolvedTimeline, obj: ResolvedTimelineOb
 	return times
 }
 
-function setStateAtTime(
-	states: AllStates,
-	layer: string,
-	time: number,
-	objInstance: ResolvedTimelineObjectInstanceKeyframe | null
-) {
-	if (!states[layer]) states[layer] = {}
-	states[layer][time + ''] = objInstance ? [objInstance] : objInstance
-}
 function addKeyframeAtTime(
 	states: AllStates,
 	layer: string,

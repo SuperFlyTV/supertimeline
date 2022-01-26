@@ -891,11 +891,35 @@ describeVariants(
 			expect(resolved.objects['grp1'].resolved.instances).toHaveLength(1)
 
 			// expect grp0 to be ended by grp1 replacing it on the layer
-			expect(resolved.objects['grp0'].resolved.instances[0].end).toBe(baseTime + 120)
+			expect(resolved.objects['grp0'].resolved.instances).toMatchObject([
+				{
+					start: baseTime + 100,
+					end: baseTime + 120,
+				},
+			])
 			// expect grp0_obj0 to be ended by grp0 ending, ended by grp1 replacing it
-			expect(resolved.objects['grp0_obj0'].resolved.instances[0].end).toBe(baseTime + 120)
+			expect(resolved.objects['grp0_obj0'].resolved.instances).toMatchObject([
+				{
+					start: baseTime + 100,
+					end: baseTime + 120,
+				},
+			])
 			// expect grp1 to be infinite
 			expect(resolved.objects['grp1'].resolved.instances[0].end).toBe(null)
+			expect(resolved.objects['grp1'].resolved.instances).toMatchObject([
+				{
+					start: baseTime + 120,
+					end: null,
+				},
+			])
+
+			expect(Resolver.getState(resolved, baseTime + 110).layers['layer1']).toMatchObject({ id: 'grp0' })
+			expect(Resolver.getState(resolved, baseTime + 110).layers['layer1_0']).toMatchObject({ id: 'grp0_obj0' })
+
+			expect(Resolver.getState(resolved, baseTime + 130).layers['layer1']).toMatchObject({ id: 'grp1' })
+
+			// Should be empty, since it is capped by its parent (also evidenced by the instances before)
+			expect(Resolver.getState(resolved, baseTime + 130).layers['layer1_0']).toBeFalsy()
 		})
 		test('groups replacing each other, capping children in lower levels', () => {
 			// ensure that capping of children works multiple levels down, and with repeating parents
@@ -1171,6 +1195,128 @@ describeVariants(
 				start: 6000,
 				end: null,
 			})
+		})
+
+		test('Child object', () => {
+			const baseTime = 3000 // Some real point in time
+			const timeline = fixTimeline([
+				{
+					id: 'grp0',
+					enable: {
+						start: 1000,
+						end: '#grp1.start + 300',
+					},
+					priority: 1,
+					layer: 'layer1',
+					content: {},
+					children: [
+						{
+							id: 'grp0_0',
+							content: {},
+							enable: {
+								start: 0,
+							},
+							layer: 'layer0',
+							priority: 2,
+						},
+					],
+					isGroup: true,
+				},
+				{
+					id: 'grp1',
+					enable: {
+						start: 5000,
+					},
+					priority: 1,
+					layer: 'layer1',
+					content: {},
+					children: [
+						{
+							id: 'grp1_0',
+							content: {},
+							enable: {
+								start: 500,
+							},
+							layer: 'layer0',
+							priority: 2,
+						},
+					],
+					isGroup: true,
+				},
+			])
+
+			const resolved = Resolver.resolveAllStates(
+				Resolver.resolveTimeline(timeline, {
+					cache: getCache(),
+					time: baseTime + 1000,
+					limitCount: 10,
+					limitTime: 999,
+				})
+			)
+			expect(resolved.statistics.resolvedObjectCount).toEqual(4)
+
+			// grp0_0 runs for a while
+			expect(resolved.objects['grp0_0']).toBeTruthy()
+			expect(resolved.objects['grp0_0'].resolved.instances).toHaveLength(1)
+			expect(resolved.objects['grp0_0'].resolved.instances[0]).toMatchObject({
+				start: 1000,
+				end: 5000,
+			})
+
+			// grp1_0 runs once grp0_0 has cleared
+			expect(resolved.objects['grp1_0']).toBeTruthy()
+			expect(resolved.objects['grp1_0'].resolved.instances).toHaveLength(1)
+			expect(resolved.objects['grp1_0'].resolved.instances[0]).toMatchObject({
+				start: 5500,
+				end: null,
+			})
+
+			{
+				// Clearly in grp0
+				const state = Resolver.getState(resolved, 4999)
+				expect(state.layers['layer1']).toBeTruthy()
+				expect(state.layers['layer1']).toMatchObject({
+					id: 'grp0',
+				})
+
+				expect(state.layers['layer0']).toBeTruthy()
+				expect(state.layers['layer0']).toMatchObject({
+					id: 'grp0_0',
+				})
+			}
+			{
+				// Clearly in grp1
+				const state = Resolver.getState(resolved, 5600)
+				expect(state.layers['layer1']).toBeTruthy()
+				expect(state.layers['layer1']).toMatchObject({
+					id: 'grp1',
+				})
+
+				expect(state.layers['layer0']).toBeTruthy()
+				expect(state.layers['layer0']).toMatchObject({
+					id: 'grp1_0',
+				})
+			}
+			{
+				// after 'end' of grp0
+				const state = Resolver.getState(resolved, 5400)
+				expect(state.layers['layer1']).toBeTruthy()
+				expect(state.layers['layer1']).toMatchObject({
+					id: 'grp1',
+				})
+
+				expect(state.layers['layer0']).toBeFalsy()
+			}
+			{
+				// before 'end' of grp0
+				const state = Resolver.getState(resolved, 5200)
+				expect(state.layers['layer1']).toBeTruthy()
+				expect(state.layers['layer1']).toMatchObject({
+					id: 'grp1',
+				})
+
+				expect(state.layers['layer0']).toBeFalsy()
+			}
 		})
 	},
 	{
