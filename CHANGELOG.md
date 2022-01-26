@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [8.2.4](https://github.com/SuperFlyTV/supertimeline/compare/8.2.3...8.2.4) (2022-01-26)
+
+
+### Bug Fixes
+
+* don't set resolvedStates.state prematurely, instead do that after having walked through all object-instances ([bd1f20e](https://github.com/SuperFlyTV/supertimeline/commit/bd1f20ed03a9158e8067fe02c347b47dd81032aa))
+
 ### [8.2.3](https://github.com/SuperFlyTV/supertimeline/compare/8.2.2...8.2.3) (2022-01-04)
 
 
