@@ -1196,6 +1196,128 @@ describeVariants(
 				end: null,
 			})
 		})
+
+		test('Child object', () => {
+			const baseTime = 3000 // Some real point in time
+			const timeline = fixTimeline([
+				{
+					id: 'grp0',
+					enable: {
+						start: 1000,
+						end: '#grp1.start + 300',
+					},
+					priority: 1,
+					layer: 'layer1',
+					content: {},
+					children: [
+						{
+							id: 'grp0_0',
+							content: {},
+							enable: {
+								start: 0,
+							},
+							layer: 'layer0',
+							priority: 2,
+						},
+					],
+					isGroup: true,
+				},
+				{
+					id: 'grp1',
+					enable: {
+						start: 5000,
+					},
+					priority: 1,
+					layer: 'layer1',
+					content: {},
+					children: [
+						{
+							id: 'grp1_0',
+							content: {},
+							enable: {
+								start: 500,
+							},
+							layer: 'layer0',
+							priority: 2,
+						},
+					],
+					isGroup: true,
+				},
+			])
+
+			const resolved = Resolver.resolveAllStates(
+				Resolver.resolveTimeline(timeline, {
+					cache: getCache(),
+					time: baseTime + 1000,
+					limitCount: 10,
+					limitTime: 999,
+				})
+			)
+			expect(resolved.statistics.resolvedObjectCount).toEqual(4)
+
+			// grp0_0 runs for a while
+			expect(resolved.objects['grp0_0']).toBeTruthy()
+			expect(resolved.objects['grp0_0'].resolved.instances).toHaveLength(1)
+			expect(resolved.objects['grp0_0'].resolved.instances[0]).toMatchObject({
+				start: 1000,
+				end: 5000,
+			})
+
+			// grp1_0 runs once grp0_0 has cleared
+			expect(resolved.objects['grp1_0']).toBeTruthy()
+			expect(resolved.objects['grp1_0'].resolved.instances).toHaveLength(1)
+			expect(resolved.objects['grp1_0'].resolved.instances[0]).toMatchObject({
+				start: 5500,
+				end: null,
+			})
+
+			{
+				// Clearly in grp0
+				const state = Resolver.getState(resolved, 4999)
+				expect(state.layers['layer1']).toBeTruthy()
+				expect(state.layers['layer1']).toMatchObject({
+					id: 'grp0',
+				})
+
+				expect(state.layers['layer0']).toBeTruthy()
+				expect(state.layers['layer0']).toMatchObject({
+					id: 'grp0_0',
+				})
+			}
+			{
+				// Clearly in grp1
+				const state = Resolver.getState(resolved, 5600)
+				expect(state.layers['layer1']).toBeTruthy()
+				expect(state.layers['layer1']).toMatchObject({
+					id: 'grp1',
+				})
+
+				expect(state.layers['layer0']).toBeTruthy()
+				expect(state.layers['layer0']).toMatchObject({
+					id: 'grp1_0',
+				})
+			}
+			{
+				// after 'end' of grp0
+				const state = Resolver.getState(resolved, 5400)
+				expect(state.layers['layer1']).toBeTruthy()
+				expect(state.layers['layer1']).toMatchObject({
+					id: 'grp1',
+				})
+
+				expect(state.layers['layer0']).toBeFalsy()
+			}
+			{
+				// before 'end' of grp0
+				const state = Resolver.getState(resolved, 5200)
+				expect(state.layers['layer1']).toBeTruthy()
+				expect(state.layers['layer1']).toMatchObject({
+					id: 'grp1',
+				})
+
+				expect(state.layers['layer0']).toBeFalsy()
+			}
+		})
 	},
 	{
 		normal: true,
