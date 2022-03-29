@@ -153,7 +153,7 @@ export function validateExpression(operatorList: Array<string>, expr0: Expressio
 	if (!breadcrumbs) breadcrumbs = 'ROOT'
 
 	if (_.isObject(expr0) && !_.isArray(expr0)) {
-		const expr: ExpressionObj = expr0 as ExpressionObj
+		const expr: ExpressionObj = expr0
 
 		if (!_.has(expr, 'l'))
 			throw new Error(`validateExpression: ${breadcrumbs}.l missing in ${JSON.stringify(expr)}`)
