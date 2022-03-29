@@ -56,7 +56,7 @@ jobs:
           CI: true
       - name: Run tests
         run: |
-          yarn unit
+          yarn unit --coverage=true
         env:
           CI: true
       - name: Send coverage
