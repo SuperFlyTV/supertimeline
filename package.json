@@ -1,6 +1,6 @@
 {
 	"name": "superfly-timeline",
-	"version": "8.2.5",
+	"version": "8.2.6",
 	"description": "A collection of rules as well as a resolver for placing objects on a virtual timeline.",
 	"license": "MIT",
 	"author": {
@@ -30,8 +30,8 @@
 		"build-examples": "yarn build && yarn build:examples",
 		"build:examples": "tsc -p tsconfig-examples.json",
 		"lint:raw": "eslint --ext .ts --ext .js --ext .tsx --ext .jsx --ignore-pattern dist --ignore-pattern docs",
-        "lint": "yarn lint:raw .",
-        "lint-fix": "yarn lint --fix",
+		"lint": "yarn lint:raw .",
+		"lint-fix": "yarn lint --fix",
 		"unit": "jest --forceExit --detectOpenHandles",
 		"test": "yarn lint && yarn unit",
 		"watch": "jest --watch",
@@ -56,7 +56,7 @@
 			"prettier --write"
 		],
 		"*.{ts,tsx,js,jsx}": [
-            "yarn lint:raw --fix"
+			"yarn lint:raw --fix"
 		]
 	},
 	"files": [
