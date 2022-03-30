@@ -513,7 +513,7 @@ export function resolveStates(resolved: ResolvedTimeline, cache?: ResolverCache)
 					stateLayer[startTime].startCount++
 					stateLayer[startTime].objectInstance = newObjInstance
 
-					if (instance.end) {
+					if (instance.end !== null) {
 						const endTime = instance.end + ''
 						if (!stateLayer[endTime]) {
 							stateLayer[endTime] = {
