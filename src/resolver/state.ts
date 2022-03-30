@@ -115,7 +115,7 @@ export function resolveStates(resolved: ResolvedTimeline, cache?: ResolverCache)
 							if (
 								parentTime &&
 								parentTime.time > (instance.start || 0) &&
-								parentTime.time < (instance.end || Infinity)
+								parentTime.time < (instance.end ?? Infinity)
 							) {
 								timeEvents.push(parentTime)
 							}
@@ -202,7 +202,7 @@ export function resolveStates(resolved: ResolvedTimeline, cache?: ResolverCache)
 			const obj: ResolvedTimelineObject = o.obj
 			const instance: TimelineObjectInstance = o.instance
 
-			let toBeEnabled: boolean = (instance.start || 0) <= time && (instance.end || Infinity) > time
+			let toBeEnabled: boolean = (instance.start || 0) <= time && (instance.end ?? Infinity) > time
 
 			const layer: string = obj.layer + ''
 
@@ -360,7 +360,7 @@ export function resolveStates(resolved: ResolvedTimeline, cache?: ResolverCache)
 								for (const child0 of parent.children) {
 									const child = resolved.objects[child0.id]
 									for (const instance of child.resolved.instances) {
-										if (instance.start <= time && (instance.end || Infinity) > time) {
+										if (instance.start <= time && (instance.end ?? Infinity) > time) {
 											// Add the child instance, because that might be affected:
 											addPointInTime(time, 'child', 99, child, instance)
 										}
@@ -376,7 +376,7 @@ export function resolveStates(resolved: ResolvedTimeline, cache?: ResolverCache)
 					// Add keyframe to resolvedStates.objects:
 					resolvedStates.objects[keyframe.id] = keyframe
 
-					const toBeEnabled: boolean = (instance.start || 0) <= time && (instance.end || Infinity) > time
+					const toBeEnabled: boolean = (instance.start || 0) <= time && (instance.end ?? Infinity) > time
 
 					if (toBeEnabled) {
 						const newObjInstance = {
@@ -425,8 +425,8 @@ export function resolveStates(resolved: ResolvedTimeline, cache?: ResolverCache)
 							})
 							// Cap end within parent
 							let instanceEnd: number | null = Math.min(
-								instance.end || Infinity,
-								parentObjInstance.instance.end || Infinity
+								instance.end ?? Infinity,
+								parentObjInstance.instance.end ?? Infinity
 							)
 							if (instanceEnd === Infinity) instanceEnd = null
 
@@ -695,7 +695,7 @@ function getStateAtTime(states: AllStates, layer: string, requestTime: number): 
 				for (let i = 0; i < keyframes.length; i++) {
 					const keyframe = keyframes[i]
 					if (state && keyframe.resolved.parentId === state.id) {
-						if ((keyframe.keyframeEndTime || Infinity) > requestTime) {
+						if ((keyframe.keyframeEndTime ?? Infinity) > requestTime) {
 							if (!isCloned) {
 								isCloned = true
 								state = {

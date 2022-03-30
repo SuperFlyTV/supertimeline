@@ -73,11 +73,7 @@ export function cleanInstances(
 ): Array<TimelineObjectInstance> {
 	// First, optimize for certain common situations:
 	if (instances.length === 0) return []
-	if (instances.length <= 1) {
-		const instance = instances[0]
-		if (!instance.end) instance.end = null
-		return [instance]
-	}
+	if (instances.length === 1) return instances
 
 	const events: Array<EventForInstance> = []
 
@@ -439,7 +435,7 @@ export function applyRepeatingInstances(
 			const cappedStartTime: Time = cap ? Math.max(cap.start, startTime) : startTime
 			const cappedEndTime: Time | null =
 				cap && cap.end !== null && endTime !== null ? Math.min(cap.end, endTime) : endTime
-			if ((cappedEndTime || Infinity) > cappedStartTime) {
+			if ((cappedEndTime ?? Infinity) > cappedStartTime) {
 				repeatedInstances.push({
 					id: getId(),
 					start: cappedStartTime,
@@ -475,7 +471,7 @@ export function capInstances(
 			const parent = parentInstances[j]
 
 			// First, check if the instance crosses the parent at all:
-			if (instanceOrg.start <= (parent.end || Infinity) && (instanceOrg.end || Infinity) >= parent.start) {
+			if (instanceOrg.start <= (parent.end ?? Infinity) && (instanceOrg.end ?? Infinity) >= parent.start) {
 				const instance = _.clone(instanceOrg)
 
 				// Cap start
@@ -483,11 +479,11 @@ export function capInstances(
 					setInstanceStartTime(instance, parent.start)
 				}
 				// Cap end
-				if ((instance.end || Infinity) > (parent.end || Infinity)) {
+				if ((instance.end ?? Infinity) > (parent.end ?? Infinity)) {
 					setInstanceEndTime(instance, parent.end)
 				}
 
-				if (instance.start >= parent.start && (instance.end || Infinity) <= (parent.end || Infinity)) {
+				if (instance.start >= parent.start && (instance.end ?? Infinity) <= (parent.end ?? Infinity)) {
 					// The instance is within the parent
 
 					if (instance.start === instance.end && addedInstanceTimes.has(instance.start)) {
@@ -567,7 +563,7 @@ export function addCapsToResuming(instance: TimelineObjectInstance, ...caps: Arr
 	for (let i = 0; i < joinedCaps.length; i++) {
 		const cap = joinedCaps[i]
 
-		if (cap.end && instance.end && cap.end > instance.end) {
+		if (cap.end !== null && instance.end !== null && cap.end > instance.end) {
 			capsToAdd.push({
 				id: cap.id,
 				start: 0,
