@@ -1273,6 +1273,28 @@ describeVariants(
 				])
 			}
 		})
+		test('too many start events', () => {
+			const timeline = [
+				{
+					id: 'obj0',
+					enable: { while: 1 },
+					priority: 0,
+					layer: 'l0',
+					content: {},
+				},
+				{
+					id: 'obj1',
+					enable: { while: '1' },
+					priority: 2,
+					layer: 'l0',
+					content: {},
+				},
+			]
+
+			const resolved0 = Resolver.resolveTimeline(timeline, { time: 0 })
+			const allStates0 = Resolver.resolveAllStates(resolved0)
+			expect(allStates0).toBeTruthy()
+		})
 	},
 	{
 		normal: true,
