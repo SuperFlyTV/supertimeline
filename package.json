@@ -91,7 +91,7 @@
 		"underscore": "^1.13.2"
 	},
 	"standard-version": {
-		"message": "chore(release): %s [skip ci]",
+		"message": "chore(release): %s",
 		"tagPrefix": ""
 	}
 }
