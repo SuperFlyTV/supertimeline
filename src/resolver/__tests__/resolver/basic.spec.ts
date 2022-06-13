@@ -1198,7 +1198,7 @@ describeVariants(
 
 			const timeline = fixTimeline([enable0, enable1, obj0])
 			{
-				const resolved0 = Resolver.resolveTimeline(timeline, { time: boundary + 50 })
+				const resolved0 = Resolver.resolveTimeline(timeline, { time: boundary + 50, cache: getCache() })
 				const allStates0 = Resolver.resolveAllStates(resolved0)
 				const state0 = Resolver.getState(allStates0, boundary + 50)
 				expect(state0.layers['layer0'].resolved.instances).toMatchObject([
@@ -1217,7 +1217,7 @@ describeVariants(
 			obj0.enable.end = boundary
 
 			{
-				const resolved0 = Resolver.resolveTimeline(timeline, { time: boundary - 50 })
+				const resolved0 = Resolver.resolveTimeline(timeline, { time: boundary - 50, cache: getCache() })
 				const allStates0 = Resolver.resolveAllStates(resolved0)
 				const state0 = Resolver.getState(allStates0, boundary + 50)
 				expect(state0.layers['layer0'].resolved.instances).toMatchObject([
@@ -1274,7 +1274,7 @@ describeVariants(
 			}
 		})
 		test('too many start events', () => {
-			const timeline = [
+			const timeline = fixTimeline([
 				{
 					id: 'obj0',
 					enable: { while: 1 },
@@ -1289,9 +1289,9 @@ describeVariants(
 					layer: 'l0',
 					content: {},
 				},
-			]
+			])
 
-			const resolved0 = Resolver.resolveTimeline(timeline, { time: 0 })
+			const resolved0 = Resolver.resolveTimeline(timeline, { time: 0, cache: getCache() })
 			const allStates0 = Resolver.resolveAllStates(resolved0)
 			expect(allStates0).toBeTruthy()
 		})
