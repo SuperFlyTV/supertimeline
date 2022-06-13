@@ -678,10 +678,13 @@ function addKeyframeAtTime(
 function getStateAtTime(states: AllStates, layer: string, requestTime: number): ResolvedTimelineObjectInstance | null {
 	const layerStates = states[layer] || {}
 
-	const times: number[] = _.map(_.keys(layerStates), (time) => parseFloat(time))
-	times.sort((a, b) => {
-		return a - b
-	})
+	const times: number[] = Object.keys(layerStates)
+		.map((time) => parseFloat(time))
+		// Sort chronologically:
+		.sort((a, b) => {
+			return a - b
+		})
+
 	let state: ResolvedTimelineObjectInstance | null = null
 	let isCloned = false
 	for (let i = 0; i < times.length; i++) {
