@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [8.2.8](https://github.com/SuperFlyTV/supertimeline/compare/8.2.3...8.2.8) (2022-06-13)
+
+
+### Bug Fixes
+
+* bug which caused unit test "too many start events" to fail ([7412021](https://github.com/SuperFlyTV/supertimeline/commit/7412021ab71c8ad833837f49cc43552729194094))
+* change all ".end || Infinity" to ".end ?? Infinity" to take into account that .end might be 0 (which means that it ends at 0, not Infinity) ([218b7c5](https://github.com/SuperFlyTV/supertimeline/commit/218b7c5c07afd271f238bd138bb8b3a07ad4e7c3))
+* don't set resolvedStates.state prematurely, instead do that after having walked through all object-instances ([bd1f20e](https://github.com/SuperFlyTV/supertimeline/commit/bd1f20ed03a9158e8067fe02c347b47dd81032aa))
+* sort times before verifying ([296752e](https://github.com/SuperFlyTV/supertimeline/commit/296752eb6d16d397eff4387088d1071027371e27))
+
 ### [8.2.7](https://github.com/SuperFlyTV/supertimeline/compare/8.2.6...8.2.7) (2022-03-30)
 
 ### [8.2.6](https://github.com/SuperFlyTV/supertimeline/compare/8.2.5...8.2.6) (2022-03-30)
