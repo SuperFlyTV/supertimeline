@@ -1295,6 +1295,67 @@ describeVariants(
 			const allStates0 = Resolver.resolveAllStates(resolved0)
 			expect(allStates0).toBeTruthy()
 		})
+		test('too many start events2', () => {
+			const timeline = fixTimeline([
+				{
+					id: 'a',
+					enable: {
+						while: '!.layer0', // { start: 0, end: 10000000000 }, { start: 10000001000 }
+					},
+					layer: '',
+					content: {},
+				},
+				{
+					id: 'b',
+					enable: {
+						start: '#a.start + 100', // 100, 10000001100
+						end: '.layer0', // 10000000000
+					},
+					layer: 'layer1',
+					content: {},
+				},
+				{
+					id: 'group0',
+					enable: {
+						start: 10000000000, // 10000000000
+					},
+					layer: '',
+					content: {},
+					children: [
+						{
+							id: 'child0',
+							enable: {
+								start: 0, // 10000000000
+								duration: 1000, // 10000001000
+							},
+							children: [
+								{
+									id: 'child0_1',
+									enable: {
+										start: 0, // 10000000000
+										// capped/ends at 10000001000
+									},
+									layer: 'layer1',
+									content: {},
+									classes: ['layer0'],
+								},
+							],
+							content: {},
+							isGroup: true,
+							layer: '',
+						},
+					],
+					isGroup: true,
+				},
+			] as any)
+
+			const resolved0 = Resolver.resolveTimeline(timeline, {
+				time: 0,
+				cache: getCache(),
+			})
+			const allStates0 = Resolver.resolveAllStates(resolved0)
+			expect(allStates0).toBeTruthy()
+		})
 	},
 	{
 		normal: true,
