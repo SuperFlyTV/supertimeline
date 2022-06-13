@@ -530,8 +530,16 @@ export function resolveStates(resolved: ResolvedTimeline, cache?: ResolverCache)
 		// Go through the temporary states and apply the changes to the resolvedStates.state:
 		for (const layer of Object.keys(states)) {
 			let sum = 0
-			for (const time of Object.keys(states[layer])) {
-				const s = states[layer][time]
+
+			const times: number[] = Object.keys(states[layer])
+				.map((time) => parseFloat(time))
+				// Sort chronologically:
+				.sort((a, b) => a - b)
+
+			for (let i = 0; i < times.length; i++) {
+				const time = times[i]
+
+				const s = states[layer][`${time}`]
 				sum += s.startCount
 				sum -= s.endCount
 
@@ -670,10 +678,13 @@ function addKeyframeAtTime(
 function getStateAtTime(states: AllStates, layer: string, requestTime: number): ResolvedTimelineObjectInstance | null {
 	const layerStates = states[layer] || {}
 
-	const times: number[] = _.map(_.keys(layerStates), (time) => parseFloat(time))
-	times.sort((a, b) => {
-		return a - b
-	})
+	const times: number[] = Object.keys(layerStates)
+		.map((time) => parseFloat(time))
+		// Sort chronologically:
+		.sort((a, b) => {
+			return a - b
+		})
+
 	let state: ResolvedTimelineObjectInstance | null = null
 	let isCloned = false
 	for (let i = 0; i < times.length; i++) {
