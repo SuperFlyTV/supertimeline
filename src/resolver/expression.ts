@@ -4,7 +4,7 @@ import { isNumeric, isConstant, cacheResult } from '../lib'
 
 export const OPERATORS = ['&', '|', '+', '-', '*', '/', '%', '!']
 
-const REGEXP_OPERATORS = _.map(OPERATORS, (o) => '\\' + o).join('')
+export const REGEXP_OPERATORS = new RegExp('([' + _.map(OPERATORS, (o) => '\\' + o).join('') + '\\(\\)])', 'g')
 
 export function interpretExpression(expression: null): null
 export function interpretExpression(expression: number): number
@@ -18,7 +18,7 @@ export function interpretExpression(expression: Expression): Expression {
 		return cacheResult(
 			expressionString,
 			() => {
-				const expr = expressionString.replace(new RegExp('([' + REGEXP_OPERATORS + '\\(\\)])', 'g'), ' $1 ') // Make sure there's a space between every operator & operand
+				const expr = expressionString.replace(REGEXP_OPERATORS, ' $1 ') // Make sure there's a space between every operator & operand
 
 				const words: Array<string> = _.compact(expr.split(' '))
 

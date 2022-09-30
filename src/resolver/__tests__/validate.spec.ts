@@ -1,4 +1,4 @@
-import { validateObject, validateKeyframe, validateTimeline } from '../validate'
+import { validateObject, validateKeyframe, validateTimeline, validateIdString } from '../validate'
 import { TimelineObject, TimelineKeyframe, TimelineEnable } from '../../api/api'
 import _ = require('underscore')
 
@@ -280,6 +280,56 @@ describe('validate', () => {
 		expect(() => {
 			const tl = _.clone(timeline)
 			tl[1].id = tl[0].id
+			validateTimeline(tl, false)
+		}).toThrowError()
+	})
+	test('validateIdString', () => {
+		expect(() => validateIdString('')).not.toThrowError()
+		expect(() => validateIdString('test')).not.toThrowError()
+		expect(() => validateIdString('abcABC123_')).not.toThrowError()
+		expect(() => validateIdString('_¤"\'£€\\,;:¨~')).not.toThrowError()
+
+		expect(() => validateIdString('test-1')).toThrowError()
+		expect(() => validateIdString('test+1')).toThrowError()
+		expect(() => validateIdString('test/1')).toThrowError()
+		expect(() => validateIdString('test*1')).toThrowError()
+		expect(() => validateIdString('test%1')).toThrowError()
+		expect(() => validateIdString('test&1')).toThrowError()
+		expect(() => validateIdString('test|1')).toThrowError()
+		expect(() => validateIdString('test!')).toThrowError()
+		expect(() => validateIdString('test(')).toThrowError()
+		expect(() => validateIdString('test)')).toThrowError()
+		expect(() => validateIdString('#test')).toThrowError() // a reference to an object id
+		expect(() => validateIdString('.test')).toThrowError() // a reference to an object class
+		expect(() => validateIdString('$test')).toThrowError() // a reference to an object layer
+
+		// These aren't currently in use anywhere, but might be so in the future:
+		expect(() => validateIdString('test§', true)).toThrowError()
+		expect(() => validateIdString('test^', true)).toThrowError()
+		expect(() => validateIdString('test?', true)).toThrowError()
+		expect(() => validateIdString('test=', true)).toThrowError()
+		expect(() => validateIdString('test{', true)).toThrowError()
+		expect(() => validateIdString('test}', true)).toThrowError()
+		expect(() => validateIdString('test[', true)).toThrowError()
+		expect(() => validateIdString('test]', true)).toThrowError()
+	})
+	test('invalid id-strings', () => {
+		expect(() => {
+			const tl = _.clone(timeline)
+			tl[0].id = 'obj-1'
+			validateTimeline(tl, false)
+		}).toThrowError()
+
+		expect(() => {
+			const tl = _.clone(timeline)
+
+			tl[0].classes = ['class-1']
+			validateTimeline(tl, false)
+		}).toThrowError()
+		expect(() => {
+			const tl = _.clone(timeline)
+
+			tl[0].layer = 'layer-1'
 			validateTimeline(tl, false)
 		}).toThrowError()
 	})
