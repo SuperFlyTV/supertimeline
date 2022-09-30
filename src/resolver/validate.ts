@@ -32,16 +32,6 @@ function validateObject0(obj: TimelineObject, strict?: boolean, uniqueIds?: Ids)
 		throw new Error(`Object "${obj.id}": "layer" attribute: ${err}`)
 	}
 
-	if (obj.classes) {
-		for (const className of obj.classes) {
-			try {
-				validateIdString(className, strict)
-			} catch (err) {
-				throw new Error(`Object "${obj.id}": "classes" attribute: ${err}`)
-			}
-		}
-	}
-
 	if (!obj.content) throw new Error(`Object "${obj.id}": "content" attribute must be set`)
 	if (!obj.enable) throw new Error(`Object "${obj.id}": "enable" attribute must be set`)
 
@@ -77,6 +67,12 @@ function validateObject0(obj: TimelineObject, strict?: boolean, uniqueIds?: Ids)
 			const className = obj.classes[i]
 			if (className && typeof className !== 'string')
 				throw new Error(`Object "${obj.id}": "classes[${i}]" is not a string`)
+
+			try {
+				validateIdString(className, strict)
+			} catch (err) {
+				throw new Error(`Object "${obj.id}": "classes[${i}]": ${err}`)
+			}
 		}
 	}
 

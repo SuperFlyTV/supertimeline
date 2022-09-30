@@ -81,6 +81,12 @@ describe('validate', () => {
 
 		expect(() => {
 			const o = _.clone(obj)
+			o.enable = [o.enable as TimelineEnable]
+			validateObject(o, true)
+		}).not.toThrowError()
+
+		expect(() => {
+			const o = _.clone(obj)
 			o.enable = {
 				start: 10,
 				end: 32,
@@ -212,6 +218,18 @@ describe('validate', () => {
 
 		expect(() => {
 			const o = _.clone(keyframe)
+			o.enable = [
+				{
+					start: 10,
+					end: 32,
+					duration: 22,
+				},
+			]
+			validateKeyframe(o, true)
+		}).toThrowError()
+
+		expect(() => {
+			const o = _.clone(keyframe)
 			o.enable = {
 				while: 1,
 				end: 32,
@@ -270,6 +288,13 @@ describe('validate', () => {
 			o.keyframes[0].id = obj.id
 			validateObject(o, true)
 		}).toThrowError()
+
+		expect(() => {
+			const o = _.clone(obj)
+			// @ts-ignore
+			o.classes = [123]
+			validateObject(o, true)
+		}).toThrowError()
 	})
 	test('validateTimeline', () => {
 		expect(() => {
@@ -316,21 +341,24 @@ describe('validate', () => {
 	test('invalid id-strings', () => {
 		expect(() => {
 			const tl = _.clone(timeline)
+			tl[0] = _.clone(tl[0])
 			tl[0].id = 'obj-1'
 			validateTimeline(tl, false)
-		}).toThrowError()
+		}).toThrowError(/id/)
 
 		expect(() => {
 			const tl = _.clone(timeline)
+			tl[0] = _.clone(tl[0])
 
 			tl[0].classes = ['class-1']
 			validateTimeline(tl, false)
-		}).toThrowError()
+		}).toThrowError(/class/)
 		expect(() => {
 			const tl = _.clone(timeline)
+			tl[0] = _.clone(tl[0])
 
 			tl[0].layer = 'layer-1'
 			validateTimeline(tl, false)
-		}).toThrowError()
+		}).toThrowError(/layer/)
 	})
 })
