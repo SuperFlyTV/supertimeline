@@ -15,10 +15,32 @@ function validateObject0(obj: TimelineObject, strict?: boolean, uniqueIds?: Ids)
 	if (!obj.id) throw new Error(`Object missing "id" attribute`)
 	if (typeof obj.id !== 'string') throw new Error(`Object "id" attribute is not a string: "${obj.id}"`)
 
+	try {
+		validateIdString(obj.id, strict)
+	} catch (err) {
+		throw new Error(`Object "id" attribute: ${err}`)
+	}
+
 	if (uniqueIds[obj.id]) throw new Error(`Object id "${obj.id}" is not unique`)
 	uniqueIds[obj.id] = true
 
 	if (obj.layer === undefined) throw new Error(`Object "${obj.id}": "layer" attribute is undefined`)
+
+	try {
+		validateIdString(obj.layer + '', strict)
+	} catch (err) {
+		throw new Error(`Object "${obj.id}": "layer" attribute: ${err}`)
+	}
+
+	if (obj.classes) {
+		for (const className of obj.classes) {
+			try {
+				validateIdString(className, strict)
+			} catch (err) {
+				throw new Error(`Object "${obj.id}": "classes" attribute: ${err}`)
+			}
+		}
+	}
 
 	if (!obj.content) throw new Error(`Object "${obj.id}": "content" attribute must be set`)
 	if (!obj.enable) throw new Error(`Object "${obj.id}": "enable" attribute must be set`)
