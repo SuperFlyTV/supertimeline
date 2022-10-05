@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [8.3.0](https://github.com/SuperFlyTV/supertimeline/compare/8.2.8...8.3.0) (2022-10-05)
+
+
+### Features
+
+* add validateIdString() function, used to ensure that id, classes and layers doesn't contain any invalid characters ([ecd0ae7](https://github.com/SuperFlyTV/supertimeline/commit/ecd0ae76565af89c744fd38981b75f50a8e82260))
+
+
+### Bug Fixes
+
+* validate ids, classes and layer string, to avoid possible crashes when resolving the timeline ([e7b9114](https://github.com/SuperFlyTV/supertimeline/commit/e7b911450869bb2d4726a338f5ce5ea613237cf5))
+
 ### [8.2.8](https://github.com/SuperFlyTV/supertimeline/compare/8.2.3...8.2.8) (2022-06-13)
 
 
