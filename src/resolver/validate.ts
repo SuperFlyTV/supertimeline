@@ -1,6 +1,7 @@
 /* tslint:disable:strict-type-predicates */
 import { TimelineObject, TimelineKeyframe, TimelineEnable } from '../api/api'
 import _ = require('underscore')
+import { REGEXP_OPERATORS } from './expression'
 
 interface Ids {
 	[id: string]: true
@@ -14,10 +15,22 @@ function validateObject0(obj: TimelineObject, strict?: boolean, uniqueIds?: Ids)
 	if (!obj.id) throw new Error(`Object missing "id" attribute`)
 	if (typeof obj.id !== 'string') throw new Error(`Object "id" attribute is not a string: "${obj.id}"`)
 
+	try {
+		validateIdString(obj.id, strict)
+	} catch (err) {
+		throw new Error(`Object "id" attribute: ${err}`)
+	}
+
 	if (uniqueIds[obj.id]) throw new Error(`Object id "${obj.id}" is not unique`)
 	uniqueIds[obj.id] = true
 
 	if (obj.layer === undefined) throw new Error(`Object "${obj.id}": "layer" attribute is undefined`)
+
+	try {
+		validateIdString(obj.layer + '', strict)
+	} catch (err) {
+		throw new Error(`Object "${obj.id}": "layer" attribute: ${err}`)
+	}
 
 	if (!obj.content) throw new Error(`Object "${obj.id}": "content" attribute must be set`)
 	if (!obj.enable) throw new Error(`Object "${obj.id}": "enable" attribute must be set`)
@@ -54,6 +67,12 @@ function validateObject0(obj: TimelineObject, strict?: boolean, uniqueIds?: Ids)
 			const className = obj.classes[i]
 			if (className && typeof className !== 'string')
 				throw new Error(`Object "${obj.id}": "classes[${i}]" is not a string`)
+
+			try {
+				validateIdString(className, strict)
+			} catch (err) {
+				throw new Error(`Object "${obj.id}": "classes[${i}]": ${err}`)
+			}
 		}
 	}
 
@@ -142,4 +161,46 @@ export function validateObject(obj: TimelineObject, strict?: boolean): void {
  */
 export function validateKeyframe(keyframe: TimelineKeyframe, strict?: boolean): void {
 	validateKeyframe0(keyframe, strict)
+}
+
+/** These characters are reserved and cannot be used in ids, etc */
+const RESERVED_CHARACTERS = /[#.$]/
+
+/** These characters are reserved for possible future use and cannot be used in ids, etc */
+const FUTURE_RESERVED_CHARACTERS = /[=?@{}[\]^§]/
+
+/**
+ * Validates a string that is used in Timeline as a reference (an id, a class or layer)
+ * @param str The string to validate
+ * @param strict Set to true to enable some strict rules (rules that can possibly be ignored)
+ */
+export function validateIdString(str: string, strict?: boolean): void {
+	if (!str) return
+	{
+		const m = str.match(REGEXP_OPERATORS)
+		if (m) {
+			throw new Error(
+				`The string "${str}" contains a character ("${m[1]}") which isn't allowed in Timeline (is an operator)`
+			)
+		}
+	}
+	{
+		const m = str.match(RESERVED_CHARACTERS)
+		if (m) {
+			throw new Error(
+				`The string "${str}" contains a character ("${m[1]}") which isn't allowed in Timeline (is a reserved character)`
+			)
+		}
+	}
+	if (strict) {
+		// Also check a few characters that are technically allowed today, but *might* become used in future versions of Timeline:
+		{
+			const m = str.match(FUTURE_RESERVED_CHARACTERS)
+			if (m) {
+				throw new Error(
+					`The string "${str}" contains a character ("${m[0]}") which isn't allowed in Timeline (is an reserved character and might be used in the future)`
+				)
+			}
+		}
+	}
 }

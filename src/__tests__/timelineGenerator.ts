@@ -11,7 +11,7 @@ export function generateTimeline(seed: number, maxCount: number, maxGroupDepth: 
 	const layers: string[] = []
 	const layerCount = Math.ceil(random.get() * maxCount * 0.3)
 	for (let i = 0; i < layerCount; i++) {
-		layers.push('layer' + random.get())
+		layers.push('layer' + random.getInt(10000))
 	}
 	const objectIds: string[] = []
 
