@@ -337,7 +337,7 @@ export function resolveStates(resolved: ResolvedTimeline, cache?: ResolverCache)
 						resolvedStates.nextEvents.push({
 							type: EventType.START,
 							time: newInstance.start,
-							objId: obj.id,
+							objId: newObj.id,
 						})
 						eventObjectTimes[newInstance.start + ''] = EventType.START
 
@@ -496,6 +496,8 @@ export function resolveStates(resolved: ResolvedTimeline, cache?: ResolverCache)
 
 			if (!obj.resolved.isKeyframe) {
 				for (const instance of obj.resolved.instances) {
+					if (instance.start === instance.end) continue
+
 					const startTime = instance.start + ''
 					if (!stateLayer[startTime]) {
 						stateLayer[startTime] = {
