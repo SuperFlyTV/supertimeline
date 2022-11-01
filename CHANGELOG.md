@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [8.3.1](https://github.com/SuperFlyTV/supertimeline/compare/8.3.0...8.3.1) (2022-11-01)
+
+
+### Bug Fixes
+
+* instances capped to zero duration get stuck in state ([#91](https://github.com/SuperFlyTV/supertimeline/issues/91)) ([ec4ecd4](https://github.com/SuperFlyTV/supertimeline/commit/ec4ecd419c1a89dadb4a028b984b7fa8a8f101dd))
+
 ## [8.3.0](https://github.com/SuperFlyTV/supertimeline/compare/8.2.8...8.3.0) (2022-10-05)
 
 
