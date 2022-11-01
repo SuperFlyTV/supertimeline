@@ -1414,7 +1414,7 @@ describeVariants(
 				{ objId: 'tema_capped', time: 2480, type: 0 },
 			])
 
-			const state1 = Resolver.getState(resolved, Date.now())
+			const state1 = Resolver.getState(resolved, 5000)
 			expect(state1.layers['l1']).toBeTruthy()
 			expect(state1.layers['l1'].id).toBe('tema_baseline') // baseline
 			expect(state1.layers['l1'].instance.start).toBe(2480)
@@ -1493,7 +1493,7 @@ describeVariants(
 			)
 			// expect(resolved.statistics.resolvedObjectCount).toEqual(6)
 
-			const state1 = Resolver.getState(resolved, Date.now())
+			const state1 = Resolver.getState(resolved, 5000)
 			expect(state1.layers['l1']).toBeFalsy()
 		})
 	},
