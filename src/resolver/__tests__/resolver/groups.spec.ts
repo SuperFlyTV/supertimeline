@@ -1497,6 +1497,122 @@ describeVariants(
 			const state1 = Resolver.getState(resolved, 5000)
 			expect(state1.layers['l1']).toBeFalsy()
 		})
+
+		test('Dependent object stops with ref', () => {
+			const baseTime = 3000 // Some real point in time
+			const timeline = fixTimeline([
+				{
+					id: 'grp0',
+					enable: {
+						start: 1000,
+					},
+					priority: 1,
+					layer: '',
+					content: {},
+					children: [
+						{
+							id: 'child0_control',
+							enable: {
+								start: 0,
+							},
+							layer: 'l1',
+							priority: 1,
+							content: {},
+						},
+						{
+							id: 'child0',
+							content: {},
+							children: [
+								{
+									id: 'obj0',
+									enable: {
+										start: 0,
+									},
+									priority: 6,
+									layer: 'nora_primary_logo',
+									content: {},
+								},
+							],
+							isGroup: true,
+							enable: {
+								start: '#child0_control.start - 160',
+								end: '#child0_control.end + 0',
+							},
+							layer: 'test',
+						},
+					],
+					isGroup: true,
+				},
+
+				{
+					id: 'grp1',
+					enable: {
+						start: 5000,
+					},
+					priority: 5,
+					layer: '',
+					content: {},
+					children: [
+						{
+							id: 'child1',
+							enable: {
+								start: 320,
+							},
+							layer: 'l1',
+							priority: 5,
+							content: {},
+						},
+					],
+					isGroup: true,
+				},
+			])
+
+			const resolved = Resolver.resolveAllStates(
+				Resolver.resolveTimeline(timeline, {
+					cache: getCache(),
+					time: baseTime + 1000,
+					limitCount: 10,
+					limitTime: 999,
+				})
+			)
+			// expect(resolved.statistics.resolvedObjectCount).toEqual(6)
+
+			// // make sure the events look sane (they did not)
+			// expect(resolved.nextEvents).toStrictEqual([
+			// 	{ objId: 'child0', time: 1000, type: 0 },
+			// 	{ objId: 'child0_control', time: 1000, type: 0 },
+			// 	{ objId: 'obj0', time: 1000, type: 0 },
+			// 	{ objId: 'child0_control', time: 5320, type: 1 },
+			// 	{ objId: 'child0', time: 5320, type: 1 },
+			// 	{ objId: 'obj0', time: 5320, type: 1 },
+			// 	{ objId: 'child1', time: 5320, type: 0 },
+			// ])
+
+			{
+				// While child0_control is on l1
+				const state1 = Resolver.getState(resolved, 2000)
+				expect(state1.layers['l1']).toBeTruthy()
+				expect(state1.layers['l1'].id).toBe('child0_control') // baseline
+				expect(state1.layers['l1'].instance.start).toBe(1000)
+				expect(state1.layers['l1'].instance.end).toBe(5320)
+
+				expect(state1.layers['test']).toBeTruthy()
+				expect(state1.layers['test'].id).toBe('child0') // baseline
+				expect(state1.layers['test'].instance.start).toBe(1000)
+				expect(state1.layers['test'].instance.end).toBe(5320)
+			}
+
+			{
+				// While child1 is on l1
+				const state1 = Resolver.getState(resolved, 6000)
+				expect(state1.layers['l1']).toBeTruthy()
+				expect(state1.layers['l1'].id).toBe('child1') // baseline
+				expect(state1.layers['l1'].instance.start).toBe(5320)
+				expect(state1.layers['l1'].instance.end).toBe(null)
+
+				expect(state1.layers['test']).toBeFalsy()
+			}
+		})
 	},
 	{
 		normal: true,
