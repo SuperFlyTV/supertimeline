@@ -642,20 +642,19 @@ export function lookupExpression(
 	} else if (typeof expr === 'string') {
 		expr = expr.trim()
 
-		if (isConstant(expr)) {
-			if (expr.match(/^true$/i)) {
-				return {
-					instances: {
-						value: 0,
-						references: [],
-					},
-					allReferences: [],
-				}
-			} else if (expr.match(/^false$/i)) {
-				return {
-					instances: [],
-					allReferences: [],
-				}
+		const exprLower = expr.toLowerCase()
+		if (exprLower === 'true') {
+			return {
+				instances: {
+					value: 0,
+					references: [],
+				},
+				allReferences: [],
+			}
+		} else if (exprLower === 'false') {
+			return {
+				instances: [],
+				allReferences: [],
 			}
 		}
 

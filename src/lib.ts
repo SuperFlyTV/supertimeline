@@ -22,7 +22,10 @@ export type OptionalProperties<T> = Pick<T, OptionalPropertyNames<T>>
 export type RequiredProperties<T> = Pick<T, RequiredPropertyNames<T>>
 
 export function isConstant(str: string | number | null | any): str is string | number {
-	return !!(isNumeric(str) || (typeof str === 'string' && (str.match(/^true$/) || str.match(/^false$/))))
+	return !!(
+		isNumeric(str) ||
+		(typeof str === 'string' && (str.toLowerCase() === 'true' || str.toLowerCase() === 'false'))
+	)
 }
 export function isNumeric(str: string | number | null | any): boolean {
 	if (str === null) return false

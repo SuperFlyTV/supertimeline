@@ -1,6 +1,6 @@
 import _ = require('underscore')
 import { Expression, ExpressionObj } from '../api/api'
-import { isNumeric, isConstant, cacheResult } from '../lib'
+import { isNumeric, cacheResult } from '../lib'
 
 export const OPERATORS = ['&', '|', '+', '-', '*', '/', '%', '!']
 
@@ -64,7 +64,7 @@ export function simplifyExpression(expr0: Expression): Expression {
 		const o = expr.o
 		const r = simplifyExpression(expr.r)
 
-		if (isConstant(l) && isConstant(r) && typeof l === 'number' && typeof r === 'number') {
+		if (typeof l === 'number' && typeof r === 'number') {
 			// The operands can be combined:
 			return o === '+'
 				? l + r
