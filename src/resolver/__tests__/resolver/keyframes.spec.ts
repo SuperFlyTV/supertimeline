@@ -1,3 +1,4 @@
+/* eslint-disable jest/no-standalone-expect */
 import { EventType, Resolver } from '../../..'
 import { describeVariants } from '../testlib'
 

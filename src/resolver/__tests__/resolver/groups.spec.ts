@@ -1,3 +1,4 @@
+/* eslint-disable jest/no-standalone-expect */
 import * as _ from 'underscore'
 import { EventType, Resolver, TimelineObjectInstance } from '../../..'
 import { describeVariants } from '../testlib'
