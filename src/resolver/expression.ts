@@ -4,7 +4,7 @@ import { isNumeric, isConstant, cacheResult } from '../lib'
 
 export const OPERATORS = ['&', '|', '+', '-', '*', '/', '%', '!']
 
-export const REGEXP_OPERATORS = new RegExp('([' + _.map(OPERATORS, (o) => '\\' + o).join('') + '\\(\\)])', 'g')
+export const REGEXP_OPERATORS = new RegExp('([' + OPERATORS.map((o) => '\\' + o).join('') + '\\(\\)])', 'g')
 
 export function interpretExpression(expression: null): null
 export function interpretExpression(expression: number): number
@@ -13,7 +13,7 @@ export function interpretExpression(expression: string | Expression): Expression
 export function interpretExpression(expression: Expression): Expression {
 	if (isNumeric(expression)) {
 		return parseFloat(expression as string)
-	} else if (_.isString(expression)) {
+	} else if (typeof expression === 'string') {
 		const expressionString: string = expression
 		return cacheResult(
 			expressionString,
@@ -56,7 +56,7 @@ export function interpretExpression(expression: Expression): Expression {
  * ...more to come?
  */
 export function simplifyExpression(expr0: Expression): Expression {
-	const expr = _.isString(expr0) ? interpretExpression(expr0) : expr0
+	const expr = typeof expr0 === 'string' ? interpretExpression(expr0) : expr0
 	if (!expr) return expr
 
 	if (isExpressionObject(expr)) {
@@ -64,7 +64,7 @@ export function simplifyExpression(expr0: Expression): Expression {
 		const o = expr.o
 		const r = simplifyExpression(expr.r)
 
-		if (isConstant(l) && isConstant(r) && _.isNumber(l) && _.isNumber(r)) {
+		if (isConstant(l) && isConstant(r) && typeof l === 'number' && typeof r === 'number') {
 			// The operands can be combined:
 			return o === '+'
 				? l + r
@@ -123,7 +123,7 @@ export function wrapInnerExpressions(words: Array<any>): InnerExpression {
 }
 function words2Expression(operatorList: Array<string>, words: Array<any>): Expression {
 	if (!words || !words.length) throw new Error('words2Expression: syntax error: unbalanced expression')
-	while (words.length === 1 && _.isArray(words[0])) words = words[0]
+	while (words.length === 1 && Array.isArray(words[0])) words = words[0]
 	if (words.length === 1) return words[0]
 
 	// Find the operator with the highest priority:
@@ -152,7 +152,7 @@ function words2Expression(operatorList: Array<string>, words: Array<any>): Expre
 export function validateExpression(operatorList: Array<string>, expr0: Expression, breadcrumbs?: string): true {
 	if (!breadcrumbs) breadcrumbs = 'ROOT'
 
-	if (_.isObject(expr0) && !_.isArray(expr0)) {
+	if (_.isObject(expr0) && !Array.isArray(expr0)) {
 		const expr: ExpressionObj = expr0
 
 		if (!_.has(expr, 'l'))
@@ -162,7 +162,7 @@ export function validateExpression(operatorList: Array<string>, expr0: Expressio
 		if (!_.has(expr, 'r'))
 			throw new Error(`validateExpression: ${breadcrumbs}.r missing in ${JSON.stringify(expr)}`)
 
-		if (!_.isString(expr.o)) throw new Error(`validateExpression: ${breadcrumbs}.o not a string`)
+		if (typeof expr.o !== 'string') throw new Error(`validateExpression: ${breadcrumbs}.o not a string`)
 
 		if (!wordIsOperator(operatorList, expr.o)) throw new Error(breadcrumbs + '.o not valid: "' + expr.o + '"')
 
@@ -170,7 +170,7 @@ export function validateExpression(operatorList: Array<string>, expr0: Expressio
 			validateExpression(operatorList, expr.l, breadcrumbs + '.l') &&
 			validateExpression(operatorList, expr.r, breadcrumbs + '.r')
 		)
-	} else if (!_.isNull(expr0) && !_.isString(expr0) && !_.isNumber(expr0)) {
+	} else if (expr0 !== null && typeof expr0 !== 'string' && typeof expr0 !== 'number') {
 		throw new Error(`validateExpression: ${breadcrumbs} is of invalid type`)
 	}
 	return true

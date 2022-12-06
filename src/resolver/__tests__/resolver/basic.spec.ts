@@ -445,7 +445,7 @@ describeVariants(
 				})
 			})
 
-			expect(_.keys(instanceIds)).toHaveLength(3)
+			expect(Object.keys(instanceIds)).toHaveLength(3)
 		})
 		test('Repeating many', () => {
 			const timeline = fixTimeline([

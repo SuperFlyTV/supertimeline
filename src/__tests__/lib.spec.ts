@@ -1,5 +1,4 @@
 import {
-	extendMandadory,
 	isNumeric,
 	sortEvents,
 	cleanInstances,
@@ -22,9 +21,6 @@ describe('lib', () => {
 		return { value: a.value + b.value, references: joinReferences(a.references, b.references) }
 	}
 
-	test('extendMandadory', () => {
-		expect(extendMandadory<any, any>({ a: 1 }, { b: 2 })).toEqual({ a: 1, b: 2 })
-	})
 	test('isNumeric', () => {
 		expect(isNumeric('123')).toEqual(true)
 		expect(isNumeric('123.234')).toEqual(true)

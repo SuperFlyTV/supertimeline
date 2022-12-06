@@ -1,6 +1,5 @@
 /* tslint:disable:strict-type-predicates */
 import { TimelineObject, TimelineKeyframe, TimelineEnable } from '../api/api'
-import _ = require('underscore')
 import { REGEXP_OPERATORS } from './expression'
 
 interface Ids {
@@ -35,7 +34,7 @@ function validateObject0(obj: TimelineObject, strict?: boolean, uniqueIds?: Ids)
 	if (!obj.content) throw new Error(`Object "${obj.id}": "content" attribute must be set`)
 	if (!obj.enable) throw new Error(`Object "${obj.id}": "enable" attribute must be set`)
 
-	const enables: TimelineEnable[] = _.isArray(obj.enable) ? obj.enable : [obj.enable]
+	const enables: TimelineEnable[] = Array.isArray(obj.enable) ? obj.enable : [obj.enable]
 	for (let i = 0; i < enables.length; i++) {
 		const enable = enables[i]
 
@@ -91,7 +90,7 @@ function validateObject0(obj: TimelineObject, strict?: boolean, uniqueIds?: Ids)
 			}
 		}
 	}
-	if (obj.priority !== undefined && !_.isNumber(obj.priority))
+	if (obj.priority !== undefined && typeof obj.priority !== 'number')
 		throw new Error(`Object "${obj.id}": attribute "priority" is not a number`)
 }
 function validateKeyframe0(keyframe: TimelineKeyframe, strict?: boolean, uniqueIds?: Ids): void {
@@ -108,7 +107,7 @@ function validateKeyframe0(keyframe: TimelineKeyframe, strict?: boolean, uniqueI
 
 	if (!keyframe.content) throw new Error(`Keyframe "${keyframe.id}": "content" attribute must be set`)
 	if (!keyframe.enable) throw new Error(`Keyframe "${keyframe.id}": "enable" attribute must be set`)
-	const enables: TimelineEnable[] = _.isArray(keyframe.enable) ? keyframe.enable : [keyframe.enable]
+	const enables: TimelineEnable[] = Array.isArray(keyframe.enable) ? keyframe.enable : [keyframe.enable]
 	for (let i = 0; i < enables.length; i++) {
 		const enable = enables[i]
 
@@ -128,7 +127,7 @@ function validateKeyframe0(keyframe: TimelineKeyframe, strict?: boolean, uniqueI
 	if (keyframe.classes) {
 		for (let i = 0; i < keyframe.classes.length; i++) {
 			const className = keyframe.classes[i]
-			if (className && !_.isString(className))
+			if (className && typeof className !== 'string')
 				throw new Error(`Keyframe "${keyframe.id}": "classes[${i}]" is not a string`)
 		}
 	}

@@ -21,26 +21,13 @@ export type RequiredPropertyNames<T> = {
 export type OptionalProperties<T> = Pick<T, OptionalPropertyNames<T>>
 export type RequiredProperties<T> = Pick<T, RequiredPropertyNames<T>>
 
-/**
- * Returns the difference between object A and B
- */
-type Difference<A, B extends A> = Pick<B, Exclude<keyof B, keyof RequiredProperties<A>>>
-/**
- * Somewhat like _.extend, but with strong types & mandated additional properties
- * @param original Object to be extended
- * @param extendObj properties to add
- */
-export function extendMandadory<A, B extends A>(original: A, extendObj: Difference<A, B> & Partial<A>): B {
-	return _.extend(original, extendObj)
-}
-
 export function isConstant(str: string | number | null | any): str is string | number {
-	return !!(isNumeric(str) || (_.isString(str) && (str.match(/^true$/) || str.match(/^false$/))))
+	return !!(isNumeric(str) || (typeof str === 'string' && (str.match(/^true$/) || str.match(/^false$/))))
 }
-export function isNumeric(str: string | number | null | any): str is string | number {
+export function isNumeric(str: string | number | null | any): boolean {
 	if (str === null) return false
-	if (_.isNumber(str)) return true
-	if (_.isString(str)) return !!(str.match(/^[-+]?[0-9.]+$/) && !_.isNaN(parseFloat(str)))
+	if (typeof str === 'number') return true
+	if (typeof str === 'string') return !!(str.match(/^[-+]?[0-9.]+$/) && !isNaN(parseFloat(str)))
 	return false
 }
 export function sortEvents<T extends InstanceEvent>(events: Array<T>): Array<T> {
@@ -354,14 +341,14 @@ export function operateOnArrays(
 	const result: Array<TimelineObjectInstance> = []
 
 	const minLength = Math.min(
-		_.isArray(array0) ? array0.length : Infinity,
-		_.isArray(array1) ? array1.length : Infinity
+		Array.isArray(array0) ? array0.length : Infinity,
+		Array.isArray(array1) ? array1.length : Infinity
 	)
 	for (let i = 0; i < minLength; i++) {
-		const a: TimelineObjectInstance = _.isArray(array0)
+		const a: TimelineObjectInstance = Array.isArray(array0)
 			? array0[i]
 			: { id: '', start: array0.value, end: array0.value, references: array0.references }
-		const b: TimelineObjectInstance = _.isArray(array1)
+		const b: TimelineObjectInstance = Array.isArray(array1)
 			? array1[i]
 			: { id: '', start: array1.value, end: array1.value, references: array1.references }
 
@@ -472,7 +459,7 @@ export function capInstances(
 
 			// First, check if the instance crosses the parent at all:
 			if (instanceOrg.start <= (parent.end ?? Infinity) && (instanceOrg.end ?? Infinity) >= parent.start) {
-				const instance = _.clone(instanceOrg)
+				const instance: TimelineObjectInstance = { ...instanceOrg }
 
 				// Cap start
 				if (instance.start < parent.start) {
@@ -524,9 +511,9 @@ export function isReference(ref0: unknown): ref0 is ValueWithReference {
 	const ref = ref0 as ValueWithReference
 	return (
 		typeof ref === 'object' &&
-		!_.isArray(ref) &&
+		!Array.isArray(ref) &&
 		ref.value !== undefined &&
-		_.isArray(ref.references) &&
+		Array.isArray(ref.references) &&
 		ref !== null
 	)
 }

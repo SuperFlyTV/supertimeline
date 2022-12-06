@@ -25,7 +25,7 @@ export function getState(resolved: ResolvedTimeline | ResolvedStates, time: Time
 	const state: TimelineState = {
 		time: time,
 		layers: {},
-		nextEvents: _.filter(resolvedStates.nextEvents, (e) => e.time > time),
+		nextEvents: resolvedStates.nextEvents.filter((e) => e.time > time),
 	}
 	if (eventLimit) state.nextEvents = state.nextEvents.slice(0, eventLimit)
 
@@ -58,7 +58,7 @@ export function resolveStates(resolved: ResolvedTimeline, cache?: ResolverCache)
 		return cache.resolvedStates
 	}
 
-	const resolvedObjects = _.values(resolved.objects)
+	const resolvedObjects = Object.values(resolved.objects)
 	// Sort to make sure parent groups are evaluated before their children:
 	resolvedObjects.sort((a, b) => {
 		if ((a.resolved.levelDeep || 0) > (b.resolved.levelDeep || 0)) return 1
@@ -227,7 +227,7 @@ export function resolveStates(resolved: ResolvedTimeline, cache?: ResolverCache)
 						// The instance doesn't want to be enabled (is ending)
 
 						// Remove from aspiringInstances:
-						aspiringInstances[layer] = _.reject(aspiringInstances[layer] || [], (o) => o.obj.id === obj.id)
+						aspiringInstances[layer] = (aspiringInstances[layer] || []).filter((o) => o.obj.id !== obj.id)
 					}
 
 					// Evaluate the layer to determine who has the throne:
@@ -289,11 +289,13 @@ export function resolveStates(resolved: ResolvedTimeline, cache?: ResolverCache)
 							// Use the already existing one
 							newObj = resolvedStates.objects[currentOnTopOfLayer.obj.id]
 						} else {
-							newObj = _.clone(currentOnTopOfLayer.obj)
-							newObj.content = JSON.parse(JSON.stringify(newObj.content))
-							newObj.resolved = {
-								...(newObj.resolved || {}),
-								instances: [],
+							newObj = {
+								...currentOnTopOfLayer.obj,
+								content: JSON.parse(JSON.stringify(currentOnTopOfLayer.obj.content)),
+								resolved: {
+									...(currentOnTopOfLayer.obj.resolved || {}),
+									instances: [],
+								},
 							}
 
 							addObjectToResolvedTimeline(resolvedStates, newObj)
@@ -637,12 +639,12 @@ export function resolveStates(resolved: ResolvedTimeline, cache?: ResolverCache)
 }
 export function applyKeyframeContent(parentContent: Content, keyframeContent: Content): void {
 	for (const [attr, value] of Object.entries(keyframeContent)) {
-		if (_.isArray(value)) {
-			if (!_.isArray(parentContent[attr])) parentContent[attr] = []
+		if (Array.isArray(value)) {
+			if (!Array.isArray(parentContent[attr])) parentContent[attr] = []
 			applyKeyframeContent(parentContent[attr], value)
 			parentContent[attr].splice(value.length, 99999)
 		} else if (_.isObject(value)) {
-			if (!_.isObject(parentContent[attr]) || _.isArray(parentContent[attr])) parentContent[attr] = {}
+			if (!_.isObject(parentContent[attr]) || Array.isArray(parentContent[attr])) parentContent[attr] = {}
 			applyKeyframeContent(parentContent[attr], value)
 		} else {
 			parentContent[attr] = value
