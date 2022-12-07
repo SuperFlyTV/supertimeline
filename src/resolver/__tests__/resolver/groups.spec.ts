@@ -1613,6 +1613,67 @@ describeVariants(
 				expect(state1.layers['test']).toBeFalsy()
 			}
 		})
+
+		test('Dependent object stops when referenced object is interrupted', () => {
+			const timeline = fixTimeline([
+				{
+					id: 'obj_interrupted',
+					enable: {
+						start: 1000,
+						end: 9999,
+					},
+					priority: 1,
+					layer: 'L1',
+					content: {},
+				},
+				{
+					id: 'obj_interruptee',
+					enable: {
+						start: 2000,
+					},
+					priority: 1,
+					layer: 'L1',
+					content: {},
+				},
+				{
+					id: 'other_obj',
+					enable: {
+						start: '#obj_interrupted.end',
+					},
+					priority: 1,
+					layer: 'L2',
+					content: {},
+				},
+			])
+
+			const resolved = Resolver.resolveAllStates(
+				Resolver.resolveTimeline(timeline, {
+					cache: getCache(),
+					time: 0,
+					limitCount: 10,
+					limitTime: 999,
+				})
+			)
+
+			expect(resolved.objects['obj_interruptee'].resolved.instances).toMatchObject([
+				{
+					start: 2000,
+					end: null,
+				},
+			])
+			expect(resolved.objects['obj_interrupted'].resolved.instances).toMatchObject([
+				{
+					start: 1000,
+					end: 2000,
+				},
+			])
+			expect(resolved.objects['other_obj'].resolved.instances).toMatchObject([
+				{
+					start: 2000,
+					end: null,
+				},
+			])
+		})
 	},
 	{
 		normal: true,
