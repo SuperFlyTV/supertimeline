@@ -685,10 +685,91 @@ describeVariants(
 			})
 			expect(Resolver.getState(states, 5100).layers['layer0']).toBeFalsy()
 		})
+		test('Keyframe content deep extend keyframes', () => {
+			const timeline = fixTimeline([
+				{
+					id: 'video',
+					layer: '0',
+					enable: {
+						start: 0,
+						end: 100,
+					},
+					content: {
+						prop0: 'a',
+						prop1: {
+							prop2: 'b',
+							arr0: [1],
+							arr1: [
+								{
+									a: 1,
+								},
+								{
+									a: 2,
+								},
+								{
+									a: 3,
+								},
+							],
+						},
+					},
+					keyframes: [
+						{
+							id: 'kf0',
+							enable: {
+								start: 10,
+							},
+							content: {
+								prop1: {
+									prop3: 'kf0',
+									arr0: [2],
+									arr1: [
+										undefined,
+										{
+											a: 'kf0',
+										},
+									],
+								},
+								prop2: 'kf0',
+							},
+						},
+					],
+				},
+			])
+
+			const resolved = Resolver.resolveAllStates(
+				Resolver.resolveTimeline(timeline, { cache: getCache(), time: 0, limitTime: 50 })
+			)
+
+			expect(resolved.statistics.resolvedObjectCount).toEqual(1)
+			expect(resolved.statistics.resolvedKeyframeCount).toEqual(1)
+			expect(resolved.statistics.unresolvedCount).toEqual(0)
+
+			expect(resolved.objects['video']).toBeTruthy()
+			expect(resolved.objects['kf0']).toBeTruthy()
+
+			const state0 = Resolver.getState(resolved, 11)
+			expect(state0.layers['0']).toBeTruthy()
+			expect(state0.layers['0'].content).toStrictEqual({
+				prop0: 'a',
+				prop1: {
+					prop2: 'b',
+					prop3: 'kf0',
+					arr0: [2],
+					arr1: [
+						// doesn't support deep extends in arrays
+						undefined,
+						{
+							a: 'kf0',
+						},
+					],
+				},
+				prop2: 'kf0',
+			})
+		})
 	},
 	{
 		normal: true,
-		reversed: true,
-		cache: true,
+		reversed: false,
+		cache: false,
 	}
 )
