@@ -132,13 +132,13 @@ describe('Resolver, expressions', () => {
 
 		expect(() => {
 			lookupExpression(rtl, stdObj, interpretExpression('5 + ) 2'), 'start') // unbalanced paranthesis
-		}).toThrowError()
+		}).toThrow()
 		expect(() => {
 			lookupExpression(rtl, stdObj, interpretExpression('5 ( + 2'), 'start') // unbalanced paranthesis
-		}).toThrowError()
+		}).toThrow()
 		expect(() => {
 			lookupExpression(rtl, stdObj, interpretExpression('5 * '), 'start') // unbalanced expression
-		}).toThrowError()
+		}).toThrow()
 
 		const TRUE_EXPR = { instances: [{ start: 0, end: null, references: [] }] }
 		const FALSE_EXPR: any = { instances: [] }
@@ -153,7 +153,7 @@ describe('Resolver, expressions', () => {
 
 		expect(() => {
 			lookupExpression(rtl, stdObj, interpretExpression('(0 & 1) | 1 a'), 'start') // strange operator
-		}).toThrowError()
+		}).toThrow()
 
 		expect(
 			lookupExpression(

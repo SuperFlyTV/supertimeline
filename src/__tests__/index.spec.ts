@@ -421,4 +421,70 @@ describe('index', () => {
 			],
 		})
 	})
+	test('Repeating - capped by parent', () => {
+		const timeline: Array<TimelineObject> = [
+			{
+				id: 'group0',
+				enable: {
+					start: 0,
+				},
+				layer: '',
+				content: {},
+				classes: [],
+				isGroup: true,
+				children: [
+					{
+						id: 'group1',
+						enable: {
+							start: 0,
+							end: 2718,
+						},
+						layer: 'layer2',
+						content: {},
+						classes: [],
+						isGroup: true,
+						children: [
+							{
+								id: 'group2',
+								enable: {
+									start: 0,
+									duration: 15000,
+									repeating: 15000,
+								},
+								layer: '',
+								content: {},
+								classes: [],
+								isGroup: true,
+								children: [
+									{
+										id: 'AAA',
+										enable: {
+											start: 0,
+											duration: 3000,
+										},
+										layer: 'layer1',
+										content: {},
+										classes: [],
+									},
+								],
+							},
+						],
+					},
+				],
+			},
+		]
+
+		const options: ResolveOptions = {
+			time: 0,
+		}
+		// Resolve the timeline
+		const resolvedTimeline = Resolver.resolveTimeline(timeline, options)
+		const resolvedStates = Resolver.resolveAllStates(resolvedTimeline)
+
+		const obj = resolvedStates.objects['AAA']
+
+		expect(obj).toBeTruthy()
+
+		expect(obj.resolved.instances).toHaveLength(1)
+	})
 })
