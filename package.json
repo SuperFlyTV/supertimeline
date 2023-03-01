@@ -48,7 +48,7 @@
 		"license-validate": "yarn sofie-licensecheck --allowPackages=caniuse-lite@1.0.30001429"
 	},
 	"engines": {
-		"node": ">=12"
+		"node": ">=14"
 	},
 	"prettier": "@sofie-automation/code-standard-preset/.prettierrc.json",
 	"lint-staged": {
