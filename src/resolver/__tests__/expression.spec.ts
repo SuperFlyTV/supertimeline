@@ -6,7 +6,7 @@ describe('Expression', () => {
 		expect(interpretExpression('+42.5')).toEqual(42.5)
 		expect(interpretExpression('-42.5')).toEqual(-42.5)
 
-		expect(() => interpretExpression('45 +')).toThrowError()
+		expect(() => interpretExpression('45 +')).toThrow()
 
 		expect(interpretExpression('1+2')).toMatchObject({
 			l: '1',
@@ -150,24 +150,20 @@ describe('Expression', () => {
 		expect(validateExpression(['+', '-'], { l: 1, o: '+', r: 1 })).toEqual(true)
 
 		// @ts-ignore
-		expect(() => validateExpression(['+', '-'], { l: 1, o: '+' })).toThrowError(/missing/)
+		expect(() => validateExpression(['+', '-'], { l: 1, o: '+' })).toThrow(/missing/)
 		// @ts-ignore
-		expect(() => validateExpression(['+', '-'], { o: '+', r: 1 })).toThrowError(/missing/)
+		expect(() => validateExpression(['+', '-'], { o: '+', r: 1 })).toThrow(/missing/)
 		// @ts-ignore
-		expect(() => validateExpression(['+', '-'], { l: 1, o: 12, r: 1 })).toThrowError(/not a string/)
+		expect(() => validateExpression(['+', '-'], { l: 1, o: 12, r: 1 })).toThrow(/not a string/)
 		// @ts-ignore
-		expect(() => validateExpression(['+', '-'], { l: 1, r: 1 })).toThrowError(/missing/)
+		expect(() => validateExpression(['+', '-'], { l: 1, r: 1 })).toThrow(/missing/)
 
-		expect(() => validateExpression(['+', '-'], { l: 1, o: '*', r: 1 })).toThrowError(/not valid/)
+		expect(() => validateExpression(['+', '-'], { l: 1, o: '*', r: 1 })).toThrow(/not valid/)
 		// @ts-ignore
-		expect(() => validateExpression(['+', '-'], { l: 1, o: '+', r: [] })).toThrowError(/invalid type/)
+		expect(() => validateExpression(['+', '-'], { l: 1, o: '+', r: [] })).toThrow(/invalid type/)
 
-		expect(() => validateExpression(['+', '-'], { l: 1, o: '+', r: { l: 1, o: '+', r: 1 } })).not.toThrowError()
-		expect(() => validateExpression(['+', '-'], { l: 1, o: '+', r: { l: 1, o: '*', r: 1 } })).toThrowError(
-			/not valid/
-		)
-		expect(() => validateExpression(['+', '-'], { r: 1, o: '+', l: { l: 1, o: '*', r: 1 } })).toThrowError(
-			/not valid/
-		)
+		expect(() => validateExpression(['+', '-'], { l: 1, o: '+', r: { l: 1, o: '+', r: 1 } })).not.toThrow()
+		expect(() => validateExpression(['+', '-'], { l: 1, o: '+', r: { l: 1, o: '*', r: 1 } })).toThrow(/not valid/)
+		expect(() => validateExpression(['+', '-'], { r: 1, o: '+', l: { l: 1, o: '*', r: 1 } })).toThrow(/not valid/)
 	})
 })

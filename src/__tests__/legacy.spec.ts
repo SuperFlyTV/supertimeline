@@ -2283,7 +2283,7 @@ let tests: Tests = {
 		expect(() => {
 			// @ts-ignore bad input
 			Resolver.resolveTimeline()
-		}).toThrowError()
+		}).toThrow()
 		const data = getTestData('basic')
 		const tl = Resolver.resolveAllStates(Resolver.resolveTimeline(data, stdOpts))
 		expect(data).toEqual(getTestData('basic')) // Make sure the original data is unmodified
@@ -2801,17 +2801,17 @@ let tests: Tests = {
 		// 	Resolver.resolveLogicalExpression(
 		// 		Resolver.interpretExpression('5 + ) 2') // unbalanced paranthesis
 		// 	)
-		// }).toThrowError()
+		// }).toThrow()
 		// expect(() => {
 		// 	Resolver.resolveLogicalExpression(
 		// 		Resolver.interpretExpression('5 ( + 2') // unbalanced paranthesis
 		// 	)
-		// }).toThrowError()
+		// }).toThrow()
 		// expect(() => {
 		// 	Resolver.resolveLogicalExpression(
 		// 		Resolver.interpretExpression('5 * ') // unbalanced expression
 		// 	)
-		// }).toThrowError()
+		// }).toThrow()
 		// expect(Resolver.resolveLogicalExpression(
 		// 	Resolver.interpretExpression('1 | 0', true)
 		// )).toEqual(true)
@@ -2831,7 +2831,7 @@ let tests: Tests = {
 		// 	Resolver.resolveLogicalExpression(
 		// 		Resolver.interpretExpression('(0 & 1) | 1 a', true) // strange operator
 		// 	)
-		// }).toThrowError()
+		// }).toThrow()
 		// expect(Resolver.resolveLogicalExpression(
 		// 	Resolver.interpretExpression('(0 & 1) | a', true) // strange operand
 		// )).toEqual(false)
@@ -2839,7 +2839,7 @@ let tests: Tests = {
 		// 	Resolver.resolveLogicalExpression(
 		// 		Resolver.interpretExpression('14 + #badReference.start', true)
 		// 	)
-		// }).toThrowError()
+		// }).toThrow()
 		// const data = clone(getTestData('logical1'))
 		// const state: TimelineState = {
 		// 	time: now,
@@ -2883,42 +2883,42 @@ let tests: Tests = {
 			delete data[0].id
 			const tl = Resolver.resolveTimeline(data, stdOpts)
 			Resolver.getState(tl, now)
-		}).toThrowError()
+		}).toThrow()
 		expect(() => {
 			const data = clone(getTestData('basic'))
 			// @ts-expect-error
 			delete data[0].enable
 			const tl = Resolver.resolveTimeline(data, stdOpts)
 			Resolver.getState(tl, now)
-		}).toThrowError()
+		}).toThrow()
 		expect(() => {
 			const data = clone(getTestData('basic'))
 			// @ts-ignore
 			delete data[0].enable.start
 			const tl = Resolver.resolveTimeline(data, stdOpts)
 			Resolver.getState(tl, now)
-		}).toThrowError()
+		}).toThrow()
 		expect(() => {
 			const data = clone(getTestData('basic'))
 			// @ts-expect-error
 			delete data[0].layer
 			const tl = Resolver.resolveTimeline(data, stdOpts)
 			Resolver.getState(tl, now)
-		}).toThrowError()
+		}).toThrow()
 		expect(() => {
 			const data = clone(getTestData('basic'))
 			// @ts-expect-error
 			delete data[0].content
 			const tl = Resolver.resolveTimeline(data, stdOpts)
 			Resolver.getState(tl, now)
-		}).toThrowError()
+		}).toThrow()
 		expect(() => {
 			const data = clone(getTestData('basic'))
 			data[0].id = 'asdf'
 			data[1].id = 'asdf' // should be unique
 			const tl = Resolver.resolveTimeline(data, stdOpts)
 			Resolver.getState(tl, now)
-		}).toThrowError()
+		}).toThrow()
 
 		expect(() => {
 			const data = clone(getTestData('simplegroup'))
@@ -2929,7 +2929,7 @@ let tests: Tests = {
 			})
 			const tl = Resolver.resolveTimeline(data, stdOpts)
 			Resolver.getState(tl, now)
-		}).toThrowError()
+		}).toThrow()
 		expect(() => {
 			const data = clone(getTestData('simplegroup'))
 			_.each(data, (obj) => {
@@ -2939,7 +2939,7 @@ let tests: Tests = {
 			})
 			const tl = Resolver.resolveTimeline(data, stdOpts)
 			Resolver.getState(tl, now)
-		}).toThrowError()
+		}).toThrow()
 	},
 	'simple group': () => {
 		const data = clone(getTestData('simplegroup'))
@@ -3462,13 +3462,13 @@ let tests: Tests = {
 
 		expect(() => {
 			Resolver.resolveTimeline(data, stdOpts)
-		}).toThrowError(/circular/i)
+		}).toThrow(/circular/i)
 	},
 	'Circular dependency 2': () => {
 		const data = clone(getTestData('circulardependency1'))
 		expect(() => {
 			Resolver.resolveTimeline(data, stdOpts)
-		}).toThrowError(/circular/i)
+		}).toThrow(/circular/i)
 
 		// const tl = Resolver.resolveTimeline(data, stdOpts)
 		// expect(tl.statistics.resolvedObjectCount).toEqual(0)
