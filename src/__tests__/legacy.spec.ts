@@ -1,6 +1,8 @@
 /* eslint-disable jest/no-standalone-expect, jest/expect-expect, jest/valid-title */
 /**
- * Note: The tests in this file where originally created for version 1, but has been converted to apply for version 2
+ * Note: The tests in this file where originally created for version 1,
+ * but has been converted to apply for version 2,
+ * and then adapded to version 9.x
  */
 import { TriggerType, EventType } from './legacyEnums'
 import { TimelineObject, TimelineKeyframe } from './legacyAPI'
@@ -10,19 +12,13 @@ import {
 	TimelineKeyframe as NewTimelineKeyframe,
 	ResolveOptions,
 	TimelineEnable,
-} from '../api/api'
-import { Resolver } from '../resolver/resolver'
+} from '../api'
 
-import * as _ from 'underscore'
-import { resetId } from '../lib'
-// let assert = require('assert')
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const clone0 = require('fast-clone')
-function clone<T>(o: T): T {
-	return clone0(o)
-}
+import { getResolvedState, resolveTimeline } from '..'
+import { clone, isEmpty, sortBy } from '../resolver/lib/lib'
+import { baseInstances } from '../resolver/lib/instance'
+
 const now = 1000
-
 const testDataOld: {
 	[dataset: string]: Array<TimelineObject>
 } = {
@@ -2163,6 +2159,7 @@ const testDataOld: {
 		},
 	],
 }
+
 const testData: {
 	[dataset: string]: Array<NewTimelineObject>
 } = {}
@@ -2179,7 +2176,7 @@ function convertTimelineObject(obj: TimelineObject): NewTimelineObject {
 		disabled: obj.disabled,
 		isGroup: obj.isGroup,
 		priority: obj.priority,
-		content: obj.content,
+		content: { ...obj.content },
 	}
 
 	if (obj.trigger.type === TriggerType.TIME_ABSOLUTE) {
@@ -2209,20 +2206,20 @@ function convertTimelineObject(obj: TimelineObject): NewTimelineObject {
 	}
 	if (obj.content.keyframes) {
 		const keyframes: NewTimelineKeyframe[] = []
-		_.each(obj.content.keyframes, (kf: TimelineKeyframe) => {
+		for (const kf of obj.content.keyframes) {
 			keyframes.push(convertTimelineKeyframe(kf))
-		})
+		}
 		newObj.keyframes = keyframes
-		delete obj.content.keyframes
+		delete newObj.content.keyframes
 	}
 	if (obj.isGroup && obj.content.objects) {
 		newObj.isGroup = true
 		const children: NewTimelineObject[] = []
-		_.each(obj.content.objects, (contentObj: TimelineObject) => {
+		for (const contentObj of obj.content.objects) {
 			children.push(convertTimelineObject(contentObj))
-		})
+		}
 		newObj.children = children
-		delete obj.content.objects
+		delete newObj.content.objects
 	}
 	return newObj
 }
@@ -2249,21 +2246,21 @@ function convertTimelineKeyframe(obj: TimelineKeyframe): NewTimelineKeyframe {
 	}
 	return newKf
 }
-_.each(testDataOld, (dataset, key) => {
+for (const [key, dataset] of Object.entries<TimelineObject[]>(testDataOld)) {
 	const newDataset: any = []
-	_.each(dataset, (obj: TimelineObject) => {
+	for (const obj of dataset) {
 		newDataset.push(convertTimelineObject(obj))
-	})
+	}
 	testData[key] = newDataset
-})
+}
 let reverseData = false
 const reverseDataObjs = (objs: Array<any>) => {
 	objs = objs.reverse()
-	_.each(objs, (obj) => {
-		if ((obj.content || {}).objects) {
+	for (const obj of objs) {
+		if (obj.content?.objects) {
 			obj.content.objects = reverseDataObjs(obj.content.objects)
 		}
-	})
+	}
 	return objs
 }
 const getTestData = (dataset: string): NewTimelineObject[] => {
@@ -2274,7 +2271,7 @@ const getTestData = (dataset: string): NewTimelineObject[] => {
 	return data
 }
 const stdOpts: ResolveOptions = {
-	time: 1000,
+	time: 900,
 }
 
 type Tests = { [key: string]: any }
@@ -2282,16 +2279,16 @@ let tests: Tests = {
 	'Basic timeline': () => {
 		expect(() => {
 			// @ts-ignore bad input
-			Resolver.resolveTimeline()
+			resolveTimeline()
 		}).toThrow()
 		const data = getTestData('basic')
-		const tl = Resolver.resolveAllStates(Resolver.resolveTimeline(data, stdOpts))
+		const tl = resolveTimeline(data, stdOpts)
 		expect(data).toEqual(getTestData('basic')) // Make sure the original data is unmodified
 
 		expect(tl.statistics.resolvedObjectCount).toEqual(2)
 		expect(tl.statistics.unresolvedCount).toEqual(0)
 
-		const state0 = Resolver.getState(tl, now - 100)
+		const state0 = getResolvedState(tl, now - 100)
 		const nextEvents = state0.nextEvents
 		expect(data).toEqual(getTestData('basic')) // Make sure the original data was unmodified
 
@@ -2313,14 +2310,14 @@ let tests: Tests = {
 			objId: 'obj1',
 		})
 
-		const state = Resolver.getState(tl, now)
+		const state = getResolvedState(tl, now)
 		expect(data).toEqual(getTestData('basic')) // Make sure the original data was unmodified
 
 		expect(state.layers['1']).toBeTruthy() // TimelineObject
 		expect(state.time).toBe(now)
 		expect(state.layers['1'].id).toBe('obj0')
 
-		const state2 = Resolver.getState(tl, now)
+		const state2 = getResolvedState(tl, now)
 
 		expect(state2.layers['1'].id).toBe('obj0')
 		expect(data).toEqual(getTestData('basic')) // Make sure the original data was unmodified
@@ -2328,11 +2325,11 @@ let tests: Tests = {
 	'Basic timeline 2': () => {
 		const data = getTestData('basic2')
 
-		const tl = Resolver.resolveAllStates(Resolver.resolveTimeline(data, stdOpts))
+		const tl = resolveTimeline(data, stdOpts)
 		expect(tl.statistics.resolvedObjectCount).toEqual(1)
 		expect(tl.statistics.unresolvedCount).toEqual(0)
 
-		const tmpState = Resolver.getState(tl, 900)
+		const tmpState = getResolvedState(tl, 900)
 		const nextEvents = tmpState.nextEvents
 		expect(nextEvents).toHaveLength(2)
 		expect(nextEvents[0].type).toBe(EventType.START)
@@ -2340,12 +2337,12 @@ let tests: Tests = {
 		expect(nextEvents[1].type).toBe(EventType.END)
 		expect(nextEvents[1].time).toBe(1050)
 
-		const state = Resolver.getState(tl, 1000)
+		const state = getResolvedState(tl, 1000)
 
 		expect(state.time).toBe(1000)
 		expect(state.layers['10'].id).toBe('obj0')
 
-		const state2 = Resolver.getState(tl, 1000)
+		const state2 = getResolvedState(tl, 1000)
 
 		expect(state2.layers['10'].id).toBe('obj0')
 		expect(data).toEqual(getTestData('basic2')) // Make sure the original data is unmodified
@@ -2353,25 +2350,25 @@ let tests: Tests = {
 	'Basic timeline 3': () => {
 		const data = getTestData('basic2').concat(getTestData('basic3'))
 
-		const tl = Resolver.resolveTimeline(data, stdOpts)
+		const tl = resolveTimeline(data, stdOpts)
 		expect(tl.statistics.resolvedObjectCount).toEqual(3)
 		expect(tl.statistics.unresolvedCount).toEqual(0)
 
-		const tmpState = Resolver.getState(tl, 1000, 1) // limit
+		const tmpState = getResolvedState(tl, 1000, 1) // limit
 		const nextEvents = tmpState.nextEvents
 		expect(nextEvents).toHaveLength(1) // see that the limit is working
 		expect(nextEvents[0].type).toBe(EventType.END)
 		expect(nextEvents[0].time).toBe(1050)
 
-		const state = Resolver.getState(tl, 1000)
+		const state = getResolvedState(tl, 1000)
 		expect(state.layers['10'].id).toBe('obj1')
 		expect(state.layers['11'].id).toBe('obj2')
 		expect(data).toEqual(getTestData('basic2').concat(getTestData('basic3'))) // Make sure the original data is unmodified
 	},
 	'Timeline, override object': () => {
 		const data = getTestData('basic2').concat(getTestData('basic3')).concat(getTestData('override'))
-		const tl = Resolver.resolveTimeline(data, stdOpts)
-		const state = Resolver.getState(tl, 1000)
+		const tl = resolveTimeline(data, stdOpts)
+		const state = getResolvedState(tl, 1000)
 		expect(state.layers['10'].id).toBe('obj3')
 	},
 	'Timeline, override object 2': () => {
@@ -2379,11 +2376,11 @@ let tests: Tests = {
 			.concat(getTestData('basic3'))
 			.concat(getTestData('override'))
 			.concat(getTestData('override2'))
-		const tl = Resolver.resolveTimeline(data, stdOpts)
-		const state = Resolver.getState(tl, 1000)
+		const tl = resolveTimeline(data, stdOpts)
+		const state = getResolvedState(tl, 1000)
 		expect(state.layers['10'].id).toBe('obj5')
 
-		const stateInFuture = Resolver.getState(tl, 10000)
+		const stateInFuture = getResolvedState(tl, 10000)
 		expect(stateInFuture.layers['10'].id).toBe('obj5')
 	},
 	'Timeline, override object 3': () => {
@@ -2392,17 +2389,17 @@ let tests: Tests = {
 			.concat(getTestData('override'))
 			.concat(getTestData('override2'))
 			.concat(getTestData('override3'))
-		const tl = Resolver.resolveTimeline(data, stdOpts)
-		const state = Resolver.getState(tl, 1000)
+		const tl = resolveTimeline(data, stdOpts)
+		const state = getResolvedState(tl, 1000)
 		expect(state.layers['10'].id).toBe('obj6')
 
-		const stateInFuture = Resolver.getState(tl, 10000)
+		const stateInFuture = getResolvedState(tl, 10000)
 		expect(stateInFuture.layers['10'].id).toBe('obj5')
 	},
 	'Timeline, relative timing': () => {
 		const data = getTestData('relative1')
 
-		const tl = Resolver.resolveAllStates(Resolver.resolveTimeline(data, stdOpts))
+		const tl = resolveTimeline(data, stdOpts)
 
 		expect(tl.statistics.resolvedObjectCount).toEqual(6)
 		expect(tl.statistics.unresolvedCount).toEqual(1)
@@ -2432,15 +2429,15 @@ let tests: Tests = {
 		expect(obj5.resolved.instances[0].start).toBe(1123)
 		expect(obj5.resolved.instances[0].end).toBe(1133)
 
-		const state0 = Resolver.getState(tl, 1067)
+		const state0 = getResolvedState(tl, 1067)
 
 		expect(state0.layers['10'].id).toBe('obj3')
 
-		const state1 = Resolver.getState(tl, 1068)
+		const state1 = getResolvedState(tl, 1068)
 
 		expect(state1.layers['10'].id).toBe('obj2')
 
-		const tmpState = Resolver.getState(tl, 900)
+		const tmpState = getResolvedState(tl, 900)
 		const nextEvents = tmpState.nextEvents
 
 		expect(nextEvents).toHaveLength(12)
@@ -2510,7 +2507,7 @@ let tests: Tests = {
 	'Timeline, relative timing 2': () => {
 		const data = getTestData('relative2')
 
-		const tl = Resolver.resolveTimeline(data, stdOpts)
+		const tl = resolveTimeline(data, stdOpts)
 
 		expect(tl.statistics.resolvedObjectCount).toEqual(2)
 		expect(tl.statistics.unresolvedCount).toEqual(1)
@@ -2520,18 +2517,18 @@ let tests: Tests = {
 		expect(obj2.resolved.instances[0].start).toBe(965)
 		expect(obj2.resolved.instances[0].end).toBe(1015)
 
-		const state0 = Resolver.getState(tl, 1000)
+		const state0 = getResolvedState(tl, 1000)
 
 		expect(state0.layers['10'].id).toBe('obj2')
 
-		const state1 = Resolver.getState(tl, 2000)
+		const state1 = getResolvedState(tl, 2000)
 
 		expect(state1.layers['10'].id).toBe('obj0')
 	},
 	'Timeline, relative timing and keyframes': () => {
 		const data = getTestData('keyframes1')
 
-		const tl = Resolver.resolveAllStates(Resolver.resolveTimeline(data, stdOpts))
+		const tl = resolveTimeline(data, stdOpts)
 
 		expect(tl.statistics.resolvedObjectCount).toEqual(3)
 		expect(tl.statistics.resolvedKeyframeCount).toEqual(3)
@@ -2548,15 +2545,15 @@ let tests: Tests = {
 		expect(obj3).toBeTruthy() // TimelineObject
 		expect(obj3.resolved.instances[0].start).toBe(985)
 
-		const tmpState0 = Resolver.getState(tl, 100, 10)
+		const tmpState0 = getResolvedState(tl, 100, 10)
 
 		const nextEvents0 = tmpState0.nextEvents
 		expect(nextEvents0).toHaveLength(10)
-		const tmpState1 = Resolver.getState(tl, 2000)
+		const tmpState1 = getResolvedState(tl, 2000)
 		const nextEvents1 = tmpState1.nextEvents
 		expect(nextEvents1).toHaveLength(0)
 
-		const state0 = Resolver.getState(tl, 966)
+		const state0 = getResolvedState(tl, 966)
 
 		let sobj2 = state0.layers['10']
 
@@ -2565,7 +2562,7 @@ let tests: Tests = {
 		expect(sobj2.content.mixer.brightness).toBe(0.1)
 		expect(sobj2.content.mixer.myCustomAttribute).toBeFalsy()
 
-		const state1 = Resolver.getState(tl, 967)
+		const state1 = getResolvedState(tl, 967)
 
 		sobj2 = state1.layers['10']
 
@@ -2573,7 +2570,7 @@ let tests: Tests = {
 		expect(sobj2.content.mixer.brightness).toBe(0.1)
 		expect(sobj2.content.mixer.myCustomAttribute).toBeFalsy()
 
-		const state2 = Resolver.getState(tl, 984)
+		const state2 = getResolvedState(tl, 984)
 
 		sobj2 = state2.layers['10']
 
@@ -2585,7 +2582,7 @@ let tests: Tests = {
 	'Timeline, absolute keyframe': () => {
 		const data = getTestData('abskeyframe')
 
-		const tl = Resolver.resolveTimeline(data, stdOpts)
+		const tl = resolveTimeline(data, stdOpts)
 
 		expect(tl.statistics.resolvedObjectCount).toEqual(1)
 		expect(tl.statistics.unresolvedCount).toEqual(0)
@@ -2596,7 +2593,7 @@ let tests: Tests = {
 		expect(obj0.resolved.instances[0].start).toBe(1000)
 		expect(obj0.resolved.instances[0].end).toBe(1050)
 
-		const state0 = Resolver.getState(tl, 1000)
+		const state0 = getResolvedState(tl, 1000)
 
 		const sobj0 = state0.layers['1']
 
@@ -2611,7 +2608,7 @@ let tests: Tests = {
 		})
 		expect(sobj0.content.attributes.opacity).toBeFalsy()
 
-		const state1 = Resolver.getState(tl, 1005)
+		const state1 = getResolvedState(tl, 1005)
 
 		const sobj1 = state1.layers['1']
 		expect(sobj1).toBeTruthy() // TimelineResolvedObject
@@ -2621,7 +2618,7 @@ let tests: Tests = {
 			scale: 0.5,
 			opacity: 0.5,
 		})
-		const state2 = Resolver.getState(tl, 1010)
+		const state2 = getResolvedState(tl, 1010)
 
 		const sobj2 = state2.layers['1']
 		expect(sobj2).toBeTruthy() // TimelineResolvedObject
@@ -2639,9 +2636,9 @@ let tests: Tests = {
 	'logical objects, references': () => {
 		const data = getTestData('basic').concat(getTestData('logical1'))
 
-		const tl = Resolver.resolveTimeline(data, stdOpts)
+		const tl = resolveTimeline(data, stdOpts)
 
-		const state0 = Resolver.getState(tl, now)
+		const state0 = getResolvedState(tl, now)
 
 		expect(state0.layers['1']).toBeTruthy() // TimelineResolvedObject
 		expect(state0.layers['1'].id).toBe('obj0')
@@ -2655,7 +2652,7 @@ let tests: Tests = {
 		expect(state0.layers['4']).toBeTruthy() // TimelineResolvedObject
 		expect(state0.layers['4'].id).toBe('logical2')
 
-		const state1 = Resolver.getState(tl, now + 1000)
+		const state1 = getResolvedState(tl, now + 1000)
 
 		expect(state1.layers['2']).toBeTruthy() // TimelineResolvedObject
 		expect(state1.layers['3']).toBeFalsy() // TimelineResolvedObject
@@ -2666,15 +2663,15 @@ let tests: Tests = {
 	'logical objects, references 2': () => {
 		const data = getTestData('basic').concat(getTestData('logical2'))
 
-		const tl = Resolver.resolveTimeline(data, stdOpts)
+		const tl = resolveTimeline(data, stdOpts)
 
-		const state0 = Resolver.getState(tl, now)
+		const state0 = getResolvedState(tl, now)
 
 		expect(state0.layers['1']).toBeTruthy()
 		expect(state0.layers['2']).toBeTruthy()
 		expect(state0.layers['3']).toBeFalsy()
 
-		const state1 = Resolver.getState(tl, now + 1000)
+		const state1 = getResolvedState(tl, now + 1000)
 
 		expect(state1.layers['1']).toBeFalsy() // TimelineResolvedObject
 		expect(state1.layers['2']).toBeFalsy() // TimelineResolvedObject
@@ -2685,15 +2682,15 @@ let tests: Tests = {
 	'logical objects, references 3': () => {
 		const data = getTestData('basic').concat(getTestData('logical3'))
 
-		const tl = Resolver.resolveTimeline(data, stdOpts)
+		const tl = resolveTimeline(data, stdOpts)
 
-		const state0 = Resolver.getState(tl, now)
+		const state0 = getResolvedState(tl, now)
 
 		expect(state0.layers['1']).toBeTruthy()
 		expect(state0.layers['2']).toBeTruthy()
 		expect(state0.layers['3']).toBeFalsy()
 
-		const state1 = Resolver.getState(tl, now + 1000)
+		const state1 = getResolvedState(tl, now + 1000)
 
 		expect(state1.layers['1']).toBeFalsy() // TimelineResolvedObject
 		expect(state1.layers['2']).toBeFalsy() // TimelineResolvedObject
@@ -2725,7 +2722,7 @@ let tests: Tests = {
 	// 'External functions': () => {
 	// 	const data = clone(getTestData('basic'))
 
-	// 	const state0 = Resolver.getState(tl, now)
+	// 	const state0 = getResolvedState(tl, now)
 	// 	expect(data).toEqual(getTestData('basic')) // Make sure the original data is unmodified
 
 	// 	expect(state0.layers['1']).toBeTruthy() // TimelineObject
@@ -2745,7 +2742,7 @@ let tests: Tests = {
 	// 		})
 	// 	}
 
-	// 	const state1 = Resolver.getState(tl, now, externalFunctions0)
+	// 	const state1 = getResolvedState(tl, now, externalFunctions0)
 
 	// 	expect(externalFunctions0.ext0).toHaveBeenCalledTimes(1)
 
@@ -2851,27 +2848,28 @@ let tests: Tests = {
 	},
 	'disabled objects on timeline': () => {
 		const data = clone(getTestData('basic'))
-		const obj0: NewTimelineObject = _.findWhere(data, { id: 'obj0' }) as NewTimelineObject
+		const obj0 = data.find((d) => d.id === 'obj0')
+		if (!obj0) throw new Error('obj0 not found')
 		obj0.disabled = true
 
-		const tl = Resolver.resolveTimeline(data, stdOpts)
+		const tl = resolveTimeline(data, stdOpts)
 
 		expect(tl.statistics.resolvedObjectCount).toEqual(2)
 		expect(tl.statistics.unresolvedCount).toEqual(0)
 
-		const state0 = Resolver.getState(tl, now)
+		const state0 = getResolvedState(tl, now)
 
 		expect(state0.layers['1']).toBeFalsy()
 	},
 	'object with infinite duration': () => {
 		const data = clone(getTestData('infiniteduration'))
 
-		const tl = Resolver.resolveTimeline(data, stdOpts)
+		const tl = resolveTimeline(data, stdOpts)
 
 		expect(tl.statistics.resolvedObjectCount).toEqual(1)
 		expect(tl.statistics.unresolvedCount).toEqual(1) // because obj0 has infinite duration
 
-		const state0 = Resolver.getState(tl, now)
+		const state0 = getResolvedState(tl, now)
 
 		expect(state0.layers['1']).toBeTruthy()
 		expect(state0.layers['1'].id).toBe('obj0')
@@ -2881,70 +2879,70 @@ let tests: Tests = {
 			const data = clone(getTestData('basic'))
 			// @ts-expect-error
 			delete data[0].id
-			const tl = Resolver.resolveTimeline(data, stdOpts)
-			Resolver.getState(tl, now)
+			const tl = resolveTimeline(data, stdOpts)
+			getResolvedState(tl, now)
 		}).toThrow()
 		expect(() => {
 			const data = clone(getTestData('basic'))
 			// @ts-expect-error
 			delete data[0].enable
-			const tl = Resolver.resolveTimeline(data, stdOpts)
-			Resolver.getState(tl, now)
+			const tl = resolveTimeline(data, stdOpts)
+			getResolvedState(tl, now)
 		}).toThrow()
 		expect(() => {
 			const data = clone(getTestData('basic'))
 			// @ts-ignore
 			delete data[0].enable.start
-			const tl = Resolver.resolveTimeline(data, stdOpts)
-			Resolver.getState(tl, now)
+			const tl = resolveTimeline(data, stdOpts)
+			getResolvedState(tl, now)
 		}).toThrow()
 		expect(() => {
 			const data = clone(getTestData('basic'))
 			// @ts-expect-error
 			delete data[0].layer
-			const tl = Resolver.resolveTimeline(data, stdOpts)
-			Resolver.getState(tl, now)
+			const tl = resolveTimeline(data, stdOpts)
+			getResolvedState(tl, now)
 		}).toThrow()
 		expect(() => {
 			const data = clone(getTestData('basic'))
 			// @ts-expect-error
 			delete data[0].content
-			const tl = Resolver.resolveTimeline(data, stdOpts)
-			Resolver.getState(tl, now)
+			const tl = resolveTimeline(data, stdOpts)
+			getResolvedState(tl, now)
 		}).toThrow()
 		expect(() => {
 			const data = clone(getTestData('basic'))
 			data[0].id = 'asdf'
 			data[1].id = 'asdf' // should be unique
-			const tl = Resolver.resolveTimeline(data, stdOpts)
-			Resolver.getState(tl, now)
+			const tl = resolveTimeline(data, stdOpts)
+			getResolvedState(tl, now)
 		}).toThrow()
 
 		expect(() => {
 			const data = clone(getTestData('simplegroup'))
-			_.each(data, (obj) => {
+			for (const obj of data) {
 				if (obj.id === 'group0') {
 					delete obj.children
 				}
-			})
-			const tl = Resolver.resolveTimeline(data, stdOpts)
-			Resolver.getState(tl, now)
+			}
+			const tl = resolveTimeline(data, stdOpts)
+			getResolvedState(tl, now)
 		}).toThrow()
 		expect(() => {
 			const data = clone(getTestData('simplegroup'))
-			_.each(data, (obj) => {
+			for (const obj of data) {
 				if (obj.id === 'group0') {
 					delete obj.children
 				}
-			})
-			const tl = Resolver.resolveTimeline(data, stdOpts)
-			Resolver.getState(tl, now)
+			}
+			const tl = resolveTimeline(data, stdOpts)
+			getResolvedState(tl, now)
 		}).toThrow()
 	},
 	'simple group': () => {
 		const data = clone(getTestData('simplegroup'))
 
-		const tl = Resolver.resolveAllStates(Resolver.resolveTimeline(data, stdOpts))
+		const tl = resolveTimeline(data, stdOpts)
 		expect(data).toEqual(getTestData('simplegroup')) // Make sure the original data is unmodified
 
 		expect(tl.statistics.resolvedCount).toEqual(4)
@@ -2962,7 +2960,7 @@ let tests: Tests = {
 		expect(child1.resolved.instances[0].end).toBe(1015)
 		expect(obj1.resolved.instances[0].start).toBe(1050)
 
-		const tmpState0 = Resolver.getState(tl, 0)
+		const tmpState0 = getResolvedState(tl, 0)
 		const events0 = tmpState0.nextEvents
 
 		expect(events0).toMatchObject([
@@ -2975,12 +2973,12 @@ let tests: Tests = {
 			{ objId: 'obj1', time: 1050, type: EventType.START },
 			{ objId: 'obj1', time: 1110, type: EventType.END },
 		])
-		const state0 = Resolver.getState(tl, now)
+		const state0 = getResolvedState(tl, now)
 		expect(state0.layers['2']).toBeTruthy()
 		expect(state0.layers['2']).toBeTruthy()
 		expect(state0.layers['2'].id).toBe('child0')
 
-		const tmpState1 = Resolver.getState(tl, now + 10)
+		const tmpState1 = getResolvedState(tl, now + 10)
 		const events1 = tmpState1.nextEvents
 		expect(events1).toMatchObject([
 			{ objId: 'child1', time: 1015, type: EventType.END },
@@ -2989,12 +2987,12 @@ let tests: Tests = {
 			{ objId: 'obj1', time: 1110, type: EventType.END },
 		])
 
-		const state1 = Resolver.getState(tl, now + 10)
+		const state1 = getResolvedState(tl, now + 10)
 		expect(state1.layers['2']).toBeTruthy()
 		expect(state1.layers['2']).toBeTruthy()
 		expect(state1.layers['2'].id).toBe('child1')
 
-		const tmpState2 = Resolver.getState(tl, now + 25)
+		const tmpState2 = getResolvedState(tl, now + 25)
 		const events2 = tmpState2.nextEvents
 		expect(events2).toMatchObject([
 			{ objId: 'group0', time: 1050, type: EventType.END },
@@ -3002,11 +3000,11 @@ let tests: Tests = {
 			{ objId: 'obj1', time: 1110, type: EventType.END },
 		])
 
-		const state2 = Resolver.getState(tl, now + 25)
+		const state2 = getResolvedState(tl, now + 25)
 		expect(state2.layers['2']).toBeFalsy()
 		expect(state2.layers['2']).toBeFalsy()
 
-		const state3 = Resolver.getState(tl, now + 60)
+		const state3 = getResolvedState(tl, now + 60)
 		expect(state3.layers['2']).toBeTruthy()
 		expect(state3.layers['2']).toBeTruthy()
 		expect(state3.layers['2'].id).toBe('obj1')
@@ -3015,9 +3013,8 @@ let tests: Tests = {
 	},
 	'repeating group': () => {
 		const data = clone(getTestData('repeatinggroup'))
-		const tl = Resolver.resolveAllStates(
-			Resolver.resolveTimeline(data, _.extend(stdOpts, { limitCount: 99, limitTime: 1050 }))
-		)
+		const tl = resolveTimeline(data, { ...stdOpts, limitCount: 99, limitTime: 1050 })
+
 		expect(tl.statistics.resolvedObjectCount).toEqual(4)
 		expect(tl.statistics.unresolvedCount).toEqual(0)
 
@@ -3049,7 +3046,7 @@ let tests: Tests = {
 		expect(tl.objects['child1']).toBeTruthy()
 		expect(tl.objects['child1'].resolved.instances[0].start).toBe(1005)
 
-		const tmpState0 = Resolver.getState(tl, now, 99)
+		const tmpState0 = getResolvedState(tl, now, 99)
 		const events0 = tmpState0.nextEvents
 		expect(events0).toMatchObject([
 			// { time: 990, type: EventType.START, objId: 'child0' },
@@ -3079,25 +3076,25 @@ let tests: Tests = {
 			{ time: 1071, type: EventType.END, objId: 'obj1' },
 		])
 
-		expect(Resolver.getState(tl, now).layers).toMatchObject({
+		expect(getResolvedState(tl, now).layers).toMatchObject({
 			'1': {
 				id: 'child0',
 			},
 		})
 
-		expect(Resolver.getState(tl, now + 10).layers).toMatchObject({
+		expect(getResolvedState(tl, now + 10).layers).toMatchObject({
 			'1': {
 				id: 'child1',
 			},
 		})
 		// Next loop:
 
-		expect(Resolver.getState(tl, now + 25).layers).toMatchObject({
+		expect(getResolvedState(tl, now + 25).layers).toMatchObject({
 			'1': {
 				id: 'child0',
 			},
 		})
-		expect(Resolver.getState(tl, now + 35).layers).toMatchObject({
+		expect(getResolvedState(tl, now + 35).layers).toMatchObject({
 			'1': {
 				id: 'child1',
 			},
@@ -3106,7 +3103,7 @@ let tests: Tests = {
 	},
 	'repeating group in repeating group': () => {
 		const data = clone(getTestData('repeatinggroupinrepeatinggroup'))
-		const tl = Resolver.resolveTimeline(data, _.extend(stdOpts, { limitCount: 99, limitTime: 1180 }))
+		const tl = resolveTimeline(data, { ...stdOpts, limitCount: 99, limitTime: 1180 })
 		expect(tl.statistics.resolvedObjectCount).toEqual(6)
 		expect(tl.statistics.unresolvedCount).toEqual(0)
 
@@ -3153,7 +3150,7 @@ let tests: Tests = {
 			{ start: 1182, end: 1184 }, // capped in group1
 		])
 		/*
-		const tmpState0 = Resolver.getState(tl, 990, 99)
+		const tmpState0 = getResolvedState(tl, 990, 99)
 		const events0 = tmpState0.nextEvents
 		expect(events0).toMatchObject([
 			{ time: 1000, type: EventType.START,  	 objId: 'child0' },
@@ -3206,7 +3203,7 @@ let tests: Tests = {
 	'test group with duration and infinite child': () => {
 		const data = clone(getTestData('groupwithduration'))
 
-		const tl = Resolver.resolveTimeline(data, stdOpts)
+		const tl = resolveTimeline(data, stdOpts)
 		expect(tl.statistics.resolvedObjectCount).toEqual(2)
 		expect(tl.statistics.resolvedGroupCount).toEqual(1)
 		expect(tl.statistics.unresolvedCount).toEqual(0)
@@ -3218,7 +3215,7 @@ let tests: Tests = {
 			instances: [{ start: 1000, end: 1030 }],
 		})
 
-		expect(Resolver.getState(tl, 1000).layers).toMatchObject({
+		expect(getResolvedState(tl, 1000).layers).toMatchObject({
 			'1': {
 				id: 'group0',
 			},
@@ -3227,7 +3224,7 @@ let tests: Tests = {
 			},
 		})
 
-		expect(Resolver.getState(tl, 1000)).toMatchObject({
+		expect(getResolvedState(tl, 1000)).toMatchObject({
 			layers: {
 				'1': {
 					id: 'group0',
@@ -3243,10 +3240,10 @@ let tests: Tests = {
 			],
 		})
 		// a bit in:
-		expect(Resolver.getState(tl, 1050).layers).toEqual({})
+		expect(getResolvedState(tl, 1050).layers).toEqual({})
 
 		// just before group1 is done playing:
-		expect(Resolver.getState(tl, 1029)).toMatchObject({
+		expect(getResolvedState(tl, 1029)).toMatchObject({
 			layers: {
 				'1': {
 					id: 'group0',
@@ -3266,14 +3263,13 @@ let tests: Tests = {
 	'infinite group': () => {
 		const data = clone(getTestData('infinitegroup'))
 
-		const tl0 = Resolver.resolveTimeline(data, stdOpts)
+		const tl = resolveTimeline(data, stdOpts)
 
-		const tl = Resolver.resolveAllStates(tl0)
 		expect(tl.statistics.resolvedObjectCount).toEqual(3)
 		expect(tl.statistics.resolvedGroupCount).toEqual(1)
 		expect(tl.statistics.unresolvedCount).toEqual(0)
 
-		expect(Resolver.getState(tl, 1000)).toMatchObject({
+		expect(getResolvedState(tl, 1000)).toMatchObject({
 			layers: {
 				'1': {
 					id: 'group0',
@@ -3289,7 +3285,7 @@ let tests: Tests = {
 			],
 		})
 
-		expect(Resolver.getState(tl, 1010)).toMatchObject({
+		expect(getResolvedState(tl, 1010)).toMatchObject({
 			layers: {
 				'1': {
 					id: 'group0',
@@ -3304,12 +3300,12 @@ let tests: Tests = {
 	'logical objects in group': () => {
 		const data = clone(getTestData('logicalInGroup'))
 
-		const tl = Resolver.resolveAllStates(Resolver.resolveTimeline(data, stdOpts))
+		const tl = resolveTimeline(data, stdOpts)
 		expect(tl.statistics.resolvedObjectCount).toEqual(3)
 		expect(tl.statistics.resolvedGroupCount).toEqual(1)
 		expect(tl.statistics.unresolvedCount).toEqual(0)
 
-		expect(Resolver.getState(tl, 800)).toMatchObject({
+		expect(getResolvedState(tl, 800)).toMatchObject({
 			layers: {
 				'3': {
 					id: 'outside0',
@@ -3321,7 +3317,7 @@ let tests: Tests = {
 			],
 		})
 
-		expect(Resolver.getState(tl, 1000)).toMatchObject({
+		expect(getResolvedState(tl, 1000)).toMatchObject({
 			layers: {
 				'1': {
 					id: 'group0',
@@ -3341,10 +3337,10 @@ let tests: Tests = {
 	'logical objects in group with logical expr': () => {
 		const data = clone(getTestData('logicalInGroupLogical'))
 
-		const tl = Resolver.resolveTimeline(data, stdOpts)
+		const tl = resolveTimeline(data, stdOpts)
 		expect(data).toEqual(getTestData('logicalInGroupLogical')) // Make sure the original data is unmodified
 
-		const state0 = Resolver.getState(tl, 1000)
+		const state0 = getResolvedState(tl, 1000)
 		expect(state0.layers).toMatchObject({
 			'1': {
 				id: 'group0',
@@ -3360,11 +3356,11 @@ let tests: Tests = {
 	},
 	'keyframe in a grouped object': () => {
 		const data = clone(getTestData('keyframeingroup'))
-		const tl = Resolver.resolveTimeline(data, stdOpts)
+		const tl = resolveTimeline(data, stdOpts)
 		expect(tl.statistics.resolvedObjectCount).toEqual(2)
 		expect(tl.statistics.unresolvedCount).toEqual(0)
 
-		expect(Resolver.getState(tl, 1000)).toMatchObject({
+		expect(getResolvedState(tl, 1000)).toMatchObject({
 			layers: {
 				'1': {
 					id: 'obj1',
@@ -3385,7 +3381,7 @@ let tests: Tests = {
 			],
 		})
 
-		expect(Resolver.getState(tl, 1015)).toMatchObject({
+		expect(getResolvedState(tl, 1015)).toMatchObject({
 			layers: {
 				'1': {
 					id: 'obj1',
@@ -3402,7 +3398,7 @@ let tests: Tests = {
 				},
 			},
 		})
-		expect(Resolver.getState(tl, 1025)).toMatchObject({
+		expect(getResolvedState(tl, 1025)).toMatchObject({
 			layers: {
 				'1': {
 					id: 'obj1',
@@ -3419,10 +3415,10 @@ let tests: Tests = {
 	},
 	'relative durations': () => {
 		const data = clone(getTestData('relativeduration0'))
-		const tl = Resolver.resolveAllStates(Resolver.resolveTimeline(data, stdOpts))
+		const tl = resolveTimeline(data, stdOpts)
 		expect(tl.statistics.resolvedObjectCount).toEqual(4)
 
-		expect(Resolver.getState(tl, 990)).toMatchObject({
+		expect(getResolvedState(tl, 990)).toMatchObject({
 			nextEvents: [
 				{ type: EventType.START, time: 1000, objId: 'obj0' },
 				{ type: EventType.END, time: 1060, objId: 'obj0' },
@@ -3435,54 +3431,55 @@ let tests: Tests = {
 			],
 		})
 
-		expect(Resolver.getState(tl, 1030)).toMatchObject({
+		expect(getResolvedState(tl, 1030)).toMatchObject({
 			layers: {
 				'1': { id: 'obj0' },
 			},
 		})
-		expect(Resolver.getState(tl, 1070)).toMatchObject({
+		expect(getResolvedState(tl, 1070)).toMatchObject({
 			layers: {
 				'1': { id: 'obj1' },
 			},
 		})
-		expect(Resolver.getState(tl, 1100)).toMatchObject({
+		expect(getResolvedState(tl, 1100)).toMatchObject({
 			layers: {
 				'1': { id: 'obj2' },
 			},
 		})
-		expect(Resolver.getState(tl, 1190)).toMatchObject({
+		expect(getResolvedState(tl, 1190)).toMatchObject({
 			layers: {
 				'1': { id: 'obj3' },
 			},
 		})
-		expect(Resolver.getState(tl, 5401).layers).toEqual({})
+		expect(getResolvedState(tl, 5401).layers).toEqual({})
 	},
 	'Circular dependency 1': () => {
 		const data = clone(getTestData('circulardependency0'))
 
 		expect(() => {
-			Resolver.resolveTimeline(data, stdOpts)
+			resolveTimeline(data, stdOpts)
 		}).toThrow(/circular/i)
 	},
 	'Circular dependency 2': () => {
 		const data = clone(getTestData('circulardependency1'))
 		expect(() => {
-			Resolver.resolveTimeline(data, stdOpts)
+			resolveTimeline(data, stdOpts)
 		}).toThrow(/circular/i)
 
-		// const tl = Resolver.resolveTimeline(data, stdOpts)
+		// const tl = resolveTimeline(data, stdOpts)
 		// expect(tl.statistics.resolvedObjectCount).toEqual(0)
 
-		const obj0: NewTimelineObject = _.findWhere(data, { id: 'obj0' }) as NewTimelineObject
+		const obj0 = data.find((d) => d.id === 'obj0')
+		if (!obj0) throw new Error('obj0 not found')
 		// @ts-ignore
 		obj0.enable.duration = 10 // break the circular dependency
 
-		const tl = Resolver.resolveTimeline(data, stdOpts)
+		const tl = resolveTimeline(data, stdOpts)
 		expect(tl.statistics.resolvedCount).toEqual(3)
 	},
 	'relative durations object order': () => {
 		const data = clone(getTestData('relativedurationorder0'))
-		const tl = Resolver.resolveTimeline(data, stdOpts)
+		const tl = resolveTimeline(data, stdOpts)
 		expect(tl.statistics.resolvedObjectCount).toEqual(4)
 		expect(tl.statistics.resolvedGroupCount).toEqual(2)
 
@@ -3499,13 +3496,13 @@ let tests: Tests = {
 			instances: [{ start: 1150, end: null }],
 		})
 
-		expect(Resolver.getState(tl, 1030)).toMatchObject({
+		expect(getResolvedState(tl, 1030)).toMatchObject({
 			layers: {
 				'1': { id: 'group0' },
 				'2': { id: 'child0' },
 			},
 		})
-		expect(Resolver.getState(tl, 1150)).toMatchObject({
+		expect(getResolvedState(tl, 1150)).toMatchObject({
 			layers: {
 				'3': { id: 'group1' },
 				'4': { id: 'child1' },
@@ -3514,7 +3511,7 @@ let tests: Tests = {
 	},
 	'Cross-dependencies between group children': () => {
 		const data = clone(getTestData('dependenciesBetweengroupchildren'))
-		const tl = Resolver.resolveTimeline(data, stdOpts)
+		const tl = resolveTimeline(data, stdOpts)
 		expect(tl.statistics.resolvedObjectCount).toEqual(5)
 		expect(tl.statistics.resolvedGroupCount).toEqual(2)
 		expect(tl.statistics.unresolvedCount).toEqual(0)
@@ -3537,7 +3534,7 @@ let tests: Tests = {
 	},
 	// 'self-reference expression': () => {
 	// 	const data = clone(getTestData('selfreferenceexpression0'))
-	// 	const tl = Resolver.resolveTimeline(data, stdOpts)
+	// 	const tl = resolveTimeline(data, stdOpts)
 	// 	expect(tl.statistics.resolvedObjectCount).toEqual(2)
 
 	// 	const obj0 = tl.objects['obj0']
@@ -3564,17 +3561,17 @@ let tests: Tests = {
 				content: {},
 			})
 		}
-		data = _.sortBy(data, Math.random)
+		data = sortBy(data, Math.random)
 
 		// const startTime = Date.now()
-		const tl = Resolver.resolveTimeline(data, stdOpts)
+		const tl = resolveTimeline(data, stdOpts)
 		// const endTime = Date.now()
 		expect(tl.statistics.resolvedObjectCount).toEqual(size)
 		// expect(endTime - startTime).toBeLessThan(size )
 	},
 	'Relative start order': () => {
 		const data = clone(getTestData('relativeStartOrder0'))
-		const tl = Resolver.resolveTimeline(data, stdOpts)
+		const tl = resolveTimeline(data, stdOpts)
 		expect(tl.statistics.resolvedObjectCount).toEqual(4)
 		expect(tl.statistics.unresolvedCount).toEqual(0)
 
@@ -3591,17 +3588,17 @@ let tests: Tests = {
 			instances: [{ start: 2500, end: null }],
 		})
 
-		expect(Resolver.getState(tl, 1500)).toMatchObject({
+		expect(getResolvedState(tl, 1500)).toMatchObject({
 			layers: {
 				'3': { id: 'child1' },
 			},
 		})
-		expect(Resolver.getState(tl, 3500)).toMatchObject({
+		expect(getResolvedState(tl, 3500)).toMatchObject({
 			layers: {
 				'3': { id: 'child0' },
 			},
 		})
-		expect(Resolver.getState(tl, 4500)).toMatchObject({
+		expect(getResolvedState(tl, 4500)).toMatchObject({
 			layers: {
 				'3': { id: 'child0' },
 			},
@@ -3609,7 +3606,7 @@ let tests: Tests = {
 	},
 	'Relative with something past the end': () => {
 		const data = clone(getTestData('relativePastEnd'))
-		const tl = Resolver.resolveTimeline(data, stdOpts)
+		const tl = resolveTimeline(data, stdOpts)
 
 		expect(tl.objects['group0'].resolved).toMatchObject({
 			instances: [{ start: 1000, end: 4100 }],
@@ -3644,13 +3641,13 @@ let tests: Tests = {
 		expect(tl.statistics.resolvedGroupCount).toEqual(4)
 		expect(tl.statistics.unresolvedCount).toEqual(2)
 
-		const state0 = Resolver.getState(tl, 5500)
+		const state0 = getResolvedState(tl, 5500)
 		expect(state0.layers['4']).toBeFalsy()
 		expect(state0.layers['6']).toBeFalsy()
 	},
 	'Child relative duration before parent end': () => {
 		const data = clone(getTestData('childEndRelativeParentEnd'))
-		const tl = Resolver.resolveTimeline(data, stdOpts)
+		const tl = resolveTimeline(data, stdOpts)
 
 		expect(tl.objects['group0'].resolved).toMatchObject({
 			instances: [{ start: 1000, end: 6600 }],
@@ -3674,13 +3671,13 @@ let tests: Tests = {
 		expect(tl.statistics.resolvedObjectCount).toEqual(6)
 		expect(tl.statistics.unresolvedCount).toEqual(0)
 
-		const state0 = Resolver.getState(tl, 6500)
+		const state0 = getResolvedState(tl, 6500)
 		expect(state0.layers['4']).toBeFalsy()
 		expect(state0.layers['8']).toBeTruthy()
 	},
 	'Relative duration resolving to zero length': () => {
 		const data = clone(getTestData('relativeDurationZeroLength'))
-		const tl = Resolver.resolveTimeline(data, stdOpts)
+		const tl = resolveTimeline(data, stdOpts)
 
 		expect(tl.objects['group0'].resolved).toMatchObject({
 			instances: [{ start: 1000, end: null }],
@@ -3706,7 +3703,7 @@ let tests: Tests = {
 	},
 	'Many parentheses': () => {
 		const data = clone(getTestData('manyParentheses'))
-		const tl = Resolver.resolveTimeline(data, stdOpts)
+		const tl = resolveTimeline(data, stdOpts)
 		expect(tl.statistics.unresolvedCount).toEqual(0)
 		expect(tl.statistics.resolvedObjectCount).toEqual(2)
 
@@ -3719,7 +3716,7 @@ let tests: Tests = {
 	},
 	'Operator order': () => {
 		const data = clone(getTestData('operatorOrder'))
-		const tl = Resolver.resolveTimeline(data, stdOpts)
+		const tl = resolveTimeline(data, stdOpts)
 		expect(tl.statistics.unresolvedCount).toEqual(0)
 		expect(tl.statistics.resolvedObjectCount).toEqual(7)
 
@@ -3747,7 +3744,7 @@ let tests: Tests = {
 	},
 	'Child with a start before parent': () => {
 		const data = clone(getTestData('childWithStartBeforeParent'))
-		const tl = Resolver.resolveAllStates(Resolver.resolveTimeline(data, stdOpts))
+		const tl = resolveTimeline(data, stdOpts)
 
 		expect(tl.statistics.unresolvedCount).toEqual(0)
 		expect(tl.statistics.resolvedGroupCount).toEqual(1)
@@ -3763,7 +3760,7 @@ let tests: Tests = {
 			instances: [{ start: 6000, end: null }],
 		})
 
-		expect(Resolver.getState(tl, 1000)).toMatchObject({
+		expect(getResolvedState(tl, 1000)).toMatchObject({
 			nextEvents: [
 				{ type: EventType.START, time: 6000, objId: 'child0' },
 				{ type: EventType.START, time: 6000, objId: 'child1' },
@@ -3771,13 +3768,13 @@ let tests: Tests = {
 			],
 		})
 
-		expect(Resolver.getState(tl, 5999).layers).toEqual({})
+		expect(getResolvedState(tl, 5999).layers).toEqual({})
 	},
 	/*
 	// Temporary (?) disable due to $layer.className currently isn't supported
 	'Logical triggers': () => {
 		const data = clone(getTestData('logicalTriggers'))
-		const tl = Resolver.resolveTimeline(data, stdOpts)
+		const tl = resolveTimeline(data, stdOpts)
 		expect(tl.statistics.unresolvedCount).toEqual(6)
 		expect(tl.statistics.resolvedObjectCount).toEqual(2)
 
@@ -3839,7 +3836,7 @@ let tests: Tests = {
 		expect(_.findWhere(tl.unresolved, { id: 'obj7' })).toBeTruthy()
 
 		// Sample before logical trigger is true
-		const state0 = Resolver.getState(tl, 1500)
+		const state0 = getResolvedState(tl, 1500)
 		expect(state0.layers['layer0']).toBeTruthy()
 		expect(state0.layers['layer0'].id).toEqual('obj0')
 		expect(state0.layers['layer1']).toBeFalsy()
@@ -3852,7 +3849,7 @@ let tests: Tests = {
 		expect(state0.layers['layer7'].id).toEqual('obj7')
 
 		// Sample after logical trigger is true
-		const state1 = Resolver.getState(tl, 4500)
+		const state1 = getResolvedState(tl, 4500)
 		expect(state1.layers['layer0']).toBeTruthy()
 		expect(state1.layers['layer0'].id).toEqual('obj2')
 		expect(state1.layers['layer1']).toBeTruthy()
@@ -3869,7 +3866,7 @@ let tests: Tests = {
 	*/
 	'Logical triggers 2': () => {
 		const data = clone(getTestData('logicalTriggers2'))
-		const tl = Resolver.resolveTimeline(data, stdOpts)
+		const tl = resolveTimeline(data, stdOpts)
 
 		expect(tl.objects['obj0'].resolved).toMatchObject({
 			instances: [{ start: 0, end: null }],
@@ -3888,13 +3885,13 @@ let tests: Tests = {
 		})
 
 		// Sample before logical trigger is true
-		const state0 = Resolver.getState(tl, 1500)
+		const state0 = getResolvedState(tl, 1500)
 		expect(state0.layers['layer0']).toBeTruthy()
 		expect(state0.layers['layer0'].id).toEqual('obj0')
 		expect(state0.layers['layer1_first']).toBeFalsy()
 
 		// Sample after logical trigger is true
-		const state1 = Resolver.getState(tl, 2500)
+		const state1 = getResolvedState(tl, 2500)
 		expect(state1.layers['layer0']).toBeTruthy()
 		expect(state1.layers['layer0'].id).toEqual('obj2')
 		expect(state1.layers['layer1_first']).toBeTruthy()
@@ -3902,17 +3899,17 @@ let tests: Tests = {
 	},
 	'Logical triggers 3': () => {
 		const data = clone(getTestData('logicalTriggers3'))
-		const tl = Resolver.resolveTimeline(data, stdOpts)
+		const tl = resolveTimeline(data, stdOpts)
 
 		// Sample at base
-		const state0 = Resolver.getState(tl, now)
+		const state0 = getResolvedState(tl, now)
 		expect(state0.layers['nora_primary_super']).toBeTruthy()
 		expect(state0.layers['nora_primary_super'].id).toEqual('super_default')
 		expect(state0.layers['nora_primary_headline']).toBeTruthy()
 		expect(state0.layers['nora_primary_headline'].id).toEqual('head_default')
 
 		// Sample after real_head has started
-		const state1 = Resolver.getState(tl, now + 350)
+		const state1 = getResolvedState(tl, now + 350)
 		expect(state1.layers['nora_primary_super']).toBeTruthy()
 		expect(state1.layers['nora_primary_super'].id).toEqual('super_default')
 		expect(state1.layers['nora_primary_headline']).toBeTruthy()
@@ -3920,16 +3917,16 @@ let tests: Tests = {
 	},
 	'Logical triggers 3b': () => {
 		const data = clone(getTestData('logicalTriggers3b'))
-		const tl = Resolver.resolveTimeline(data, stdOpts)
+		const tl = resolveTimeline(data, stdOpts)
 
 		// Sample at base
-		const state0 = Resolver.getState(tl, now)
+		const state0 = getResolvedState(tl, now)
 		expect(state0.layers['nora_primary_super']).toBeTruthy()
 		expect(state0.layers['nora_primary_super'].id).toEqual('super_default')
 		expect(state0.layers['nora_primary_headline']).toBeFalsy()
 
 		// Sample after real_head has started
-		const state1 = Resolver.getState(tl, now + 350)
+		const state1 = getResolvedState(tl, now + 350)
 		expect(state1.layers['nora_primary_super']).toBeTruthy()
 		expect(state1.layers['nora_primary_super'].id).toEqual('super_default')
 		expect(state1.layers['nora_primary_headline']).toBeTruthy()
@@ -3937,10 +3934,10 @@ let tests: Tests = {
 	},
 	'Logical object order': () => {
 		const data = clone(getTestData('logical_object_order'))
-		const tl = Resolver.resolveTimeline(data, stdOpts)
+		const tl = resolveTimeline(data, stdOpts)
 
 		// Sample while first obj is active
-		const state0 = Resolver.getState(tl, 2000)
+		const state0 = getResolvedState(tl, 2000)
 		expect(state0.layers['layer0']).toBeTruthy()
 		expect(state0.layers['layer0'].id).toEqual('obj0')
 		expect(state0.layers['layer1']).toBeFalsy()
@@ -3950,7 +3947,7 @@ let tests: Tests = {
 		expect(state0.layers['layer3'].id).toEqual('obj4')
 
 		// Sample while both objs are active
-		const state1 = Resolver.getState(tl, 7000)
+		const state1 = getResolvedState(tl, 7000)
 		expect(state1.layers['layer0']).toBeTruthy()
 		expect(state1.layers['layer0'].id).toEqual('obj0')
 		expect(state1.layers['layer1']).toBeTruthy()
@@ -3961,7 +3958,7 @@ let tests: Tests = {
 		expect(state1.layers['layer3'].id).toEqual('obj5')
 
 		// Sample while second obj is active
-		const state2 = Resolver.getState(tl, 12000)
+		const state2 = getResolvedState(tl, 12000)
 		expect(state2.layers['layer0']).toBeFalsy()
 		expect(state2.layers['layer1']).toBeTruthy()
 		expect(state2.layers['layer1'].id).toEqual('obj1')
@@ -3972,7 +3969,7 @@ let tests: Tests = {
 	},
 	'Logical object order grouped': () => {
 		const data = clone(getTestData('logical_object_order_grouped'))
-		const tl = Resolver.resolveTimeline(data, stdOpts)
+		const tl = resolveTimeline(data, stdOpts)
 
 		expect(tl.objects['group0'].resolved).toMatchObject({
 			instances: [{ start: 2000, end: 12000 }],
@@ -4000,7 +3997,7 @@ let tests: Tests = {
 		})
 
 		// Sample while first obj is active
-		const state0 = Resolver.getState(tl, 2000)
+		const state0 = getResolvedState(tl, 2000)
 
 		expect(state0.layers).toMatchObject({
 			layer0: { id: 'obj0' },
@@ -4010,7 +4007,7 @@ let tests: Tests = {
 		expect(state0.layers['layer1']).toBeFalsy()
 
 		// Sample while both objs are active
-		const state1 = Resolver.getState(tl, 7000)
+		const state1 = getResolvedState(tl, 7000)
 
 		expect(state1.layers).toMatchObject({
 			layer0: { id: 'obj0' },
@@ -4020,7 +4017,7 @@ let tests: Tests = {
 		})
 
 		// Sample while second obj is active
-		const state2 = Resolver.getState(tl, 12000)
+		const state2 = getResolvedState(tl, 12000)
 		expect(state2.layers).toMatchObject({
 			// 'layer0': { id: 'obj0' },
 			layer1: { id: 'obj1' },
@@ -4031,42 +4028,37 @@ let tests: Tests = {
 	},
 }
 const onlyTests: Tests = {}
-_.each(tests, (t, key: string) => {
+for (const [key, t] of Object.entries(tests)) {
 	if (key.match(/^only/)) {
 		onlyTests[key] = t
 	}
-})
-if (!_.isEmpty(onlyTests)) tests = onlyTests
+}
+if (!isEmpty(onlyTests)) tests = onlyTests
 
 describe('All tests', () => {
-	beforeEach(() => {
-		resetId()
-	})
-	_.each(tests, (t, key) => {
+	for (const [key, t] of Object.entries(tests)) {
 		test(key, () => {
 			reverseData = false
 			t()
 		})
-	})
+	}
 })
 
 describe('Tests with reversed data', () => {
-	_.each(tests, (t, key) => {
+	for (const [key, t] of Object.entries(tests)) {
 		test(key, () => {
 			reverseData = true
 			t()
 		})
-	})
+	}
 })
 describe('Tests with cache', () => {
 	const cache = {}
 	stdOpts.cache = cache
-	_.each(tests, (t, key) => {
+	for (const [key, t] of Object.entries(tests)) {
 		test(key, () => {
 			reverseData = true
 			t()
 		})
-	})
+	}
 })
-
-// TODO: test .useExternalFunctions

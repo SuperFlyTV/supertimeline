@@ -1,9 +1,9 @@
 module.exports = {
 	moduleFileExtensions: ['ts', 'js'],
 	transform: {
-		'^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: 'tsconfig.json' }],
+		'^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: 'tsconfig.json', diagnostics: false }],
 	},
-	testMatch: ['**/__tests__/**/*.spec.(ts|js)'],
+	testMatch: ['**/src/**/__tests__/**/*.spec.(ts|js)'],
 	testEnvironment: 'node',
 	coverageThreshold: {
 		global: {

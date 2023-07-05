@@ -1,5 +1,13 @@
-import { TimelineObject, Resolver, ResolveOptions, EventType, validateObject, validateTimeline } from '../index'
-import * as _ from 'underscore'
+import {
+	TimelineObject,
+	ResolveOptions,
+	EventType,
+	validateObject,
+	validateTimeline,
+	resolveTimeline,
+	getResolvedState,
+} from '../index'
+import { baseInstances } from '../resolver/lib/instance'
 
 describe('index', () => {
 	test('resolve timeline', () => {
@@ -42,12 +50,10 @@ describe('index', () => {
 			time: 0,
 		}
 		// Resolve the timeline
-		const resolvedTimeline = Resolver.resolveTimeline(timeline, options)
-
-		const resolvedStates = Resolver.resolveAllStates(resolvedTimeline)
+		const resolvedTimeline = resolveTimeline(timeline, options)
 
 		// Calculate the state at a certain time:
-		const state0 = Resolver.getState(resolvedStates, 15)
+		const state0 = getResolvedState(resolvedTimeline, 15)
 
 		expect(state0).toMatchObject({
 			layers: {
@@ -98,12 +104,12 @@ describe('index', () => {
 			time: 0,
 		}
 		// Resolve the timeline
-		const resolvedTimeline0 = Resolver.resolveTimeline(timeline, options)
-		const resolvedTimeline1 = Resolver.resolveTimeline(timeline, options)
+		const resolvedTimeline0 = resolveTimeline(timeline, options)
+		const resolvedTimeline1 = resolveTimeline(timeline, options)
 
 		// Calculate the state at a certain time:
-		const state0 = Resolver.getState(resolvedTimeline0, 15)
-		const state1 = Resolver.getState(resolvedTimeline1, 15)
+		const state0 = getResolvedState(resolvedTimeline0, 15)
+		const state1 = getResolvedState(resolvedTimeline1, 15)
 
 		expect(resolvedTimeline0).toEqual(resolvedTimeline1)
 		expect(state0).toEqual(state1)
@@ -141,12 +147,12 @@ describe('index', () => {
 			time: 0,
 		}
 		// Resolve the timeline
-		const resolvedTimeline = Resolver.resolveTimeline(timeline, options)
+		const resolvedTimeline = resolveTimeline(timeline, options)
 
 		// Calculate the state at a certain time:
-		const state0 = Resolver.getState(resolvedTimeline, 4)
-		const state1 = Resolver.getState(resolvedTimeline, 15)
-		const state2 = Resolver.getState(resolvedTimeline, 21)
+		const state0 = getResolvedState(resolvedTimeline, 4)
+		const state1 = getResolvedState(resolvedTimeline, 15)
+		const state2 = getResolvedState(resolvedTimeline, 21)
 
 		expect(state0.layers[0].content.attr1).toEqual(0)
 		expect(state1.layers[0].content.attr1).toEqual(0)
@@ -208,38 +214,14 @@ describe('index', () => {
 			time: 0,
 		}
 		// Resolve the timeline
-		const resolvedTimeline = Resolver.resolveTimeline(timeline, options)
-
-		const resolvedStates = Resolver.resolveAllStates(resolvedTimeline)
+		const resolvedTimeline = resolveTimeline(timeline, options)
 
 		// Calculate the state at a certain time:
-		const state0 = Resolver.getState(resolvedStates, 20)
-		const state1 = Resolver.getState(resolvedStates, 60)
-		const state2 = Resolver.getState(resolvedStates, 65)
-		const state3 = Resolver.getState(resolvedStates, 80)
-		const state4 = Resolver.getState(resolvedStates, 110)
-
-		const state0a = Resolver.getState(resolvedTimeline, 20)
-		const state1a = Resolver.getState(resolvedTimeline, 60)
-		const state2a = Resolver.getState(resolvedTimeline, 65)
-		const state3a = Resolver.getState(resolvedTimeline, 80)
-		const state4a = Resolver.getState(resolvedTimeline, 110)
-
-		_.each(state0.layers, (obj, layer) => {
-			expect(obj.id).toEqual(state0a.layers[layer].id)
-		})
-		_.each(state1.layers, (obj, layer) => {
-			expect(obj.id).toEqual(state1a.layers[layer].id)
-		})
-		_.each(state2.layers, (obj, layer) => {
-			expect(obj.id).toEqual(state2a.layers[layer].id)
-		})
-		_.each(state3.layers, (obj, layer) => {
-			expect(obj.id).toEqual(state3a.layers[layer].id)
-		})
-		_.each(state4.layers, (obj, layer) => {
-			expect(obj.id).toEqual(state4a.layers[layer].id)
-		})
+		const state0 = getResolvedState(resolvedTimeline, 20)
+		const state1 = getResolvedState(resolvedTimeline, 60)
+		const state2 = getResolvedState(resolvedTimeline, 65)
+		const state3 = getResolvedState(resolvedTimeline, 80)
+		const state4 = getResolvedState(resolvedTimeline, 110)
 
 		expect(state0.layers[0].id).toEqual('video0')
 		expect(state1.layers[0].id).toEqual('video1')
@@ -247,27 +229,27 @@ describe('index', () => {
 		expect(state3.layers[0].id).toEqual('video0')
 		expect(state4.layers[0].id).toEqual('video3')
 
-		expect(resolvedStates.objects['video0'].resolved.instances).toHaveLength(2)
-		expect(resolvedStates.objects['video1'].resolved.instances).toHaveLength(1)
-		expect(resolvedStates.objects['video2'].resolved.instances).toHaveLength(1)
+		expect(resolvedTimeline.objects['video0'].resolved.instances).toHaveLength(2)
+		expect(resolvedTimeline.objects['video1'].resolved.instances).toHaveLength(1)
+		expect(resolvedTimeline.objects['video2'].resolved.instances).toHaveLength(1)
 
-		expect(resolvedStates.objects['video0'].resolved.instances[0]).toMatchObject({
+		expect(resolvedTimeline.objects['video0'].resolved.instances[0]).toMatchObject({
 			start: 0,
 			end: 50,
 		})
-		expect(resolvedStates.objects['video1'].resolved.instances[0]).toMatchObject({
+		expect(resolvedTimeline.objects['video1'].resolved.instances[0]).toMatchObject({
 			start: 50,
 			end: 65,
 		})
-		expect(resolvedStates.objects['video2'].resolved.instances[0]).toMatchObject({
+		expect(resolvedTimeline.objects['video2'].resolved.instances[0]).toMatchObject({
 			start: 65,
 			end: 75,
 		})
-		expect(resolvedStates.objects['video0'].resolved.instances[1]).toMatchObject({
+		expect(resolvedTimeline.objects['video0'].resolved.instances[1]).toMatchObject({
 			start: 75,
 			end: 100,
 		})
-		expect(resolvedStates.objects['video3'].resolved.instances[0]).toMatchObject({
+		expect(resolvedTimeline.objects['video3'].resolved.instances[0]).toMatchObject({
 			start: 100,
 			end: 120,
 		})
@@ -315,7 +297,7 @@ describe('index', () => {
 			time: 0,
 		}
 		// Resolve the timeline
-		const resolvedTimeline = Resolver.resolveTimeline(timeline, options)
+		const resolvedTimeline = resolveTimeline(timeline, options)
 
 		expect(resolvedTimeline.objects['myObject'].resolved.instances).toMatchObject([
 			{ start: 40, end: 60 },
@@ -372,10 +354,10 @@ describe('index', () => {
 			time: 1500,
 		}
 		// Resolve the timeline
-		const resolvedTimeline = Resolver.resolveTimeline(timeline, options)
+		const resolvedTimeline = resolveTimeline(timeline, options)
 
 		// Calculate the state at a certain time:
-		const state0 = Resolver.getState(resolvedTimeline, 1500)
+		const state0 = getResolvedState(resolvedTimeline, 1500)
 
 		expect(state0.layers['layer1']).toBeTruthy()
 		expect(state0.layers['layer1'].id).toEqual('o5')
@@ -401,15 +383,13 @@ describe('index', () => {
 			time: 0,
 		}
 		// Resolve the timeline
-		const resolvedTimeline = Resolver.resolveTimeline(timeline, options)
-
-		const resolvedStates = Resolver.resolveAllStates(resolvedTimeline)
+		const resolvedTimeline = resolveTimeline(timeline, options)
 
 		// Calculate the state at a certain time:
-		const state0 = Resolver.getState(resolvedStates, 5)
+		const state0 = getResolvedState(resolvedTimeline, 5)
 		expect(state0.layers['0']).toBeFalsy()
 
-		const state1 = Resolver.getState(resolvedStates, 15)
+		const state1 = getResolvedState(resolvedTimeline, 15)
 		expect(state1).toMatchObject({
 			layers: {
 				'0': { id: 'video' },
@@ -478,10 +458,9 @@ describe('index', () => {
 			time: 0,
 		}
 		// Resolve the timeline
-		const resolvedTimeline = Resolver.resolveTimeline(timeline, options)
-		const resolvedStates = Resolver.resolveAllStates(resolvedTimeline)
+		const resolvedTimeline = resolveTimeline(timeline, options)
 
-		const obj = resolvedStates.objects['AAA']
+		const obj = resolvedTimeline.objects['AAA']
 
 		expect(obj).toBeTruthy()
 

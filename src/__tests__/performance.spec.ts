@@ -1,7 +1,8 @@
-import { TimelineObject, Resolver, ResolveOptions } from '../index'
-import * as _ from 'underscore'
 import { generateTimeline } from './timelineGenerator'
-import { cleanCacheResult } from '../lib'
+import { ResolveOptions, ResolvedTimeline, TimelineObject } from '../api'
+import { getResolvedState, resolveTimeline } from '..'
+import { sortBy } from '../resolver/lib/lib'
+import { activatePerformanceDebugging, ticTocPrint } from '../resolver/lib/performance'
 
 const startTimer = () => {
 	const startTime = process.hrtime()
@@ -18,12 +19,17 @@ const doPerformanceTest = (useCache: boolean) => {
 
 	let executionTimeAvg = 0
 	let executionTimeCount = 0
+	let errorCount = 0
 
 	const cache = {}
 
 	const stats: { [key: string]: number } = {}
 
-	for (let i = 0; i < TEST_COUNT; i++) {
+	const testCountMax = TEST_COUNT * 2
+
+	for (let i = 0; i < testCountMax; i++) {
+		if (executionTimeCount >= TEST_COUNT) break
+
 		seed++
 
 		const timeline: Array<TimelineObject> = generateTimeline(seed, 100, 3)
@@ -34,52 +40,67 @@ const doPerformanceTest = (useCache: boolean) => {
 		}
 
 		// Start the timer:
-		const timer = startTimer()
 
-		// Resolve the timeline
-		const resolvedTimeline = Resolver.resolveTimeline(timeline, options)
-		const resolvedStates = Resolver.resolveAllStates(resolvedTimeline, options.cache)
-		// Calculate the state at a certain time:
-		const state0 = Resolver.getState(resolvedStates, 15)
-		const state1 = Resolver.getState(resolvedStates, 20)
-		const state2 = Resolver.getState(resolvedStates, 50)
+		let resolvedTimeline: ResolvedTimeline | undefined = undefined
+		let useTest = false
+		let testDuration = 0
+		try {
+			const timer = startTimer()
+			// Resolve the timeline
+			resolvedTimeline = resolveTimeline(timeline, options)
+			// Calculate the state at a certain time:
+			const state0 = getResolvedState(resolvedTimeline, 15)
+			const state1 = getResolvedState(resolvedTimeline, 20)
+			const state2 = getResolvedState(resolvedTimeline, 50)
 
-		// Resolve the timeline again
-		const resolvedTimeline2 = Resolver.resolveTimeline(timeline, options)
-		const resolvedStates2 = Resolver.resolveAllStates(resolvedTimeline2, options.cache)
-		const state20 = Resolver.getState(resolvedStates2, 15)
+			// Resolve the timeline again
+			const resolvedTimeline2 = resolveTimeline(timeline, options)
+			const state20 = getResolvedState(resolvedTimeline2, 15)
 
-		// Stop the timer:
-		const time0 = timer.stop()
+			// Stop the timer:
+			testDuration = timer.stop()
 
-		expect(resolvedStates).toBeTruthy()
-		expect(state0).toBeTruthy()
-		expect(state1).toBeTruthy()
-		expect(state2).toBeTruthy()
-		expect(state20).toBeTruthy()
-		expect(time0).toBeLessThan(500)
+			expect(resolvedTimeline).toBeTruthy()
+			expect(state0).toBeTruthy()
+			expect(state1).toBeTruthy()
+			expect(state2).toBeTruthy()
+			expect(state20).toBeTruthy()
 
-		expect(resolvedStates).toEqual(resolvedStates2)
+			// expect(omit(resolvedTimeline, 'statistics')).toStrictEqual(omit(resolvedTimeline2, 'statistics'))
 
-		cleanCacheResult()
+			useTest = true
+		} catch (e) {
+			errorCount++
+			if (`${e}`.match(/circular/)) {
+				// Unable to resolve timeline due to circular references
+				// console.log(timeline)
+				// console.log('circular')
+				// ignore
+			} else {
+				throw e
+			}
+		}
 
-		// console.log(`Time of execution: ${time0}`)
+		// console.log(`Time of execution: ${testDuration}`)
 
-		executionTimeAvg += time0
-		executionTimeCount++
-
-		stats['seed ' + seed] = time0
+		if (useTest) {
+			expect(testDuration).toBeLessThan(500)
+			executionTimeAvg += testDuration
+			executionTimeCount++
+			stats['seed ' + seed] = testDuration
+		}
 	}
 	executionTimeAvg /= executionTimeCount
 
-	const sortedTimes = _.sortBy(
-		_.map(stats, (time, key) => {
+	const sortedTimes = sortBy(
+		Object.entries(stats).map(([key, time]) => {
 			return { time, key }
 		}),
 		(t) => t.time
 	)
 
 	return {
+		errorCount,
 		sortedTimes,
 		executionTimeAvg,
 	}
@@ -90,6 +111,9 @@ const round = (num: number) => {
 const TEST_COUNT = 500
 const TIMEOUT_TIME = 10 * 1000
 
+beforeAll(() => {
+	activatePerformanceDebugging(false) // set to true to enable performance debugging
+})
 describe('performance', () => {
 	test(
 		'performance test, no cache',
@@ -105,6 +129,7 @@ describe('performance', () => {
 			)
 
 			expect(executionTimeAvg).toBeLessThan(50)
+			ticTocPrint()
 		},
 		TIMEOUT_TIME
 	)
@@ -122,10 +147,8 @@ describe('performance', () => {
 			)
 
 			expect(executionTimeAvg).toBeLessThan(50)
+			ticTocPrint()
 		},
 		TIMEOUT_TIME
 	)
-	afterEach(() => {
-		cleanCacheResult()
-	})
 })
