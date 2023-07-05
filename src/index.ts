@@ -1,4 +1,4 @@
-import { Resolver } from './resolver/Resolver'
+import { ResolverHandler } from './resolver/ResolverHandler'
 import { ResolvedTimeline } from './api/resolvedTimeline'
 import { ResolveOptions } from './api/resolver'
 import { TimelineKeyframe, TimelineObject } from './api/timeline'
@@ -14,7 +14,7 @@ export * from './api'
  * and calculates the absolute times for all objects in the timeline.
  */
 export function resolveTimeline(timeline: TimelineObject[], options: ResolveOptions): ResolvedTimeline {
-	const resolverInstance = new Resolver(options)
+	const resolverInstance = new ResolverHandler(options)
 	return resolverInstance.resolveTimeline(timeline)
 }
 

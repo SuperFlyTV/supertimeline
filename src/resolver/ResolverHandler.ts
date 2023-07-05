@@ -14,7 +14,7 @@ import { TimelineValidator } from './TimelineValidator'
  * 1. const resolver = new Resolver(options)
  * 2. resolver.run(timeline)
  */
-export class Resolver {
+export class ResolverHandler {
 	private hasRun = false
 
 	private nextEvents: NextEvent[] = []
