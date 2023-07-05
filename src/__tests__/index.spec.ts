@@ -698,4 +698,62 @@ describe('index', () => {
 			{ start: 53, end: 101 },
 		])
 	})
+
+	test('Debug mode', () => {
+		// Just run in debug mode, to see that it doesn't crash and improve code coverage numbers.
+
+		const orgConsoleLog = console.log
+		const mockConsoleLog = jest.fn()
+		console.log = mockConsoleLog
+
+		const timeline: Array<TimelineObject> = [
+			{
+				id: 'video',
+				layer: '0',
+				enable: {
+					start: 0,
+					end: 100,
+				},
+				content: {},
+			},
+			{
+				id: 'graphic0',
+				layer: '1',
+				enable: {
+					start: '#video.start + 10',
+					duration: 10,
+				},
+				content: {},
+			},
+			{
+				id: 'graphic1',
+				layer: '1',
+				enable: {
+					start: '#graphic0.end + 10',
+					duration: 15,
+				},
+				content: {},
+			},
+		]
+
+		const options: ResolveOptions = {
+			time: 0,
+			debug: true,
+			cache: {},
+		}
+		// Resolve the timeline
+		const resolvedTimeline = resolveTimeline(timeline, options)
+
+		// Calculate the state at a certain time:
+		getResolvedState(resolvedTimeline, 15)
+
+		// resolve again, to use cache:
+		resolveTimeline(timeline, options)
+
+		expect(mockConsoleLog).toHaveBeenCalled()
+		expect(mockConsoleLog.mock.calls.length).toBeGreaterThan(10)
+
+		// restore:
+		console.log = orgConsoleLog
+	})
 })

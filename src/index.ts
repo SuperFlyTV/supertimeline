@@ -69,25 +69,25 @@ export function validateIdString(str: string, strict?: boolean): void {
 }
 
 let expressionHandler: ExpressionHandler | undefined = undefined
+function getExpressionHandler(): ExpressionHandler {
+	if (!expressionHandler) expressionHandler = new ExpressionHandler(true)
+	return expressionHandler
+}
 export function interpretExpression(expression: null): null
 export function interpretExpression(expression: number): number
 export function interpretExpression(expression: ExpressionObj): ExpressionObj
 export function interpretExpression(expression: string | Expression): Expression
 export function interpretExpression(expression: Expression): Expression {
-	if (!expressionHandler) expressionHandler = new ExpressionHandler(true)
-	return expressionHandler.interpretExpression(expression)
+	return getExpressionHandler().interpretExpression(expression)
 }
 export function simplifyExpression(expr0: Expression): Expression {
-	if (!expressionHandler) expressionHandler = new ExpressionHandler(true)
-	return expressionHandler.simplifyExpression(expr0)
+	return getExpressionHandler().simplifyExpression(expr0)
 }
 export function wrapInnerExpressions(words: Array<any>): InnerExpression {
-	if (!expressionHandler) expressionHandler = new ExpressionHandler(true)
-	return expressionHandler.wrapInnerExpressions(words)
+	return getExpressionHandler().wrapInnerExpressions(words)
 }
 export function validateExpression(operatorList: Array<string>, expr0: Expression, breadcrumbs?: string): true {
-	if (!expressionHandler) expressionHandler = new ExpressionHandler(true)
-	return expressionHandler.validateExpression(operatorList, expr0, breadcrumbs)
+	return getExpressionHandler().validateExpression(operatorList, expr0, breadcrumbs)
 }
 
 /**

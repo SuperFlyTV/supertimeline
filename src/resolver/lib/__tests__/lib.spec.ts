@@ -11,6 +11,7 @@ import {
 	sortBy,
 	isEmpty,
 	ensureArray,
+	isArray,
 } from '../lib'
 
 test('literal', () => {
@@ -65,4 +66,8 @@ test('isEmpty', () => {
 test('ensureArray', () => {
 	expect(ensureArray({ a: 1 })).toStrictEqual([{ a: 1 }])
 	expect(ensureArray([{ a: 1 }])).toStrictEqual([{ a: 1 }])
+})
+test('isArray', () => {
+	expect(isArray({ a: 1 })).toEqual(false)
+	expect(isArray([{ a: 1 }])).toEqual(true)
 })

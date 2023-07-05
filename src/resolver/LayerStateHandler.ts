@@ -46,7 +46,7 @@ export class LayerStateHandler {
 		}
 
 		// Fast-path: if there's only one object on the layer, it can't conflict with anything
-		if (this.objectsOnLayer.length == 1) {
+		if (this.objectsOnLayer.length === 1) {
 			for (const obj of this.objectsOnLayer) {
 				obj.resolved.resolvedConflicts = true
 

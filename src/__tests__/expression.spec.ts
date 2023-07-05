@@ -192,4 +192,7 @@ describe('Expression', () => {
 		}
 		expect(errString).toMatch(/operator not found/)
 	})
+	afterAll(() => {
+		onCloseCleanup()
+	})
 })
