@@ -42,7 +42,7 @@ export interface ResolvedTimelineObject extends TimelineObject {
 	resolved: {
 		/** Instances of the object on the timeline */
 		instances: Array<TimelineObjectInstance>
-		/** Increases the more levels inside of a group the objects is */
+		/** A number that increases the more levels inside of a group the objects is. 0 = no parent */
 		levelDeep?: number
 		/** Id of the parent object (for children in groups or keyframes) */
 		parentId?: string

@@ -1,6 +1,5 @@
 import { performance } from 'perf_hooks'
 
-// const durations = new Map<string, number>()
 let durations: { [name: string]: number } = {}
 let callCounts: { [name: string]: number } = {}
 
@@ -14,6 +13,10 @@ export function activatePerformanceDebugging(activate: boolean): void {
 function noop(): void {
 	// nothing
 }
+/**
+ * Used to measure performance.
+ * Starts a measurement, returns a function that should be called when the measurement is done.
+ */
 export function tic(id: string): () => void {
 	if (!active) return noop
 	if (!firstStartTime) firstStartTime = performance.now()
@@ -24,7 +27,6 @@ export function tic(id: string): () => void {
 
 	return () => {
 		const duration = performance.now() - startTime
-		// console.log('duration', duration)
 
 		durations[id] = durations[id] + duration
 		callCounts[id]++
@@ -35,17 +37,6 @@ export function ticTocPrint(): void {
 	if (!active) return
 	const totalDuration = performance.now() - firstStartTime
 
-	// console.table(table, ['name', 'duration', 'percent'])
-	// console.table(
-	// 	Object.entries(durations).map((d) => ({
-	// 		name: d[0].trim(),
-	// 		duration: Math.floor(d[1] * 10) / 10,
-	// 		percent: Math.floor((d[1] / totalDuration) * 1000) / 10,
-	// 	})),
-	// 	['name', 'duration', 'percent']
-	// )
-
-	// console.table(durations)
 	const maxKeyLength = Math.max(...Object.keys(durations).map((k) => k.length))
 
 	console.log(

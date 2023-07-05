@@ -9,10 +9,28 @@ const RESERVED_CHARACTERS = /[#.$]/
 /** These characters are reserved for possible future use and cannot be used in ids, etc */
 const FUTURE_RESERVED_CHARACTERS = /[=?@{}[\]^§]/
 
+/**
+ * Note: A TimelineValidator instance is short-lived and used to validate a timeline.
+ * Intended usage:
+ * 1. const validator = new TimelineValidator()
+ * 2. validator.validateTimeline(timeline)
+ * or:
+ * 1. const validator = new TimelineValidator()
+ * 2. validator.validateObject(obj)
+ * or:
+ * 1. const validator = new TimelineValidator()
+ * 2. validator.validateKeyframe(obj)
+ */
 export class TimelineValidator {
 	private uniqueIds: { [id: string]: true } = {}
 
-	public validateTimeline(timeline: Array<TimelineObject>, strict?: boolean): void {
+	/** Validates all objects in the timeline. Throws an error if something's wrong. */
+	public validateTimeline(
+		/** The timeline to validate */
+		timeline: Array<TimelineObject>,
+		/** Set to true to enable some optional strict rules. Set this to true to increase future compatibility. */
+		strict?: boolean
+	): void {
 		const toc = tic('  validateTimeline')
 		for (let i = 0; i < timeline.length; i++) {
 			const obj = timeline[i]
@@ -20,7 +38,14 @@ export class TimelineValidator {
 		}
 		toc()
 	}
-	public validateObject(obj: TimelineObject, strict?: boolean): void {
+
+	/** Validates a simgle Timeline-object. Throws an error if something's wrong. */
+	public validateObject(
+		/** The object to validate */
+		obj: TimelineObject,
+		/** Set to true to enable some optional strict rules. Set this to true to increase future compatibility. */
+		strict?: boolean
+	): void {
 		if (!obj) throw new Error(`Object is undefined`)
 		if (typeof obj !== 'object') throw new Error(`Object is not an object`)
 
@@ -28,7 +53,7 @@ export class TimelineValidator {
 		if (typeof obj.id !== 'string') throw new Error(`Object "id" attribute is not a string: "${obj.id}"`)
 
 		try {
-			this.validateIdString(obj.id, strict)
+			TimelineValidator.validateIdString(obj.id, strict)
 		} catch (err) {
 			throw new Error(`Object "id" attribute: ${err}`)
 		}
@@ -39,7 +64,7 @@ export class TimelineValidator {
 		if (obj.layer === undefined) throw new Error(`Object "${obj.id}": "layer" attribute is undefined`)
 
 		try {
-			this.validateIdString(`${obj.layer}`, strict)
+			TimelineValidator.validateIdString(`${obj.layer}`, strict)
 		} catch (err) {
 			throw new Error(`Object "${obj.id}": "layer" attribute: ${err}`)
 		}
@@ -81,7 +106,7 @@ export class TimelineValidator {
 					throw new Error(`Object "${obj.id}": "classes[${i}]" is not a string`)
 
 				try {
-					this.validateIdString(className, strict)
+					TimelineValidator.validateIdString(className, strict)
 				} catch (err) {
 					throw new Error(`Object "${obj.id}": "classes[${i}]": ${err}`)
 				}
@@ -106,7 +131,13 @@ export class TimelineValidator {
 		if (obj.priority !== undefined && typeof obj.priority !== 'number')
 			throw new Error(`Object "${obj.id}": attribute "priority" is not a number`)
 	}
-	public validateKeyframe(keyframe: TimelineKeyframe, strict?: boolean): void {
+	/** Validates a simgle Timeline-object. Throws an error if something's wrong. */
+	public validateKeyframe(
+		/** The object to validate */
+		keyframe: TimelineKeyframe,
+		/** Set to true to enable some optional strict rules. Set this to true to increase future compatibility */
+		strict?: boolean
+	): void {
 		if (!keyframe) throw new Error(`Keyframe is undefined`)
 		if (typeof keyframe !== 'object') throw new Error(`Keyframe is not an object`)
 
@@ -150,7 +181,7 @@ export class TimelineValidator {
 	 * @param str The string to validate
 	 * @param strict Set to true to enable some strict rules (rules that can possibly be ignored)
 	 */
-	public validateIdString(str: string, strict?: boolean): void {
+	static validateIdString(str: string, strict?: boolean): void {
 		if (!str) return
 		{
 			const m = str.match(REGEXP_OPERATORS)

@@ -71,9 +71,7 @@ const doPerformanceTest = (useCache: boolean) => {
 			errorCount++
 			if (`${e}`.match(/circular/)) {
 				// Unable to resolve timeline due to circular references
-				// console.log(timeline)
-				// console.log('circular')
-				// ignore
+				// ignore, we'll just use the next one instead.
 			} else {
 				throw e
 			}

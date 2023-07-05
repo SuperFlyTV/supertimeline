@@ -9,7 +9,7 @@ import { objHasLayer } from './lib/timeline'
 import { TimelineValidator } from './TimelineValidator'
 
 /**
- * A Resolver instance is a short-lived container for resolving a timeline.
+ * Note: A Resolver instance is short-lived and used to resolve a timeline.
  * Intended usage:
  * 1. const resolver = new Resolver(options)
  * 2. resolver.run(timeline)
@@ -29,6 +29,10 @@ export class Resolver {
 		this.validator = new TimelineValidator()
 		toc()
 	}
+	/**
+	 * Resolves a timeline, i.e. resolves the references between objects
+	 * This method can only be run once per Resolver instance.
+	 */
 	public resolveTimeline(timeline: TimelineObject[]): ResolvedTimeline {
 		const toc = tic('resolveTimeline')
 		if (this.hasRun)
@@ -40,14 +44,17 @@ resolver.run(timeline);`
 			)
 		this.hasRun = true
 
-		this.validator.validateTimeline(timeline, false)
+		// Step 0: Validate the timeline:
+		if (!this.options.skipValidation) {
+			this.validator.validateTimeline(timeline, false)
+		}
 
-		// Step 1: pre-populate ResolvedTimeline with objects
+		// Step 1: Populate ResolvedTimeline with the timeline:
 		for (const obj of timeline) {
 			this.resolvedTimeline.addTimelineObject(obj)
 		}
 
-		// Step 2: Use cache
+		// Step 2: Use cache:
 		let cacheHandler: CacheHandler | undefined
 		if (this.options.cache) {
 			cacheHandler = this.resolvedTimeline.initializeCache(this.options.cache)
@@ -55,7 +62,7 @@ resolver.run(timeline);`
 			cacheHandler.determineChangedObjects()
 		}
 
-		// Step 3: go though and resolve the objects:
+		// Step 3: Go through and resolve all objects:
 		this.resolvedTimeline.resolveAllTimelineObjs()
 
 		// Step 4: Populate nextEvents:
@@ -78,10 +85,10 @@ resolver.run(timeline);`
 		toc()
 		return resolvedTimeline
 	}
+	/** Update this.nextEvents */
 	private updateNextEvents() {
 		const toc = tic('  updateNextEvents')
 		this.nextEvents = []
-		// console.log('updateNextEvents', this.options.time, this.options.limitTime)
 
 		const allObjects = Array.from(this.resolvedTimeline.objectsMap.values())
 
@@ -97,8 +104,6 @@ resolver.run(timeline);`
 
 		const objectInstanceStartTimes = new Set<string>()
 		const objectInstanceEndTimes = new Set<string>()
-
-		// console.log('allObjects', allObjects)
 
 		for (const obj of allObjects) {
 			if (!obj.resolved.isKeyframe) {

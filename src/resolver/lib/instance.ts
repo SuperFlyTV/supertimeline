@@ -63,6 +63,7 @@ export function baseInstance(instance: TimelineObjectInstance): InstanceBase {
 	}
 }
 
+/** Returns a string hash that changes whenever any instance has changed in a significant way */
 export function getInstancesHash(instances: TimelineObjectInstance[]): string {
 	const strs: string[] = []
 	for (const instance of instances) {
@@ -70,6 +71,7 @@ export function getInstancesHash(instances: TimelineObjectInstance[]): string {
 	}
 	return strs.join(',')
 }
+/** Returns a string hash that changes whenever an instance has changed in a significant way */
 export function getInstanceHash(instance: TimelineObjectInstance): string {
 	const orgStart = instance.originalStart ?? instance.start
 	const orgEnd = instance.originalEnd ?? instance.end

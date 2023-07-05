@@ -27,6 +27,13 @@ import { isConstantExpr } from './lib/expression'
 import { tic } from './lib/performance'
 import { CacheHandler } from './CacheHandler'
 
+/**
+ * A ResolvedTimelineHandler instance is short-lived and used to resolve a timeline.
+ * Intended usage:
+ * 1. const resolver = new ResolvedTimelineHandler(options)
+ * 2. timelineObjects.forEach(obj => resolver.addTimelineObject(obj))
+ * 3. resolver.resolveAllTimelineObjs()
+ */
 export class ResolvedTimelineHandler {
 	/** Maps object id to object */
 	public objectsMap = new Map<string, ResolvedTimelineObject>()
@@ -39,9 +46,9 @@ export class ResolvedTimelineHandler {
 	private reference: ReferenceHandler
 	private instance: InstanceHandler
 
-	private previousObjInstancesHash = new Map<string, string>()
-
-	/** Maps an array of object ids to an object id. (objects that directly reference an reference) */
+	/**
+	 * Maps an array of object ids to an object id (objects that directly reference an reference).
+	 */
 	private directReferenceMap = new Map<string, string[]>()
 	private cache?: CacheHandler
 
@@ -50,6 +57,26 @@ export class ResolvedTimelineHandler {
 
 	private debug: boolean
 
+	/**
+	 * A Map of strings (instance hashes) that is used to determine if an objects instances have changed.
+	 * Maps objectId -> instancesHash
+	 */
+	private resolvedObjInstancesHash = new Map<string, string>()
+
+	/**
+	 * List of explanations fow why an object changed during a resolve iteration.
+	 * Used for debugging and Errors
+	 */
+	private changedObjIdsExplanations: string[] = []
+	/**
+	 * A Map that contains the objects that needs to resolve again.
+	 * Object are added into this after this.resolveConflictsForLayer()
+	 */
+	private objectsToReResolve = new Map<string, ResolvedTimelineObject>()
+
+	/** Counter that increases during resolving, for every object that might need re-resolving*/
+	private objectResolveCount = 0
+
 	constructor(public options: ResolveOptions) {
 		this.expression = new ExpressionHandler()
 		this.instance = new InstanceHandler(this)
@@ -57,125 +84,59 @@ export class ResolvedTimelineHandler {
 
 		this.debug = this.options.debug ?? false
 	}
-
-	private debugTrace(...args: any[]) {
-		if (this.debug) console.log(...args)
+	/** Populate ResolvedTimelineHandler with a timeline-object. */
+	public addTimelineObject(obj: TimelineObject): void {
+		this._addTimelineObject(obj, 0, undefined, false)
 	}
 
-	public addTimelineObject(obj: TimelineObject, levelDeep = 0, parentId?: string, isKeyframe?: boolean): void {
-		const toc = tic('  addTimelineObject')
-		// Is already added?
-		if (this.objectsMap.has(obj.id)) {
-			throw Error(`All timelineObjects must be unique! (duplicate: "${obj.id}")`)
-		}
-
-		// Add the object:
-		{
-			const o: ResolvedTimelineObject = {
-				...obj,
-				resolved: {
-					firstResolved: false,
-					resolvedReferences: false,
-					resolvedParentCap: false,
-					resolvedConflicts: false,
-					resolving: false,
-					instances: [],
-					levelDeep: levelDeep,
-					isSelfReferencing: false,
-					directReferences: [],
-					// conflictReferences: [],
-					isKeyframe: isKeyframe,
-				},
-			}
-			if (parentId) {
-				o.resolved.parentId = parentId
-			}
-			this.objectsMap.set(obj.id, o)
-
-			if (obj.classes) {
-				for (let i = 0; i < obj.classes.length; i++) {
-					const className: string = obj.classes[i]
-
-					if (className) {
-						let classList = this.classesMap.get(className)
-						if (!classList) {
-							classList = []
-							this.classesMap.set(className, classList)
-						}
-						classList.push(obj.id)
-					}
-				}
-			}
-			if (objHasLayer(obj)) {
-				const layer = `${obj.layer}`
-
-				let layerList = this.layersMap.get(layer)
-				if (!layerList) {
-					layerList = []
-					this.layersMap.set(layer, layerList)
-				}
-				layerList.push(obj.id)
-			}
-		}
-
-		// Go through children and keyframes:
-		{
-			// Add children:
-			if (obj.isGroup && obj.children) {
-				for (let i = 0; i < obj.children.length; i++) {
-					const child = obj.children[i]
-					this.addTimelineObject(child, levelDeep + 1, obj.id, false)
-				}
-			}
-			// Add keyframes:
-			if (obj.keyframes) {
-				for (let i = 0; i < obj.keyframes.length; i++) {
-					const keyframe = obj.keyframes[i]
-					const kf2: TimelineObjectKeyframe = {
-						...keyframe,
-						layer: '',
-					}
-
-					this.addTimelineObject(kf2, levelDeep + 1, obj.id, true)
-				}
-			}
-		}
-		toc()
-	}
-
+	/** Resolve the timeline. */
 	public resolveAllTimelineObjs(): void {
 		const toc = tic('  resolveAllTimelineObjs')
 		this.debugTrace('=================================== resolveAllTimelineObjs')
+
+		// Step 0: Preparations:
+
+		/** Number of objects in timeline */
 		const objectCount = this.objectsMap.size
-		let conflictCount = 0
-		/** Max allowed number of iterations */
-		const conflictCountMax = objectCount * (this.options.conflictMaxDepth || 5)
+		/** Max allowed number of iterations over objects */
+		const objectResolveCountMax = objectCount * (this.options.conflictMaxDepth || 5)
+
+		/*
+			The resolving algorithm basically works like this:
+
+			1a: Resolve all objects
+			1b: Resolve conflicts for all layers
+				Also determine which objects depend on changed objects due to conflicts
+
+			2: Loop, until there are no more changed objects:
+				2a: Resolve objects that depend on changed objects
+				2b: Resolve conflicts for affected layers in 2a
+					Also determine which objects depend on changed objects due to conflicts
+		*/
 
 		// Step 1a: Resolve all objects:
 		for (const obj of this.objectsMap.values()) {
-			obj.resolved.firstResolved = false
-
 			this.resolveTimelineObj(obj)
 
-			// Populate this.previousObjInstances now, so that only changes to the timeline instances
-			// in this.resolveConflictsForObjs() will be detected:
-			this.previousObjInstancesHash.set(obj.id, getInstancesHash(obj.resolved.instances))
+			// Populate this.resolvedObjInstancesHash now, so that only changes to the timeline instances
+			// in this.resolveConflictsForObjs() will be detected later:
+			this.resolvedObjInstancesHash.set(obj.id, getInstancesHash(obj.resolved.instances))
 		}
-		// Step 1b: Resolve conflicts for all layers:
+		// Step 1b: Resolve conflicts for all objects:
 		this.resolveConflictsForObjs(null)
 
-		// Step 2: re-resolve all changed objects, until no more changes are detected
-
+		// Step 2: re-resolve all changed objects, until no more changes are detected:
 		while (this.objectsToReResolve.size > 0) {
-			if (conflictCount >= conflictCountMax) {
+			if (this.objectResolveCount >= objectResolveCountMax) {
 				throw new Error(
-					`Maximum conflict iteration reached (${conflictCount}). This is due to a circular dependency in the timeline. Latest changes:\n${this.changedObjIdsExplanations.join(
+					`Maximum conflict iteration reached (${
+						this.objectResolveCount
+					}). This is due to a circular dependency in the timeline. Latest changes:\n${this.changedObjIdsExplanations.join(
 						'Next iteration -------------------------\n'
 					)}`
 				)
 			}
 
-			// Step 2a: collect all objects that depend on previously changed objects:
 			if (this.debug) {
 				this.debugTrace(`---------------------------------`)
 				this.debugTrace(`objectsToReResolve: [${Array.from(this.objectsToReResolve.entries())}]`)
@@ -186,12 +147,12 @@ export class ResolvedTimelineHandler {
 				)
 			}
 
-			// Step 2: re-resolve objects:
+			// Collect and reset all objects that depend on previously changed objects
 			const conflictObjectsToResolve: ResolvedTimelineObject[] = []
 			for (const obj of this.objectsToReResolve.values()) {
-				conflictCount++
-				// Force a new resolve, since the referenced objects might have changed (due to conflicts):
+				this.objectResolveCount++
 
+				// Force a new resolve, since the referenced objects might have changed (due to conflicts):
 				let needsConflictResolve = false
 				if (!obj.resolved.resolvedReferences) {
 					this.resolveTimelineObj(obj)
@@ -208,8 +169,10 @@ export class ResolvedTimelineHandler {
 					conflictObjectsToResolve.push(obj)
 				}
 			}
+			// Resolve conflicts for objects that depend on previously changed objects:
 			this.resolveConflictsForObjs(conflictObjectsToResolve)
 		}
+
 		toc()
 	}
 	public resolveTimelineParentCap(obj: ResolvedTimelineObject): void {
@@ -233,6 +196,11 @@ export class ResolvedTimelineHandler {
 		}
 		obj.resolved.resolvedParentCap = true
 	}
+	/**
+	 * Resolve a timeline object.
+	 * During a resolve, the object.resolved property is populated by instances.
+	 * The instances depend on the .enable expressions, as well as parents etc.
+	 */
 	public resolveTimelineObj(obj: ResolvedTimelineObject): void {
 		if (obj.resolved.resolving) throw new Error(`Circular dependency when trying to resolve "${obj.id}"`)
 		if (obj.resolved.resolvedReferences) return // already resolved
@@ -245,8 +213,9 @@ export class ResolvedTimelineHandler {
 
 		this.debugTrace(`============ resolving "${obj.id}"`)
 		const directReferences: Reference[] = []
-
 		let resultingInstances: TimelineObjectInstance[] = []
+
+		// Loop up references to the parent:
 
 		let parentInstances: TimelineObjectInstance[] | null = null
 		let hasParent = false
@@ -275,6 +244,7 @@ export class ResolvedTimelineHandler {
 		for (let i = 0; i < enables.length; i++) {
 			const enable: TimelineEnable = enables[i]
 
+			// Resolve the the enable.repeating expression:
 			const repeatingExpr: Expression | null =
 				enable.repeating !== undefined ? this.expression.interpretExpression(enable.repeating) : null
 			const lookupRepeating = this.reference.lookupExpression(obj, repeatingExpr, 'duration')
@@ -472,12 +442,11 @@ export class ResolvedTimelineHandler {
 					events,
 					false,
 					false,
-					// Omit referenced originalStart/end when using enable.start:
+					// Omit the referenced originalStart/End when using enable.start:
 					true
 				)
 
 				// Cap those instances to the parent instances:
-
 				if (parentRef && parentInstances !== null) {
 					const parentInstanceMap = new Map<InstanceId, TimelineObjectInstance>()
 					for (const instance of parentInstances) {
@@ -528,8 +497,6 @@ export class ResolvedTimelineHandler {
 				parentInstances,
 			})
 		}
-
-		// if (obj.id === 'kf0') console.log('resultingInstances', resultingInstances)
 
 		// Make the instance ids unique:
 		const idSet = new Set<string>()
@@ -844,23 +811,125 @@ export class ResolvedTimelineHandler {
 
 		return Array.from(layers.values())
 	}
-	private allObjectLayers: string[] | undefined
+	private allObjectLayersCache: string[] | undefined
+	/** Returns a list of all object's layers */
+	private getAllObjectLayers(): string[] {
+		if (!this.allObjectLayersCache) {
+			// Cache this, since this won't change:
+			this.allObjectLayersCache = this.getObjectsLayers(this.objectsMap.values())
+		}
+		return this.allObjectLayersCache
+	}
+
+	private _addTimelineObject(
+		obj: TimelineObject,
+		/** A number that increases the more levels inside of a group the objects is. 0 = no parent */
+		levelDeep: number,
+		/** ID of the parent object */
+		parentId: string | undefined,
+		isKeyframe: boolean
+	): void {
+		const toc = tic('  addTimelineObject')
+
+		// Is it already added?
+		if (!this.options.skipValidation) {
+			if (this.objectsMap.has(obj.id)) {
+				throw Error(`All timelineObjects must be unique! (duplicate: "${obj.id}")`)
+			}
+		}
+
+		// Add the object:
+		{
+			const o: ResolvedTimelineObject = {
+				...obj,
+				resolved: {
+					firstResolved: false,
+					resolvedReferences: false,
+					resolvedParentCap: false,
+					resolvedConflicts: false,
+					resolving: false,
+					instances: [],
+					levelDeep: levelDeep,
+					isSelfReferencing: false,
+					directReferences: [],
+					// conflictReferences: [],
+					isKeyframe: isKeyframe,
+				},
+			}
+			if (parentId) {
+				o.resolved.parentId = parentId
+			}
+			this.objectsMap.set(obj.id, o)
+
+			if (obj.classes) {
+				for (let i = 0; i < obj.classes.length; i++) {
+					const className: string = obj.classes[i]
+
+					if (className) {
+						let classList = this.classesMap.get(className)
+						if (!classList) {
+							classList = []
+							this.classesMap.set(className, classList)
+						}
+						classList.push(obj.id)
+					}
+				}
+			}
+			if (objHasLayer(obj)) {
+				const layer = `${obj.layer}`
+
+				let layerList = this.layersMap.get(layer)
+				if (!layerList) {
+					layerList = []
+					this.layersMap.set(layer, layerList)
+				}
+				layerList.push(obj.id)
+			}
+		}
+
+		// Go through children and keyframes:
+		{
+			// Add children:
+			if (obj.isGroup && obj.children) {
+				for (let i = 0; i < obj.children.length; i++) {
+					const child = obj.children[i]
+					this._addTimelineObject(child, levelDeep + 1, obj.id, false)
+				}
+			}
+			// Add keyframes:
+			if (obj.keyframes) {
+				for (let i = 0; i < obj.keyframes.length; i++) {
+					const keyframe = obj.keyframes[i]
+					const kf2: TimelineObjectKeyframe = {
+						...keyframe,
+						layer: '',
+					}
+
+					this._addTimelineObject(kf2, levelDeep + 1, obj.id, true)
+				}
+			}
+		}
+		toc()
+	}
+
+	/**
+	 * Resolve conflicts for all layers of the provided objects
+	 */
 	private resolveConflictsForObjs(
 		/** null means all layers */
 		objs: ResolvedTimelineObject[] | null
 	): void {
 		const toc = tic('     resolveConflictsForObjs')
 
+		// These need to be cleared,
+		// as they are populated during the this.updateObjectsToReResolve() below:
 		this.changedObjIdsExplanations = []
 		this.objectsToReResolve.clear()
 
+		/** List of layers to resolve conflicts on */
 		let layers: string[]
 		if (objs === null) {
-			if (!this.allObjectLayers) {
-				// Cache this, since this won't change:
-				this.allObjectLayers = this.getObjectsLayers(this.objectsMap.values())
-			}
-			layers = this.allObjectLayers
+			layers = this.getAllObjectLayers()
 		} else {
 			layers = this.getObjectsLayers(objs)
 		}
@@ -868,18 +937,23 @@ export class ResolvedTimelineHandler {
 		for (const layer of layers) {
 			const maybeChangedObjs = this.resolveConflictsForLayer(layer)
 
-			// updateChangedObjIds and updateObjectsToReResolve here, to allow for a fast-path in resolveConflictsForLayer.
+			// run this.updateObjectsToReResolve() here (as opposed to outside the loop),
+			// to allow for a fast-path in resolveConflictsForLayer that skips resolving that layer if it contains
+			// objects that depend on already changed objects.
 			this.updateObjectsToReResolve(maybeChangedObjs)
 		}
 
 		toc()
 	}
-	/** Resolve conflicts for a layer, returns a list of objects on that layer */
+	/**
+	 * Resolve conflicts for a layer
+	 * @returns A list of objects on that layer
+	 */
 	private resolveConflictsForLayer(layer: string): ResolvedTimelineObject[] {
 		const handler = new LayerStateHandler(this, this.instance, layer)
 
-		// Fast path: If an object on this layer depends on an already changed object we should skip this layer this iteration,
-		// because the objects will likely change in next resolve anyway.
+		// Fast path: If an object on this layer depends on an already changed object we should skip this layer, this iteration.
+		// Because the objects will likely change during the next resolve-iteration anyway.
 		for (const objId of handler.objectIdsOnLayer) {
 			if (this.objectsToReResolve.has(objId)) {
 				this.debugTrace(`optimization: Skipping "${layer}" since "${objId}" changed`)
@@ -898,17 +972,17 @@ export class ResolvedTimelineHandler {
 		return `@${(this._idCount++).toString(36)}`
 	}
 
-	private changedObjIdsExplanations: string[] = []
-	private objectsToReResolve = new Map<string, ResolvedTimelineObject>()
 	private updateObjectsToReResolve(maybeChangedObjs: ResolvedTimelineObject[]) {
 		const toc = tic('     updateObjectsToReResolve')
 
 		const changedObjs = new Set<string>()
 
 		for (const obj of maybeChangedObjs) {
-			const instancesHash = getInstancesHash(obj.resolved.instances)
+			// Check if the instances have changed:
 
-			const prevHash = this.previousObjInstancesHash.get(obj.id) ?? 'not-found'
+			const instancesHash = getInstancesHash(obj.resolved.instances)
+			const prevHash = this.resolvedObjInstancesHash.get(obj.id) ?? 'not-found'
+
 			if (instancesHash !== prevHash) {
 				this.changedObjIdsExplanations.push(
 					`"${obj.id}" changed from: \n   ${prevHash}\n   , to \n   ${instancesHash}\n`
@@ -918,7 +992,7 @@ export class ResolvedTimelineHandler {
 				this.debugTrace(`changed: ${obj.id}: "${prevHash}" -> "${instancesHash}"`)
 				changedObjs.add(obj.id)
 
-				this.previousObjInstancesHash.set(obj.id, instancesHash)
+				this.resolvedObjInstancesHash.set(obj.id, instancesHash)
 			}
 		}
 
@@ -936,6 +1010,10 @@ export class ResolvedTimelineHandler {
 			}
 		}
 		toc()
+	}
+
+	private debugTrace(...args: any[]) {
+		if (this.debug) console.log(...args)
 	}
 }
 export interface TimelineObjectKeyframe extends TimelineObject, TimelineKeyframe {}

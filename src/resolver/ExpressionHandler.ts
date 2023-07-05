@@ -44,7 +44,6 @@ export class ExpressionHandler {
 					if (innerExpression.rest.length)
 						throw new Error(`interpretExpression: syntax error: parentheses don't add up in "${expr}".`)
 					if (innerExpression.inner.length % 2 !== 1) {
-						// console.log(words)
 						throw new Error(
 							`interpretExpression: operands & operators don't add up: "${innerExpression.inner.join(
 								' '

@@ -33,7 +33,7 @@ export function getResolvedState(resolvedTimeline: ResolvedTimeline, time: Time,
 /**
  * Validates all objects in the timeline. Throws an error if something's wrong
  * @param timeline The timeline to validate
- * @param strict Set to true to enable some strict rules (rules that can possibly be ignored)
+ * @param strict Set to true to enable some optional strict rules. Set this to true to increase future compatibility.
  */
 export function validateTimeline(timeline: TimelineObject[], strict?: boolean): void {
 	const validator = new TimelineValidator()
@@ -42,7 +42,7 @@ export function validateTimeline(timeline: TimelineObject[], strict?: boolean): 
 /**
  * Validates a Timeline-object. Throws an error if something's wrong
  * @param timeline The timeline to validate
- * @param strict Set to true to enable some strict rules (rules that can possibly be ignored)
+ * @param strict Set to true to enable some optional strict rules. Set this to true to increase future compatibility.
  */
 export function validateObject(obj: TimelineObject, strict?: boolean): void {
 	const validator = new TimelineValidator()
@@ -52,7 +52,7 @@ export function validateObject(obj: TimelineObject, strict?: boolean): void {
 /**
  * Validates a Timeline-keyframe. Throws an error if something's wrong
  * @param timeline The timeline to validate
- * @param strict Set to true to enable some strict rules (rules that can possibly be ignored)
+ * @param strict Set to true to enable some optional strict rules. Set this to true to increase future compatibility.
  */
 export function validateKeyframe(keyframe: TimelineKeyframe, strict?: boolean): void {
 	const validator = new TimelineValidator()
@@ -62,11 +62,10 @@ export function validateKeyframe(keyframe: TimelineKeyframe, strict?: boolean): 
 /**
  * Validates a string that is used in Timeline as a reference (an id, a class or layer)
  * @param str The string to validate
- * @param strict Set to true to enable some strict rules (rules that can possibly be ignored)
+ * @param strict Set to true to enable some optional strict rules. Set this to true to increase future compatibility.
  */
 export function validateIdString(str: string, strict?: boolean): void {
-	const validator = new TimelineValidator()
-	validator.validateIdString(str, strict)
+	TimelineValidator.validateIdString(str, strict)
 }
 
 let expressionHandler: ExpressionHandler | undefined = undefined

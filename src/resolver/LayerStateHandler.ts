@@ -1,4 +1,4 @@
-import { EventType, ResolvedTimelineObject, ResolvedTimelineObjectInstance, TimelineObjectInstance } from '../api'
+import { ResolvedTimelineObject, ResolvedTimelineObjectInstance, TimelineObjectInstance } from '../api'
 import { InstanceHandler } from './InstanceHandler'
 import { ResolvedTimelineHandler } from './ResolvedTimelineHandler'
 import { tic } from './lib/performance'
@@ -29,10 +29,18 @@ export class LayerStateHandler {
 		if (this.resolvedTimeline.options.debug) console.log(...args)
 	}
 
+	/** Resolve conflicts between objects on the layer. */
 	public resolveConflicts(): void {
 		const toc = tic('       resolveConflicts')
-		// const nextEvents: NextEvent[] = []
 
+		/*
+			This algoritm basically works like this:
+
+			1. Collect all instances start- and end-times as points-of-interest
+			2. Sweep through the points-of-interest and determine which instance is the "winning one" at every point in time
+		*/
+
+		// Populate this.objectsOnLayer:
 		for (const objId of this.objectIdsOnLayer) {
 			this.objectsOnLayer.push(this.resolvedTimeline.getObject(objId))
 		}
@@ -63,7 +71,6 @@ export class LayerStateHandler {
 				// Since keyframes can't be placed on a layer, we assume that the object is not a keyframe
 				// We also assume that the object has a layer
 
-				// if (!obj.resolved.isKeyframe) {
 				const parentTimes = this.getTimesFromParents(obj)
 
 				for (const instance of obj.resolved.instances) {
@@ -100,12 +107,11 @@ export class LayerStateHandler {
 			obj.resolved.resolvedConflicts = true
 			obj.resolved.instances.splice(0) // clear the instances, so new instances can be re-added later
 		}
+
 		// Step 2: Resolve the state for the points-of-interest
 		// This is done by sweeping the points-of-interest chronologically,
 		// determining the state for every point in time by adding & removing objects from aspiringInstances
 		// Then sorting it to determine who takes precedence
-
-		const eventObjectTimes: { [time: string]: EventType } = {}
 
 		let currentState: ResolvedTimelineObjectInstance | undefined = undefined
 		const activeObjIds: { [id: string]: ResolvedTimelineObjectInstance } = {}
@@ -124,9 +130,11 @@ export class LayerStateHandler {
 
 			this.debug(`-------------- time: ${time}`)
 
-			const instancesToCheck = this.pointsInTime[time]
-			const checkedObjectsThisTime = new Set<string>()
+			/** A set of identifiers for which instance-events have been check at this point in time. Used to avoid looking at the same object twice. */
+			const checkedThisTime = new Set<string>()
 
+			/** List of the instances to check at this point in time. */
+			const instancesToCheck: InstanceAtPointInTime[] = this.pointsInTime[time]
 			instancesToCheck.sort(sortInstancesToCheck)
 
 			for (let j = 0; j < instancesToCheck.length; j++) {
@@ -134,20 +142,19 @@ export class LayerStateHandler {
 				const obj: ResolvedTimelineObject = o.obj
 				const instance: TimelineObjectInstance = o.instance
 
-				// const toBeEnabled: boolean = (instance.start || 0) <= time && (instance.end ?? Infinity) > time
 				let toBeEnabled: boolean
 				if (instance.start === time && instance.end === time) {
 					// Handle zero-length instances:
-					if (o.checkId === 'start') toBeEnabled = true // Start a zero-length instance
+					if (o.instanceEvent === 'start') toBeEnabled = true // Start a zero-length instance
 					else toBeEnabled = false // End a zero-length instance
 				} else {
 					toBeEnabled = (instance.start || 0) <= time && (instance.end ?? Infinity) > time
 				}
 
-				const identifier = `${obj.id}_${instance.id}_${o.checkId}`
-				if (!checkedObjectsThisTime.has(identifier)) {
+				const identifier = `${obj.id}_${instance.id}_${o.instanceEvent}`
+				if (!checkedThisTime.has(identifier)) {
 					// Only check each object and event-type once for every point in time
-					checkedObjectsThisTime.add(identifier)
+					checkedThisTime.add(identifier)
 
 					if (toBeEnabled) {
 						// The instance wants to be enabled (is starting)
@@ -161,57 +168,55 @@ export class LayerStateHandler {
 						aspiringInstances = removeFromAspiringInstances(aspiringInstances, obj.id)
 					}
 
-					// Evaluate the layer to determine who has the throne:
+					// Sort the instances on layer to determine who is the active one:
 					aspiringInstances.sort(sortAspiringInstances)
 
-					// Now, the one on top has the throne
+					// At this point, the first instance in aspiringInstances is the active one.
+					const instanceOnTopOfLayer = aspiringInstances[0]
+
 					// Update current state:
-					const currentOnTopOfLayer = aspiringInstances[0]
-					const prevObj: ResolvedTimelineObjectInstance | undefined = currentState
+					const prevObjInstance: ResolvedTimelineObjectInstance | undefined = currentState
+					const replaceOld: boolean =
+						instanceOnTopOfLayer &&
+						(!prevObjInstance ||
+							prevObjInstance.id !== instanceOnTopOfLayer.obj.id ||
+							!prevObjInstance.instance.id.startsWith(`${instanceOnTopOfLayer.instance.id}`))
+					const removeOld: boolean = !instanceOnTopOfLayer && prevObjInstance
 
-					const replaceOldObj: boolean =
-						currentOnTopOfLayer &&
-						(!prevObj ||
-							prevObj.id !== currentOnTopOfLayer.obj.id ||
-							!prevObj.instance.id.startsWith(`${currentOnTopOfLayer.instance.id}`))
-					const removeOldObj: boolean = !currentOnTopOfLayer && prevObj
-
-					if (replaceOldObj || removeOldObj) {
-						if (prevObj) {
+					if (replaceOld || removeOld) {
+						if (prevObjInstance) {
 							// Cap the old instance, so it'll end at this point in time:
-							this.instance.setInstanceEndTime(prevObj.instance, time)
+							this.instance.setInstanceEndTime(prevObjInstance.instance, time)
 
-							this.debug(`${prevObj.id} stop`)
+							this.debug(`${prevObjInstance.id} stop`)
 
 							// Update activeObjIds:
-							delete activeObjIds[prevObj.id]
-
-							eventObjectTimes[instance.end + ''] = EventType.END
+							delete activeObjIds[prevObjInstance.id]
 						}
 					}
 
-					if (replaceOldObj) {
-						// Set the new object to State
+					if (replaceOld) {
+						// Set the new objectInstance to be the current one:
 
-						const currentObj = currentOnTopOfLayer.obj
+						const currentObj = instanceOnTopOfLayer.obj
 
 						this.debug(`${currentObj.id} play`)
 
 						const newInstance: TimelineObjectInstance = {
-							...currentOnTopOfLayer.instance,
+							...instanceOnTopOfLayer.instance,
 							// We're setting new start & end times so they match up with the state:
 							start: time,
 							end: null,
-							fromInstanceId: currentOnTopOfLayer.instance.id,
+							fromInstanceId: instanceOnTopOfLayer.instance.id,
 
 							originalEnd:
-								currentOnTopOfLayer.instance.originalEnd !== undefined
-									? currentOnTopOfLayer.instance.originalEnd
-									: currentOnTopOfLayer.instance.end,
+								instanceOnTopOfLayer.instance.originalEnd !== undefined
+									? instanceOnTopOfLayer.instance.originalEnd
+									: instanceOnTopOfLayer.instance.end,
 							originalStart:
-								currentOnTopOfLayer.instance.originalStart !== undefined
-									? currentOnTopOfLayer.instance.originalStart
-									: currentOnTopOfLayer.instance.start,
+								instanceOnTopOfLayer.instance.originalStart !== undefined
+									? instanceOnTopOfLayer.instance.originalStart
+									: instanceOnTopOfLayer.instance.start,
 						}
 						// Make the instance id unique:
 						for (let i = 0; i < currentObj.resolved.instances.length; i++) {
@@ -231,9 +236,7 @@ export class LayerStateHandler {
 
 						// Update activeObjIds:
 						activeObjIds[newObjInstance.id] = newObjInstance
-
-						eventObjectTimes[newInstance.start + ''] = EventType.START
-					} else if (removeOldObj) {
+					} else if (removeOld) {
 						// Remove from current state:
 						currentState = undefined
 					}
@@ -245,7 +248,7 @@ export class LayerStateHandler {
 
 		// Cap children inside their parents:
 		// Functionally, this isn't needed since this is done in ResolvedTimelineHandler.resolveTimelineObj() anyway.
-		// However by capping children here some re-evaluating passes can be avoided, so this increases performance.
+		// However by capping children here some re-evaluating iterations can be avoided, so this increases performance.
 		{
 			const allChildren = this.objectsOnLayer
 				.filter((obj) => !!obj.resolved.parentId)
@@ -272,17 +275,18 @@ export class LayerStateHandler {
 
 		toc()
 	}
+	/** Add an instance and event to a certain point-in-time */
 	private addPointInTime(
 		time: number,
-		checkId: 'start' | 'end',
+		instanceEvent: 'start' | 'end',
 		obj: ResolvedTimelineObject,
 		instance: TimelineObjectInstance
 	) {
 		// Note on order: Ending events come before starting events
-		this.debug('addPointInTime', time, checkId, instance)
+		this.debug('addPointInTime', time, instanceEvent, instance)
 
 		if (!this.pointsInTime[time + '']) this.pointsInTime[time + ''] = []
-		this.pointsInTime[time + ''].push({ obj, instance, checkId })
+		this.pointsInTime[time + ''].push({ obj, instance, instanceEvent })
 	}
 
 	private getTimesFromParents(obj: ResolvedTimelineObject): TimeEvent[] {
@@ -308,8 +312,8 @@ interface InstanceAtPointInTime {
 	obj: ResolvedTimelineObject
 	instance: TimelineObjectInstance
 
-	/** the same checkId is only going to be checked once per timestamp */
-	checkId: 'start' | 'end'
+	/** The same instanceEvent is only going to be checked once per timestamp */
+	instanceEvent: 'start' | 'end'
 }
 interface AspiringInstance {
 	obj: ResolvedTimelineObject
@@ -336,13 +340,13 @@ const sortInstancesToCheck = (a: InstanceAtPointInTime, b: InstanceAtPointInTime
 	if (a.instance.id === b.instance.id && a.instance.start === b.instance.start && a.instance.end === b.instance.end) {
 		// A & B are the same instance, it is a zero-length instance!
 		// In this case, put the start before the end:
-		if (a.checkId === 'start' && b.checkId === 'end') return -1
-		if (a.checkId === 'end' && b.checkId === 'start') return 1
+		if (a.instanceEvent === 'start' && b.instanceEvent === 'end') return -1
+		if (a.instanceEvent === 'end' && b.instanceEvent === 'start') return 1
 	}
 
 	// Handle ending instances first:
-	if (a.checkId === 'start' && b.checkId === 'end') return 1
-	if (a.checkId === 'end' && b.checkId === 'start') return -1
+	if (a.instanceEvent === 'start' && b.instanceEvent === 'end') return 1
+	if (a.instanceEvent === 'end' && b.instanceEvent === 'start') return -1
 
 	if (a.instance.start === a.instance.end || b.instance.start === b.instance.end) {
 		// Put later-ending instances last (in the case of zero-length vs non-zero-length instance):
