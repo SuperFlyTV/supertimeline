@@ -25,8 +25,8 @@ export function sortEvents<T extends InstanceEvent>(
 		const result = additionalSortFcnBefore ? additionalSortFcnBefore(a, b) : 0
 		if (result !== 0) return result
 
-		const aId = a.data && (a.data.id || (a.data.instance && a.data.instance.id))
-		const bId = b.data && (b.data.id || (b.data.instance && b.data.instance.id))
+		const aId = a.data && (a.data.id || a.data.instance?.id)
+		const bId = b.data && (b.data.id || b.data.instance?.id)
 		if (aId && bId && aId === bId) {
 			// If the events refer to the same instance id, let the start event be first,
 			// to handle zero-length instances.

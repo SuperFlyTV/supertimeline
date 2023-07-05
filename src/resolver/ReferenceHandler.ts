@@ -86,7 +86,7 @@ export class ReferenceHandler {
 
 			let referenceIsOk = false
 			// Match id, example: "#objectId.start"
-			const m = expr.match(/^\W*#([^.]+)(.*)/)
+			const m = /^\W*#([^.]+)(.*)/.exec(expr)
 			if (m) {
 				const id = m[1]
 				rest = m[2]
@@ -96,7 +96,7 @@ export class ReferenceHandler {
 				allReferences.push(`#${id}`)
 			} else {
 				// Match class, example: ".className.start"
-				const m = expr.match(/^\W*\.([^.]+)(.*)/)
+				const m = /^\W*\.([^.]+)(.*)/.exec(expr)
 				if (m) {
 					const className = m[1]
 					rest = m[2]
@@ -106,7 +106,7 @@ export class ReferenceHandler {
 					allReferences.push(`.${className}`)
 				} else {
 					// Match layer, example: "$layer"
-					const m = expr.match(/^\W*\$([^.]+)(.*)/)
+					const m = /^\W*\$([^.]+)(.*)/.exec(expr)
 					if (m) {
 						const layer = m[1]
 						rest = m[2]
@@ -142,9 +142,9 @@ export class ReferenceHandler {
 				})
 			}
 			if (referencedObjs.length) {
-				if (rest.match(/start/)) ref = 'start'
-				if (rest.match(/end/)) ref = 'end'
-				if (rest.match(/duration/)) ref = 'duration'
+				if (/start/.exec(rest)) ref = 'start'
+				if (/end/.exec(rest)) ref = 'end'
+				if (/duration/.exec(rest)) ref = 'duration'
 
 				if (ref === 'duration') {
 					// Duration refers to the first object on the resolved timeline
@@ -456,8 +456,8 @@ export class ReferenceHandler {
 				} else {
 					modifiedParentInstances.push({
 						...i,
-						start: i.originalStart !== undefined ? i.originalStart : i.start,
-						end: i.originalEnd !== undefined ? i.originalEnd : i.end,
+						start: i.originalStart ?? i.start,
+						end: i.originalEnd ?? i.end,
 					})
 				}
 			}

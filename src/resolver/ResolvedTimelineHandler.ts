@@ -271,21 +271,18 @@ export class ResolvedTimelineHandler {
 			/** Array of instances this enable-expression resulted in */
 			let enableInstances: TimelineObjectInstance[]
 			if (enable.while !== undefined) {
-				const whileStr = `${enable.while}`
 				const whileExpr: Expression = this.expression.simplifyExpression(
-					// Handle special case "1":
-					whileStr === '1'
+					// Handle special case "1", 1:
+					enable.while === '1' || enable.while === 1
 						? 'true'
-						: // Handle special case "0":
-						whileStr === '0'
+						: // Handle special case "0", 0:
+						enable.while === '0' || enable.while === 0
 						? 'false'
 						: enable.while
 				)
 				// Note: a lookup for 'while' works the same as for 'start'
 				const lookupWhile = this.reference.lookupExpression(obj, whileExpr, 'start')
 				pushToArray<Reference>(directReferences, lookupWhile.allReferences)
-
-				// todo: handle parent ref here
 
 				if (Array.isArray(lookupWhile.result)) {
 					enableInstances = lookupWhile.result

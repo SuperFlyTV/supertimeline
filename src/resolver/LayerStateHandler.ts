@@ -209,14 +209,9 @@ export class LayerStateHandler {
 							end: null,
 							fromInstanceId: instanceOnTopOfLayer.instance.id,
 
-							originalEnd:
-								instanceOnTopOfLayer.instance.originalEnd !== undefined
-									? instanceOnTopOfLayer.instance.originalEnd
-									: instanceOnTopOfLayer.instance.end,
+							originalEnd: instanceOnTopOfLayer.instance.originalEnd ?? instanceOnTopOfLayer.instance.end,
 							originalStart:
-								instanceOnTopOfLayer.instance.originalStart !== undefined
-									? instanceOnTopOfLayer.instance.originalStart
-									: instanceOnTopOfLayer.instance.start,
+								instanceOnTopOfLayer.instance.originalStart ?? instanceOnTopOfLayer.instance.start,
 						}
 						// Make the instance id unique:
 						for (let i = 0; i < currentObj.resolved.instances.length; i++) {
@@ -292,7 +287,7 @@ export class LayerStateHandler {
 	private getTimesFromParents(obj: ResolvedTimelineObject): TimeEvent[] {
 		let times: TimeEvent[] = []
 		const parentObj = obj.resolved.parentId ? this.resolvedTimeline.getObject(obj.resolved.parentId) : null
-		if (parentObj && parentObj.resolved.resolvedReferences) {
+		if (parentObj?.resolved.resolvedReferences) {
 			for (const instance of parentObj.resolved.instances) {
 				times.push({ time: instance.start, enable: true })
 				if (instance.end) times.push({ time: instance.end, enable: false })
@@ -354,8 +349,6 @@ const sortInstancesToCheck = (a: InstanceAtPointInTime, b: InstanceAtPointInTime
 		if ((a.instance.end || Infinity) < (b.instance.end || Infinity)) return -1
 	}
 
-	// if (a.order > b.order) return 1
-	// if (a.order < b.order) return -1
 	if (a.obj.resolved && b.obj.resolved) {
 		// Deeper objects (children in groups) comes later, we want to check the parent groups first:
 		if ((a.obj.resolved.levelDeep || 0) > (b.obj.resolved.levelDeep || 0)) return 1

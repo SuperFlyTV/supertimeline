@@ -66,8 +66,8 @@ const nextEvent = state1.nextEvents[0];
 console.log(`After the time ${state1.time}, the next event to happen will be at time ${nextEvent.time}."`);
 console.log(`The next event is related to the object "${nextEvent.objId}"`);
 // Output:
-// At the time 10, the active objects are ""video0" at layer "videoPlayer", "graphicIdle" at layer "gfxOverlay""
-// At the time 25, the active objects are ""video0" at layer "videoPlayer", "graphic0" at layer "gfxOverlay""
+// At the time 10, the active objects are "video0" at layer "videoPlayer", "graphicIdle" at layer "gfxOverlay"
+// At the time 25, the active objects are "video0" at layer "videoPlayer", "graphic0" at layer "gfxOverlay"
 // The object "graphicIdle" will play at [0 to 20, 30 to 40, 55 to infinity]
 // After the time 25, the next event to happen will be at time 30."
 // The next event is related to the object "graphic0"

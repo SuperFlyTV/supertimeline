@@ -242,7 +242,7 @@ export class InstanceHandler {
 			lastInstance.references = joinReferences(lastInstance.references, event.references)
 			addCapsToResuming(lastInstance, event.data.instance.caps)
 		}
-		if (lastInstance && lastInstance.caps && !lastInstance.caps.length) delete lastInstance.caps
+		if (lastInstance?.caps && !lastInstance.caps.length) delete lastInstance.caps
 
 		if (
 			returnInstance &&
@@ -389,11 +389,11 @@ export class InstanceHandler {
 		return instance
 	}
 	public setInstanceEndTime(instance: TimelineObjectInstance, endTime: number | null): void {
-		instance.originalEnd = instance.originalEnd !== undefined ? instance.originalEnd : instance.end
+		instance.originalEnd = instance.originalEnd ?? instance.end
 		instance.end = endTime
 	}
 	public setInstanceStartTime(instance: TimelineObjectInstance, startTime: number): void {
-		instance.originalStart = instance.originalStart !== undefined ? instance.originalStart : instance.start
+		instance.originalStart = instance.originalStart ?? instance.start
 		instance.start = startTime
 	}
 
@@ -407,16 +407,6 @@ export class InstanceHandler {
 
 		const repeatTime: Duration = repeatTime0.value
 
-		// if (isReference(instances)) {
-		// 	instances = [
-		// 		{
-		// 			id: this.resolvedTimeline.getInstanceId(),
-		// 			start: instances.value,
-		// 			end: null,
-		// 			references: instances.references,
-		// 		},
-		// 	]
-		// }
 		const repeatedInstances: TimelineObjectInstance[] = []
 		for (let i = 0; i < instances.length; i++) {
 			const instance = instances[i]
