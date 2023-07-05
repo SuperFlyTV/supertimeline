@@ -11,9 +11,9 @@ export function instanceIsActive(instance: InstanceBase, time: Time): boolean {
 	return instance.start <= time && (instance.end ?? Infinity) > time
 }
 export function getInstanceUnion(a: InstanceBase, b: InstanceBase): null | InstanceBase {
-	if (a.start < (b.end || Infinity) && (a.end || Infinity) > b.start) {
+	if (a.start < (b.end ?? Infinity) && (a.end ?? Infinity) > b.start) {
 		const start = Math.max(a.start, b.start)
-		const end = Math.min(a.end || Infinity, b.end || Infinity)
+		const end = Math.min(a.end ?? Infinity, b.end ?? Infinity)
 
 		return {
 			start,

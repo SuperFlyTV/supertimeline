@@ -72,7 +72,7 @@ export class InstanceHandler {
 		const returnInstances: Array<TimelineObjectInstance> = []
 		for (let i = 0; i < events.length; i++) {
 			const event = events[i]
-			const eventId: string = event.data.id || event.data.instance.id
+			const eventId: string = event.data.id ?? event.data.instance.id
 			const lastInstance = returnInstances[returnInstances.length - 1]
 			if (event.value) {
 				activeInstances[eventId] = event
@@ -131,7 +131,7 @@ export class InstanceHandler {
 						if (o.returnInstance) {
 							const newInstance: TimelineObjectInstance = {
 								...o.returnInstance,
-								start: o.returnInstance.end || 0,
+								start: o.returnInstance.end ?? 0,
 								end: o.returnInstance.start,
 							}
 							if (omitOriginalStartEnd) {
@@ -417,9 +417,9 @@ export class InstanceHandler {
 			const cap: Cap | null =
 				(instance.caps
 					? instance.caps.find((cap) => instance.references.indexOf(`@${cap.id}`) !== -1)
-					: null) || null
+					: null) ?? null
 
-			const limit = options.limitCount || 2
+			const limit = options.limitCount ?? 2
 			for (let i = 0; i < limit; i++) {
 				if (options.limitTime && startTime >= options.limitTime) break
 

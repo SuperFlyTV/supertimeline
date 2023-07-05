@@ -51,8 +51,8 @@ export class LayerStateHandler {
 				obj.resolved.resolvedConflicts = true
 
 				for (const instance of obj.resolved.instances) {
-					instance.originalStart = instance.originalStart || instance.start
-					instance.originalEnd = instance.originalEnd || instance.end
+					instance.originalStart = instance.originalStart ?? instance.start
+					instance.originalEnd = instance.originalEnd ?? instance.end
 				}
 			}
 			return
@@ -345,8 +345,8 @@ const sortInstancesToCheck = (a: InstanceAtPointInTime, b: InstanceAtPointInTime
 
 	if (a.instance.start === a.instance.end || b.instance.start === b.instance.end) {
 		// Put later-ending instances last (in the case of zero-length vs non-zero-length instance):
-		if ((a.instance.end || Infinity) > (b.instance.end || Infinity)) return 1
-		if ((a.instance.end || Infinity) < (b.instance.end || Infinity)) return -1
+		if ((a.instance.end ?? Infinity) > (b.instance.end ?? Infinity)) return 1
+		if ((a.instance.end ?? Infinity) < (b.instance.end ?? Infinity)) return -1
 	}
 
 	if (a.obj.resolved && b.obj.resolved) {

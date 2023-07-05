@@ -99,7 +99,7 @@ export class ResolvedTimelineHandler {
 		/** Number of objects in timeline */
 		const objectCount = this.objectsMap.size
 		/** Max allowed number of iterations over objects */
-		const objectResolveCountMax = objectCount * (this.options.conflictMaxDepth || 5)
+		const objectResolveCountMax = objectCount * (this.options.conflictMaxDepth ?? 5)
 
 		/*
 			The resolving algorithm basically works like this:

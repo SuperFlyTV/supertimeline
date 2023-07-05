@@ -100,7 +100,7 @@ resolver.run(timeline);`
 		})
 
 		/** Used to fast-track in cases where there are no keyframes */
-		const hasKeyframes = last(allObjects)?.resolved.isKeyframe || false
+		const hasKeyframes = last(allObjects)?.resolved.isKeyframe ?? false
 
 		const objectInstanceStartTimes = new Set<string>()
 		const objectInstanceEndTimes = new Set<string>()
@@ -116,7 +116,7 @@ resolver.run(timeline);`
 			}
 
 			for (const instance of obj.resolved.instances) {
-				if (instance.start > this.options.time && instance.start < (this.options.limitTime || Infinity)) {
+				if (instance.start > this.options.time && instance.start < (this.options.limitTime ?? Infinity)) {
 					let useThis = true
 
 					if (hasKeyframes) {
@@ -141,7 +141,7 @@ resolver.run(timeline);`
 				if (
 					instance.end !== null &&
 					instance.end > this.options.time &&
-					instance.end < (this.options.limitTime || Infinity)
+					instance.end < (this.options.limitTime ?? Infinity)
 				) {
 					let useThis = true
 					if (hasKeyframes) {

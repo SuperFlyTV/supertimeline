@@ -52,8 +52,8 @@ export class StateHandler {
 					}
 					keyframeInstances.sort((a, b) => {
 						// Highest priority is applied last:
-						const aPriority = a.priority || 0
-						const bPriority = b.priority || 0
+						const aPriority = a.priority ?? 0
+						const bPriority = b.priority ?? 0
 						if (aPriority < bPriority) return -1
 						if (aPriority > bPriority) return 1
 

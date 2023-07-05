@@ -207,7 +207,7 @@ export function hashTimelineObject(obj: ResolvedTimelineObject): string {
 		JSON.stringify(obj.enable),
 		obj.disabled + '',
 		obj.priority + '',
-		obj.resolved.parentId || '',
+		obj.resolved.parentId ?? '',
 		obj.resolved.isKeyframe + '',
 		obj.classes ? obj.classes.join('.') : '',
 		obj.layer + '',

@@ -359,8 +359,8 @@ export class ReferenceHandler {
 
 							if (!next || next.time !== e.time) {
 								const newResultValue = calcResult(leftValue, rightValue)
-								const resultCaps: Array<Cap> = (leftInstance ? leftInstance.caps || [] : []).concat(
-									rightInstance ? rightInstance.caps || [] : []
+								const resultCaps: Array<Cap> = (leftInstance ? leftInstance.caps ?? [] : []).concat(
+									rightInstance ? rightInstance.caps ?? [] : []
 								)
 
 								if (newResultValue !== resultValue) {
