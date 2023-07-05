@@ -15,8 +15,7 @@ export type EventForInstance = InstanceEvent<{
 
 export function sortEvents<T extends InstanceEvent>(
 	events: Array<T>,
-	additionalSortFcnBefore?: (a: T, b: T) => number,
-	additionalSortFcnAfter?: (a: T, b: T) => number
+	additionalSortFcnBefore?: (a: T, b: T) => number
 ): Array<T> {
 	return events.sort((a: T, b: T) => {
 		if (a.time > b.time) return 1
@@ -37,8 +36,6 @@ export function sortEvents<T extends InstanceEvent>(
 			if (a.value && !b.value) return 1
 			if (!a.value && b.value) return -1
 		}
-
-		if (additionalSortFcnAfter) return additionalSortFcnAfter(a, b)
-		else return 0
+		return 0
 	})
 }

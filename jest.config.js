@@ -15,5 +15,10 @@ module.exports = {
 	},
 	coverageDirectory: './coverage/',
 	collectCoverage: false,
-	collectCoverageFrom: ['src/**/*.ts', '!**/__tests__/**'],
+	collectCoverageFrom: [
+		'src/**/*.ts',
+		'!**/__tests__/**',
+		// Ignore, it is only used for performance testing:
+		'!src/resolver/lib/performance.ts',
+	],
 }
