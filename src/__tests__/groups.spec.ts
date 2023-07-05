@@ -969,7 +969,8 @@ describeVariants(
 					content: {},
 					isGroup: true,
 					children: [],
-					// Todo: needs discussion: what should happen when a repeating object is followed by a non-repeating object?
+					// Possibly undefined behaviour:
+					// Needs discussion: what should happen when a repeating object is followed by a non-repeating object?
 					// I've set the priority to 1 to force the behavior to what the test needs for now / Johan 2021-10-21
 					priority: 1,
 				},

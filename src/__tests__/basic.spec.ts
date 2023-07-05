@@ -567,7 +567,7 @@ describeVariants(
 			expect(resolved.statistics.resolvedObjectCount).toEqual(1)
 			expect(resolved.statistics.unresolvedCount).toEqual(0)
 
-			expect(resolved.objects['video0']).toBeTruthy() // TODO - is this one correct?
+			expect(resolved.objects['video0']).toBeTruthy()
 			expect(resolved.objects['video0'].resolved.instances).toHaveLength(1)
 
 			const state = getResolvedState(resolved, 10, 10)

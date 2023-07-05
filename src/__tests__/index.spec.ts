@@ -683,7 +683,7 @@ describe('index', () => {
 		])
 		expect(resolvedTimeline.objects['B'].resolved.instances).toMatchObject([{ start: 20, end: 50 }])
 		expect(baseInstances(resolvedTimeline.objects['group0'].resolved.instances)).toMatchObject([
-			{ start: 11, end: 21 }, // TODO: what should originalStart be here?
+			{ start: 11, end: 21 },
 			{ start: 51, end: 101 },
 		])
 		expect(baseInstances(resolvedTimeline.objects['child0'].resolved.instances)).toMatchObject([
