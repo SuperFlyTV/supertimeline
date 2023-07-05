@@ -35,7 +35,7 @@
 		"unit": "jest --forceExit --detectOpenHandles",
 		"test": "yarn lint && yarn unit",
 		"watch": "jest --watch",
-		"cov": "jest --coverage && yarn open-cli coverage/lcov-report/index.html",
+		"cov": "yarn unit --coverage=true && yarn cov-open",
 		"cov-open": "open-cli coverage/lcov-report/index.html",
 		"docs": "yarn docs:html && open-cli docs/index.html",
 		"docs:test": "yarn docs:html",
