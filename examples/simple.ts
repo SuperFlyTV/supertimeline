@@ -1,4 +1,4 @@
-import { TimelineObject, ResolveOptions, resolveTimeline, getResolvedState } from '..' // 'superfly-timeline'
+import { TimelineObject, ResolveOptions, resolveTimeline, getResolvedState, ResolvedTimelineObjectInstance } from '..' // 'superfly-timeline'
 
 // The input to the timeline is an array of objects:
 const myTimeline: TimelineObject[] = [
@@ -53,7 +53,7 @@ const resolvedTimeline = resolveTimeline(myTimeline, options)
 // Fetch the state at time 10:
 const state0 = getResolvedState(resolvedTimeline, 10)
 console.log(
-	`At the time ${state0.time}, the active objects are ${Object.entries(state0.layers)
+	`At the time ${state0.time}, the active objects are ${Object.entries<ResolvedTimelineObjectInstance>(state0.layers)
 		.map(([l, o]) => `"${o.id}" at layer "${l}"`)
 		.join(', ')}`
 )
@@ -61,7 +61,7 @@ console.log(
 // Fetch the state at time 25:
 const state1 = getResolvedState(resolvedTimeline, 25)
 console.log(
-	`At the time ${state1.time}, the active objects are ${Object.entries(state1.layers)
+	`At the time ${state1.time}, the active objects are ${Object.entries<ResolvedTimelineObjectInstance>(state1.layers)
 		.map(([l, o]) => `"${o.id}" at layer "${l}"`)
 		.join(', ')}`
 )

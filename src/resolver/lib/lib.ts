@@ -49,7 +49,7 @@ type _Omit<V, K extends string> = V extends never
 
 export function omit<V extends object, K extends string>(obj: V, ...keys: (K | K[])[]): _Omit<V, K> {
 	const result: any = {}
-	for (const [key, value] of Object.entries(obj)) {
+	for (const [key, value] of Object.entries<any>(obj)) {
 		if (keys.some((k) => (Array.isArray(k) ? k.includes(key as K) : k === key))) continue
 		result[key] = value
 	}

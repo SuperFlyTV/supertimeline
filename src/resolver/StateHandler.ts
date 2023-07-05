@@ -22,7 +22,7 @@ export class StateHandler {
 
 		if (eventLimit) state.nextEvents = state.nextEvents.slice(0, eventLimit)
 
-		for (const obj of Object.values(resolvedTimeline.objects)) {
+		for (const obj of Object.values<ResolvedTimelineObject>(resolvedTimeline.objects)) {
 			if (!objHasLayer(obj)) continue
 			// Note: We can assume that it is not a keyframe here, because keyframes don't have layers
 

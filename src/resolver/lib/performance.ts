@@ -43,7 +43,7 @@ export function ticTocPrint(): void {
 		'ticTocPrint\n' +
 			padStr(`Total duration `, maxKeyLength + 2) +
 			`${Math.floor(totalDuration)}\n` +
-			Object.entries(durations)
+			Object.entries<number>(durations)
 				.map((d) => {
 					let str = padStr(`${d[0]} `, maxKeyLength + 2)
 

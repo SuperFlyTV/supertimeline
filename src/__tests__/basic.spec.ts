@@ -1,6 +1,6 @@
 /* eslint-disable jest/no-standalone-expect */
 
-import { EventType, getResolvedState, resolveTimeline } from '..'
+import { EventType, ResolvedTimelineObject, TimelineObjectInstance, getResolvedState, resolveTimeline } from '..'
 import { baseInstances } from '../resolver/lib/instance'
 import { describeVariants } from './testlib'
 
@@ -438,8 +438,8 @@ describeVariants(
 			expect(resolved.objects['video1'].resolved.instances).toMatchObject([{ start: 10, end: 30 }])
 
 			const instanceIds: { [id: string]: true } = {}
-			for (const obj of Object.values(resolved.objects)) {
-				for (const instance of Object.values(obj.resolved.instances)) {
+			for (const obj of Object.values<ResolvedTimelineObject>(resolved.objects)) {
+				for (const instance of Object.values<TimelineObjectInstance>(obj.resolved.instances)) {
 					expect(instanceIds[instance.id]).toBeFalsy()
 					instanceIds[instance.id] = true
 				}

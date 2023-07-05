@@ -3699,7 +3699,7 @@ let tests: Tests = {
 	},
 }
 const onlyTests: Tests = {}
-for (const [key, t] of Object.entries(tests)) {
+for (const [key, t] of Object.entries<any>(tests)) {
 	if (key.match(/^only/)) {
 		onlyTests[key] = t
 	}
@@ -3707,7 +3707,7 @@ for (const [key, t] of Object.entries(tests)) {
 if (!isEmpty(onlyTests)) tests = onlyTests
 
 describe('All tests', () => {
-	for (const [key, t] of Object.entries(tests)) {
+	for (const [key, t] of Object.entries<any>(tests)) {
 		test(key, () => {
 			reverseData = false
 			t()
@@ -3716,7 +3716,7 @@ describe('All tests', () => {
 })
 
 describe('Tests with reversed data', () => {
-	for (const [key, t] of Object.entries(tests)) {
+	for (const [key, t] of Object.entries<any>(tests)) {
 		test(key, () => {
 			reverseData = true
 			t()
@@ -3726,7 +3726,7 @@ describe('Tests with reversed data', () => {
 describe('Tests with cache', () => {
 	const cache = {}
 	stdOpts.cache = cache
-	for (const [key, t] of Object.entries(tests)) {
+	for (const [key, t] of Object.entries<any>(tests)) {
 		test(key, () => {
 			reverseData = true
 			t()

@@ -132,7 +132,7 @@ export class CacheHandler {
 
 			// The objects that are left in validObjects at this point are still valid.
 			// We can reuse the old resolving for those:
-			for (const obj of Object.values(validObjects)) {
+			for (const obj of Object.values<ResolvedTimelineObject>(validObjects)) {
 				if (!this.cache.objects[obj.id])
 					throw new Error(
 						`Something went wrong: "${obj.id}" does not exist in cache.resolvedTimeline.objects`

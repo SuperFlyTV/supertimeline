@@ -87,7 +87,7 @@ const doPerformanceTest = (useCache: boolean) => {
 	executionTimeAvg /= executionTimeCount
 
 	const sortedTimes = sortBy(
-		Object.entries(stats).map(([key, time]) => {
+		Object.entries<number>(stats).map(([key, time]) => {
 			return { time, key }
 		}),
 		(t) => t.time
@@ -122,7 +122,7 @@ describe('performance', () => {
 						.join('\n')
 			)
 
-			expect(executionTimeAvg).toBeLessThan(50)
+			expect(executionTimeAvg).toBeLessThan(30) // it's ~15ms in GH actions
 			ticTocPrint()
 		},
 		TIMEOUT_TIME
@@ -140,7 +140,7 @@ describe('performance', () => {
 						.join('\n')
 			)
 
-			expect(executionTimeAvg).toBeLessThan(50)
+			expect(executionTimeAvg).toBeLessThan(20) // it's ~10ms in GH actions
 			ticTocPrint()
 		},
 		TIMEOUT_TIME

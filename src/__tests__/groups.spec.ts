@@ -506,9 +506,7 @@ describeVariants(
 			expect(states1.layers['42']).toBeFalsy()
 
 			const omitProperties = (instances: TimelineObjectInstance[]) => {
-				return Object.values(instances).map((i) =>
-					omit(i, ['references', 'originalEnd', 'originalStart', 'id'])
-				)
+				return instances.map((i) => omit(i, ['references', 'originalEnd', 'originalStart', 'id']))
 			}
 			expect(omitProperties(resolved0.objects['refChild0'].resolved.instances)).toEqual(
 				omitProperties(resolved1.objects['refChild0'].resolved.instances)
