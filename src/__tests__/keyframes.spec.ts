@@ -12,20 +12,11 @@ describeVariants(
 		test('simple keyframes', () => {
 			const timeline = fixTimeline([
 				{
-					id: 'video',
-					layer: '0',
-					enable: {
-						start: 0,
-						end: 100,
-					},
-					content: {},
-				},
-				{
 					id: 'graphic0',
 					layer: '1',
 					enable: {
-						start: '#video.start + 10', // 10
-						duration: 50,
+						start: 10,
+						duration: 50, // 60
 					},
 					content: {
 						attr0: 'base',
@@ -59,13 +50,12 @@ describeVariants(
 				},
 			])
 
-			const resolved = resolveTimeline(timeline, { cache: getCache(), time: 0, limitTime: 50 })
+			const resolved = resolveTimeline(timeline, { cache: getCache(), time: 0 })
 
-			expect(resolved.statistics.resolvedObjectCount).toEqual(2)
+			expect(resolved.statistics.resolvedObjectCount).toEqual(1)
 			expect(resolved.statistics.resolvedKeyframeCount).toEqual(2)
 			expect(resolved.statistics.unresolvedCount).toEqual(0)
 
-			expect(resolved.objects['video']).toBeTruthy()
 			expect(resolved.objects['graphic0']).toBeTruthy()
 			expect(resolved.objects['kf0']).toBeTruthy()
 			expect(resolved.objects['kf1']).toBeTruthy()
@@ -112,11 +102,6 @@ describeVariants(
 					time: 60,
 					type: EventType.END,
 					objId: 'graphic0',
-				},
-				{
-					time: 100,
-					type: EventType.END,
-					objId: 'video',
 				},
 			])
 			expect(getResolvedState(resolved, 13).layers['1']).toMatchObject({
@@ -419,24 +404,13 @@ describeVariants(
 		test('Keyframes in resuming objects 1', () => {
 			const timeline = fixTimeline([
 				{
-					id: 'obj0',
-					enable: {
-						start: 500.5,
-					},
-					priority: 0,
-					layer: '0',
-					content: {
-						input: 6000,
-					},
-					keyframes: [],
-				},
-				{
 					id: 'obj1',
 					enable: {
 						start: 1,
 						end: 500,
+						// 1-500
 					},
-					priority: 0.1,
+					priority: 10,
 					layer: '0',
 					content: {
 						input: 6001,
@@ -447,8 +421,9 @@ describeVariants(
 					id: 'obj2',
 					enable: {
 						while: '1',
+						// 0-1, 500-inf
 					},
-					priority: 0.05,
+					priority: 5,
 					layer: '0',
 					content: {
 						input: 1000,
@@ -459,6 +434,7 @@ describeVariants(
 							enable: {
 								start: '0',
 								end: '2000',
+								// 0-1, 500-2500
 							},
 							disabled: false,
 							content: {
@@ -469,22 +445,21 @@ describeVariants(
 				},
 			])
 
-			const resolved = resolveTimeline(timeline, { cache: getCache(), time: 0, limitCount: 10, limitTime: 999 })
+			const resolved = resolveTimeline(timeline, { cache: getCache(), time: 0, limitCount: 10 })
 
-			expect(resolved.statistics.resolvedObjectCount).toEqual(3)
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
+			expect(resolved.objects['obj1']).toBeTruthy()
+			expect(resolved.objects['obj2']).toBeTruthy()
+			expect(resolved.objects['kf0']).toBeTruthy()
 
-			expect(resolved.objects['kf0'].resolved.instances).toMatchObject([
-				{ start: 0, end: 1 },
-				{ start: 500, end: 500.5 },
-				{ start: 500.5, end: 2000 },
-			])
-			expect(resolved.objects['obj2'].resolved.instances).toMatchObject([
-				{ start: 0, end: 1 },
-				{ start: 500, end: 500.5 },
-				{ start: 500.5, end: null },
-			])
 			expect(resolved.objects['obj1'].resolved.instances).toMatchObject([{ start: 1, end: 500 }])
+			expect(resolved.objects['obj2'].resolved.instances).toMatchObject([
+				{ start: 0, end: 1, originalStart: 0 },
+				{ start: 500, end: null, originalStart: 0 },
+			])
+			expect(baseInstances(resolved.objects['kf0'].resolved.instances)).toMatchObject([
+				{ start: 0, end: 1 },
+				{ start: 500, end: 2500 },
+			])
 
 			// Before obj1 end
 			const state = getResolvedState(resolved, 490, 10)

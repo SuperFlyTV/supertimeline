@@ -66,8 +66,6 @@ const doPerformanceTest = (useCache: boolean) => {
 			expect(state2).toBeTruthy()
 			expect(state20).toBeTruthy()
 
-			// expect(omit(resolvedTimeline, 'statistics')).toStrictEqual(omit(resolvedTimeline2, 'statistics'))
-
 			useTest = true
 		} catch (e) {
 			errorCount++
@@ -80,8 +78,6 @@ const doPerformanceTest = (useCache: boolean) => {
 				throw e
 			}
 		}
-
-		// console.log(`Time of execution: ${testDuration}`)
 
 		if (useTest) {
 			expect(testDuration).toBeLessThan(500)

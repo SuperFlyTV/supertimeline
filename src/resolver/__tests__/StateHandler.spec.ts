@@ -1,4 +1,5 @@
 import { StateHandler } from '../StateHandler'
+
 describe('state', () => {
 	const state = new StateHandler()
 	test('applyKeyframeContent', () => {

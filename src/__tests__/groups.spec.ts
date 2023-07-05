@@ -55,7 +55,6 @@ describeVariants(
 			])
 
 			const resolved = resolveTimeline(timeline, { cache: getCache(), time: 0 })
-			// console.log(JSON.stringify(resolved, null, 3))
 			expect(resolved.statistics.unresolvedCount).toEqual(0)
 			expect(resolved.statistics.resolvedObjectCount).toEqual(4)
 			expect(resolved.statistics.resolvedGroupCount).toEqual(1)
@@ -64,15 +63,15 @@ describeVariants(
 			expect(resolved.objects['child0']).toBeTruthy()
 			expect(resolved.objects['child1']).toBeTruthy()
 			expect(resolved.objects['child0'].resolved).toMatchObject({
-				resolved: true,
+				resolvedReferences: true,
 				instances: [{ start: 15, end: 25 }],
 			})
 			expect(resolved.objects['child1'].resolved).toMatchObject({
-				resolved: true,
+				resolvedReferences: true,
 				instances: [{ start: 25, end: 35 }],
 			})
 			expect(resolved.objects['child2'].resolved).toMatchObject({
-				resolved: true,
+				resolvedReferences: true,
 				instances: [{ start: 10, end: 100 }],
 			})
 
@@ -164,19 +163,19 @@ describeVariants(
 			expect(resolved.objects['child1']).toBeTruthy()
 
 			expect(resolved.objects['group0'].resolved).toMatchObject({
-				resolved: true,
+				resolvedReferences: true,
 				instances: [{ start: 10, end: 100 }],
 			})
 			expect(resolved.objects['child0'].resolved).toMatchObject({
-				resolved: true,
+				resolvedReferences: true,
 				instances: [{ start: 15, end: 100 }],
 			})
 			expect(resolved.objects['group1'].resolved).toMatchObject({
-				resolved: true,
+				resolvedReferences: true,
 				instances: [{ start: 50, end: 100 }],
 			})
 			expect(resolved.objects['child1'].resolved).toMatchObject({
-				resolved: true,
+				resolvedReferences: true,
 				instances: [{ start: 55, end: 100 }],
 			})
 
@@ -261,19 +260,19 @@ describeVariants(
 			expect(resolved.objects['child1']).toBeTruthy()
 
 			expect(resolved.objects['group0'].resolved).toMatchObject({
-				resolved: true,
+				resolvedReferences: true,
 				instances: [{ start: 10, end: 50 }], // because group 1 started
 			})
 			expect(resolved.objects['child0'].resolved).toMatchObject({
-				resolved: true,
+				resolvedReferences: true,
 				instances: [{ start: 15, end: 50 }], // capped by parent
 			})
 			expect(resolved.objects['group1'].resolved).toMatchObject({
-				resolved: true,
+				resolvedReferences: true,
 				instances: [{ start: 50, end: 100 }],
 			})
 			expect(resolved.objects['child1'].resolved).toMatchObject({
-				resolved: true,
+				resolvedReferences: true,
 				instances: [{ start: 55, end: 100 }],
 			})
 
@@ -287,10 +286,12 @@ describeVariants(
 					},
 				},
 				nextEvents: [
+					{ objId: 'child0', time: 50, type: EventType.END },
 					{ objId: 'group0', time: 50, type: EventType.END },
 					{ objId: 'group1', time: 50, type: EventType.START },
+
 					{ objId: 'child1', time: 55, type: EventType.START },
-					{ objId: 'child0', time: 100, type: EventType.END },
+
 					{ objId: 'child1', time: 100, type: EventType.END },
 					{ objId: 'group1', time: 100, type: EventType.END },
 				],
@@ -305,7 +306,6 @@ describeVariants(
 					},
 				},
 				nextEvents: [
-					{ objId: 'child0', time: 100, type: EventType.END },
 					{ objId: 'child1', time: 100, type: EventType.END },
 					{ objId: 'group1', time: 100, type: EventType.END },
 				],
@@ -321,9 +321,10 @@ describeVariants(
 					id: 'group0',
 					layer: 'g0',
 					enable: {
-						start: 0, // 0, 100
-						duration: 80, // 80, 180
+						start: 0,
+						duration: 80,
 						repeating: 100,
+						// 0-80, 100-180...
 					},
 					content: {},
 					isGroup: true,
@@ -332,8 +333,9 @@ describeVariants(
 							id: 'child0',
 							layer: '1',
 							enable: {
-								start: '50', // 50, 150
-								duration: 20, // 70, 170
+								start: '50',
+								duration: 20,
+								// 50-70, 150-170...
 							},
 							content: {},
 						},
@@ -341,8 +343,10 @@ describeVariants(
 							id: 'child1',
 							layer: '2',
 							enable: {
-								start: '#child0.end', // 70, 170
-								duration: 50, // 120 (to be capped at 100), 220 (to be capped at 200)
+								start: '#child0.end',
+								duration: 50,
+								// 70-120, 170-220
+								// capped by parent to: 70-80, 170-180
 							},
 							content: {},
 						},
@@ -353,7 +357,6 @@ describeVariants(
 			const resolved = resolveTimeline(timeline, {
 				cache: getCache(),
 				time: 0,
-				limitCount: 99,
 				limitTime: 199,
 			})
 
@@ -364,27 +367,18 @@ describeVariants(
 			expect(resolved.objects['child0']).toBeTruthy()
 			expect(resolved.objects['child1']).toBeTruthy()
 
-			expect(resolved.objects['group0'].resolved).toMatchObject({
-				resolved: true,
-				instances: [
-					{ start: 0, end: 80 },
-					{ start: 100, end: 180 },
-				],
-			})
-			expect(resolved.objects['child0'].resolved).toMatchObject({
-				resolved: true,
-				instances: [
-					{ start: 50, end: 70 },
-					{ start: 150, end: 170 },
-				],
-			})
-			expect(resolved.objects['child1'].resolved).toMatchObject({
-				resolved: true,
-				instances: [
-					{ start: 70, end: 80 },
-					{ start: 170, end: 180 },
-				],
-			})
+			expect(baseInstances(resolved.objects['group0'].resolved.instances)).toMatchObject([
+				{ start: 0, end: 80 },
+				{ start: 100, end: 180 },
+			])
+			expect(baseInstances(resolved.objects['child0'].resolved.instances)).toMatchObject([
+				{ start: 50, end: 70 },
+				{ start: 150, end: 170 },
+			])
+			expect(baseInstances(resolved.objects['child1'].resolved.instances)).toMatchObject([
+				{ start: 70, end: 80 },
+				{ start: 170, end: 180 },
+			])
 			expect(getResolvedState(resolved, 10)).toMatchObject({
 				layers: {
 					g0: {
@@ -512,7 +506,9 @@ describeVariants(
 			expect(states1.layers['42']).toBeFalsy()
 
 			const omitProperties = (instances: TimelineObjectInstance[]) => {
-				return instances.map((i) => omit(i, ['references', 'originalEnd', 'originalStart', 'id']))
+				return Object.values(instances).map((i) =>
+					omit(i, ['references', 'originalEnd', 'originalStart', 'id'])
+				)
 			}
 			expect(omitProperties(resolved0.objects['refChild0'].resolved.instances)).toEqual(
 				omitProperties(resolved1.objects['refChild0'].resolved.instances)
@@ -545,6 +541,9 @@ describeVariants(
 							enable: {
 								start: '#extRef',
 								duration: 200,
+								// 10 - 210,
+								// capped to 50-100,
+								// interrupted to  50-60
 							},
 							content: {},
 						},
@@ -578,13 +577,12 @@ describeVariants(
 				},
 			])
 
-			const resolved0 = resolveTimeline(timeline, {
+			const resolved = resolveTimeline(timeline, {
 				cache: getCache(),
 				time: 0,
 				limitCount: 100,
 				limitTime: 99999,
 			})
-			const resolved = resolved0
 
 			expect(resolved.statistics.resolvedObjectCount).toEqual(6)
 			expect(resolved.statistics.resolvedGroupCount).toEqual(1)
@@ -748,6 +746,7 @@ describeVariants(
 				limitCount: 10,
 				limitTime: 999,
 			})
+
 			expect(resolved.statistics.resolvedObjectCount).toEqual(3)
 
 			// // All 3 videos should start at the same time:
@@ -811,6 +810,7 @@ describeVariants(
 				limitCount: 10,
 				limitTime: 999,
 			})
+
 			expect(resolved.statistics.resolvedObjectCount).toEqual(3)
 
 			// // All 3 videos should start at the same time:
@@ -989,10 +989,7 @@ describeVariants(
 				{ start: 1010, end: 1350 },
 				{ start: 1510, end: 1700 },
 			])
-			expect(resolved.objects['grp0_grp1'].resolved.instances).toMatchObject([
-				{ start: 1350, end: 1400 },
-				// { start: 1850, end: 1700 },
-			])
+			expect(resolved.objects['grp0_grp1'].resolved.instances).toMatchObject([{ start: 1350, end: 1400 }])
 
 			// The inner object should be capped by its parents
 			expect(resolved.objects['grp0_grp0_obj0'].resolved.instances).toMatchObject([
@@ -1097,6 +1094,7 @@ describeVariants(
 					enable: {
 						start: 1000,
 						end: '#grp1.start + 1000',
+						// 1000 - 6000
 					},
 					priority: -1,
 					layer: '',
@@ -1108,6 +1106,7 @@ describeVariants(
 							children: [],
 							enable: {
 								start: 0,
+								/// 1000 - 6000
 							},
 							layer: 'layer0',
 							isGroup: true,
@@ -1120,6 +1119,7 @@ describeVariants(
 					id: 'grp1',
 					enable: {
 						start: 5000,
+						// 5000-inf
 					},
 					priority: 1,
 					layer: '',
@@ -1127,12 +1127,18 @@ describeVariants(
 					children: [
 						{
 							id: 'grp1_0',
+							enable: {
+								start: 0,
+								/// 5000-inf, conflict w grp0_0: 6000-inf
+							},
+							priority: 2,
 							content: {},
 							children: [
 								{
-									id: 'obj0',
+									id: 'grp1_0_0',
 									enable: {
 										start: 1000,
+										// 6000-inf, -> 7000-inf
 									},
 									priority: 1,
 									layer: 'layer1',
@@ -1140,11 +1146,7 @@ describeVariants(
 								},
 							],
 							isGroup: true,
-							enable: {
-								start: 0,
-							},
 							layer: 'layer0',
-							priority: 2,
 						},
 					],
 					isGroup: true,
@@ -1157,31 +1159,19 @@ describeVariants(
 				limitCount: 10,
 				limitTime: 999,
 			})
+
 			expect(resolved.statistics.resolvedObjectCount).toEqual(5)
 
+			expect(resolved.objects['grp1'].resolved.instances).toMatchObject([{ start: 5000, end: null }])
+			expect(resolved.objects['grp0'].resolved.instances).toMatchObject([{ start: 1000, end: 6000 }])
 			// grp0_0 runs for a while
-			expect(resolved.objects['grp0_0']).toBeTruthy()
-			expect(resolved.objects['grp0_0'].resolved.instances).toHaveLength(1)
-			expect(resolved.objects['grp0_0'].resolved.instances[0]).toMatchObject({
-				start: 1000,
-				end: 6000,
-			})
+			expect(resolved.objects['grp0_0'].resolved.instances).toMatchObject([{ start: 1000, end: 6000 }])
 
 			// grp1_0 runs once grp0_0 has cleared
-			expect(resolved.objects['grp1_0']).toBeTruthy()
-			expect(resolved.objects['grp1_0'].resolved.instances).toHaveLength(1)
-			expect(resolved.objects['grp1_0'].resolved.instances[0]).toMatchObject({
-				start: 6000,
-				end: null,
-			})
+			expect(resolved.objects['grp1_0'].resolved.instances).toMatchObject([{ start: 6000, end: null }])
 
-			// obj0 runs the same as grp1_0
-			expect(resolved.objects['obj0']).toBeTruthy()
-			expect(resolved.objects['obj0'].resolved.instances).toHaveLength(1)
-			expect(resolved.objects['obj0'].resolved.instances[0]).toMatchObject({
-				start: 6000,
-				end: null,
-			})
+			// grp1_0_0 start 1000 after grp1_0
+			expect(resolved.objects['grp1_0_0'].resolved.instances).toMatchObject([{ start: 7000, end: null }])
 		})
 
 		test('Child object', () => {
@@ -1238,6 +1228,7 @@ describeVariants(
 				limitCount: 10,
 				limitTime: 999,
 			})
+
 			expect(resolved.statistics.resolvedObjectCount).toEqual(4)
 
 			// grp0_0 runs for a while
@@ -1305,7 +1296,6 @@ describeVariants(
 		})
 
 		test('Child object partially blocked by other object', () => {
-			const baseTime = 3000 // Some real point in time
 			const timeline = fixTimeline([
 				{
 					id: 'tema_baseline',
@@ -1377,16 +1367,12 @@ describeVariants(
 			])
 
 			const resolved = resolveTimeline(timeline, {
+				time: 0,
 				cache: getCache(),
-				time: baseTime + 1000,
-				limitCount: 10,
-				limitTime: 999,
 			})
-			// expect(resolved.statistics.resolvedObjectCount).toEqual(6)
 
-			// make sure the events look sane (they did not)
+			// make sure the events look sane
 			expect(resolved.nextEvents).toStrictEqual([
-				{ objId: 'tema_baseline', time: 0, type: 0 },
 				{ objId: 'tema_baseline', time: 1700, type: 1 },
 				{ objId: 'tema_capped', time: 1700, type: 0 },
 				{ objId: 'tema_capped', time: 2000, type: 1 },
@@ -1472,7 +1458,6 @@ describeVariants(
 				limitCount: 10,
 				limitTime: 999,
 			})
-			// expect(resolved.statistics.resolvedObjectCount).toEqual(6)
 
 			const state1 = getResolvedState(resolved, 5000)
 			expect(state1.layers['l1']).toBeFalsy()

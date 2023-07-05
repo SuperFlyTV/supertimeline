@@ -1,6 +1,7 @@
 import { isNumericExpr } from '../expression'
+
 describe('lib', () => {
-	test('isNumericExpr', () => {
+	test('isNumeric', () => {
 		expect(isNumericExpr('123')).toEqual(true)
 		expect(isNumericExpr('123.234')).toEqual(true)
 		expect(isNumericExpr('-23123.234')).toEqual(true)

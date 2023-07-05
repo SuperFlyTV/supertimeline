@@ -52,6 +52,21 @@ describe('index', () => {
 		// Resolve the timeline
 		const resolvedTimeline = resolveTimeline(timeline, options)
 
+		expect(resolvedTimeline.objects['video']).toBeTruthy()
+		expect(resolvedTimeline.objects['video'].resolved).toMatchObject({
+			resolvedReferences: true,
+			resolvedParentCap: true,
+			resolvedConflicts: true,
+			resolving: false,
+		})
+		expect(resolvedTimeline.objects['video'].resolved.instances).toMatchObject([{ start: 0, end: 100 }])
+
+		expect(resolvedTimeline.objects['graphic0']).toBeTruthy()
+		expect(resolvedTimeline.objects['graphic0'].resolved.instances).toMatchObject([{ start: 10, end: 20 }])
+
+		expect(resolvedTimeline.objects['graphic1']).toBeTruthy()
+		expect(resolvedTimeline.objects['graphic1'].resolved.instances).toMatchObject([{ start: 30, end: 45 }])
+
 		// Calculate the state at a certain time:
 		const state0 = getResolvedState(resolvedTimeline, 15)
 
@@ -149,6 +164,8 @@ describe('index', () => {
 		// Resolve the timeline
 		const resolvedTimeline = resolveTimeline(timeline, options)
 
+		expect(resolvedTimeline.objects['kf0'].resolved.instances).toMatchObject([{ start: 5, end: 20 }])
+
 		// Calculate the state at a certain time:
 		const state0 = getResolvedState(resolvedTimeline, 4)
 		const state1 = getResolvedState(resolvedTimeline, 15)
@@ -166,6 +183,7 @@ describe('index', () => {
 		expect(state1.layers[0].content.attr3).toEqual(1)
 		expect(state2.layers[0].content.attr3).toEqual(undefined)
 	})
+
 	test('Resolve all states', () => {
 		const timeline: Array<TimelineObject> = [
 			{
@@ -174,6 +192,7 @@ describe('index', () => {
 				enable: {
 					start: 0,
 					end: 100,
+					// 0-100 (0-50, 70-100)
 				},
 				content: {},
 				priority: 5,
@@ -184,6 +203,7 @@ describe('index', () => {
 				enable: {
 					start: 50,
 					end: 70,
+					// 50-70 (50-65)
 				},
 				content: {},
 				priority: 5,
@@ -194,6 +214,7 @@ describe('index', () => {
 				enable: {
 					start: 65,
 					end: 75,
+					// 65-75 (65-70)
 				},
 				content: {},
 				priority: 5,
@@ -204,6 +225,7 @@ describe('index', () => {
 				enable: {
 					start: 50,
 					end: 120,
+					// 50-120
 				},
 				content: {},
 				priority: 3, // lower prio
@@ -230,13 +252,16 @@ describe('index', () => {
 		expect(state4.layers[0].id).toEqual('video3')
 
 		expect(resolvedTimeline.objects['video0'].resolved.instances).toHaveLength(2)
-		expect(resolvedTimeline.objects['video1'].resolved.instances).toHaveLength(1)
-		expect(resolvedTimeline.objects['video2'].resolved.instances).toHaveLength(1)
-
 		expect(resolvedTimeline.objects['video0'].resolved.instances[0]).toMatchObject({
 			start: 0,
 			end: 50,
 		})
+		expect(resolvedTimeline.objects['video0'].resolved.instances[1]).toMatchObject({
+			start: 75,
+			end: 100,
+		})
+
+		expect(resolvedTimeline.objects['video1'].resolved.instances).toHaveLength(1)
 		expect(resolvedTimeline.objects['video1'].resolved.instances[0]).toMatchObject({
 			start: 50,
 			end: 65,
@@ -245,10 +270,8 @@ describe('index', () => {
 			start: 65,
 			end: 75,
 		})
-		expect(resolvedTimeline.objects['video0'].resolved.instances[1]).toMatchObject({
-			start: 75,
-			end: 100,
-		})
+
+		expect(resolvedTimeline.objects['video2'].resolved.instances).toHaveLength(1)
 		expect(resolvedTimeline.objects['video3'].resolved.instances[0]).toMatchObject({
 			start: 100,
 			end: 120,
@@ -320,6 +343,7 @@ describe('index', () => {
 				priority: 0.1,
 				enable: {
 					start: 1,
+					// 1-500, 1000-null
 				},
 				layer: 'layer1',
 				classes: ['some_class'],
@@ -339,7 +363,8 @@ describe('index', () => {
 						id: 'bad0',
 						priority: 0,
 						enable: {
-							start: 0,
+							start: 0, // 500
+							// 500-1000
 						},
 						layer: 'layer1',
 						classes: ['some_class'],
@@ -406,7 +431,7 @@ describe('index', () => {
 			{
 				id: 'group0',
 				enable: {
-					start: 0,
+					start: 0, // 0-null
 				},
 				layer: '',
 				content: {},
@@ -430,6 +455,9 @@ describe('index', () => {
 									start: 0,
 									duration: 15000,
 									repeating: 15000,
+
+									// 0-15000, 15000-30000
+									// capped to: 0-2718
 								},
 								layer: '',
 								content: {},
@@ -441,6 +469,8 @@ describe('index', () => {
 										enable: {
 											start: 0,
 											duration: 3000,
+											// 0-3000, 15000-18000
+											// capped to: 0-2718
 										},
 										layer: 'layer1',
 										content: {},
@@ -463,7 +493,210 @@ describe('index', () => {
 		const obj = resolvedTimeline.objects['AAA']
 
 		expect(obj).toBeTruthy()
-
 		expect(obj.resolved.instances).toHaveLength(1)
+	})
+
+	test('Basic conflict', () => {
+		const timeline: Array<TimelineObject> = [
+			{
+				id: 'A',
+				layer: '0',
+				enable: { start: 0, end: 100 },
+				content: {},
+			},
+			{
+				id: 'B',
+				layer: '0',
+				enable: { start: 20, end: 50 },
+				content: {},
+			},
+		]
+
+		const options: ResolveOptions = {
+			time: 0,
+		}
+		// Resolve the timeline
+		const resolvedTimeline = resolveTimeline(timeline, options)
+		expect(resolvedTimeline.objects['A'].resolved.instances).toMatchObject([
+			{ start: 0, end: 20 },
+			{ start: 50, end: 100 },
+		])
+		expect(resolvedTimeline.objects['B'].resolved.instances).toMatchObject([{ start: 20, end: 50 }])
+	})
+	test('Reference conflicted object', () => {
+		const timeline: Array<TimelineObject> = [
+			{
+				id: 'A',
+				layer: '0',
+				enable: { start: 0, end: 100 },
+				content: {},
+			},
+			{
+				id: 'B',
+				layer: '0',
+				enable: { start: 20, end: 50 },
+				content: {},
+			},
+			{
+				id: 'C',
+				layer: '0',
+				enable: { start: 40, end: 60 },
+				content: {},
+			},
+			{
+				id: 'refA',
+				layer: '1',
+				enable: {
+					while: '#A+1',
+				},
+				content: {},
+			},
+		]
+
+		const options: ResolveOptions = {
+			time: 0,
+		}
+		// Resolve the timeline
+		const resolvedTimeline = resolveTimeline(timeline, options)
+
+		expect(resolvedTimeline.objects['A'].resolved.instances).toMatchObject([
+			{ start: 0, end: 20 },
+			{ start: 60, end: 100 },
+		])
+		expect(resolvedTimeline.objects['B'].resolved.instances).toMatchObject([{ start: 20, end: 40 }])
+		expect(resolvedTimeline.objects['C'].resolved.instances).toMatchObject([{ start: 40, end: 60 }])
+		expect(resolvedTimeline.objects['refA'].resolved.instances).toMatchObject([
+			{ start: 1, end: 21 },
+			{ start: 61, end: 101 },
+		])
+	})
+	test('Reference conflicted object via class', () => {
+		const timeline: Array<TimelineObject> = [
+			{
+				id: 'A',
+				layer: '0',
+				enable: { start: 0, end: 100 },
+				content: {},
+				classes: ['AClass'],
+			},
+			{
+				id: 'B',
+				layer: '0',
+				enable: { start: 20, end: 50 },
+				content: {},
+			},
+			{
+				id: 'C',
+				layer: '0',
+				enable: { start: 40, end: 60 },
+				content: {},
+			},
+			{
+				id: 'refA',
+				layer: '1',
+				enable: {
+					while: '.AClass+1',
+				},
+				content: {},
+			},
+		]
+
+		const options: ResolveOptions = {
+			time: 0,
+		}
+		// Resolve the timeline
+		const resolvedTimeline = resolveTimeline(timeline, options)
+
+		expect(resolvedTimeline.objects['A'].resolved.instances).toMatchObject([
+			{ start: 0, end: 20 },
+			{ start: 60, end: 100 },
+		])
+		expect(resolvedTimeline.objects['B'].resolved.instances).toMatchObject([{ start: 20, end: 40 }])
+		expect(resolvedTimeline.objects['C'].resolved.instances).toMatchObject([{ start: 40, end: 60 }])
+		expect(baseInstances(resolvedTimeline.objects['refA'].resolved.instances)).toMatchObject([
+			{ start: 1, end: 21 },
+			{ start: 61, end: 101 },
+		])
+	})
+
+	test('Group reference conflicted object', () => {
+		const timeline: Array<TimelineObject> = [
+			{
+				id: 'A',
+				layer: '0',
+				enable: { start: 10, end: 100 },
+				content: {},
+			},
+			{
+				id: 'B',
+				layer: '0',
+				enable: { start: 20, end: 50 },
+				content: {},
+			},
+			{
+				id: 'group0',
+				layer: '1',
+				enable: {
+					while: '#A+1', // 11-101 (11-21, 51-101)
+				},
+				content: {},
+				isGroup: true,
+				children: [
+					{
+						id: 'child0',
+						layer: '2',
+						enable: {
+							start: 1, // 12-101 (12-21, 52-101)
+						},
+						content: {},
+						isGroup: true,
+						children: [
+							{
+								id: 'child0_0',
+								layer: '3',
+								enable: {
+									start: 1, // 13-101
+								},
+								content: {},
+							},
+						],
+					},
+				],
+			},
+			{
+				id: 'ref_child0_0',
+				layer: '',
+				enable: { while: '#child0_0' },
+				content: {},
+			},
+		]
+
+		const options: ResolveOptions = {
+			time: 0,
+		}
+		// Resolve the timeline
+		const resolvedTimeline = resolveTimeline(timeline, options)
+
+		expect(resolvedTimeline.objects['A'].resolved.instances).toMatchObject([
+			{ start: 10, end: 20, originalStart: 10 },
+			{ start: 50, end: 100, originalStart: 10 },
+		])
+		expect(resolvedTimeline.objects['B'].resolved.instances).toMatchObject([{ start: 20, end: 50 }])
+		expect(baseInstances(resolvedTimeline.objects['group0'].resolved.instances)).toMatchObject([
+			{ start: 11, end: 21 }, // TODO: what should originalStart be here?
+			{ start: 51, end: 101 },
+		])
+		expect(baseInstances(resolvedTimeline.objects['child0'].resolved.instances)).toMatchObject([
+			{ start: 12, end: 21 },
+			{ start: 52, end: 101 },
+		])
+		expect(baseInstances(resolvedTimeline.objects['child0_0'].resolved.instances)).toMatchObject([
+			{ start: 13, end: 21 },
+			{ start: 53, end: 101 },
+		])
+		expect(baseInstances(resolvedTimeline.objects['ref_child0_0'].resolved.instances)).toMatchObject([
+			{ start: 13, end: 21 },
+			{ start: 53, end: 101 },
+		])
 	})
 })

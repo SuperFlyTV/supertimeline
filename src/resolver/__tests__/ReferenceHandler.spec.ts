@@ -17,39 +17,40 @@ test('operateOnArrays', () => {
 	expect(
 		reference.operateOnArrays(
 			[
-				{ id: '%a', start: 10, end: 50, references: ['a'] },
-				{ id: '%b', start: 30, end: 90, references: ['b'] },
-				{ id: '%c', start: 100, end: 110, references: ['c'] },
+				{ id: '@a', start: 10, end: 50, references: ['#a'] },
+				{ id: '@b', start: 30, end: 90, references: ['#b'] },
+				{ id: '@c', start: 100, end: 110, references: ['#c'] },
 			],
-			{ value: 1, references: ['x'] },
+			{ value: 1, references: ['#x'] },
 			plus
 		)
 	).toMatchObject([
-		{ start: 11, end: 31, references: ['%a', 'a', 'x'] },
-		{ start: 31, end: 91, references: ['%a', '%b', 'a', 'b', 'x'] },
-		{ start: 101, end: 111, references: ['%c', 'c', 'x'] },
+		{ start: 11, end: 31, references: ['#a', '#x', '@@a'] },
+		{ start: 31, end: 91, references: ['#a', '#b', '#x', '@@a', '@@b'] },
+		{ start: 101, end: 111, references: ['#c', '#x', '@@c'] },
 	])
 
 	expect(
 		reference.operateOnArrays(
 			[
-				{ id: '%a', start: 10, end: 30, references: ['a'] },
-				{ id: '%b', start: 50, end: 70, references: ['b'] },
-				{ id: '%c', start: 100, end: 110, references: ['c'] },
+				{ id: '@a', start: 10, end: 30, references: ['#a'] },
+				{ id: '@b', start: 50, end: 70, references: ['#b'] },
+				{ id: '@c', start: 100, end: 110, references: ['#c'] },
 			],
 			[
-				{ id: '%x', start: 0, end: 25, references: ['x'] },
-				{ id: '%y', start: 0, end: 30, references: ['y'] },
-				{ id: '%z', start: 1, end: 5, references: ['z'] },
+				{ id: '@x', start: 0, end: 25, references: ['#x'] },
+				{ id: '@y', start: 0, end: 30, references: ['#y'] },
+				{ id: '@z', start: 1, end: 5, references: ['#z'] },
 			],
 			plus
 		)
 	).toMatchObject([
-		{ start: 10, end: 50, references: ['%a', '%x', 'a', 'x'] },
-		{ start: 50, end: 100, references: ['%a', '%b', '%x', '%y', 'a', 'b', 'x', 'y'] },
-		{ start: 101, end: 115, references: ['%c', '%z', 'c', 'z'] },
+		{ start: 10, end: 50, references: ['#a', '#x', '@@a', '@@x'] },
+		{ start: 50, end: 100, references: ['#a', '#b', '#x', '#y', '@@a', '@@b', '@@x', '@@y'] },
+		{ start: 101, end: 115, references: ['#c', '#z', '@@c', '@@z'] },
 	])
 })
+
 describe('Resolver, expressions, empty timeline', () => {
 	const stdObj: ResolvedTimelineObject = {
 		id: 'obj0',
@@ -70,6 +71,7 @@ describe('Resolver, expressions, empty timeline', () => {
 	const instance = new InstanceHandler(resolvedTimeline)
 	const reference = new ReferenceHandler(resolvedTimeline, instance)
 	const expressionHandler = new ExpressionHandler()
+
 	test('expression: basic math', () => {
 		expect(reference.lookupExpression(stdObj, expressionHandler.interpretExpression('1+2'), 'start')).toEqual({
 			result: { value: 1 + 2, references: [] },
@@ -303,6 +305,7 @@ describe('Resolver, expressions, filledtimeline', () => {
 		},
 		content: {},
 	})
+
 	test('lookupExpression', () => {
 		expect(reference.lookupExpression(obj, expressionHandler.interpretExpression('#unknown'), 'start')).toEqual({
 			result: [],

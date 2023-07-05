@@ -53,3 +53,15 @@ const timeline = {
 // B playing at [{start: 50, end: null }]
 // X playing at [{start: 10, end: 50 }] (references the updated times of A)
 ```
+
+### Modified tests:
+
+- basic.test.ts: "negative length object"
+  Instead of resolving to an instance of negative length, it resolves to a zero-length instance
+- basic.test.ts: "negative length object sandwich 2"
+  Instead of resolving to an instance of negative length, it resolves to a zero-length instance
+- basic.test.ts: "seamless"
+  Zero-length enables are kept as zero-length instances (before, they where removed)
+- various:
+  Instance references does now contain references on the form "#ObjId", ".className",
+  before they could be naked strings
