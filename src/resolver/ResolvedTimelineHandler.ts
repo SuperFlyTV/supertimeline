@@ -158,10 +158,6 @@ export class ResolvedTimelineHandler {
 					this.resolveTimelineObj(obj)
 					needsConflictResolve = true
 				}
-				if (!obj.resolved.resolvedParentCap) {
-					this.resolveTimelineParentCap(obj)
-					needsConflictResolve = true
-				}
 				if (!obj.resolved.resolvedConflicts) {
 					needsConflictResolve = true
 				}
@@ -174,27 +170,6 @@ export class ResolvedTimelineHandler {
 		}
 
 		toc()
-	}
-	public resolveTimelineParentCap(obj: ResolvedTimelineObject): void {
-		if (obj.resolved.parentId) {
-			const lookup = this.reference.lookupExpression(
-				obj,
-				this.expression.interpretExpression(`#${obj.resolved.parentId}`),
-				'start'
-			)
-			const parentInstances = lookup.result as TimelineObjectInstance[] | null // a start-reference will always return an array, or null
-
-			let instances = this.capInstancesToParentInstances({
-				instances: obj.resolved.instances,
-				parentInstances,
-			})
-
-			if (obj.seamless && instances.length > 1) {
-				instances = this.instance.cleanInstances(instances, true, false)
-			}
-			obj.resolved.instances = instances
-		}
-		obj.resolved.resolvedParentCap = true
 	}
 	/**
 	 * Resolve a timeline object.
@@ -215,284 +190,288 @@ export class ResolvedTimelineHandler {
 		const directReferences: Reference[] = []
 		let resultingInstances: TimelineObjectInstance[] = []
 
-		// Loop up references to the parent:
+		if (obj.disabled) {
+			resultingInstances = []
+		} else {
+			// Loop up references to the parent:
 
-		let parentInstances: TimelineObjectInstance[] | null = null
-		let hasParent = false
-		let parentRef: ObjectReference | undefined = undefined
-		if (obj.resolved.parentId) {
-			hasParent = true
-			parentRef = `#${obj.resolved.parentId}`
+			let parentInstances: TimelineObjectInstance[] | null = null
+			let hasParent = false
+			let parentRef: ObjectReference | undefined = undefined
+			if (obj.resolved.parentId) {
+				hasParent = true
+				parentRef = `#${obj.resolved.parentId}`
 
-			const parentLookup = this.reference.lookupExpression(
-				obj,
-				this.expression.interpretExpression(parentRef),
-				'start'
-			)
-			// pushToArray(directReferences, parentLookup.allReferences)
-			parentInstances = parentLookup.result as TimelineObjectInstance[] | null // a start-reference will always return an array, or null
-
-			if (parentInstances !== null) {
-				// Ensure that the parentInstances references the parent:
-				for (const parentInstance of parentInstances) {
-					parentInstance.references = joinReferences(parentInstance.references, parentRef)
-				}
-			}
-		}
-
-		const enables = ensureArray(obj.enable)
-		for (let i = 0; i < enables.length; i++) {
-			const enable: TimelineEnable = enables[i]
-
-			// Resolve the the enable.repeating expression:
-			const repeatingExpr: Expression | null =
-				enable.repeating !== undefined ? this.expression.interpretExpression(enable.repeating) : null
-			const lookupRepeating = this.reference.lookupExpression(obj, repeatingExpr, 'duration')
-			pushToArray<Reference>(directReferences, lookupRepeating.allReferences)
-
-			let lookedupRepeating: ValueWithReference | null
-			if (Array.isArray(lookupRepeating.result)) {
-				if (lookupRepeating.result.length === 0) {
-					lookedupRepeating = null
-				} else if (lookupRepeating.result.length === 1) {
-					lookedupRepeating = literal<ValueWithReference>({
-						value: lookupRepeating.result[0].start,
-						references: lookupRepeating.result[0].references,
-					})
-				} else {
-					// The lookup for repeating returned multiple instances.
-					// Not supported at the moment, perhaps this could be supported in the future.
-					throw new Error(`lookupExpression should never return an array for .duration lookup`)
-				}
-			} else {
-				lookedupRepeating = lookupRepeating.result
-			}
-
-			/** Array of instances this enable-expression resulted in */
-			let enableInstances: TimelineObjectInstance[]
-			if (enable.while !== undefined) {
-				const whileExpr: Expression = this.expression.simplifyExpression(
-					// Handle special case "1", 1:
-					enable.while === '1' || enable.while === 1
-						? 'true'
-						: // Handle special case "0", 0:
-						enable.while === '0' || enable.while === 0
-						? 'false'
-						: enable.while
+				const parentLookup = this.reference.lookupExpression(
+					obj,
+					this.expression.interpretExpression(parentRef),
+					'start'
 				)
-				// Note: a lookup for 'while' works the same as for 'start'
-				const lookupWhile = this.reference.lookupExpression(obj, whileExpr, 'start')
-				pushToArray<Reference>(directReferences, lookupWhile.allReferences)
+				// pushToArray(directReferences, parentLookup.allReferences)
+				parentInstances = parentLookup.result as TimelineObjectInstance[] | null // a start-reference will always return an array, or null
 
-				if (Array.isArray(lookupWhile.result)) {
-					enableInstances = lookupWhile.result
-				} else if (lookupWhile.result !== null) {
-					enableInstances = [
-						{
-							id: this.getInstanceId(),
-							start: lookupWhile.result.value,
-							end: null,
-							references: lookupWhile.result.references,
-						},
-					]
-				} else {
-					enableInstances = []
-				}
-			} else if (enable.start !== undefined) {
-				const startExpr: Expression = this.expression.simplifyExpression(enable.start)
-				const lookupStart = this.reference.lookupExpression(obj, startExpr, 'start')
-				pushToArray<Reference>(directReferences, lookupStart.allReferences)
-
-				// If expression is a constant, it is assumed to be a time relative to it's parent
-				const startRefersToParent = hasParent && isConstantExpr(startExpr)
-
-				const lookedupStarts = startRefersToParent
-					? this.reference.applyParentInstances(parentInstances, lookupStart.result, false)
-					: lookupStart.result
-
-				const events: EventForInstance[] = []
-				// const endEvents: EventForInstance[] = []
-				let iStart = 0
-				let iEnd = 0
-				if (Array.isArray(lookedupStarts)) {
-					for (let i = 0; i < lookedupStarts.length; i++) {
-						const instance = lookedupStarts[i]
-						const eventId = `${obj.id}_${iStart++}`
-						events.push({
-							time: instance.start,
-							value: true,
-							data: { instance: instance, id: eventId },
-							references: instance.references,
-						})
+				if (parentInstances !== null) {
+					// Ensure that the parentInstances references the parent:
+					for (const parentInstance of parentInstances) {
+						parentInstance.references = joinReferences(parentInstance.references, parentRef)
 					}
-				} else if (lookedupStarts !== null) {
-					events.push({
-						time: lookedupStarts.value,
-						value: true,
-						data: {
-							instance: {
-								id: this.getInstanceId(),
-								start: lookedupStarts.value,
-								end: null,
-								references: lookedupStarts.references,
-							},
-							id: `${obj.id}_${iStart++}`,
-						},
-						references: lookedupStarts.references,
-					})
+				}
+			}
+
+			const enables = ensureArray(obj.enable)
+			for (let i = 0; i < enables.length; i++) {
+				const enable: TimelineEnable = enables[i]
+
+				// Resolve the the enable.repeating expression:
+				const repeatingExpr: Expression | null =
+					enable.repeating !== undefined ? this.expression.interpretExpression(enable.repeating) : null
+				const lookupRepeating = this.reference.lookupExpression(obj, repeatingExpr, 'duration')
+				pushToArray<Reference>(directReferences, lookupRepeating.allReferences)
+
+				let lookedupRepeating: ValueWithReference | null
+				if (Array.isArray(lookupRepeating.result)) {
+					if (lookupRepeating.result.length === 0) {
+						lookedupRepeating = null
+					} else if (lookupRepeating.result.length === 1) {
+						lookedupRepeating = literal<ValueWithReference>({
+							value: lookupRepeating.result[0].start,
+							references: lookupRepeating.result[0].references,
+						})
+					} else {
+						// The lookup for repeating returned multiple instances.
+						// Not supported at the moment, perhaps this could be supported in the future.
+						throw new Error(`lookupExpression should never return an array for .duration lookup`)
+					}
+				} else {
+					lookedupRepeating = lookupRepeating.result
 				}
 
-				if (enable.end !== undefined) {
-					const endExpr: Expression = this.expression.interpretExpression(enable.end)
+				/** Array of instances this enable-expression resulted in */
+				let enableInstances: TimelineObjectInstance[]
+				if (enable.while !== undefined) {
+					const whileExpr: Expression = this.expression.simplifyExpression(
+						// Handle special case "1", 1:
+						enable.while === '1' || enable.while === 1
+							? 'true'
+							: // Handle special case "0", 0:
+							enable.while === '0' || enable.while === 0
+							? 'false'
+							: enable.while
+					)
+					// Note: a lookup for 'while' works the same as for 'start'
+					const lookupWhile = this.reference.lookupExpression(obj, whileExpr, 'start')
+					pushToArray<Reference>(directReferences, lookupWhile.allReferences)
 
-					const lookupEnd = endExpr ? this.reference.lookupExpression(obj, endExpr, 'end') : null
-					if (lookupEnd) pushToArray<Reference>(directReferences, lookupEnd.allReferences)
+					if (Array.isArray(lookupWhile.result)) {
+						enableInstances = lookupWhile.result
+					} else if (lookupWhile.result !== null) {
+						enableInstances = [
+							{
+								id: this.getInstanceId(),
+								start: lookupWhile.result.value,
+								end: null,
+								references: lookupWhile.result.references,
+							},
+						]
+					} else {
+						enableInstances = []
+					}
+				} else if (enable.start !== undefined) {
+					const startExpr: Expression = this.expression.simplifyExpression(enable.start)
+					const lookupStart = this.reference.lookupExpression(obj, startExpr, 'start')
+					pushToArray<Reference>(directReferences, lookupStart.allReferences)
 
 					// If expression is a constant, it is assumed to be a time relative to it's parent
-					const endRefersToParent = hasParent && isConstantExpr(endExpr)
+					const startRefersToParent = hasParent && isConstantExpr(startExpr)
 
-					/** Contains an inverted list of instances. Therefore .start means an end */
-					const lookedupEnds = !lookupEnd
-						? null
-						: endRefersToParent
-						? this.reference.applyParentInstances(parentInstances, lookupEnd.result, false)
-						: lookupEnd.result
+					const lookedupStarts = startRefersToParent
+						? this.reference.applyParentInstances(parentInstances, lookupStart.result)
+						: lookupStart.result
 
-					if (Array.isArray(lookedupEnds)) {
-						for (let i = 0; i < lookedupEnds.length; i++) {
-							const instance = lookedupEnds[i]
+					const events: EventForInstance[] = []
+					// const endEvents: EventForInstance[] = []
+					let iStart = 0
+					let iEnd = 0
+					if (Array.isArray(lookedupStarts)) {
+						for (let i = 0; i < lookedupStarts.length; i++) {
+							const instance = lookedupStarts[i]
+							const eventId = `${obj.id}_${iStart++}`
 							events.push({
 								time: instance.start,
-								value: false,
-								data: { instance: instance, id: `${obj.id}_${iEnd++}` },
+								value: true,
+								data: { instance: instance, id: eventId },
 								references: instance.references,
 							})
 						}
-					} else if (lookedupEnds !== null) {
+					} else if (lookedupStarts !== null) {
 						events.push({
-							time: lookedupEnds.value,
-							value: false,
+							time: lookedupStarts.value,
+							value: true,
 							data: {
 								instance: {
 									id: this.getInstanceId(),
-									start: lookedupEnds.value,
+									start: lookedupStarts.value,
 									end: null,
-									references: lookedupEnds.references,
+									references: lookedupStarts.references,
 								},
-								id: `${obj.id}_${iEnd++}`,
+								id: `${obj.id}_${iStart++}`,
 							},
-							references: lookedupEnds.references,
+							references: lookedupStarts.references,
 						})
 					}
-				} else if (enable.duration !== undefined) {
-					const durationExpr: Expression = this.expression.interpretExpression(enable.duration)
-					const lookupDuration = this.reference.lookupExpression(obj, durationExpr, 'duration')
-					pushToArray<Reference>(directReferences, lookupDuration.allReferences)
 
-					let lookedupDuration = lookupDuration.result
-					if (Array.isArray(lookedupDuration) && lookedupDuration.length === 1) {
-						lookedupDuration = literal<ValueWithReference>({
-							value: lookedupDuration[0].start,
-							references: lookedupDuration[0].references,
-						})
-					}
-					if (Array.isArray(lookedupDuration) && !lookedupDuration.length) lookedupDuration = null
+					if (enable.end !== undefined) {
+						const endExpr: Expression = this.expression.interpretExpression(enable.end)
 
-					if (Array.isArray(lookedupDuration)) {
-						// Lookup rendeded multiple durations.
-						// This is unsupported at the moment, but could possibly be added in the future.
-						throw new Error(`lookupExpression should never return an array for .duration lookup`)
-					} else if (lookedupDuration !== null) {
-						if (lookedupRepeating !== null && lookedupDuration.value > lookedupRepeating.value) {
-							// Cap duration to repeating duration
-							lookedupDuration.value = lookedupRepeating.value
-						}
+						const lookupEnd = endExpr ? this.reference.lookupExpression(obj, endExpr, 'end') : null
+						if (lookupEnd) pushToArray<Reference>(directReferences, lookupEnd.allReferences)
 
-						const tmpLookedupDuration: ValueWithReference = lookedupDuration // cast type
+						// If expression is a constant, it is assumed to be a time relative to it's parent
+						const endRefersToParent = hasParent && isConstantExpr(endExpr)
 
-						for (let i = 0; i < events.length; i++) {
-							const e = events[i]
+						/** Contains an inverted list of instances. Therefore .start means an end */
+						const lookedupEnds = !lookupEnd
+							? null
+							: endRefersToParent
+							? this.reference.applyParentInstances(parentInstances, lookupEnd.result)
+							: lookupEnd.result
 
-							if (e.value) {
-								const time = e.time + tmpLookedupDuration.value
-								const references = joinReferences(e.references, tmpLookedupDuration.references)
+						if (Array.isArray(lookedupEnds)) {
+							for (let i = 0; i < lookedupEnds.length; i++) {
+								const instance = lookedupEnds[i]
 								events.push({
-									time: time,
+									time: instance.start,
 									value: false,
-									data: {
-										id: e.data.id,
-										instance: {
-											id: e.data.instance.id,
-											start: time,
-											end: null,
-											references: references,
-										},
+									data: { instance: instance, id: `${obj.id}_${iEnd++}` },
+									references: instance.references,
+								})
+							}
+						} else if (lookedupEnds !== null) {
+							events.push({
+								time: lookedupEnds.value,
+								value: false,
+								data: {
+									instance: {
+										id: this.getInstanceId(),
+										start: lookedupEnds.value,
+										end: null,
+										references: lookedupEnds.references,
 									},
-									references: references,
-								})
+									id: `${obj.id}_${iEnd++}`,
+								},
+								references: lookedupEnds.references,
+							})
+						}
+					} else if (enable.duration !== undefined) {
+						const durationExpr: Expression = this.expression.interpretExpression(enable.duration)
+						const lookupDuration = this.reference.lookupExpression(obj, durationExpr, 'duration')
+						pushToArray<Reference>(directReferences, lookupDuration.allReferences)
+
+						let lookedupDuration = lookupDuration.result
+						if (Array.isArray(lookedupDuration) && lookedupDuration.length === 1) {
+							lookedupDuration = literal<ValueWithReference>({
+								value: lookedupDuration[0].start,
+								references: lookedupDuration[0].references,
+							})
+						}
+						if (Array.isArray(lookedupDuration) && !lookedupDuration.length) lookedupDuration = null
+
+						if (Array.isArray(lookedupDuration)) {
+							// Lookup rendeded multiple durations.
+							// This is unsupported at the moment, but could possibly be added in the future.
+							throw new Error(`lookupExpression should never return an array for .duration lookup`)
+						} else if (lookedupDuration !== null) {
+							if (lookedupRepeating !== null && lookedupDuration.value > lookedupRepeating.value) {
+								// Cap duration to repeating duration
+								lookedupDuration.value = lookedupRepeating.value
+							}
+
+							const tmpLookedupDuration: ValueWithReference = lookedupDuration // cast type
+
+							for (let i = 0; i < events.length; i++) {
+								const e = events[i]
+
+								if (e.value) {
+									const time = e.time + tmpLookedupDuration.value
+									const references = joinReferences(e.references, tmpLookedupDuration.references)
+									events.push({
+										time: time,
+										value: false,
+										data: {
+											id: e.data.id,
+											instance: {
+												id: e.data.instance.id,
+												start: time,
+												end: null,
+												references: references,
+											},
+										},
+										references: references,
+									})
+								}
 							}
 						}
 					}
-				}
 
-				enableInstances = this.instance.convertEventsToInstances(
-					events,
-					false,
-					false,
-					// Omit the referenced originalStart/End when using enable.start:
-					true
-				)
+					enableInstances = this.instance.convertEventsToInstances(
+						events,
+						false,
+						false,
+						// Omit the referenced originalStart/End when using enable.start:
+						true
+					)
 
-				// Cap those instances to the parent instances:
-				if (parentRef && parentInstances !== null) {
-					const parentInstanceMap = new Map<InstanceId, TimelineObjectInstance>()
-					for (const instance of parentInstances) {
-						parentInstanceMap.set(instance.id, instance)
-					}
+					// Cap those instances to the parent instances:
+					if (parentRef && parentInstances !== null) {
+						const parentInstanceMap = new Map<InstanceId, TimelineObjectInstance>()
+						for (const instance of parentInstances) {
+							parentInstanceMap.set(instance.id, instance)
+						}
 
-					const cappedEnableInstances: TimelineObjectInstance[] = []
-					for (const instance of enableInstances) {
-						let matchedParentInstance: TimelineObjectInstance | undefined = undefined
-						// Go through the references in reverse, because sometimes there are multiple matches, and the last one is probably the one we want to use.
-						for (let i = instance.references.length - 1; i >= 0; i--) {
-							const ref = instance.references[i]
-							if (isInstanceReference(ref)) {
-								matchedParentInstance = parentInstanceMap.get(getRefInstanceId(ref))
-								if (matchedParentInstance) break
+						const cappedEnableInstances: TimelineObjectInstance[] = []
+						for (const instance of enableInstances) {
+							let matchedParentInstance: TimelineObjectInstance | undefined = undefined
+							// Go through the references in reverse, because sometimes there are multiple matches, and the last one is probably the one we want to use.
+							for (let i = instance.references.length - 1; i >= 0; i--) {
+								const ref = instance.references[i]
+								if (isInstanceReference(ref)) {
+									matchedParentInstance = parentInstanceMap.get(getRefInstanceId(ref))
+									if (matchedParentInstance) break
+								}
+							}
+							if (matchedParentInstance) {
+								const cappedInstance = this.instance.capInstance(instance, matchedParentInstance)
+								if (!cappedInstance.caps) cappedInstance.caps = []
+								cappedInstance.caps.push(
+									literal<Cap>({
+										id: matchedParentInstance.id,
+										start: matchedParentInstance.start,
+										end: matchedParentInstance.end,
+									})
+								)
+								cappedEnableInstances.push(cappedInstance)
+							} else {
+								cappedEnableInstances.push(instance)
 							}
 						}
-						if (matchedParentInstance) {
-							const cappedInstance = this.instance.capInstance(instance, matchedParentInstance)
-							if (!cappedInstance.caps) cappedInstance.caps = []
-							cappedInstance.caps.push(
-								literal<Cap>({
-									id: matchedParentInstance.id,
-									start: matchedParentInstance.start,
-									end: matchedParentInstance.end,
-								})
-							)
-							cappedEnableInstances.push(cappedInstance)
-						} else {
-							cappedEnableInstances.push(instance)
-						}
+						enableInstances = cappedEnableInstances
 					}
-					enableInstances = cappedEnableInstances
+				} else {
+					enableInstances = []
 				}
-			} else {
-				enableInstances = []
+
+				enableInstances = this.instance.applyRepeatingInstances(enableInstances, lookedupRepeating)
+
+				pushToArray<TimelineObjectInstance>(resultingInstances, enableInstances)
 			}
 
-			enableInstances = this.instance.applyRepeatingInstances(enableInstances, lookedupRepeating)
-
-			pushToArray<TimelineObjectInstance>(resultingInstances, enableInstances)
-		}
-
-		// Cap the instances to the parent instances:
-		if (hasParent) {
-			resultingInstances = this.capInstancesToParentInstances({
-				instances: resultingInstances,
-				parentInstances,
-			})
+			// Cap the instances to the parent instances:
+			if (hasParent) {
+				resultingInstances = this.capInstancesToParentInstances({
+					instances: resultingInstances,
+					parentInstances,
+				})
+			}
 		}
 
 		// Make the instance ids unique:
@@ -519,7 +498,6 @@ export class ResolvedTimelineHandler {
 
 		obj.resolved.firstResolved = true
 		obj.resolved.resolvedReferences = true
-		obj.resolved.resolvedParentCap = true
 		obj.resolved.resolving = false
 		obj.resolved.instances = resultingInstances
 
@@ -842,19 +820,15 @@ export class ResolvedTimelineHandler {
 				resolved: {
 					firstResolved: false,
 					resolvedReferences: false,
-					resolvedParentCap: false,
 					resolvedConflicts: false,
 					resolving: false,
 					instances: [],
 					levelDeep: levelDeep,
 					isSelfReferencing: false,
 					directReferences: [],
-					// conflictReferences: [],
+					parentId: parentId,
 					isKeyframe: isKeyframe,
 				},
-			}
-			if (parentId) {
-				o.resolved.parentId = parentId
 			}
 			this.objectsMap.set(obj.id, o)
 
@@ -1000,7 +974,6 @@ export class ResolvedTimelineHandler {
 				const obj = this.getObject(objId)
 
 				obj.resolved.resolvedReferences = false
-				obj.resolved.resolvedParentCap = false
 				// Note: obj.resolved.resolvedConflicts will be set to false later when resolving references
 
 				this.objectsToReResolve.set(obj.id, obj)

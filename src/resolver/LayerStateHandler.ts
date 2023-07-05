@@ -66,40 +66,24 @@ export class LayerStateHandler {
 		// Step 1: Collect all points-of-interest (which points in time we want to evaluate)
 		// and which instances that are interesting
 		for (const obj of this.objectsOnLayer) {
-			if (!obj.disabled && obj.resolved.resolvedReferences) {
-				// Notes:
-				// Since keyframes can't be placed on a layer, we assume that the object is not a keyframe
-				// We also assume that the object has a layer
+			// Notes:
+			// Since keyframes can't be placed on a layer, we assume that the object is not a keyframe
+			// We also assume that the object has a layer
 
-				const parentTimes = this.getTimesFromParents(obj)
+			for (const instance of obj.resolved.instances) {
+				const timeEvents: Array<TimeEvent> = []
 
-				for (const instance of obj.resolved.instances) {
-					const timeEvents: Array<TimeEvent> = []
+				timeEvents.push({ time: instance.start, enable: true })
+				if (instance.end) timeEvents.push({ time: instance.end, enable: false })
 
-					timeEvents.push({ time: instance.start, enable: true })
-					if (instance.end) timeEvents.push({ time: instance.end, enable: false })
+				// Save a reference to this instance on all points in time that could affect it:
+				for (let i = 0; i < timeEvents.length; i++) {
+					const timeEvent = timeEvents[i]
 
-					// Also include times from parents, as they could affect the state of this instance:
-					for (let i = 0; i < parentTimes.length; i++) {
-						const parentTime = parentTimes[i]
-
-						if (
-							parentTime &&
-							parentTime.time > (instance.start || 0) &&
-							parentTime.time < (instance.end ?? Infinity)
-						) {
-							timeEvents.push(parentTime)
-						}
-					}
-					// Save a reference to this instance on all points in time that could affect it:
-					for (let i = 0; i < timeEvents.length; i++) {
-						const timeEvent = timeEvents[i]
-
-						if (timeEvent.enable) {
-							this.addPointInTime(timeEvent.time, 'start', obj, instance)
-						} else {
-							this.addPointInTime(timeEvent.time, 'end', obj, instance)
-						}
+					if (timeEvent.enable) {
+						this.addPointInTime(timeEvent.time, 'start', obj, instance)
+					} else {
+						this.addPointInTime(timeEvent.time, 'end', obj, instance)
 					}
 				}
 			}
@@ -249,7 +233,7 @@ export class LayerStateHandler {
 				.filter((obj) => !!obj.resolved.parentId)
 				// Sort, so that the outermost are handled first:
 				.sort((a, b) => {
-					return (a.resolved.levelDeep ?? 0) - (b.resolved.levelDeep ?? 0)
+					return a.resolved.levelDeep - b.resolved.levelDeep
 				})
 
 			for (const obj of allChildren) {
@@ -283,19 +267,6 @@ export class LayerStateHandler {
 		if (!this.pointsInTime[time + '']) this.pointsInTime[time + ''] = []
 		this.pointsInTime[time + ''].push({ obj, instance, instanceEvent })
 	}
-
-	private getTimesFromParents(obj: ResolvedTimelineObject): TimeEvent[] {
-		let times: TimeEvent[] = []
-		const parentObj = obj.resolved.parentId ? this.resolvedTimeline.getObject(obj.resolved.parentId) : null
-		if (parentObj?.resolved.resolvedReferences) {
-			for (const instance of parentObj.resolved.instances) {
-				times.push({ time: instance.start, enable: true })
-				if (instance.end) times.push({ time: instance.end, enable: false })
-			}
-			times = times.concat(this.getTimesFromParents(parentObj))
-		}
-		return times
-	}
 }
 export interface TimeEvent {
 	time: number
@@ -317,8 +288,8 @@ interface AspiringInstance {
 
 const sortObjectsOnLayer = (a: ResolvedTimelineObject, b: ResolvedTimelineObject) => {
 	// Sort to make sure parent groups are evaluated before their children:
-	if ((a.resolved.levelDeep || 0) > (b.resolved.levelDeep || 0)) return 1
-	if ((a.resolved.levelDeep || 0) < (b.resolved.levelDeep || 0)) return -1
+	if (a.resolved.levelDeep > b.resolved.levelDeep) return 1
+	if (a.resolved.levelDeep < b.resolved.levelDeep) return -1
 
 	if (a.id > b.id) return 1
 	if (a.id < b.id) return -1
@@ -326,11 +297,7 @@ const sortObjectsOnLayer = (a: ResolvedTimelineObject, b: ResolvedTimelineObject
 	return 0
 }
 const sortInstancesToCheck = (a: InstanceAtPointInTime, b: InstanceAtPointInTime) => {
-	if (a.obj.resolved && b.obj.resolved) {
-		// Keyframes comes first:
-		if (a.obj.resolved.isKeyframe && !b.obj.resolved.isKeyframe) return -1
-		if (!a.obj.resolved.isKeyframe && b.obj.resolved.isKeyframe) return 1
-	}
+	// Note: we assume that there are no keyframes here. (if there where, they would be sorted first)
 
 	if (a.instance.id === b.instance.id && a.instance.start === b.instance.start && a.instance.end === b.instance.end) {
 		// A & B are the same instance, it is a zero-length instance!
@@ -351,13 +318,15 @@ const sortInstancesToCheck = (a: InstanceAtPointInTime, b: InstanceAtPointInTime
 
 	if (a.obj.resolved && b.obj.resolved) {
 		// Deeper objects (children in groups) comes later, we want to check the parent groups first:
-		if ((a.obj.resolved.levelDeep || 0) > (b.obj.resolved.levelDeep || 0)) return 1
-		if ((a.obj.resolved.levelDeep || 0) < (b.obj.resolved.levelDeep || 0)) return -1
+		if (a.obj.resolved.levelDeep > b.obj.resolved.levelDeep) return 1
+		if (a.obj.resolved.levelDeep < b.obj.resolved.levelDeep) return -1
 	}
 
 	// Last resort, sort by id to make it deterministic:
 	if (a.obj.id > b.obj.id) return 1
 	if (a.obj.id < b.obj.id) return -1
+	if (a.instance.id > b.instance.id) return 1
+	if (a.instance.id < b.instance.id) return -1
 
 	return 0
 }
@@ -381,9 +350,11 @@ const sortAspiringInstances = (a: AspiringInstance, b: AspiringInstance) => {
 	if ((a.instance.start || 0) < (b.instance.start || 0)) return 1
 	if ((a.instance.start || 0) > (b.instance.start || 0)) return -1
 
-	// Last resort: sort using id:
+	// Last resort, sort by id to make it deterministic:
 	if (a.obj.id > b.obj.id) return 1
 	if (a.obj.id < b.obj.id) return -1
+	if (a.instance.id > b.instance.id) return 1
+	if (a.instance.id < b.instance.id) return -1
 
 	return 0
 }

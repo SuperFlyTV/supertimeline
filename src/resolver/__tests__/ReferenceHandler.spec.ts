@@ -49,6 +49,8 @@ test('operateOnArrays', () => {
 		{ start: 50, end: 100, references: ['#a', '#b', '#x', '#y', '@@a', '@@b', '@@x', '@@y'] },
 		{ start: 101, end: 115, references: ['#c', '#z', '@@c', '@@z'] },
 	])
+
+	expect(reference.operateOnArrays([{ id: '@a', start: 10, end: 30, references: ['#a'] }], null, plus)).toEqual(null)
 })
 
 describe('Resolver, expressions, empty timeline', () => {
@@ -60,11 +62,14 @@ describe('Resolver, expressions, empty timeline', () => {
 		resolved: {
 			firstResolved: false,
 			resolvedReferences: false,
-			resolvedParentCap: false,
 			resolvedConflicts: false,
 			resolving: false,
 			instances: [],
 			directReferences: [],
+			isKeyframe: false,
+			isSelfReferencing: false,
+			levelDeep: 0,
+			parentId: undefined,
 		},
 	}
 	const resolvedTimeline = new ResolvedTimelineHandler({ time: 0 })
@@ -248,11 +253,14 @@ describe('Resolver, expressions, filledtimeline', () => {
 		resolved: {
 			firstResolved: false,
 			resolvedReferences: false,
-			resolvedParentCap: false,
 			resolvedConflicts: false,
 			resolving: false,
 			instances: [],
 			directReferences: [],
+			isKeyframe: false,
+			isSelfReferencing: false,
+			levelDeep: 0,
+			parentId: undefined,
 		},
 	}
 	const resolvedTimeline = new ResolvedTimelineHandler({ time: 0 })

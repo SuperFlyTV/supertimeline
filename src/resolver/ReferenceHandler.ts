@@ -430,41 +430,16 @@ export class ReferenceHandler {
 						return { result: result, allReferences: allReferences }
 					}
 				}
+			} else {
+				return { result: null, allReferences: [] }
 			}
 		}
-		return { result: null, allReferences: [] }
 	}
 	public applyParentInstances(
 		parentInstances: TimelineObjectInstance[] | null,
-		value: TimelineObjectInstance[] | null | ValueWithReference,
-		useOriginalStartEnd: boolean,
-		debug?: boolean
+		value: TimelineObjectInstance[] | null | ValueWithReference
 	): TimelineObjectInstance[] | null | ValueWithReference {
-		let modifiedParentInstances: TimelineObjectInstance[] | null = parentInstances
-
-		if (parentInstances && useOriginalStartEnd) {
-			// Use the originalStart/End values of the parent, because the childs' value should be relative to that.
-			// For example, if a parent is [{start: 100, end: 1000}]
-			// but is interrupted, so [{start: 100, end: 200, originalStart: 100}, {start: 300, end: 1000, originalStart: 100}]
-			// The child's value should be relative to the originalStart (100), not the start (100, 300)
-
-			modifiedParentInstances = []
-			for (const i of parentInstances) {
-				if (i.originalStart === undefined || i.originalEnd === undefined) {
-					// No need to modify
-					modifiedParentInstances.push(i)
-				} else {
-					modifiedParentInstances.push({
-						...i,
-						start: i.originalStart ?? i.start,
-						end: i.originalEnd ?? i.end,
-					})
-				}
-			}
-		}
-		if (debug) console.log('modifiedParentInstances', modifiedParentInstances)
-
-		return this.operateOnArrays(modifiedParentInstances, value, this.operateApplyParentInstance)
+		return this.operateOnArrays(parentInstances, value, this.operateApplyParentInstance)
 	}
 	private operateApplyParentInstance = (
 		a: ValueWithReference | null,

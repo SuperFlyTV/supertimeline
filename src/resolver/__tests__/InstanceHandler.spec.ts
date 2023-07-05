@@ -527,4 +527,8 @@ test('capInstances', () => {
 	).toMatchObject([
 		{ id: '@a', start: 10, end: 100, references: [] }, // capped
 	])
+
+	expect(instance.capInstances([{ id: '@a', start: 10, end: null, references: [] }], null)).toMatchObject([
+		{ id: '@a', start: 10, end: null, references: [] },
+	])
 })

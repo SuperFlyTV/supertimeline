@@ -56,9 +56,8 @@ export class CacheHandler {
 				const oldObj = this.cache.objects[obj.id]
 
 				if (!oldObj) {
-					console.log('oldHash', oldHash)
-
-					console.log('ids', Object.keys(this.cache.objects))
+					console.error('oldHash', oldHash)
+					console.error('ids', Object.keys(this.cache.objects))
 					throw new Error(`Internal Error: obj "${obj.id}" not found in cache`)
 				}
 

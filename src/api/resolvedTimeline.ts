@@ -43,11 +43,11 @@ export interface ResolvedTimelineObject extends TimelineObject {
 		/** Instances of the object on the timeline */
 		instances: Array<TimelineObjectInstance>
 		/** A number that increases the more levels inside of a group the objects is. 0 = no parent */
-		levelDeep?: number
+		levelDeep: number
 		/** Id of the parent object (for children in groups or keyframes) */
-		parentId?: string
+		parentId: string | undefined
 		/** True if object is a keyframe */
-		isKeyframe?: boolean
+		isKeyframe: boolean
 
 		/** Is set to true while object is resolved (to prevent circular references) */
 		resolving: boolean
@@ -57,13 +57,11 @@ export interface ResolvedTimelineObject extends TimelineObject {
 
 		/** Is set to true when object's references has been resolved */
 		resolvedReferences: boolean
-		/** Is set to true when object has been capped in its parent */
-		resolvedParentCap: boolean
 		/** Is set to true when object's conflicts has been resolved */
 		resolvedConflicts: boolean
 
 		/** True if object is referencing itself (only directly, not indirectly via another object) */
-		isSelfReferencing?: boolean
+		isSelfReferencing: boolean
 		/** Ids of all other objects that directly affects this object (ie through direct reference, classes, etc) */
 		directReferences: Reference[]
 	}

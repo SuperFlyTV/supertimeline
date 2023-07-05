@@ -55,7 +55,6 @@ describe('index', () => {
 		expect(resolvedTimeline.objects['video']).toBeTruthy()
 		expect(resolvedTimeline.objects['video'].resolved).toMatchObject({
 			resolvedReferences: true,
-			resolvedParentCap: true,
 			resolvedConflicts: true,
 			resolving: false,
 		})

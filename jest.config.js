@@ -1,7 +1,7 @@
 module.exports = {
 	moduleFileExtensions: ['ts', 'js'],
 	transform: {
-		'^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: 'tsconfig.json', diagnostics: false }],
+		'^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: 'tsconfig.json', diagnostics: true }],
 	},
 	testMatch: ['**/src/**/__tests__/**/*.spec.(ts|js)'],
 	testEnvironment: 'node',
@@ -15,4 +15,5 @@ module.exports = {
 	},
 	coverageDirectory: './coverage/',
 	collectCoverage: false,
+	collectCoverageFrom: ['src/**/*.ts', '!**/__tests__/**'],
 }

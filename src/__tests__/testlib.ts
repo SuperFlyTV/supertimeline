@@ -26,7 +26,7 @@ function makeTest(setupTest: (test: jest.It, name: string, fn?: ProvidesCallback
 	testFunction.skip = ((name, fn, timeout) => setupTest(test.skip, name, fn, timeout)) as jest.It
 	testFunction.todo = ((name, fn, timeout) => setupTest(test.todo, name, fn, timeout)) as jest.It
 	testFunction.concurrent = ((name, fn, timeout) => setupTest(test.concurrent, name, fn, timeout)) as jest.It
-	// testFunction.failing = ((name, fn, timeout) => setupTest(test.failing, name, fn, timeout)) as jest.It
+	testFunction.failing = ((name, fn, timeout) => setupTest(test.failing, name, fn, timeout)) as jest.It
 	testFunction.each = test.each
 
 	return testFunction

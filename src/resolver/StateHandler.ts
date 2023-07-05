@@ -1,4 +1,11 @@
-import { Content, ResolvedTimeline, ResolvedTimelineObjectInstance, Time, TimelineState } from '../api'
+import {
+	Content,
+	ResolvedTimeline,
+	ResolvedTimelineObject,
+	ResolvedTimelineObjectInstance,
+	Time,
+	TimelineState,
+} from '../api'
 import { instanceIsActive } from './lib/instance'
 import { clone, isObject } from './lib/lib'
 import { tic } from './lib/performance'
@@ -17,7 +24,7 @@ export class StateHandler {
 
 		for (const obj of Object.values(resolvedTimeline.objects)) {
 			if (!objHasLayer(obj)) continue
-			if (obj.resolved.isKeyframe) continue
+			// Note: We can assume that it is not a keyframe here, because keyframes don't have layers
 
 			for (const instance of obj.resolved.instances) {
 				if (instanceIsActive(instance, time)) {
@@ -36,8 +43,9 @@ export class StateHandler {
 					state.layers[`${obj.layer}`] = objInstance
 
 					// Now, apply keyframes:
-
-					const keyframes = obj.keyframes ? obj.keyframes.map((kf) => resolvedTimeline.objects[kf.id]) : []
+					const keyframes: ResolvedTimelineObject[] = obj.keyframes
+						? obj.keyframes.map((kf) => resolvedTimeline.objects[kf.id])
+						: []
 
 					const keyframeInstances: ResolvedTimelineObjectInstance[] = []
 					for (const keyframe of keyframes) {
@@ -70,16 +78,7 @@ export class StateHandler {
 							contentIsOriginal = false
 						}
 						this.applyKeyframeContent(objInstance.content, keyframe.content)
-						// Apply the keyframe:
-						// const content: Content = {
-						// 	...keyframe.content,
-						// }
-						// if (isObject(content)) {
-						// 	content.id = keyframe.id
-						// }
-						// state.layers[obj.layer].content = content
 					}
-					// const keyframes
 				}
 			}
 		}
