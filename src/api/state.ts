@@ -3,9 +3,8 @@ import { Content } from './timeline'
 import { Time } from './types'
 
 /**
- * A TimelineState is a moment in time,
- * containing a cross-section of the timeline,
- * ie all objects that are active at that point in time.
+ * TimelineState is a cross-section of the timeline at a given point in time,
+ * i.e. all objects that are active at that moment.
  */
 export interface TimelineState<TContent extends Content = Content> {
 	/** The timestamp for this state */

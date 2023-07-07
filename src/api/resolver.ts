@@ -15,13 +15,13 @@ export interface ResolveOptions {
 	limitCount?: number
 	/**
 	 * Limits the repeating objects and nextEvents to a time in the future.
-	 * It is recommended set this to a time in the future at which point you plan to re-resolve the timeline again.
+	 * It is recommended to set this to a time in the future at which you plan to re-resolve the timeline again.
 	 */
 	limitTime?: Time
 	/**
 	 * An object that is used to persist cache-data between resolves.
 	 * If you provide this, ensure that you provide the same object between resolves.
-	 * When set, will increase performance, especially when there are only small changes to the timeline.
+	 * Setting it will increase performance, especially when there are only small changes to the timeline.
 	 */
 	cache?: Partial<ResolverCache>
 

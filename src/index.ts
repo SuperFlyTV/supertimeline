@@ -84,7 +84,7 @@ export function validateIdString(str: string, strict?: boolean): void {
 }
 
 /**
- * Apply keyframe content onto it's parent content.
+ * Apply keyframe content onto its parent content.
  * The keyframe content is deeply-applied onto the parent content.
  * Note: This function mutates the parentContent.
  */

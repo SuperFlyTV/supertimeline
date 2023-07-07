@@ -6,7 +6,7 @@ import { InstanceId, Reference, Time } from './types'
  * All references and all conflicts have been resolved.
  * The absolute times of all objects can be found in objects[id].resolved.instances.
  *
- * To retrieve a state at a certain time, use getResolvedState(resolvedTimeline).
+ * To retrieve a state at a certain time, use getResolvedState(resolvedTimeline, time).
  *
  * Note: If `limitTime` was specified in the ResolveOptions,
  * the ResolvedTimeline is only valid up until that time and
@@ -58,7 +58,7 @@ export interface ResolvedTimelineObject<TContent extends Content = Content> exte
 		/** True if object is a keyframe */
 		isKeyframe: boolean
 
-		/** Is set to true while object is resolved (to prevent circular references) */
+		/** Is set to true while object is being resolved (to prevent circular references) */
 		resolving: boolean
 
 		/** Is set to true when object is resolved first time, and isn't reset thereafter */

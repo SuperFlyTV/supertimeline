@@ -163,7 +163,7 @@ The logic is set by setting properties in the `.enable` property.
 | `.duration`  | The duration of an object                                                                                                                |
 | `.repeating` | Makes the object repeat with given interval                                                                                              |
 
-Note: If neither of `.end`, `.duration` or `.while` are set, the object will continue indefinitely.
+Note: If neither `.end`, `.duration`, or `.while` is set, the object will continue indefinitely.
 
 **Examples**
 
@@ -193,7 +193,7 @@ Note: If neither of `.end`, `.duration` or `.while` are set, the object will con
 All objects will be on a **layer** in the resolved **state**. There are a few rules:
 
 - Only **one** object can exist on a layer at the same time.
-- If two (or more) objects conflicts, ie fight for the place on a layer:
+- If two (or more) objects conflict, ie fight for the place on a layer:
   - The one with highest `.priority` will win.
   - If tied, the one with _latest start time_ will win.
 
