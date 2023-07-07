@@ -10,7 +10,11 @@ export function isInstanceId(str: string): str is InstanceId {
 export function instanceIsActive(instance: InstanceBase, time: Time): boolean {
 	return instance.start <= time && (instance.end ?? Infinity) > time
 }
-export function getInstanceUnion(a: InstanceBase, b: InstanceBase): null | InstanceBase {
+/**
+ * Returns the intersection of two instances.
+ * Example: for (10-20) and (15-30), the intersection is (15-20).
+ */
+export function getInstanceIntersection(a: InstanceBase, b: InstanceBase): null | InstanceBase {
 	if (a.start < (b.end ?? Infinity) && (a.end ?? Infinity) > b.start) {
 		const start = Math.max(a.start, b.start)
 		const end = Math.min(a.end ?? Infinity, b.end ?? Infinity)
@@ -32,13 +36,13 @@ export function getInstanceUnion(a: InstanceBase, b: InstanceBase): null | Insta
  *   or undefined to remove the instance.
  *   (To leave the instance unchanged, return the original instance)
  */
-export function spliceInstances(
-	instances: TimelineObjectInstance[],
-	fcn: (instance: TimelineObjectInstance) => TimelineObjectInstance[] | TimelineObjectInstance | undefined
+export function spliceInstances<I extends InstanceBase>(
+	instances: I[],
+	fcn: (instance: I) => I[] | I | undefined
 ): void {
 	for (let i = 0; i < instances.length; i++) {
 		const fcnResult = fcn(instances[i])
-		const insertInstances: TimelineObjectInstance[] = fcnResult === undefined ? [] : ensureArray(fcnResult)
+		const insertInstances: I[] = fcnResult === undefined ? [] : ensureArray(fcnResult)
 
 		if (insertInstances.length === 0) {
 			instances.splice(i, 1)
