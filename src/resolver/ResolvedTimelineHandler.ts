@@ -2,7 +2,7 @@ import { ExpressionHandler } from './ExpressionHandler'
 import { ReferenceHandler, ValueWithReference } from './ReferenceHandler'
 import { Expression } from '../api/expression'
 import { ResolvedTimeline, ResolvedTimelineObject, TimelineObjectInstance } from '../api/resolvedTimeline'
-import { TimelineEnable, TimelineKeyframe, TimelineObject } from '../api/timeline'
+import { Content, TimelineEnable, TimelineKeyframe, TimelineObject } from '../api/timeline'
 import { assertNever, ensureArray, literal, pushToArray } from './lib/lib'
 import { InstanceHandler } from './InstanceHandler'
 import {
@@ -32,9 +32,9 @@ import { CacheHandler } from './CacheHandler'
  * 2. timelineObjects.forEach(obj => resolver.addTimelineObject(obj))
  * 3. resolver.resolveAllTimelineObjs()
  */
-export class ResolvedTimelineHandler {
+export class ResolvedTimelineHandler<TContent extends Content = Content> {
 	/** Maps object id to object */
-	public objectsMap = new Map<string, ResolvedTimelineObject>()
+	public objectsMap = new Map<string, ResolvedTimelineObject<TContent>>()
 	/** Maps className to a list of object ids  */
 	public classesMap = new Map<string, string[]>()
 	/** Maps layer to a list of object ids  */
@@ -83,7 +83,7 @@ export class ResolvedTimelineHandler {
 		this.debug = this.options.debug ?? false
 	}
 	/** Populate ResolvedTimelineHandler with a timeline-object. */
-	public addTimelineObject(obj: TimelineObject): void {
+	public addTimelineObject(obj: TimelineObject<TContent>): void {
 		this._addTimelineObject(obj, 0, undefined, false)
 	}
 
@@ -813,7 +813,7 @@ export class ResolvedTimelineHandler {
 	}
 
 	private _addTimelineObject(
-		obj: TimelineObject,
+		obj: TimelineObject<TContent>,
 		/** A number that increases the more levels inside of a group the objects is. 0 = no parent */
 		levelDeep: number,
 		/** ID of the parent object */
@@ -832,7 +832,7 @@ export class ResolvedTimelineHandler {
 
 		// Add the object:
 		{
-			const o: ResolvedTimelineObject = {
+			const o: ResolvedTimelineObject<TContent> = {
 				...obj,
 				resolved: {
 					firstResolved: false,
@@ -880,7 +880,7 @@ export class ResolvedTimelineHandler {
 			// Add children:
 			if (obj.isGroup && obj.children) {
 				for (let i = 0; i < obj.children.length; i++) {
-					const child = obj.children[i]
+					const child = obj.children[i] as TimelineObject<TContent>
 					this._addTimelineObject(child, levelDeep + 1, obj.id, false)
 				}
 			}
@@ -888,7 +888,7 @@ export class ResolvedTimelineHandler {
 			if (obj.keyframes) {
 				for (let i = 0; i < obj.keyframes.length; i++) {
 					const keyframe = obj.keyframes[i]
-					const kf2: TimelineObjectKeyframe = {
+					const kf2: TimelineObjectKeyframe<any> = {
 						...keyframe,
 						layer: '',
 					}
@@ -1003,4 +1003,6 @@ export class ResolvedTimelineHandler {
 		if (this.debug) console.log(...args)
 	}
 }
-export interface TimelineObjectKeyframe extends TimelineObject, TimelineKeyframe {}
+export interface TimelineObjectKeyframe<TContent extends Content = Content>
+	extends TimelineObject<TContent>,
+		TimelineKeyframe<TContent> {}

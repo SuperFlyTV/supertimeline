@@ -21,8 +21,11 @@ import { TimelineValidator } from './resolver/TimelineValidator'
  * Resolves a timeline, i.e. resolves the references between objects
  * and calculates the absolute times for all objects in the timeline.
  */
-export function resolveTimeline(timeline: TimelineObject[], options: ResolveOptions): ResolvedTimeline {
-	const resolverInstance = new ResolverHandler(options)
+export function resolveTimeline<TContent extends Content = Content>(
+	timeline: TimelineObject<TContent>[],
+	options: ResolveOptions
+): ResolvedTimeline<TContent> {
+	const resolverInstance = new ResolverHandler<TContent>(options)
 	return resolverInstance.resolveTimeline(timeline)
 }
 
@@ -33,7 +36,11 @@ export function resolveTimeline(timeline: TimelineObject[], options: ResolveOpti
  * @param time
  * @param eventLimit
  */
-export function getResolvedState(resolvedTimeline: ResolvedTimeline, time: Time, eventLimit = 0): TimelineState {
+export function getResolvedState<TContent extends Content = Content>(
+	resolvedTimeline: ResolvedTimeline<TContent>,
+	time: Time,
+	eventLimit = 0
+): TimelineState<TContent> {
 	const stateHandler = new StateHandler()
 	return stateHandler.getState(resolvedTimeline, time, eventLimit)
 }

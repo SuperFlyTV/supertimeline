@@ -12,9 +12,13 @@ import { tic } from './lib/performance'
 import { objHasLayer } from './lib/timeline'
 
 export class StateHandler {
-	public getState(resolvedTimeline: ResolvedTimeline, time: Time, eventLimit = 0): TimelineState {
+	public getState<TContent extends Content = Content>(
+		resolvedTimeline: ResolvedTimeline<TContent>,
+		time: Time,
+		eventLimit = 0
+	): TimelineState<TContent> {
 		const toc = tic('getState')
-		const state: TimelineState = {
+		const state: TimelineState<TContent> = {
 			time: time,
 			layers: {},
 			nextEvents: resolvedTimeline.nextEvents.filter((e) => e.time > time),
@@ -22,14 +26,14 @@ export class StateHandler {
 
 		if (eventLimit) state.nextEvents = state.nextEvents.slice(0, eventLimit)
 
-		for (const obj of Object.values<ResolvedTimelineObject>(resolvedTimeline.objects)) {
+		for (const obj of Object.values<ResolvedTimelineObject<TContent>>(resolvedTimeline.objects)) {
 			if (!objHasLayer(obj)) continue
 			// Note: We can assume that it is not a keyframe here, because keyframes don't have layers
 
 			for (const instance of obj.resolved.instances) {
 				if (instanceIsActive(instance, time)) {
 					let contentIsOriginal = true
-					const objInstance: ResolvedTimelineObjectInstance = {
+					const objInstance: ResolvedTimelineObjectInstance<TContent> = {
 						...obj,
 						instance,
 					}

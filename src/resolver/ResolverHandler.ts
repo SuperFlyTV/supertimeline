@@ -1,7 +1,7 @@
 import { ResolvedTimelineHandler } from './ResolvedTimelineHandler'
 import { EventType, NextEvent, ResolvedTimeline } from '../api/resolvedTimeline'
 import { ResolveOptions } from '../api/resolver'
-import { TimelineObject } from '../api/timeline'
+import { Content, TimelineObject } from '../api/timeline'
 import { last, literal, mapToObject } from './lib/lib'
 import { tic } from './lib/performance'
 import { CacheHandler } from './CacheHandler'
@@ -14,18 +14,18 @@ import { TimelineValidator } from './TimelineValidator'
  * 1. const resolver = new Resolver(options)
  * 2. resolver.run(timeline)
  */
-export class ResolverHandler {
+export class ResolverHandler<TContent extends Content = Content> {
 	private hasRun = false
 
 	private nextEvents: NextEvent[] = []
 
-	private resolvedTimeline: ResolvedTimelineHandler
+	private resolvedTimeline: ResolvedTimelineHandler<TContent>
 
 	private validator: TimelineValidator
 
 	constructor(private options: ResolveOptions) {
 		const toc = tic('new Resolver')
-		this.resolvedTimeline = new ResolvedTimelineHandler(this.options)
+		this.resolvedTimeline = new ResolvedTimelineHandler<TContent>(this.options)
 		this.validator = new TimelineValidator()
 		toc()
 	}
@@ -33,7 +33,7 @@ export class ResolverHandler {
 	 * Resolves a timeline, i.e. resolves the references between objects
 	 * This method can only be run once per Resolver instance.
 	 */
-	public resolveTimeline(timeline: TimelineObject[]): ResolvedTimeline {
+	public resolveTimeline(timeline: TimelineObject<TContent>[]): ResolvedTimeline<TContent> {
 		const toc = tic('resolveTimeline')
 		/* istanbul ignore if */
 		if (this.hasRun)
@@ -74,7 +74,7 @@ resolver.run(timeline);`
 			cacheHandler.persistData()
 		}
 
-		const resolvedTimeline = literal<ResolvedTimeline>({
+		const resolvedTimeline = literal<ResolvedTimeline<TContent>>({
 			objects: mapToObject(this.resolvedTimeline.objectsMap),
 			classes: mapToObject(this.resolvedTimeline.classesMap),
 			layers: mapToObject(this.resolvedTimeline.layersMap),
