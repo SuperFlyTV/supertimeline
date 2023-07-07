@@ -1,7 +1,7 @@
 import { Expression } from './expression'
 import { ObjectId } from './types'
 
-export interface TimelineObject {
+export interface TimelineObject<TContent extends Content = Content> {
 	/** ID of the object. Must be unique! */
 	id: ObjectId
 
@@ -19,14 +19,14 @@ export interface TimelineObject {
 	 * Children object of the group.
 	 * If provided, also set .isGroup property to true.
 	 */
-	children?: TimelineObject[]
+	children?: TimelineObject<Content>[]
 	isGroup?: boolean
 
 	/**
 	 * Keyframes can be used to modify the content of an object.
 	 * When a keyframe is active, the content of the keyframe will be merged into the parent object.
 	 */
-	keyframes?: Array<TimelineKeyframe>
+	keyframes?: TimelineKeyframe<Partial<TContent>>[]
 
 	/**
 	 * A list of classes on this Timeline-object. classes can be referenced by other objects using the syntax: ".className"
@@ -51,7 +51,7 @@ export interface TimelineObject {
 	seamless?: boolean
 
 	/** The payload of the timeline-object. Can be anything you want. */
-	content: Content
+	content: TContent
 }
 export type Content = {
 	[key: string]: any
@@ -79,7 +79,7 @@ export interface TimelineEnable {
 	/** (Optional) Makes the object repeat with given interval */
 	repeating?: Expression
 }
-export interface TimelineKeyframe {
+export interface TimelineKeyframe<TContent extends Content = Content> {
 	/**
 	 * ID of the Timeline-object.
 	 * Must be unique (timeline-objects are also considered)!
@@ -104,5 +104,5 @@ export interface TimelineKeyframe {
 	 * The payload of the timeline-object.
 	 * This is deeply extended onto the parent object when the keyframe is active.
 	 */
-	content: Content
+	content: TContent
 }

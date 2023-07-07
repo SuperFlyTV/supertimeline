@@ -12,11 +12,11 @@ import { InstanceId, Reference, Time } from './types'
  * the ResolvedTimeline is only valid up until that time and
  * needs to be re-resolved afterwards.
  */
-export interface ResolvedTimeline {
+export interface ResolvedTimeline<TContent extends Content = Content> {
 	/** The options used to resolve the timeline */
 	// options: ResolveOptions
 	/** Map of all objects on timeline */
-	objects: ResolvedTimelineObjects
+	objects: ResolvedTimelineObjects<TContent>
 	/** Map of all classes on timeline, maps className to object ids */
 	classes: { [className: string]: Array<string> }
 	/** Map of the object ids, per layer */
@@ -44,10 +44,10 @@ export interface ResolvedTimeline {
 		resolvingCount: number
 	}
 }
-export interface ResolvedTimelineObjects {
-	[id: string]: ResolvedTimelineObject
+export interface ResolvedTimelineObjects<TContent extends Content = Content> {
+	[id: string]: ResolvedTimelineObject<TContent>
 }
-export interface ResolvedTimelineObject extends TimelineObject {
+export interface ResolvedTimelineObject<TContent extends Content = Content> extends TimelineObject<TContent> {
 	resolved: {
 		/** Instances of the object on the timeline */
 		instances: Array<TimelineObjectInstance>
@@ -120,14 +120,16 @@ export enum EventType {
 	KEYFRAME = 2,
 }
 
-export interface AllStates {
+export interface AllStates<TContent extends Content = Content> {
 	[layer: string]: {
-		[time: string]: ResolvedTimelineObjectInstanceKeyframe[] | null
+		[time: string]: ResolvedTimelineObjectInstanceKeyframe<TContent>[] | null
 	}
 }
-export interface ResolvedTimelineObjectInstanceKeyframe extends ResolvedTimelineObjectInstance {
+export interface ResolvedTimelineObjectInstanceKeyframe<TContent extends Content = Content>
+	extends ResolvedTimelineObjectInstance<TContent> {
 	isKeyframe?: boolean
 }
-export interface ResolvedTimelineObjectInstance extends ResolvedTimelineObject {
+export interface ResolvedTimelineObjectInstance<TContent extends Content = Content>
+	extends ResolvedTimelineObject<TContent> {
 	instance: TimelineObjectInstance
 }

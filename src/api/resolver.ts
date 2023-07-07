@@ -1,4 +1,5 @@
 import { ResolvedTimelineObjects } from './resolvedTimeline'
+import { Content } from './timeline'
 import { Time } from './types'
 
 export interface ResolveOptions {
@@ -45,11 +46,9 @@ export interface ResolveOptions {
 	/** Skip generating statistics, this improves performance slightly. */
 	skipStatistics?: boolean
 }
-export interface ResolverCache {
+export interface ResolverCache<TContent extends Content = Content> {
 	objHashes: { [id: string]: string }
 
-	objects: ResolvedTimelineObjects
+	objects: ResolvedTimelineObjects<TContent>
 	hasOldData?: boolean
-
-	// resolvedStates?: ResolvedStates
 }
