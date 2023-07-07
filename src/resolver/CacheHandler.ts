@@ -1,8 +1,8 @@
-import { ResolvedTimelineObject, ResolvedTimelineObjects, ResolverCache } from '../api'
+import { Reference, ResolvedTimelineObject, ResolvedTimelineObjects, ResolverCache } from '../api'
 import { ResolvedTimelineHandler } from './ResolvedTimelineHandler'
 import { mapToObject } from './lib/lib'
 import { tic } from './lib/performance'
-import { Reference, getRefObjectId, isObjectReference, joinReferences } from './lib/reference'
+import { getRefObjectId, isObjectReference, joinReferences } from './lib/reference'
 import { objHasLayer } from './lib/timeline'
 
 export class CacheHandler {

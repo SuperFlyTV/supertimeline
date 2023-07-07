@@ -1,5 +1,4 @@
-import { Time, TimelineObjectInstance } from '../../api'
-import { Reference } from './reference'
+import { Time, TimelineObjectInstance, Reference } from '../../api'
 
 export interface InstanceEvent<T = any> {
 	time: Time

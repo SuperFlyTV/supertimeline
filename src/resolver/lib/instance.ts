@@ -1,7 +1,5 @@
-import { Time, InstanceBase, TimelineObjectInstance } from '../../api'
+import { Time, InstanceBase, TimelineObjectInstance, InstanceId } from '../../api'
 import { ensureArray } from './lib'
-
-export type InstanceId = `@${string}`
 
 export function isInstanceId(str: string): str is InstanceId {
 	return str.startsWith('@')

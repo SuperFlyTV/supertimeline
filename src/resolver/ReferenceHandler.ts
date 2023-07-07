@@ -1,13 +1,13 @@
 import { Expression } from '../api/expression'
 import { ResolvedTimelineObject, TimelineObjectInstance, Cap } from '../api/resolvedTimeline'
-import { Time } from '../api/types'
+import { Reference, Time } from '../api/types'
 import { assertNever, last } from './lib/lib'
 
 import { ResolvedTimelineHandler } from './ResolvedTimelineHandler'
 import { InstanceHandler } from './InstanceHandler'
 import { joinCaps } from './lib/cap'
 import { InstanceEvent, sortEvents } from './lib/event'
-import { joinReferences, isReference, Reference } from './lib/reference'
+import { joinReferences, isReference } from './lib/reference'
 import { isNumericExpr } from './lib/expression'
 
 type ObjectRefType = 'start' | 'end' | 'duration'

@@ -1,7 +1,5 @@
-import { InstanceId } from '../resolver/lib/instance'
-import { Reference } from '../resolver/lib/reference'
-import { TimelineObject } from './timeline'
-import { Time } from './types'
+import { Content, TimelineObject } from './timeline'
+import { InstanceId, Reference, Time } from './types'
 
 /**
  * The ResolvedTimeline contains all objects on the timeline, resolved.

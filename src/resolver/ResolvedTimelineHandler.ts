@@ -6,8 +6,6 @@ import { TimelineEnable, TimelineKeyframe, TimelineObject } from '../api/timelin
 import { assertNever, ensureArray, literal, pushToArray } from './lib/lib'
 import { InstanceHandler } from './InstanceHandler'
 import {
-	ObjectReference,
-	Reference,
 	getRefClass,
 	getRefInstanceId,
 	getRefLayer,
@@ -19,8 +17,8 @@ import {
 	joinReferences,
 } from './lib/reference'
 import { EventForInstance, InstanceEvent, sortEvents } from './lib/event'
-import { Cap, ResolveOptions, ResolverCache } from '../api'
-import { InstanceId, getInstancesHash, spliceInstances } from './lib/instance'
+import { Cap, InstanceId, ObjectReference, Reference, ResolveOptions, ResolverCache } from '../api'
+import { getInstancesHash, spliceInstances } from './lib/instance'
 import { objHasLayer } from './lib/timeline'
 import { LayerStateHandler } from './LayerStateHandler'
 import { isConstantExpr } from './lib/expression'

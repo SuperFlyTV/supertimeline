@@ -1,6 +1,13 @@
-import { TimelineObjectInstance } from '../../api'
+import {
+	ClassReference,
+	InstanceId,
+	InstanceReference,
+	LayerReference,
+	ObjectReference,
+	Reference,
+	TimelineObjectInstance,
+} from '../../api'
 import { ValueWithReference } from '../ReferenceHandler'
-import { InstanceId } from './instance'
 import { tic } from './performance'
 
 /*
@@ -8,7 +15,6 @@ import { tic } from './performance'
  * to indicate what objects, layers or classes they are derived from.
  */
 
-export type ObjectReference = `#${string}`
 export function isObjectReference(ref: Reference): ref is ObjectReference {
 	return ref.startsWith('#')
 }
@@ -16,7 +22,6 @@ export function getRefObjectId(ref: ObjectReference): string {
 	return ref.slice(1)
 }
 
-export type ClassReference = `.${string}`
 export function isClassReference(ref: Reference): ref is ClassReference {
 	return ref.startsWith('.')
 }
@@ -24,7 +29,6 @@ export function getRefClass(ref: ClassReference): string {
 	return ref.slice(1)
 }
 
-export type LayerReference = `$${string}`
 export function isLayerReference(ref: Reference): ref is LayerReference {
 	return ref.startsWith('$')
 }
@@ -32,15 +36,12 @@ export function getRefLayer(ref: LayerReference): string {
 	return ref.slice(1)
 }
 
-export type InstanceReference = `@${InstanceId}`
 export function isInstanceReference(ref: Reference): ref is InstanceReference {
 	return ref.startsWith('@')
 }
 export function getRefInstanceId(ref: InstanceReference): InstanceId {
 	return ref.slice(1) as InstanceId
 }
-
-export type Reference = ObjectReference | ClassReference | LayerReference | InstanceReference
 
 /** Add / join references Arrays. Returns a sorted list of unique references */
 export function joinReferences(references: Reference[], ...addReferences: Array<Reference[] | Reference>): Reference[] {
