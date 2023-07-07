@@ -1,13 +1,21 @@
-import { ResolverHandler } from './resolver/ResolverHandler'
-import { ResolvedTimeline } from './api/resolvedTimeline'
-import { ResolveOptions } from './api/resolver'
-import { TimelineKeyframe, TimelineObject } from './api/timeline'
-import { TimelineValidator } from './resolver/TimelineValidator'
-import { Expression, ExpressionObj, InnerExpression, Time, TimelineState } from './api'
+import {
+	ResolvedTimeline,
+	ResolveOptions,
+	Expression,
+	ExpressionObj,
+	InnerExpression,
+	Time,
+	TimelineState,
+	Content,
+	TimelineKeyframe,
+	TimelineObject,
+} from './api'
+export * from './api'
+
 import { StateHandler } from './resolver/StateHandler'
 import { ExpressionHandler } from './resolver/ExpressionHandler'
-
-export * from './api'
+import { ResolverHandler } from './resolver/ResolverHandler'
+import { TimelineValidator } from './resolver/TimelineValidator'
 
 /**
  * Resolves a timeline, i.e. resolves the references between objects
@@ -66,6 +74,15 @@ export function validateKeyframe(keyframe: TimelineKeyframe, strict?: boolean): 
  */
 export function validateIdString(str: string, strict?: boolean): void {
 	TimelineValidator.validateIdString(str, strict)
+}
+
+/**
+ * Apply keyframe content onto it's parent content.
+ * The keyframe content is deeply-applied onto the parent content.
+ * Note: This function mutates the parentContent.
+ */
+export function applyKeyframeContent(parentContent: Content, keyframeContent: Content): void {
+	StateHandler.applyKeyframeContent(parentContent, keyframeContent)
 }
 
 let expressionHandler: ExpressionHandler | undefined = undefined

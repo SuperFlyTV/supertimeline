@@ -6,6 +6,7 @@ import {
 	validateTimeline,
 	resolveTimeline,
 	getResolvedState,
+	applyKeyframeContent,
 } from '../index'
 import { baseInstances } from '../resolver/lib/instance'
 
@@ -755,5 +756,31 @@ describe('index', () => {
 
 		// restore:
 		console.log = orgConsoleLog
+	})
+
+	test('applyKeyframeContent', () => {
+		const parentContent = {
+			parent: 1,
+			obj: {
+				parent: 1,
+				override: 1,
+			},
+		}
+		applyKeyframeContent(parentContent, {
+			keyframe: 9,
+			obj: {
+				keyframe: 9,
+				override: 9,
+			},
+		})
+		expect(parentContent).toEqual({
+			parent: 1,
+			keyframe: 9,
+			obj: {
+				parent: 1,
+				keyframe: 9,
+				override: 9,
+			},
+		})
 	})
 })

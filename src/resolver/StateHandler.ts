@@ -77,7 +77,7 @@ export class StateHandler {
 							objInstance.content = clone(obj.content)
 							contentIsOriginal = false
 						}
-						this.applyKeyframeContent(objInstance.content, keyframe.content)
+						StateHandler.applyKeyframeContent(objInstance.content, keyframe.content)
 					}
 				}
 			}
@@ -86,7 +86,11 @@ export class StateHandler {
 		return state
 	}
 
-	public applyKeyframeContent(parentContent: Content, keyframeContent: Content): void {
+	/**
+	 * Apply keyframe content onto it's parent content.
+	 * The keyframe content is deeply-applied onto the parent content.
+	 */
+	public static applyKeyframeContent(parentContent: Content, keyframeContent: Content): void {
 		const toc = tic('  applyKeyframeContent')
 		for (const [attr, value] of Object.entries<any>(keyframeContent)) {
 			if (Array.isArray(value)) {

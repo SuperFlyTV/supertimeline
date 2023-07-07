@@ -1,7 +1,6 @@
 import { StateHandler } from '../StateHandler'
 
 describe('state', () => {
-	const state = new StateHandler()
 	test('applyKeyframeContent', () => {
 		const o: any = {}
 		const o2: any = {
@@ -16,22 +15,22 @@ describe('state', () => {
 				},
 			],
 		}
-		state.applyKeyframeContent(o, o2)
+		StateHandler.applyKeyframeContent(o, o2)
 		expect(o).toEqual(o2)
 
-		state.applyKeyframeContent(o, {
+		StateHandler.applyKeyframeContent(o, {
 			b: { c: 4, d: 42 },
 		})
 		o2.b = { c: 4, d: 42 }
 		expect(o).toEqual(o2)
 
-		state.applyKeyframeContent(o, {
+		StateHandler.applyKeyframeContent(o, {
 			c: [5],
 		})
 		o2.c = [5]
 		expect(o).toEqual(o2)
 
-		state.applyKeyframeContent(o, {
+		StateHandler.applyKeyframeContent(o, {
 			c: [
 				{ a: 1, b: 2 },
 				{ a: 3, b: 4 },
@@ -43,7 +42,7 @@ describe('state', () => {
 		]
 		expect(o).toEqual(o2)
 
-		state.applyKeyframeContent(o, {
+		StateHandler.applyKeyframeContent(o, {
 			c: { b: 1 },
 		})
 		o2.c = { b: 1 }
