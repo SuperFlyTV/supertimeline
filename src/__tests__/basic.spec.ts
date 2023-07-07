@@ -1628,6 +1628,43 @@ describeVariants(
 
 			expect(baseInstances(resolved.objects['ref'].resolved.instances)).toMatchObject([{ start: 1, end: 60 }])
 		})
+		test('transparent objects', () => {
+			// "transparent objects" are objects without a layer
+			const timeline = fixTimeline([
+				{
+					id: 'transp0',
+					layer: '',
+					enable: {
+						start: 10,
+						end: 100,
+					},
+					content: {},
+				},
+				{
+					id: 'ref0',
+					layer: 'A',
+					enable: {
+						start: '#transp0.start+1',
+						duration: 10,
+					},
+					content: {},
+				},
+			])
+
+			const resolved = resolveTimeline(timeline, { cache: getCache(), time: 0 })
+
+			expect(resolved.objects['transp0']).toBeTruthy()
+			expect(resolved.objects['ref0']).toBeTruthy()
+
+			expect(resolved.objects['transp0'].resolved.instances).toMatchObject([{ start: 10, end: 100 }])
+			expect(resolved.objects['ref0'].resolved.instances).toMatchObject([{ start: 11, end: 21 }])
+
+			expect(getResolvedState(resolved, 15).layers).toMatchObject({
+				A: {
+					id: 'ref0',
+				},
+			})
+		})
 	},
 	{
 		normal: true,

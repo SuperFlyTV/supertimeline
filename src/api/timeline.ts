@@ -91,7 +91,6 @@ export interface TimelineKeyframe {
 	 * If this is an absolute value, it is counted as relative to the parent object.
 	 */
 	enable: TimelineEnable | TimelineEnable[]
-	duration?: number | string
 
 	/**
 	 * A list of classes on this Timeline-object. classes can be referenced by other objects using the syntax: ".className"

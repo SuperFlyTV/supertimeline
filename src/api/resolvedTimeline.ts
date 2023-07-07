@@ -129,7 +129,6 @@ export interface AllStates {
 }
 export interface ResolvedTimelineObjectInstanceKeyframe extends ResolvedTimelineObjectInstance {
 	isKeyframe?: boolean
-	keyframeEndTime?: TimeMaybe
 }
 export interface ResolvedTimelineObjectInstance extends ResolvedTimelineObject {
 	instance: TimelineObjectInstance

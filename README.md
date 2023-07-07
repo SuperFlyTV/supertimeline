@@ -348,6 +348,8 @@ Groups can work in 2 ways:
 Please note that in the examples above the times have been defined in seconds.
 This is for readability only, you may use whatever time-base you like (like milliseconds) in your implementation.
 
-## Breaking changes
+## Changelog and Breaking changes
+
+See [CHANGELOG.md](./CHANGELOG.md)
 
 For notes on breaking changes, see [MIGRATION.md](./MIGRATION.md)
