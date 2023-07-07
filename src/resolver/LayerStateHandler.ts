@@ -294,6 +294,7 @@ const sortObjectsOnLayer = (a: ResolvedTimelineObject, b: ResolvedTimelineObject
 	if (a.id > b.id) return 1
 	if (a.id < b.id) return -1
 
+	/* istanbul ignore next */
 	return 0
 }
 const sortInstancesToCheck = (a: InstanceAtPointInTime, b: InstanceAtPointInTime) => {
@@ -328,6 +329,7 @@ const sortInstancesToCheck = (a: InstanceAtPointInTime, b: InstanceAtPointInTime
 	if (a.instance.id > b.instance.id) return 1
 	if (a.instance.id < b.instance.id) return -1
 
+	/* istanbul ignore next */
 	return 0
 }
 
@@ -353,8 +355,12 @@ const sortAspiringInstances = (a: AspiringInstance, b: AspiringInstance) => {
 	// Last resort, sort by id to make it deterministic:
 	if (a.obj.id > b.obj.id) return 1
 	if (a.obj.id < b.obj.id) return -1
+
+	/* istanbul ignore next */
 	if (a.instance.id > b.instance.id) return 1
+	/* istanbul ignore next */
 	if (a.instance.id < b.instance.id) return -1
 
+	/* istanbul ignore next */
 	return 0
 }

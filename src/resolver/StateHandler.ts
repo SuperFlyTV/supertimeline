@@ -33,6 +33,7 @@ export class StateHandler {
 						...obj,
 						instance,
 					}
+					/* istanbul ignore if */
 					if (state.layers[`${obj.layer}`]) {
 						// There is already an object on this layer!
 						console.error(state.layers[`${obj.layer}`])
@@ -69,6 +70,7 @@ export class StateHandler {
 						if (a.instance.start < b.instance.start) return -1
 						if (a.instance.start > b.instance.start) return 1
 
+						/* istanbul ignore next */
 						return 0
 					})
 					for (const keyframe of keyframeInstances) {

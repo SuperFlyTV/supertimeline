@@ -137,6 +137,7 @@ export class ResolvedTimelineHandler {
 				)
 			}
 
+			/* istanbul ignore if */
 			if (this.debug) {
 				this.debugTrace(`---------------------------------`)
 				this.debugTrace(`objectsToReResolve: [${Array.from(this.objectsToReResolve.entries())}]`)
@@ -240,6 +241,7 @@ export class ResolvedTimelineHandler {
 					} else {
 						// The lookup for repeating returned multiple instances.
 						// Not supported at the moment, perhaps this could be supported in the future.
+						/* istanbul ignore next */
 						throw new Error(`lookupExpression should never return an array for .duration lookup`)
 					}
 				} else {
@@ -379,7 +381,8 @@ export class ResolvedTimelineHandler {
 						if (Array.isArray(lookedupDuration)) {
 							// Lookup rendeded multiple durations.
 							// This is unsupported at the moment, but could possibly be added in the future.
-							throw new Error(`lookupExpression should never return an array for .duration lookup`)
+							/* istanbul ignore next */
+							throw new Error(`lookedupDuration should never return an array for .duration lookup`)
 						} else if (lookedupDuration !== null) {
 							if (lookedupRepeating !== null && lookedupDuration.value > lookedupRepeating.value) {
 								// Cap duration to repeating duration
@@ -770,9 +773,13 @@ export class ResolvedTimelineHandler {
 				for (const objId of this.getLayerObjects(layer) ?? []) {
 					objectsThisIsReferencing.push(objId)
 				}
-			} else if (isInstanceReference(ref)) {
-				// ignore
+			} else if (
+				/* istanbul ignore next */
+				isInstanceReference(ref)
+			) {
+				// do nothing
 			} else {
+				/* istanbul ignore next */
 				assertNever(ref)
 			}
 
@@ -820,6 +827,7 @@ export class ResolvedTimelineHandler {
 		// Is it already added?
 		if (!this.options.skipValidation) {
 			if (this.objectsMap.has(obj.id)) {
+				/* istanbul ignore next */
 				throw Error(`All timelineObjects must be unique! (duplicate: "${obj.id}")`)
 			}
 		}

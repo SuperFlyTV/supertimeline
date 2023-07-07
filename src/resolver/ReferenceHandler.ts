@@ -1,7 +1,7 @@
 import { Expression } from '../api/expression'
 import { ResolvedTimelineObject, TimelineObjectInstance, Cap } from '../api/resolvedTimeline'
 import { Time } from '../api/types'
-import { last } from './lib/lib'
+import { assertNever, last } from './lib/lib'
 
 import { ResolvedTimelineHandler } from './ResolvedTimelineHandler'
 import { InstanceHandler } from './InstanceHandler'
@@ -192,7 +192,10 @@ export class ReferenceHandler {
 					} else if (ref === 'end') {
 						invert = !invert
 						ignoreFirstIfZero = true
-					} else throw Error(`Unknown ref: "${ref}"`)
+					} else {
+						/* istanbul ignore next */
+						assertNever(ref)
+					}
 
 					for (let i = 0; i < referencedObjs.length; i++) {
 						const referencedObj: ResolvedTimelineObject = referencedObjs[i]

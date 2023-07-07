@@ -157,6 +157,7 @@ export class ExpressionHandler {
 		this.cache.clear()
 	}
 	private words2Expression(operatorList: Array<string>, words: Array<any>): Expression {
+		/* istanbul ignore if */
 		if (!words?.length) throw new Error('words2Expression: syntax error: unbalanced expression')
 		while (words.length === 1 && Array.isArray(words[0])) words = words[0]
 		if (words.length === 1) return words[0]

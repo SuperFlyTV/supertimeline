@@ -12,6 +12,7 @@ import {
 	isEmpty,
 	ensureArray,
 	isArray,
+	assertNever,
 } from '../lib'
 
 test('literal', () => {
@@ -70,4 +71,16 @@ test('ensureArray', () => {
 test('isArray', () => {
 	expect(isArray({ a: 1 })).toEqual(false)
 	expect(isArray([{ a: 1 }])).toEqual(true)
+})
+test('assertNever', () => {
+	const fcn = (value: 'a' | 'b'): void => {
+		if (value === 'a') return
+		if (value === 'b') return
+		assertNever(value)
+	}
+
+	expect(() => fcn('a')).not.toThrow()
+	expect(() => fcn('b')).not.toThrow()
+	// @ts-expect-error bad argument
+	expect(() => fcn('c')).not.toThrow()
 })

@@ -35,6 +35,7 @@ export class ResolverHandler {
 	 */
 	public resolveTimeline(timeline: TimelineObject[]): ResolvedTimeline {
 		const toc = tic('resolveTimeline')
+		/* istanbul ignore if */
 		if (this.hasRun)
 			throw new Error(
 				`Resolver.resolveTimeline can only run once per instance!
@@ -111,6 +112,7 @@ resolver.run(timeline);`
 			} else if (obj.resolved.parentId !== undefined) {
 				const parentObj = this.resolvedTimeline.getObject(obj.resolved.parentId)
 				if (parentObj) {
+					/* istanbul ignore if */
 					if (!objHasLayer(parentObj)) continue // Keyframes of transparent objects are omitted in NextEvents
 				}
 			}

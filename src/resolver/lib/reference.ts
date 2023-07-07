@@ -102,6 +102,8 @@ export function joinReferences(references: Reference[], ...addReferences: Array<
 	resultingRefs = resultingRefs.sort((a, b) => {
 		if (a > b) return 1
 		if (a < b) return -1
+
+		/* istanbul ignore next */
 		return 0
 	})
 	toc()

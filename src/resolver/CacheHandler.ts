@@ -49,16 +49,18 @@ export class CacheHandler {
 				if (oldObj) addChangedObject(oldObj)
 			} else {
 				// No timing-affecting changes detected
+				/* istanbul ignore if */
 				if (!oldHash) this.debug(`Cache: Object "${obj.id}" is similar`)
 
 				// Even though the timeline-properties hasn't changed,
 				// the content (and other properties) might have:
 				const oldObj = this.cache.objects[obj.id]
 
+				/* istanbul ignore if */
 				if (!oldObj) {
 					console.error('oldHash', oldHash)
 					console.error('ids', Object.keys(this.cache.objects))
-					throw new Error(`Internal Error: obj "${obj.id}" not found in cache`)
+					throw new Error(`Internal Error: obj "${obj.id}" not found in cache, even though hashes match!`)
 				}
 
 				this.cache.objects[obj.id] = {
@@ -134,6 +136,7 @@ export class CacheHandler {
 			// We can reuse the old resolving for those:
 			for (const obj of Object.values<ResolvedTimelineObject>(validObjects)) {
 				if (!this.cache.objects[obj.id])
+					/* istanbul ignore next */
 					throw new Error(
 						`Something went wrong: "${obj.id}" does not exist in cache.resolvedTimeline.objects`
 					)

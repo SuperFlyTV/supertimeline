@@ -1665,6 +1665,49 @@ describeVariants(
 				},
 			})
 		})
+		test('empty object', () => {
+			const timeline = fixTimeline([
+				{
+					id: 'empty',
+					layer: 'A',
+					enable: [],
+					content: {},
+				},
+				{
+					id: 'emptyObj',
+					layer: 'A',
+					enable: [{}], // Not really valid, so skipping validation
+					content: {},
+				},
+			])
+			const resolved = resolveTimeline(timeline, { cache: getCache(), time: 0, skipValidation: true })
+			expect(resolved.objects['empty']).toBeTruthy()
+			expect(resolved.objects['emptyObj']).toBeTruthy()
+			expect(resolved.objects['empty'].resolved.instances).toMatchObject([])
+			expect(resolved.objects['emptyObj'].resolved.instances).toMatchObject([])
+		})
+		test('skipStatistics', () => {
+			const timeline = fixTimeline([
+				{
+					id: 'A',
+					layer: 'A',
+					enable: [{ start: 10, end: 100 }],
+					content: {},
+				},
+			])
+			const resolved = resolveTimeline(timeline, { cache: getCache(), time: 0, skipStatistics: true })
+			expect(resolved.objects['A']).toBeTruthy()
+
+			expect(resolved.statistics).toEqual({
+				unresolvedCount: 0,
+				resolvedCount: 0,
+				resolvedInstanceCount: 0,
+				resolvedObjectCount: 0,
+				resolvedGroupCount: 0,
+				resolvedKeyframeCount: 0,
+				resolvingCount: 0,
+			})
+		})
 	},
 	{
 		normal: true,

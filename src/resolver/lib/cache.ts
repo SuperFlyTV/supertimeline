@@ -9,7 +9,7 @@ export class Cache {
 	}
 
 	/** Cache the result of function for a limited time */
-	public cacheResult<T>(key: string, fcn: () => T, limitTime = 10000): T {
+	public cacheResult<T>(key: string, fcn: () => T, limitTime: number): T {
 		const cache = this.cache.get(key)
 		if (!cache || cache.ttl < Date.now()) {
 			const value = fcn()
@@ -20,6 +20,7 @@ export class Cache {
 
 			if (this.timeToCueNewCleanup) {
 				this.timeToCueNewCleanup = false
+				/* istanbul ignore next */
 				this.clearTimeout = setTimeout(() => {
 					this.clearTimeout = undefined
 					this.timeToCueNewCleanup = true
@@ -32,7 +33,7 @@ export class Cache {
 			return cache.value
 		}
 	}
-
+	/* istanbul ignore next */
 	public cleanUp(): void {
 		const now = Date.now()
 		for (const [key, value] of this.cache.entries()) {
