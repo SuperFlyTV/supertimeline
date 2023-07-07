@@ -512,6 +512,17 @@ export class ResolvedTimelineHandler {
 	}
 	public getStatistics(): ResolvedTimeline['statistics'] {
 		const toc = tic('  getStatistics')
+		if (this.options.skipStatistics) {
+			return {
+				unresolvedCount: 0,
+				resolvedCount: 0,
+				resolvedInstanceCount: 0,
+				resolvedObjectCount: 0,
+				resolvedGroupCount: 0,
+				resolvedKeyframeCount: 0,
+				resolvingCount: 0,
+			}
+		}
 		const statistics: ResolvedTimeline['statistics'] = {
 			unresolvedCount: 0,
 			resolvedCount: 0,

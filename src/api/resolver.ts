@@ -41,6 +41,9 @@ export interface ResolveOptions {
 	 * This improves performance slightly, but will not catch errors in the input timeline so use with caution.
 	 */
 	skipValidation?: boolean
+
+	/** Skip generating statistics, this improves performance slightly. */
+	skipStatistics?: boolean
 }
 export interface ResolverCache {
 	objHashes: { [id: string]: string }
