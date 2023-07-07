@@ -107,8 +107,8 @@ describeVariants(
 				},
 			})
 		})
-		test('etheral groups', () => {
-			// "etheral groups" are groups without a layer
+		test('transparent groups', () => {
+			// "transparent groups" are groups without a layer
 			const timeline = fixTimeline([
 				{
 					id: 'group0',

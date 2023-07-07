@@ -32,7 +32,7 @@ const state = getResolvedState(resolvedTimeline, 15)
 
 ### Timeline logic change
 
-Before, references where evaluated on the original (non conflicted timeline objects).
+Before, references where evaluated on the original (non conflicted timeline-objects).
 After, the references are updated when a conflict affects the dependees.
 
 ```typescript
@@ -65,3 +65,57 @@ const timeline = {
 - various:
   Instance references does now contain references on the form "#ObjId", ".className",
   before they could be naked strings
+
+## 7.x.x -> 8.x.x
+
+This release dropped support for **Node 8**.
+
+## 6.x.x -> 7.x.x
+
+### API Change
+
+The structure of the timeline-objects has changed significantly.
+
+```typescript
+// Before:
+const beforeTL = [
+	{
+		id: 'A',
+		trigger: {
+			type: Timeline.Enums.TriggerType.TIME_RELATIVE,
+			value: '#objId.start',
+		},
+		duration: 60,
+		LLayer: 1,
+	},
+	{
+		id: 'B',
+		trigger: {
+			type: Timeline.Enums.TriggerType.TIME_ABSOLUTE,
+			value: 100,
+		},
+		duration: 60,
+		LLayer: 1,
+	},
+]
+
+// After:
+const afterTL = [
+	{
+		id: 'A',
+		enable: {
+			start: '#objId.start',
+			duration: 60,
+		},
+		layer: 1,
+	},
+	{
+		id: 'B',
+		enable: {
+			start: 100,
+			duration: 60,
+		},
+		layer: 1,
+	},
+]
+```

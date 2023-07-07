@@ -107,11 +107,11 @@ resolver.run(timeline);`
 
 		for (const obj of allObjects) {
 			if (!obj.resolved.isKeyframe) {
-				if (!objHasLayer(obj)) continue // Etheral objects are omitted in NextEvents
+				if (!objHasLayer(obj)) continue // transparent objects are omitted in NextEvents
 			} else if (obj.resolved.parentId !== undefined) {
 				const parentObj = this.resolvedTimeline.getObject(obj.resolved.parentId)
 				if (parentObj) {
-					if (!objHasLayer(parentObj)) continue // Keyframes of etheral objects are omitted in NextEvents
+					if (!objHasLayer(parentObj)) continue // Keyframes of transparent objects are omitted in NextEvents
 				}
 			}
 

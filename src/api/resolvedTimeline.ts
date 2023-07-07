@@ -1,8 +1,19 @@
 import { InstanceId } from '../resolver/lib/instance'
 import { Reference } from '../resolver/lib/reference'
 import { TimelineObject } from './timeline'
-import { Time, TimeMaybe } from './types'
+import { Time } from './types'
 
+/**
+ * The ResolvedTimeline contains all objects on the timeline, resolved.
+ * All references and all conflicts have been resolved.
+ * The absolute times of all objects can be found in objects[id].resolved.instances.
+ *
+ * To retrieve a state at a certain time, use getResolvedState(resolvedTimeline).
+ *
+ * Note: If `limitTime` was specified in the ResolveOptions,
+ * the ResolvedTimeline is only valid up until that time and
+ * needs to be re-resolved afterwards.
+ */
 export interface ResolvedTimeline {
 	/** The options used to resolve the timeline */
 	// options: ResolveOptions

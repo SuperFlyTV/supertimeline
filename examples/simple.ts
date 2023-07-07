@@ -1,4 +1,11 @@
-import { TimelineObject, ResolveOptions, resolveTimeline, getResolvedState, ResolvedTimelineObjectInstance } from '..' // 'superfly-timeline'
+import {
+	TimelineObject,
+	ResolveOptions,
+	resolveTimeline,
+	getResolvedState,
+	ResolvedTimelineObjectInstance,
+	TimelineState,
+} from '..' // 'superfly-timeline'
 
 // The input to the timeline is an array of objects:
 const myTimeline: TimelineObject[] = [
@@ -11,74 +18,92 @@ const myTimeline: TimelineObject[] = [
 			end: 100,
 		},
 		content: {},
+		classes: ['video'],
 	},
 	{
-		// This object defines a graphic template, to be overlaid on the video
+		// This object defines a graphic template, to be overlaid on the video:
 		id: 'graphic0',
 		layer: 'gfxOverlay',
 		enable: {
-			start: '#video0.start + 10', // 10 after video0 starts
-			duration: 10,
+			start: '#video0.start + 5', // 5 seconds after video0 starts
+			duration: 8,
 		},
 		content: {},
-		classes: ['graphics'],
 	},
+	// This object defines a graphic template, to played just before the video ends:
 	{
 		id: 'graphic1',
 		layer: 'gfxOverlay',
 		enable: {
-			start: '#graphic0.end + 10', // 10 after graphic0 ends
-			duration: 15,
+			start: '#video0.end - 2', // 2 seconds before video0 ends
+			duration: 5,
 		},
 		content: {},
-		classes: ['graphics'],
 	},
+	// A background video loop, to play while no video is playing:
 	{
-		id: 'graphicIdle',
-		layer: 'gfxOverlay',
+		id: 'videoBGLoop',
+		layer: 'videoPlayer',
 		enable: {
-			while: '!.graphics', // When no graphics are playing
+			while: '!.video', // When nothing with the class "video" is playing
 		},
 		content: {},
 	},
 ]
 
-// When we have a new timeline, the first thing to do is to "Resolve" it.
+// When we have a new timeline, the first thing to do is to "resolve" it.
 // This calculates all timings of the objects in the timeline.
 const options: ResolveOptions = {
 	time: 0,
 }
 const resolvedTimeline = resolveTimeline(myTimeline, options)
 
-// Fetch the state at time 10:
-const state0 = getResolvedState(resolvedTimeline, 10)
-console.log(
-	`At the time ${state0.time}, the active objects are ${Object.entries<ResolvedTimelineObjectInstance>(state0.layers)
-		.map(([l, o]) => `"${o.id}" at layer "${l}"`)
-		.join(', ')}`
-)
+function logState(state: TimelineState) {
+	console.log(
+		`At the time ${state.time}, the active objects are ${Object.entries<ResolvedTimelineObjectInstance>(
+			state.layers
+		)
+			.map(([l, o]) => `"${o.id}" at layer "${l}"`)
+			.join(', ')}`
+	)
+}
+// Note: A "State" is a moment in time, containing all objects that are active at that time.
+{
+	// Check the state at time 15:
+	const state = getResolvedState(resolvedTimeline, 15)
+	logState(state)
+}
+{
+	// Check the state at time 50:
+	const state = getResolvedState(resolvedTimeline, 50)
+	logState(state)
+	// Check the next event to happen after time 50:
+	const nextEvent = state.nextEvents[0]
+	console.log(`After the time ${state.time}, the next event to happen will be at time ${nextEvent.time}.`)
+	console.log(`The next event is related to the object "${nextEvent.objId}"`)
+}
+{
+	// Check the state at time 99:
+	const state = getResolvedState(resolvedTimeline, 99)
+	logState(state)
+}
+{
+	// Check the state at time 200:
+	const state = getResolvedState(resolvedTimeline, 200)
+	logState(state)
+}
 
-// Fetch the state at time 25:
-const state1 = getResolvedState(resolvedTimeline, 25)
 console.log(
-	`At the time ${state1.time}, the active objects are ${Object.entries<ResolvedTimelineObjectInstance>(state1.layers)
-		.map(([l, o]) => `"${o.id}" at layer "${l}"`)
-		.join(', ')}`
-)
-
-console.log(
-	`The object "graphicIdle" will play at [${resolvedTimeline.objects['graphicIdle'].resolved.instances
+	`The object "videoBGLoop" will play at [${resolvedTimeline.objects['videoBGLoop'].resolved.instances
 		.map((instance) => `${instance.start} to ${instance.end === null ? 'infinity' : instance.end}`)
 		.join(', ')}]`
 )
 
-const nextEvent = state1.nextEvents[0]
-console.log(`After the time ${state1.time}, the next event to happen will be at time ${nextEvent.time}."`)
-console.log(`The next event is related to the object "${nextEvent.objId}"`)
-
-// Output:
-// At the time 10, the active objects are "video0" at layer "videoPlayer", "graphicIdle" at layer "gfxOverlay"
-// At the time 25, the active objects are "video0" at layer "videoPlayer", "graphic0" at layer "gfxOverlay"
-// The object "graphicIdle" will play at [0 to 20, 30 to 40, 55 to infinity]
-// After the time 25, the next event to happen will be at time 30."
-// The next event is related to the object "graphic0"
+// Console output:
+// At the time 15, the active objects are "video0" at layer "videoPlayer", "graphic0" at layer "gfxOverlay"
+// At the time 50, the active objects are "video0" at layer "videoPlayer"
+// After the time 50, the next event to happen will be at time 98.
+// The next event is related to the object "graphic1"
+// At the time 99, the active objects are "video0" at layer "videoPlayer", "graphic1" at layer "gfxOverlay"
+// At the time 200, the active objects are "videoBGLoop" at layer "videoPlayer"
+// The object "videoBGLoop" will play at [0 to 10, 100 to infinity]

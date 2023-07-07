@@ -172,7 +172,7 @@ export class ResolvedTimelineHandler {
 		toc()
 	}
 	/**
-	 * Resolve a timeline object.
+	 * Resolve a timeline-object.
 	 * During a resolve, the object.resolved property is populated by instances.
 	 * The instances depend on the .enable expressions, as well as parents etc.
 	 */
