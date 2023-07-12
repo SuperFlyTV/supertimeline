@@ -93,7 +93,7 @@ export class StateHandler {
 	}
 
 	/**
-	 * Apply keyframe content onto it's parent content.
+	 * Apply keyframe content onto its parent content.
 	 * The keyframe content is deeply-applied onto the parent content.
 	 */
 	public static applyKeyframeContent(parentContent: Content, keyframeContent: Content): void {
@@ -102,7 +102,7 @@ export class StateHandler {
 			if (Array.isArray(value)) {
 				if (!Array.isArray(parentContent[attr])) parentContent[attr] = []
 				this.applyKeyframeContent(parentContent[attr], value)
-				parentContent[attr].splice(value.length, 99999)
+				parentContent[attr].splice(value.length, Infinity)
 			} else if (isObject(value)) {
 				if (!isObject(parentContent[attr]) || Array.isArray(parentContent[attr])) parentContent[attr] = {}
 				this.applyKeyframeContent(parentContent[attr], value)

@@ -6,9 +6,14 @@
 export type Expression = number | string | ExpressionObj | null
 
 export type ExpressionOperator = '+' | '-' | '*' | '/' | '&' | '|' | '!' | '%'
+
+/** An ExpressionObj represents a mathematic expression. Eg. "1 + 2" === { l: "1", o: "+", r: "2"} */
 export interface ExpressionObj {
+	/** Left-side operand of the expression */
 	l: Expression
+	/** Operator of the expression */
 	o: ExpressionOperator
+	/** Right-side operand of the expression */
 	r: Expression
 }
 export interface InnerExpression {

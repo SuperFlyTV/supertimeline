@@ -285,7 +285,7 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 					const lookupStart = this.reference.lookupExpression(obj, startExpr, 'start')
 					pushToArray<Reference>(directReferences, lookupStart.allReferences)
 
-					// If expression is a constant, it is assumed to be a time relative to it's parent
+					// If expression is a constant, it is assumed to be a time relative to its parent
 					const startRefersToParent = hasParent && isConstantExpr(startExpr)
 
 					const lookedupStarts = startRefersToParent
@@ -330,7 +330,7 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 						const lookupEnd = endExpr ? this.reference.lookupExpression(obj, endExpr, 'end') : null
 						if (lookupEnd) pushToArray<Reference>(directReferences, lookupEnd.allReferences)
 
-						// If expression is a constant, it is assumed to be a time relative to it's parent
+						// If expression is a constant, it is assumed to be a time relative to its parent
 						const endRefersToParent = hasParent && isConstantExpr(endExpr)
 
 						/** Contains an inverted list of instances. Therefore .start means an end */
@@ -525,7 +525,7 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 				resolvedGroupCount: 0,
 				resolvedKeyframeCount: 0,
 				resolvingObjectCount: 0,
-				resolvingCount: 0
+				resolvingCount: 0,
 			}
 		}
 		const statistics: ResolvedTimeline['statistics'] = {
@@ -540,7 +540,6 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 		}
 
 		for (const obj of this.objectsMap.values()) {
-
 			statistics.totalCount += 1
 			if (obj.isGroup) {
 				statistics.resolvedGroupCount += 1
@@ -551,8 +550,6 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 				statistics.resolvedObjectCount += 1
 			}
 			statistics.resolvedInstanceCount += obj.resolved.instances.length
-
-
 		}
 		toc()
 

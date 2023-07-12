@@ -357,7 +357,6 @@ describeVariants(
 				limitTime: 3000,
 			})
 
-
 			expect(resolved.objects['object0']).toBeTruthy()
 			expect(resolved.objects['object0'].resolved.instances).toHaveLength(1)
 

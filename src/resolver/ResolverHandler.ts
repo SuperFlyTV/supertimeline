@@ -78,7 +78,6 @@ resolver.run(timeline);`
 			objects: mapToObject(this.resolvedTimeline.objectsMap),
 			classes: mapToObject(this.resolvedTimeline.classesMap),
 			layers: mapToObject(this.resolvedTimeline.layersMap),
-			// states: this.states,
 			nextEvents: this.nextEvents,
 
 			statistics: this.resolvedTimeline.getStatistics(),

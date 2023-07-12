@@ -38,7 +38,7 @@ export interface TimelineObject<TContent extends Content = Content> {
 
 	/**
 	 * Priority. Affects which object "wins" when there are two colliding objects on the same layer.
-	 * If the two colliding objects have the same priority, the one who started playing last wins.
+	 * If the two colliding objects have the same priority, the one which started playing last wins.
 	 * Otherwise, the one with the highest priority wins (ie 9 wins over 0).
 	 * Defaults to 0
 	 */
@@ -63,8 +63,8 @@ export interface TimelineEnable {
 	 * "#objectId.start"
 	 * "#objectId.end"
 	 * "#objectId.duration"
-	 * "".className"
-	 * "".className.start + 5"
+	 * ".className"
+	 * ".className.start + 5"
 	 * "$layerName"
 	 */
 
