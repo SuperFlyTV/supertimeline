@@ -4,8 +4,10 @@
 
 ### API change
 
-- `Resolver.resolveTimeline()` and `Resolver.resolveAllStates()` have been combined into one: `resolveTimeline()`
-- `Resolver.getState` have been renamed to `getResolvedState`
+- `Resolver.resolveTimeline()` and `Resolver.resolveAllStates()` have been combined into one: `resolveTimeline()`.
+- `Resolver.getState` has been renamed to `getResolvedState`.
+- `validateIdString` has been renamed to `validateReferenceString`.
+- `resolvedTimeline.statistics` properties have changed.
 
 ```typescript
 // Before
