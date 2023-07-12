@@ -1,8 +1,8 @@
 import { ResolvedTimelineHandler } from './ResolvedTimelineHandler'
-import { EventType, NextEvent, ResolvedTimeline } from '../api/resolvedTimeline'
+import { EventType, NextEvent, ResolvedTimeline, ResolvedTimelineObject } from '../api/resolvedTimeline'
 import { ResolveOptions } from '../api/resolver'
 import { Content, TimelineObject } from '../api/timeline'
-import { last, literal, mapToObject } from './lib/lib'
+import { literal, mapToObject } from './lib/lib'
 import { tic } from './lib/performance'
 import { CacheHandler } from './CacheHandler'
 import { objHasLayer } from './lib/timeline'
@@ -90,22 +90,25 @@ resolver.run(timeline);`
 		const toc = tic('  updateNextEvents')
 		this.nextEvents = []
 
-		const allObjects = Array.from(this.resolvedTimeline.objectsMap.values())
+		const allObjects: ResolvedTimelineObject[] = []
+		const allKeyframes: ResolvedTimelineObject[] = []
 
-		// Sort so keyframes are handled last:
-		allObjects.sort((a, b) => {
-			if (a.resolved.isKeyframe && !b.resolved.isKeyframe) return 1
-			if (!a.resolved.isKeyframe && b.resolved.isKeyframe) return -1
-			return 0
-		})
+		for (const obj of this.resolvedTimeline.objectsMap.values()) {
+			if (obj.resolved.isKeyframe) {
+				allKeyframes.push(obj)
+			} else {
+				allObjects.push(obj)
+			}
+		}
 
 		/** Used to fast-track in cases where there are no keyframes */
-		const hasKeyframes = last(allObjects)?.resolved.isKeyframe ?? false
+		const hasKeyframes = allKeyframes.length > 0
 
 		const objectInstanceStartTimes = new Set<string>()
 		const objectInstanceEndTimes = new Set<string>()
 
-		for (const obj of allObjects) {
+		// Go through keyframes last:
+		for (const obj of [...allObjects, ...allKeyframes]) {
 			if (!obj.resolved.isKeyframe) {
 				if (!objHasLayer(obj)) continue // transparent objects are omitted in NextEvents
 			} else if (obj.resolved.parentId !== undefined) {
@@ -116,7 +119,8 @@ resolver.run(timeline);`
 				}
 			}
 
-			for (const instance of obj.resolved.instances) {
+			for (let i = 0; i < obj.resolved.instances.length; i++) {
+				const instance = obj.resolved.instances[i]
 				if (instance.start > this.options.time && instance.start < (this.options.limitTime ?? Infinity)) {
 					let useThis = true
 
