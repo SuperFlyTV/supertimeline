@@ -4,10 +4,10 @@ import { ensureArray } from './lib/lib'
 import { tic } from './lib/performance'
 
 /** These characters are reserved and cannot be used in ids, etc */
-const RESERVED_CHARACTERS = /[#.$]/
+const RESERVED_CHARACTERS = /[#.$]/g
 
 /** These characters are reserved for possible future use and cannot be used in ids, etc */
-const FUTURE_RESERVED_CHARACTERS = /[=?@{}[\]^§]/
+const FUTURE_RESERVED_CHARACTERS = /[=?@{}[\]^§]/g
 
 /**
  * Note: A TimelineValidator instance is short-lived and used to validate a timeline.
@@ -125,7 +125,10 @@ export class TimelineValidator {
 		this.uniqueIds[obj.id] = true
 	}
 	private validateLayer(obj: TimelineObject, strict: boolean | undefined): void {
-		if (obj.layer === undefined) throw new Error(`"layer" attribute is undefined. (If an object is to have no layer, set this to an empty string.)`)
+		if (obj.layer === undefined)
+			throw new Error(
+				`"layer" attribute is undefined. (If an object is to have no layer, set this to an empty string.)`
+			)
 		try {
 			TimelineValidator.validateReferenceString(`${obj.layer}`, strict)
 		} catch (err) {
@@ -178,32 +181,25 @@ export class TimelineValidator {
 	 */
 	static validateReferenceString(str: string, strict?: boolean): void {
 		if (!str) return
-		{
-			const m = str.match(REGEXP_OPERATORS)
-			if (m) {
-				throw new Error(
-					`The string "${str}" contains a character ("${m[1]}") which isn't allowed in Timeline (is an operator)`
-				)
-			}
-		}
-		{
-			const m = str.match(RESERVED_CHARACTERS)
-			if (m) {
-				throw new Error(
-					`The string "${str}" contains a character ("${m[1]}") which isn't allowed in Timeline (is a reserved character)`
-				)
-			}
-		}
-		if (strict) {
-			// Also check a few characters that are technically allowed today, but *might* become used in future versions of Timeline:
-			{
-				const m = str.match(FUTURE_RESERVED_CHARACTERS)
-				if (m) {
-					throw new Error(
-						`The string "${str}" contains a character ("${m[0]}") which isn't allowed in Timeline (is a strict reserved character and might be used in the future)`
-					)
-				}
-			}
+
+		const matchOperators: string[] = str.match(REGEXP_OPERATORS) ?? []
+		const matchReserved: string[] = str.match(RESERVED_CHARACTERS) ?? []
+		const matchFutureReserved: string[] = (strict && str.match(FUTURE_RESERVED_CHARACTERS)) || []
+
+		if (matchOperators.length > 0 || matchReserved.length > 0 || matchFutureReserved.length > 0) {
+			throw new Error(
+				`The string "${str}" contains characters which aren't allowed in Timeline: ${[
+					matchOperators.length > 0 && `${matchOperators.map((o) => `"${o}"`).join(', ')} (is an operator)`,
+					matchReserved.length > 0 &&
+						`${matchReserved.map((o) => `"${o}"`).join(', ')} (is a reserved character)`,
+					matchFutureReserved.length > 0 &&
+						`${matchFutureReserved
+							.map((o) => `"${o}"`)
+							.join(', ')} (is a strict reserved character and might be used in the future)`,
+				]
+					.filter(Boolean)
+					.join(', ')}`
+			)
 		}
 	}
 }

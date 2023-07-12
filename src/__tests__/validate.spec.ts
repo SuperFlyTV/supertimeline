@@ -2,7 +2,7 @@ import {
 	validateObject,
 	validateKeyframe,
 	validateTimeline,
-	validateIdString,
+	validateReferenceString,
 	TimelineObject,
 	TimelineEnable,
 	TimelineKeyframe,
@@ -315,35 +315,35 @@ describe('validate', () => {
 			validateTimeline(tl, false)
 		}).toThrow()
 	})
-	test('validateIdString', () => {
-		expect(() => validateIdString('')).not.toThrow()
-		expect(() => validateIdString('test')).not.toThrow()
-		expect(() => validateIdString('abcABC123_')).not.toThrow()
-		expect(() => validateIdString('_¤"\'£€\\,;:¨~')).not.toThrow()
+	test('validateReferenceString', () => {
+		expect(() => validateReferenceString('')).not.toThrow()
+		expect(() => validateReferenceString('test')).not.toThrow()
+		expect(() => validateReferenceString('abcABC123_')).not.toThrow()
+		expect(() => validateReferenceString('_¤"\'£€\\,;:¨~')).not.toThrow()
 
-		expect(() => validateIdString('test-1')).toThrow()
-		expect(() => validateIdString('test+1')).toThrow()
-		expect(() => validateIdString('test/1')).toThrow()
-		expect(() => validateIdString('test*1')).toThrow()
-		expect(() => validateIdString('test%1')).toThrow()
-		expect(() => validateIdString('test&1')).toThrow()
-		expect(() => validateIdString('test|1')).toThrow()
-		expect(() => validateIdString('test!')).toThrow()
-		expect(() => validateIdString('test(')).toThrow()
-		expect(() => validateIdString('test)')).toThrow()
-		expect(() => validateIdString('#test')).toThrow() // a reference to an object id
-		expect(() => validateIdString('.test')).toThrow() // a reference to an object class
-		expect(() => validateIdString('$test')).toThrow() // a reference to an object layer
+		expect(() => validateReferenceString('test-1')).toThrow()
+		expect(() => validateReferenceString('test+1')).toThrow()
+		expect(() => validateReferenceString('test/1')).toThrow()
+		expect(() => validateReferenceString('test*1')).toThrow()
+		expect(() => validateReferenceString('test%1')).toThrow()
+		expect(() => validateReferenceString('test&1')).toThrow()
+		expect(() => validateReferenceString('test|1')).toThrow()
+		expect(() => validateReferenceString('test!')).toThrow()
+		expect(() => validateReferenceString('test(')).toThrow()
+		expect(() => validateReferenceString('test)')).toThrow()
+		expect(() => validateReferenceString('#test')).toThrow() // a reference to an object id
+		expect(() => validateReferenceString('.test')).toThrow() // a reference to an object class
+		expect(() => validateReferenceString('$test')).toThrow() // a reference to an object layer
 
 		// These aren't currently in use anywhere, but might be so in the future:
-		expect(() => validateIdString('test§', true)).toThrow()
-		expect(() => validateIdString('test^', true)).toThrow()
-		expect(() => validateIdString('test?', true)).toThrow()
-		expect(() => validateIdString('test=', true)).toThrow()
-		expect(() => validateIdString('test{', true)).toThrow()
-		expect(() => validateIdString('test}', true)).toThrow()
-		expect(() => validateIdString('test[', true)).toThrow()
-		expect(() => validateIdString('test]', true)).toThrow()
+		expect(() => validateReferenceString('test§', true)).toThrow()
+		expect(() => validateReferenceString('test^', true)).toThrow()
+		expect(() => validateReferenceString('test?', true)).toThrow()
+		expect(() => validateReferenceString('test=', true)).toThrow()
+		expect(() => validateReferenceString('test{', true)).toThrow()
+		expect(() => validateReferenceString('test}', true)).toThrow()
+		expect(() => validateReferenceString('test[', true)).toThrow()
+		expect(() => validateReferenceString('test]', true)).toThrow()
 	})
 	test('invalid id-strings', () => {
 		expect(() => {
