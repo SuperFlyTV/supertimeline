@@ -80,7 +80,7 @@ export function validateKeyframe(keyframe: TimelineKeyframe, strict?: boolean): 
  * @param strict Set to true to enable some optional strict rules. Set this to true to increase future compatibility.
  */
 export function validateIdString(str: string, strict?: boolean): void {
-	TimelineValidator.validateIdString(str, strict)
+	TimelineValidator.validateReferenceString(str, strict)
 }
 
 /**

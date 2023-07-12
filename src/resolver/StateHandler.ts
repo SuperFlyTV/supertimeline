@@ -48,36 +48,11 @@ export class StateHandler {
 					state.layers[`${obj.layer}`] = objInstance
 
 					// Now, apply keyframes:
-					const keyframes: ResolvedTimelineObject[] = obj.keyframes
+					const objectKeyframes: ResolvedTimelineObject[] = obj.keyframes
 						? obj.keyframes.map((kf) => resolvedTimeline.objects[kf.id])
 						: []
 
-					const keyframeInstances: ResolvedTimelineObjectInstance[] = []
-					for (const keyframe of keyframes) {
-						for (const instance of keyframe.resolved.instances) {
-							if (instanceIsActive(instance, time)) {
-								keyframeInstances.push({
-									...keyframe,
-									instance,
-								})
-							}
-						}
-					}
-					keyframeInstances.sort((a, b) => {
-						// Highest priority is applied last:
-						const aPriority = a.priority ?? 0
-						const bPriority = b.priority ?? 0
-						if (aPriority < bPriority) return -1
-						if (aPriority > bPriority) return 1
-
-						// Last start time is applied last:
-						if (a.instance.start < b.instance.start) return -1
-						if (a.instance.start > b.instance.start) return 1
-
-						/* istanbul ignore next */
-						return 0
-					})
-					for (const keyframe of keyframeInstances) {
+					for (const keyframe of this.getActiveKeyframeInstances(objectKeyframes, time)) {
 						if (contentIsOriginal) {
 							// We don't want to modify the original content, so we deep-clone it before modifying it:
 							objInstance.content = clone(obj.content)
@@ -111,5 +86,36 @@ export class StateHandler {
 			}
 		}
 		toc()
+	}
+	private getActiveKeyframeInstances(
+		keyframes: ResolvedTimelineObject[],
+		time: Time
+	): ResolvedTimelineObjectInstance[] {
+		const keyframeInstances: ResolvedTimelineObjectInstance[] = []
+		for (const keyframe of keyframes) {
+			for (const instance of keyframe.resolved.instances) {
+				if (instanceIsActive(instance, time)) {
+					keyframeInstances.push({
+						...keyframe,
+						instance,
+					})
+				}
+			}
+		}
+		keyframeInstances.sort((a, b) => {
+			// Highest priority is applied last:
+			const aPriority = a.priority ?? 0
+			const bPriority = b.priority ?? 0
+			if (aPriority < bPriority) return -1
+			if (aPriority > bPriority) return 1
+
+			// Last start time is applied last:
+			if (a.instance.start < b.instance.start) return -1
+			if (a.instance.start > b.instance.start) return 1
+
+			/* istanbul ignore next */
+			return 0
+		})
+		return keyframeInstances
 	}
 }
