@@ -51,6 +51,9 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 	private cache?: CacheHandler
 
 	/** How many objects that was actually resolved (is affected when using cache) */
+	private statisticResolvingObjectCount = 0
+
+	/** How many times an object where resolved. (is affected when using cache) */
 	private statisticResolvingCount = 0
 
 	private debug: boolean
@@ -181,8 +184,9 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 		const toc = tic('     resolveTimelineObj')
 		obj.resolved.resolving = true
 
+		this.statisticResolvingCount++
 		if (!obj.resolved.firstResolved) {
-			this.statisticResolvingCount++
+			this.statisticResolvingObjectCount++
 		}
 
 		this.debugTrace(`============ resolving "${obj.id}"`)
@@ -515,41 +519,40 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 		const toc = tic('  getStatistics')
 		if (this.options.skipStatistics) {
 			return {
-				unresolvedCount: 0,
-				resolvedCount: 0,
+				totalCount: 0,
 				resolvedInstanceCount: 0,
 				resolvedObjectCount: 0,
 				resolvedGroupCount: 0,
 				resolvedKeyframeCount: 0,
-				resolvingCount: 0,
+				resolvingObjectCount: 0,
+				resolvingCount: 0
 			}
 		}
 		const statistics: ResolvedTimeline['statistics'] = {
-			unresolvedCount: 0,
-			resolvedCount: 0,
+			totalCount: 0,
 			resolvedInstanceCount: 0,
 			resolvedObjectCount: 0,
 			resolvedGroupCount: 0,
 			resolvedKeyframeCount: 0,
 
+			resolvingObjectCount: this.statisticResolvingObjectCount,
 			resolvingCount: this.statisticResolvingCount,
 		}
 
 		for (const obj of this.objectsMap.values()) {
-			if (obj.resolved.resolvedReferences) {
-				statistics.resolvedCount += 1
-				if (obj.isGroup) {
-					statistics.resolvedGroupCount += 1
-				}
-				if (obj.resolved.isKeyframe) {
-					statistics.resolvedKeyframeCount += 1
-				} else {
-					statistics.resolvedObjectCount += 1
-				}
-				statistics.resolvedInstanceCount += obj.resolved.instances.length
-			} else {
-				statistics.unresolvedCount += 1
+
+			statistics.totalCount += 1
+			if (obj.isGroup) {
+				statistics.resolvedGroupCount += 1
 			}
+			if (obj.resolved.isKeyframe) {
+				statistics.resolvedKeyframeCount += 1
+			} else {
+				statistics.resolvedObjectCount += 1
+			}
+			statistics.resolvedInstanceCount += obj.resolved.instances.length
+
+
 		}
 		toc()
 

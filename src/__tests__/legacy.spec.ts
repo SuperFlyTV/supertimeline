@@ -2793,7 +2793,7 @@ let tests: Tests = {
 		const tl = resolveTimeline(data, stdOpts)
 		expect(data).toEqual(getTestData('simplegroup')) // Make sure the original data is unmodified
 
-		expect(tl.statistics.resolvedCount).toEqual(4)
+		expect(tl.statistics.totalCount).toEqual(4)
 
 		const child0: NewResolvedTimelineObject = tl.objects['child0']
 		const child1: NewResolvedTimelineObject = tl.objects['child1']
@@ -3239,7 +3239,7 @@ let tests: Tests = {
 		obj0.enable.duration = 10 // break the circular dependency
 
 		const tl = resolveTimeline(data, stdOpts)
-		expect(tl.statistics.resolvedCount).toEqual(3)
+		expect(tl.statistics.totalCount).toEqual(3)
 	},
 	'relative durations object order': () => {
 		const data = clone(getTestData('relativedurationorder0'))

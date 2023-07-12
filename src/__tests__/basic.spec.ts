@@ -47,7 +47,6 @@ describeVariants(
 			expect(resolved.objects['graphic1']).toBeTruthy()
 
 			expect(resolved.statistics.resolvedObjectCount).toEqual(3)
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
 			expect(resolved.objects['video'].resolved).toMatchObject({
 				resolvedReferences: true,
 				instances: [{ start: 0, end: 100 }],
@@ -152,7 +151,6 @@ describeVariants(
 			const resolved = resolveTimeline(timeline, { time: 0, limitCount: 99, limitTime: 145, cache: getCache() })
 
 			expect(resolved.statistics.resolvedObjectCount).toEqual(2)
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 			expect(resolved.objects['video']).toBeTruthy()
 			expect(resolved.objects['graphic0']).toBeTruthy()
@@ -313,7 +311,6 @@ describeVariants(
 			const resolved = resolveTimeline(timeline, { time: 0, limitTime: 100, cache: getCache() })
 
 			expect(resolved.statistics.resolvedObjectCount).toEqual(4)
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 			expect(resolved.objects['video0']).toBeTruthy()
 			expect(resolved.objects['video1']).toBeTruthy()
@@ -426,7 +423,6 @@ describeVariants(
 			})
 
 			expect(resolved.statistics.resolvedObjectCount).toEqual(2)
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 			expect(resolved.objects['video0']).toBeTruthy()
 			expect(resolved.objects['video1']).toBeTruthy()
@@ -469,7 +465,6 @@ describeVariants(
 			})
 
 			expect(resolved.statistics.resolvedObjectCount).toEqual(1)
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 			expect(resolved.objects['video0']).toBeTruthy()
 			expect(resolved.objects['video0'].resolved.instances).toHaveLength(100)
@@ -499,7 +494,6 @@ describeVariants(
 			const resolved = resolveTimeline(timeline, { time: 0, limitCount: 5, cache: getCache() })
 
 			expect(resolved.statistics.resolvedObjectCount).toEqual(2)
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 			expect(resolved.objects['obj1'].resolved.instances).toMatchObject([
 				{ start: 22, end: 30 },
@@ -540,7 +534,6 @@ describeVariants(
 			const resolved = resolveTimeline(timeline, { time: 0, limitCount: 5, cache: getCache() })
 
 			expect(resolved.statistics.resolvedObjectCount).toEqual(2)
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 			expect(resolved.objects['obj1'].resolved.instances).toMatchObject([{ start: 22, end: null }])
 			expect(resolved.objects['obj0'].resolved.instances).toMatchObject([
@@ -565,7 +558,6 @@ describeVariants(
 			const resolved = resolveTimeline(timeline, { time: 0, limitCount: 10, limitTime: 999, cache: getCache() })
 
 			expect(resolved.statistics.resolvedObjectCount).toEqual(1)
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 			expect(resolved.objects['video0']).toBeTruthy()
 			expect(resolved.objects['video0'].resolved.instances).toHaveLength(1)
@@ -601,7 +593,6 @@ describeVariants(
 			const resolved = resolveTimeline(timeline, { time: 0, limitCount: 10, limitTime: 999, cache: getCache() })
 
 			expect(resolved.statistics.resolvedObjectCount).toEqual(2)
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 			expect(resolved.objects['video0']).toBeTruthy()
 			expect(resolved.objects['video1']).toBeTruthy()
@@ -657,7 +648,6 @@ describeVariants(
 				})
 
 				expect(resolved.statistics.resolvedObjectCount).toEqual(3)
-				expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 				expect(resolved.objects['video0']).toBeTruthy()
 				expect(resolved.objects['video0'].resolved.instances).toMatchObject([
@@ -733,7 +723,6 @@ describeVariants(
 				})
 
 				expect(resolved.statistics.resolvedObjectCount).toEqual(3)
-				expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 				expect(resolved.objects['video0']).toBeTruthy()
 				expect(resolved.objects['video0'].resolved.instances).toMatchObject([
@@ -1699,12 +1688,12 @@ describeVariants(
 			expect(resolved.objects['A']).toBeTruthy()
 
 			expect(resolved.statistics).toEqual({
-				unresolvedCount: 0,
-				resolvedCount: 0,
+				totalCount: 0,
 				resolvedInstanceCount: 0,
 				resolvedObjectCount: 0,
 				resolvedGroupCount: 0,
 				resolvedKeyframeCount: 0,
+				resolvingObjectCount: 0,
 				resolvingCount: 0,
 			})
 		})

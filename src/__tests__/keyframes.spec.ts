@@ -54,7 +54,6 @@ describeVariants(
 
 			expect(resolved.statistics.resolvedObjectCount).toEqual(1)
 			expect(resolved.statistics.resolvedKeyframeCount).toEqual(2)
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 			expect(resolved.objects['graphic0']).toBeTruthy()
 			expect(resolved.objects['kf0']).toBeTruthy()
@@ -167,7 +166,6 @@ describeVariants(
 			const resolved = resolveTimeline(timeline, { cache: getCache(), time: 0, limitCount: 10, limitTime: 999 })
 
 			expect(resolved.statistics.resolvedObjectCount).toEqual(2)
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 			expect(resolved.objects['video0']).toBeTruthy()
 			expect(resolved.objects['video0'].resolved.instances).toHaveLength(1)
@@ -222,7 +220,6 @@ describeVariants(
 			const resolved = resolveTimeline(timeline, { cache: getCache(), time: 0, limitCount: 10, limitTime: 999 })
 
 			expect(resolved.statistics.resolvedObjectCount).toEqual(2)
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 			expect(resolved.objects['video0']).toBeTruthy()
 			expect(resolved.objects['video0'].resolved.instances).toHaveLength(1)
@@ -277,7 +274,6 @@ describeVariants(
 			const resolved = resolveTimeline(timeline, { cache: getCache(), time: 0, limitCount: 10, limitTime: 999 })
 
 			expect(resolved.statistics.resolvedObjectCount).toEqual(2)
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 			expect(resolved.objects['video0']).toBeTruthy()
 			expect(resolved.objects['video0'].resolved.instances).toHaveLength(1)
@@ -361,7 +357,6 @@ describeVariants(
 				limitTime: 3000,
 			})
 
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 			expect(resolved.objects['object0']).toBeTruthy()
 			expect(resolved.objects['object0'].resolved.instances).toHaveLength(1)
@@ -682,7 +677,6 @@ describeVariants(
 
 			expect(resolved.statistics.resolvedObjectCount).toEqual(1)
 			expect(resolved.statistics.resolvedKeyframeCount).toEqual(1)
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 			expect(resolved.objects['video']).toBeTruthy()
 			expect(resolved.objects['kf0']).toBeTruthy()

@@ -55,7 +55,6 @@ describeVariants(
 			])
 
 			const resolved = resolveTimeline(timeline, { cache: getCache(), time: 0 })
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
 			expect(resolved.statistics.resolvedObjectCount).toEqual(4)
 			expect(resolved.statistics.resolvedGroupCount).toEqual(1)
 
@@ -155,7 +154,6 @@ describeVariants(
 			const resolved = resolveTimeline(timeline, { cache: getCache(), time: 0 })
 
 			expect(resolved.statistics.resolvedObjectCount).toEqual(4)
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 			expect(resolved.objects['group0']).toBeTruthy()
 			expect(resolved.objects['child0']).toBeTruthy()
@@ -252,7 +250,6 @@ describeVariants(
 			const resolved = resolveTimeline(timeline, { cache: getCache(), time: 0 })
 
 			expect(resolved.statistics.resolvedObjectCount).toEqual(4)
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 			expect(resolved.objects['group0']).toBeTruthy()
 			expect(resolved.objects['child0']).toBeTruthy()
@@ -361,7 +358,6 @@ describeVariants(
 			})
 
 			expect(resolved.statistics.resolvedObjectCount).toEqual(3)
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 			expect(resolved.objects['group0']).toBeTruthy()
 			expect(resolved.objects['child0']).toBeTruthy()
@@ -584,7 +580,6 @@ describeVariants(
 
 			expect(resolved.statistics.resolvedObjectCount).toEqual(6)
 			expect(resolved.statistics.resolvedGroupCount).toEqual(1)
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 			expect(resolved.objects['myGroup']).toBeTruthy()
 			expect(resolved.objects['myGroup'].resolved.instances).toHaveLength(1)
