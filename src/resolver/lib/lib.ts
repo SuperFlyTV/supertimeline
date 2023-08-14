@@ -102,3 +102,7 @@ export function mapToObject<T>(map: Map<string, T>): { [key: string]: T } {
 	}
 	return o
 }
+
+export function compareStrings(a: string, b: string): number {
+	return a > b ? 1 : a < b ? -1 : 0
+}

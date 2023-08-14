@@ -8,6 +8,7 @@ import {
 	TimelineObjectInstance,
 } from '../../api'
 import { ValueWithReference } from '../ReferenceHandler'
+import { compareStrings } from './lib'
 import { tic } from './performance'
 
 /*
@@ -100,18 +101,11 @@ export function joinReferences(references: Reference[], ...addReferences: Array<
 			}
 		}
 	}
-	resultingRefs = resultingRefs.sort((a, b) => {
-		if (a > b) return 1
-		if (a < b) return -1
-
-		/* istanbul ignore next */
-		return 0
-	})
+	resultingRefs.sort(compareStrings)
 	toc()
 	return resultingRefs
 }
-export function isReference(ref: ValueWithReference | TimelineObjectInstance[] | null): ref is ValueWithReference {
-	const v = ref !== null && typeof (ref as any).value === 'number'
 
-	return v
+export function isReference(ref: ValueWithReference | TimelineObjectInstance[] | null): ref is ValueWithReference {
+	return ref !== null && typeof (ref as any).value === 'number'
 }

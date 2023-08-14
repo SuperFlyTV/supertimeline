@@ -1,6 +1,7 @@
 import { ResolvedTimelineObject, ResolvedTimelineObjectInstance, TimelineObjectInstance } from '../api'
 import { InstanceHandler } from './InstanceHandler'
 import { ResolvedTimelineHandler } from './ResolvedTimelineHandler'
+import { compareStrings } from './lib/lib'
 import { tic } from './lib/performance'
 
 /**
@@ -61,7 +62,7 @@ export class LayerStateHandler {
 		this.debug(`======= resolveConflicts "${this.layer}" (${this.objectsOnLayer.length} objects)`)
 
 		// Sort to make sure parent groups are evaluated before their children:
-		this.objectsOnLayer.sort(sortObjectsOnLayer)
+		this.objectsOnLayer.sort(compareObjectsOnLayer)
 
 		// Step 1: Collect all points-of-interest (which points in time we want to evaluate)
 		// and which instances that are interesting
@@ -119,7 +120,7 @@ export class LayerStateHandler {
 
 			/** List of the instances to check at this point in time. */
 			const instancesToCheck: InstanceAtPointInTime[] = this.pointsInTime[time]
-			instancesToCheck.sort(sortInstancesToCheck)
+			instancesToCheck.sort(compareInstancesToCheck)
 
 			for (let j = 0; j < instancesToCheck.length; j++) {
 				const o = instancesToCheck[j]
@@ -153,7 +154,7 @@ export class LayerStateHandler {
 					}
 
 					// Sort the instances on layer to determine who is the active one:
-					aspiringInstances.sort(sortAspiringInstances)
+					aspiringInstances.sort(compareAspiringInstances)
 
 					// At this point, the first instance in aspiringInstances is the active one.
 					const instanceOnTopOfLayer = aspiringInstances[0]
@@ -286,18 +287,12 @@ interface AspiringInstance {
 	instance: TimelineObjectInstance
 }
 
-const sortObjectsOnLayer = (a: ResolvedTimelineObject, b: ResolvedTimelineObject) => {
+function compareObjectsOnLayer(a: ResolvedTimelineObject, b: ResolvedTimelineObject) {
 	// Sort to make sure parent groups are evaluated before their children:
-	if (a.resolved.levelDeep > b.resolved.levelDeep) return 1
-	if (a.resolved.levelDeep < b.resolved.levelDeep) return -1
-
-	if (a.id > b.id) return 1
-	if (a.id < b.id) return -1
-
-	/* istanbul ignore next */
-	return 0
+	return a.resolved.levelDeep - b.resolved.levelDeep || compareStrings(a.id, b.id)
 }
-const sortInstancesToCheck = (a: InstanceAtPointInTime, b: InstanceAtPointInTime) => {
+
+function compareInstancesToCheck(a: InstanceAtPointInTime, b: InstanceAtPointInTime) {
 	// Note: we assume that there are no keyframes here. (if there where, they would be sorted first)
 
 	if (a.instance.id === b.instance.id && a.instance.start === b.instance.start && a.instance.end === b.instance.end) {
@@ -313,24 +308,18 @@ const sortInstancesToCheck = (a: InstanceAtPointInTime, b: InstanceAtPointInTime
 
 	if (a.instance.start === a.instance.end || b.instance.start === b.instance.end) {
 		// Put later-ending instances last (in the case of zero-length vs non-zero-length instance):
-		if ((a.instance.end ?? Infinity) > (b.instance.end ?? Infinity)) return 1
-		if ((a.instance.end ?? Infinity) < (b.instance.end ?? Infinity)) return -1
+		const difference = (a.instance.end ?? Infinity) - (b.instance.end ?? Infinity)
+		if (difference) return difference
 	}
 
 	if (a.obj.resolved && b.obj.resolved) {
 		// Deeper objects (children in groups) comes later, we want to check the parent groups first:
-		if (a.obj.resolved.levelDeep > b.obj.resolved.levelDeep) return 1
-		if (a.obj.resolved.levelDeep < b.obj.resolved.levelDeep) return -1
+		const difference = a.obj.resolved.levelDeep - b.obj.resolved.levelDeep
+		if (difference) return difference
 	}
 
 	// Last resort, sort by id to make it deterministic:
-	if (a.obj.id > b.obj.id) return 1
-	if (a.obj.id < b.obj.id) return -1
-	if (a.instance.id > b.instance.id) return 1
-	if (a.instance.id < b.instance.id) return -1
-
-	/* istanbul ignore next */
-	return 0
+	return compareStrings(a.obj.id, b.obj.id) || compareStrings(a.instance.id, b.instance.id)
 }
 
 const removeFromAspiringInstances = (aspiringInstances: AspiringInstance[], objId: string): AspiringInstance[] => {
@@ -341,26 +330,12 @@ const removeFromAspiringInstances = (aspiringInstances: AspiringInstance[], objI
 	return returnInstances
 }
 
-const sortAspiringInstances = (a: AspiringInstance, b: AspiringInstance) => {
+function compareAspiringInstances(a: AspiringInstance, b: AspiringInstance) {
 	// Determine who takes precedence:
-
-	// First, sort using priority
-	if ((a.obj.priority || 0) < (b.obj.priority || 0)) return 1
-	if ((a.obj.priority || 0) > (b.obj.priority || 0)) return -1
-
-	// Then, sort using the start time
-	if ((a.instance.start || 0) < (b.instance.start || 0)) return 1
-	if ((a.instance.start || 0) > (b.instance.start || 0)) return -1
-
-	// Last resort, sort by id to make it deterministic:
-	if (a.obj.id > b.obj.id) return 1
-	if (a.obj.id < b.obj.id) return -1
-
-	/* istanbul ignore next */
-	if (a.instance.id > b.instance.id) return 1
-	/* istanbul ignore next */
-	if (a.instance.id < b.instance.id) return -1
-
-	/* istanbul ignore next */
-	return 0
+	return (
+		(b.obj.priority || 0) - (a.obj.priority || 0) || // First, sort using priority
+		b.instance.start - a.instance.start || // Then, sort using the start time
+		compareStrings(a.obj.id, b.obj.id) || // Last resort, sort by id to make it deterministic
+		compareStrings(a.instance.id, b.instance.id)
+	)
 }

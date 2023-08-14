@@ -2,7 +2,7 @@ import { ResolvedTimelineHandler } from './ResolvedTimelineHandler'
 import { EventType, NextEvent, ResolvedTimeline, ResolvedTimelineObject } from '../api/resolvedTimeline'
 import { ResolveOptions } from '../api/resolver'
 import { Content, TimelineObject } from '../api/timeline'
-import { literal, mapToObject } from './lib/lib'
+import { compareStrings, literal, mapToObject } from './lib/lib'
 import { tic } from './lib/performance'
 import { CacheHandler } from './CacheHandler'
 import { objHasLayer } from './lib/timeline'
@@ -172,19 +172,11 @@ resolver.run(timeline);`
 				}
 			}
 		}
-		this.nextEvents.sort((a, b) => {
-			if (a.time < b.time) return -1
-			if (a.time > b.time) return 1
-
-			if (a.type < b.type) return 1
-			if (a.type > b.type) return -1
-
-			// Fallback, to ensure a deterministic order:
-			if (a.objId < b.objId) return -1
-			if (a.objId > b.objId) return 1
-
-			return 0
-		})
+		this.nextEvents.sort(compareNextEvents)
 		toc()
 	}
+}
+
+function compareNextEvents(a: NextEvent, b: NextEvent): number {
+	return a.time - b.time || b.type - a.type || compareStrings(a.objId, b.objId)
 }
