@@ -100,23 +100,28 @@ export class ExpressionHandler {
 	// or ['a', '&', '!', 'b'] into ['a', '&', ['', '!', 'b']]
 	public wrapInnerExpressions(words: Array<any>): InnerExpression {
 		for (let i = 0; i < words.length; i++) {
-			if (words[i] === '(') {
-				const tmp = this.wrapInnerExpressions(words.slice(i + 1))
+			switch (words[i]) {
+				case '(': {
+					const tmp = this.wrapInnerExpressions(words.slice(i + 1))
 
-				// insert inner expression and remove tha
-				words[i] = tmp.inner
-				words.splice(i + 1, 99999, ...tmp.rest)
-			} else if (words[i] === ')') {
-				return {
-					inner: words.slice(0, i),
-					rest: words.slice(i + 1),
+					// insert inner expression and remove tha
+					words[i] = tmp.inner
+					words.splice(i + 1, 99999, ...tmp.rest)
+					break
 				}
-			} else if (words[i] === '!') {
-				const tmp = this.wrapInnerExpressions(words.slice(i + 1))
+				case ')':
+					return {
+						inner: words.slice(0, i),
+						rest: words.slice(i + 1),
+					}
+				case '!': {
+					const tmp = this.wrapInnerExpressions(words.slice(i + 1))
 
-				// insert inner expression after the '!'
-				words[i] = ['', '!'].concat(tmp.inner)
-				words.splice(i + 1, 99999, ...tmp.rest)
+					// insert inner expression after the '!'
+					words[i] = ['', '!'].concat(tmp.inner)
+					words.splice(i + 1, 99999, ...tmp.rest)
+					break
+				}
 			}
 		}
 		return {
