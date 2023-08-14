@@ -119,7 +119,7 @@ export class ReferenceHandler {
 			}
 			for (let i = 0; i < objIdsToReference.length; i++) {
 				const refObjId: string = objIdsToReference[i]
-				if (refObjId == obj.id) {
+				if (refObjId === obj.id) {
 					// Looks like the object is referencing itself!
 					if (obj.resolved.resolving) {
 						obj.resolved.isSelfReferencing = true
@@ -412,6 +412,7 @@ class ReferenceAndOrCombiner {
 		} else {
 			/* istanbul ignore next */
 			assertNever(operator)
+			/* istanbul ignore next */
 			this.calcResult = () => false
 		}
 

@@ -242,6 +242,9 @@ describe('Resolver, expressions, empty timeline', () => {
 		})
 
 		expect(reference.lookupExpression(stdObj, expressionHandler.interpretExpression('1'), 'start')).toBeTruthy()
+
+		// @ts-expect-error wrong expression type
+		expect(reference.lookupExpression(stdObj, false, 'start')).toEqual({ result: null, allReferences: [] })
 	})
 })
 describe('Resolver, expressions, filledtimeline', () => {
