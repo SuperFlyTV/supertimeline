@@ -10,7 +10,7 @@ import { InstanceEvent, sortEvents } from './lib/event'
 import { joinReferences, isReference } from './lib/reference'
 import { isNumericExpr } from './lib/expression'
 
-type ObjectRefType = 'start' | 'end' | 'duration'
+export type ObjectRefType = 'start' | 'end' | 'duration'
 export interface ValueWithReference {
 	value: number
 	references: Reference[]

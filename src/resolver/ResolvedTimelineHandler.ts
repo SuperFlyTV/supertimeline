@@ -1,5 +1,5 @@
 import { ExpressionHandler } from './ExpressionHandler'
-import { ReferenceHandler, ValueWithReference } from './ReferenceHandler'
+import { ObjectRefType, ReferenceHandler, ValueWithReference } from './ReferenceHandler'
 import { Expression } from '../api/expression'
 import { ResolvedTimeline, ResolvedTimelineObject, TimelineObjectInstance } from '../api/resolvedTimeline'
 import { Content, TimelineEnable, TimelineKeyframe, TimelineObject } from '../api/timeline'
@@ -262,10 +262,10 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 				const enable: TimelineEnable = enables[i]
 
 				// Resolve the the enable.repeating expression:
-				const repeatingExpr: Expression | null =
-					enable.repeating !== undefined ? this.expression.interpretExpression(enable.repeating) : null
-				const lookupRepeating = this.reference.lookupExpression(obj, repeatingExpr, 'duration')
-				pushToArray<Reference>(directReferences, lookupRepeating.allReferences)
+				const lookupRepeating =
+					enable.repeating !== undefined
+						? this.lookupExpression(obj, directReferences, enable.repeating, 'duration')
+						: { result: null }
 
 				let lookedupRepeating: ValueWithReference | null
 				if (lookupRepeating.result === null) {
@@ -292,7 +292,7 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 				/** Array of instances this enable-expression resulted in */
 				let enableInstances: TimelineObjectInstance[]
 				if (enable.while !== undefined) {
-					const whileExpr: Expression = this.expression.simplifyExpression(
+					const whileExpr: Expression =
 						// Handle special case "1", 1:
 						enable.while === '1' || enable.while === 1
 							? 'true'
@@ -300,10 +300,9 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 							enable.while === '0' || enable.while === 0
 							? 'false'
 							: enable.while
-					)
+
 					// Note: a lookup for 'while' works the same as for 'start'
-					const lookupWhile = this.reference.lookupExpression(obj, whileExpr, 'start')
-					pushToArray<Reference>(directReferences, lookupWhile.allReferences)
+					const lookupWhile = this.lookupExpression(obj, directReferences, whileExpr, 'start')
 
 					if (lookupWhile.result === null) {
 						// Do nothing
@@ -323,14 +322,9 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 						enableInstances = []
 					}
 				} else if (enable.start !== undefined) {
-					const startExpr: Expression = this.expression.simplifyExpression(enable.start)
-					const lookupStart = this.reference.lookupExpression(obj, startExpr, 'start')
-					pushToArray<Reference>(directReferences, lookupStart.allReferences)
+					const lookupStart = this.lookupExpression(obj, directReferences, enable.start, 'start')
 
-					// If expression is a constant, it is assumed to be a time relative to its parent
-					const startRefersToParent = hasParent && isConstantExpr(startExpr)
-
-					const lookedupStarts = startRefersToParent
+					const lookedupStarts = lookupStart.refersToParent
 						? this.reference.applyParentInstances(parentInstances, lookupStart.result)
 						: lookupStart.result
 
@@ -371,18 +365,12 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 					}
 
 					if (enable.end !== undefined) {
-						const endExpr: Expression = this.expression.interpretExpression(enable.end)
-
-						const lookupEnd = endExpr ? this.reference.lookupExpression(obj, endExpr, 'end') : null
-						if (lookupEnd) pushToArray<Reference>(directReferences, lookupEnd.allReferences)
-
-						// If expression is a constant, it is assumed to be a time relative to its parent
-						const endRefersToParent = hasParent && isConstantExpr(endExpr)
+						const lookupEnd = this.lookupExpression(obj, directReferences, enable.end, 'end')
 
 						/** Contains an inverted list of instances. Therefore .start means an end */
 						const lookedupEnds = !lookupEnd
 							? null
-							: endRefersToParent
+							: lookupEnd.refersToParent
 							? this.reference.applyParentInstances(parentInstances, lookupEnd.result)
 							: lookupEnd.result
 
@@ -417,9 +405,7 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 							})
 						}
 					} else if (enable.duration !== undefined) {
-						const durationExpr: Expression = this.expression.interpretExpression(enable.duration)
-						const lookupDuration = this.reference.lookupExpression(obj, durationExpr, 'duration')
-						pushToArray<Reference>(directReferences, lookupDuration.allReferences)
+						const lookupDuration = this.lookupExpression(obj, directReferences, enable.duration, 'duration')
 
 						let lookedupDuration = lookupDuration.result
 
@@ -871,6 +857,27 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 			this.allObjectLayersCache = this.getObjectsLayers(this.objectsMap.values())
 		}
 		return this.allObjectLayersCache
+	}
+
+	/** Look up an expression, update references and return it. */
+	private lookupExpression(
+		obj: ResolvedTimelineObject,
+		directReferences: Reference[],
+		expr: Expression,
+		context: ObjectRefType
+	) {
+		const simplifiedExpression: Expression = this.expression.simplifyExpression(expr)
+		const lookupResult = this.reference.lookupExpression(obj, simplifiedExpression, context)
+		pushToArray<Reference>(directReferences, lookupResult.allReferences)
+
+		// If expression is a constant, it is assumed to be a time relative to its parent:
+		const refersToParent = obj.resolved.parentId && isConstantExpr(simplifiedExpression)
+
+		return {
+			allReferences: lookupResult.allReferences,
+			result: lookupResult.result,
+			refersToParent,
+		}
 	}
 
 	private _addTimelineObject(
