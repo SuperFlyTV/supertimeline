@@ -282,9 +282,7 @@ export class InstanceHandler {
 
 		const events: Array<EventForInstance> = []
 
-		for (let i = 0; i < instances.length; i++) {
-			const instance = instances[i]
-
+		for (const instance of instances) {
 			events.push({
 				time: instance.start,
 				value: true,
@@ -355,9 +353,7 @@ export class InstanceHandler {
 
 		// Ensure unique ids:
 		const ids: { [id: string]: number } = {}
-		for (let i = 0; i < returnInstances.length; i++) {
-			const instance = returnInstances[i]
-
+		for (const instance of returnInstances) {
 			// tslint:disable-next-line
 			if (ids[instance.id] !== undefined) {
 				instance.id = `${instance.id}${++ids[instance.id]}`
@@ -408,9 +404,7 @@ export class InstanceHandler {
 		const repeatTime: Duration = repeatTime0.value
 
 		const repeatedInstances: TimelineObjectInstance[] = []
-		for (let i = 0; i < instances.length; i++) {
-			const instance = instances[i]
-
+		for (const instance of instances) {
 			let startTime = Math.max(options.time - ((options.time - instance.start) % repeatTime), instance.start)
 			let endTime: Time | null = instance.end === null ? null : instance.end + (startTime - instance.start)
 
