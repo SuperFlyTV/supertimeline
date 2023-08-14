@@ -179,13 +179,14 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 	 * The instances depend on the .enable expressions, as well as parents etc.
 	 */
 	public resolveTimelineObj(obj: ResolvedTimelineObject): void {
-		if (obj.resolved.resolving) throw new Error(`Circular dependency when trying to resolve "${obj.id}"`)
-		if (obj.resolved.resolvedReferences) return // already resolved
+		const objResolved = obj.resolved
+		if (objResolved.resolving) throw new Error(`Circular dependency when trying to resolve "${obj.id}"`)
+		if (objResolved.resolvedReferences) return // already resolved
 		const toc = tic('     resolveTimelineObj')
 		obj.resolved.resolving = true
 
 		this.statisticResolvingCount++
-		if (!obj.resolved.firstResolved) {
+		if (!objResolved.firstResolved) {
 			this.statisticResolvingObjectCount++
 		}
 
@@ -201,9 +202,9 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 			let parentInstances: TimelineObjectInstance[] | null = null
 			let hasParent = false
 			let parentRef: ObjectReference | undefined = undefined
-			if (obj.resolved.parentId) {
+			if (objResolved.parentId) {
 				hasParent = true
-				parentRef = `#${obj.resolved.parentId}`
+				parentRef = `#${objResolved.parentId}`
 
 				const parentLookup = this.reference.lookupExpression(
 					obj,
@@ -393,9 +394,7 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 
 							const tmpLookedupDuration: ValueWithReference = lookedupDuration // cast type
 
-							for (let i = 0; i < events.length; i++) {
-								const e = events[i]
-
+							for (const e of events) {
 								if (e.value) {
 									const time = e.time + tmpLookedupDuration.value
 									const references = joinReferences(e.references, tmpLookedupDuration.references)
@@ -437,8 +436,7 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 						for (const instance of enableInstances) {
 							let matchedParentInstance: TimelineObjectInstance | undefined = undefined
 							// Go through the references in reverse, because sometimes there are multiple matches, and the last one is probably the one we want to use.
-							for (let i = instance.references.length - 1; i >= 0; i--) {
-								const ref = instance.references[i]
+							for (const ref of instance.references) {
 								if (isInstanceReference(ref)) {
 									matchedParentInstance = parentInstanceMap.get(getRefInstanceId(ref))
 									if (matchedParentInstance) break
@@ -492,27 +490,27 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 			resultingInstances = this.instance.cleanInstances(resultingInstances, true, false)
 		}
 
-		if (obj.resolved.parentId) {
-			directReferences.push(`#${obj.resolved.parentId}`)
+		if (objResolved.parentId) {
+			directReferences.push(`#${objResolved.parentId}`)
 		}
 
-		if (!obj.resolved.firstResolved) {
+		if (!objResolved.firstResolved) {
 			// This only needs to be done upon first resolve:
 			this.updateDirectReferenceMap(obj, directReferences)
 		}
 
-		obj.resolved.firstResolved = true
-		obj.resolved.resolvedReferences = true
-		obj.resolved.resolving = false
-		obj.resolved.instances = resultingInstances
+		objResolved.firstResolved = true
+		objResolved.resolvedReferences = true
+		objResolved.resolving = false
+		objResolved.instances = resultingInstances
 
 		if (this.debug) {
 			this.debugTrace(`directReferences "${obj.id}": ${JSON.stringify(directReferences)}`)
-			this.debugTrace(`resolved "${obj.id}": ${JSON.stringify(obj.resolved.instances)}`)
+			this.debugTrace(`resolved "${obj.id}": ${JSON.stringify(objResolved.instances)}`)
 		}
 
 		// Finally:
-		obj.resolved.resolving = false
+		objResolved.resolving = false
 		toc()
 	}
 	public getStatistics(): ResolvedTimeline['statistics'] {
@@ -668,9 +666,10 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 
 			if (toBeEnabled) {
 				if (currentActive) {
+					const currentActiveInstance = currentActive.instance
 					if (
 						// Check if instance is still the same:
-						childInstance.id !== currentActive.instance.id ||
+						childInstance.id !== currentActiveInstance.id ||
 						(parentInstance !== currentActive.parent &&
 							// Check if parent still is active:
 							!parentActiveInstances.includes(currentActive.parent))
@@ -678,18 +677,18 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 						// parent isn't active anymore, stop and start a new instance:
 
 						// Stop instance:
-						currentActive.instance.end = event.time
-						currentActive.instance.originalEnd = currentActive.instance.originalEnd ?? event.time
-						currentActive.instance.references = joinReferences(
-							currentActive.instance.references,
+						currentActiveInstance.end = event.time
+						currentActiveInstance.originalEnd = currentActiveInstance.originalEnd ?? event.time
+						currentActiveInstance.references = joinReferences(
+							currentActiveInstance.references,
 							event.data.instance.references
 						)
 						finalizeCurrentActive()
 					} else {
 						// Continue an active instance
-						if (currentActive.instance.id !== childInstance.id) {
-							currentActive.instance.references = joinReferences(
-								currentActive.instance.references,
+						if (currentActiveInstance.id !== childInstance.id) {
+							currentActiveInstance.references = joinReferences(
+								currentActiveInstance.references,
 								childInstance.references
 							)
 						}
@@ -716,12 +715,13 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 				}
 			} else {
 				if (currentActive) {
+					const currentActiveInstance = currentActive.instance
 					// Stop instance:
 
-					currentActive.instance.end = event.time
-					currentActive.instance.originalEnd = currentActive.instance.originalEnd ?? event.time
-					currentActive.instance.references = joinReferences(
-						currentActive.instance.references,
+					currentActiveInstance.end = event.time
+					currentActiveInstance.originalEnd = currentActiveInstance.originalEnd ?? event.time
+					currentActiveInstance.references = joinReferences(
+						currentActiveInstance.references,
 						event.data.instance.references
 					)
 					finalizeCurrentActive()
