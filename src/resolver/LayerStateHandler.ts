@@ -78,9 +78,7 @@ export class LayerStateHandler {
 				if (instance.end) timeEvents.push({ time: instance.end, enable: false })
 
 				// Save a reference to this instance on all points in time that could affect it:
-				for (let i = 0; i < timeEvents.length; i++) {
-					const timeEvent = timeEvents[i]
-
+				for (const timeEvent of timeEvents) {
 					if (timeEvent.enable) {
 						this.addPointInTime(timeEvent.time, 'start', obj, instance)
 					} else {
@@ -110,9 +108,7 @@ export class LayerStateHandler {
 			.sort((a, b) => a - b)
 
 		// Iterate through all points-of-interest times:
-		for (let i = 0; i < times.length; i++) {
-			const time = times[i]
-
+		for (const time of times) {
 			this.debug(`-------------- time: ${time}`)
 
 			/** A set of identifiers for which instance-events have been check at this point in time. Used to avoid looking at the same object twice. */

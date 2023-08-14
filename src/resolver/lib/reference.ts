@@ -72,27 +72,21 @@ export function joinReferences(references: Reference[], ...addReferences: Array<
 	if (!fastPath) {
 		const refSet = new Set<Reference>()
 
-		for (let i = 0; i < references.length; i++) {
-			const ref = references[i]
-
+		for (const ref of references) {
 			if (!refSet.has(ref)) {
 				refSet.add(ref)
 				resultingRefs.push(ref)
 			}
 		}
 
-		for (let i = 0; i < addReferences.length; i++) {
-			const addReference = addReferences[i]
-
+		for (const addReference of addReferences) {
 			if (typeof addReference === 'string') {
 				if (!refSet.has(addReference)) {
 					refSet.add(addReference)
 					resultingRefs.push(addReference)
 				}
 			} else {
-				for (let j = 0; j < addReference.length; j++) {
-					const ref = addReference[j]
-
+				for (const ref of addReference) {
 					if (!refSet.has(ref)) {
 						refSet.add(ref)
 						resultingRefs.push(ref)
