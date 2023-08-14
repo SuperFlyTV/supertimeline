@@ -1,0 +1,35 @@
+name: Audit dependencies
+
+on:
+  push:
+    branches:
+      - master
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  validate-dependencies:
+    name: Validate production dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+      - name: Prepare Environment
+        run: |
+          yarn install
+        env:
+          CI: true
+      - name: Validate dependencies
+        run: |
+          if ! git log --format=oneline -n 1 | grep -q "\[ignore-audit\]"; then
+            yarn validate:dependencies
+          else
+            echo "Skipping audit"
+          fi
+        env:
+          CI: true

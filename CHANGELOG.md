@@ -1,6 +1,339 @@
-# Change Log
+# Changelog
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+### [8.3.1](https://github.com/SuperFlyTV/supertimeline/compare/8.3.0...8.3.1) (2022-11-01)
+
+
+### Bug Fixes
+
+* instances capped to zero duration get stuck in state ([#91](https://github.com/SuperFlyTV/supertimeline/issues/91)) ([ec4ecd4](https://github.com/SuperFlyTV/supertimeline/commit/ec4ecd419c1a89dadb4a028b984b7fa8a8f101dd))
+
+## [8.3.0](https://github.com/SuperFlyTV/supertimeline/compare/8.2.8...8.3.0) (2022-10-05)
+
+
+### Features
+
+* add validateIdString() function, used to ensure that id, classes and layers doesn't contain any invalid characters ([ecd0ae7](https://github.com/SuperFlyTV/supertimeline/commit/ecd0ae76565af89c744fd38981b75f50a8e82260))
+
+
+### Bug Fixes
+
+* validate ids, classes and layer string, to avoid possible crashes when resolving the timeline ([e7b9114](https://github.com/SuperFlyTV/supertimeline/commit/e7b911450869bb2d4726a338f5ce5ea613237cf5))
+
+### [8.2.8](https://github.com/SuperFlyTV/supertimeline/compare/8.2.3...8.2.8) (2022-06-13)
+
+
+### Bug Fixes
+
+* bug which caused unit test "too many start events" to fail ([7412021](https://github.com/SuperFlyTV/supertimeline/commit/7412021ab71c8ad833837f49cc43552729194094))
+* change all ".end || Infinity" to ".end ?? Infinity" to take into account that .end might be 0 (which means that it ends at 0, not Infinity) ([218b7c5](https://github.com/SuperFlyTV/supertimeline/commit/218b7c5c07afd271f238bd138bb8b3a07ad4e7c3))
+* don't set resolvedStates.state prematurely, instead do that after having walked through all object-instances ([bd1f20e](https://github.com/SuperFlyTV/supertimeline/commit/bd1f20ed03a9158e8067fe02c347b47dd81032aa))
+* sort times before verifying ([296752e](https://github.com/SuperFlyTV/supertimeline/commit/296752eb6d16d397eff4387088d1071027371e27))
+
+### [8.2.7](https://github.com/SuperFlyTV/supertimeline/compare/8.2.6...8.2.7) (2022-03-30)
+
+### [8.2.6](https://github.com/SuperFlyTV/supertimeline/compare/8.2.5...8.2.6) (2022-03-30)
+
+
+### Bug Fixes
+
+* bug which caused unit test "too many start events" to fail ([7412021](https://github.com/SuperFlyTV/supertimeline/commit/7412021ab71c8ad833837f49cc43552729194094))
+* change all ".end || Infinity" to ".end ?? Infinity" to take into account that .end might be 0 (which means that it ends at 0, not Infinity) ([218b7c5](https://github.com/SuperFlyTV/supertimeline/commit/218b7c5c07afd271f238bd138bb8b3a07ad4e7c3))
+
+### [8.2.5](https://github.com/SuperFlyTV/supertimeline/compare/8.2.4...8.2.5) (2022-01-26)
+
+### [8.2.4](https://github.com/SuperFlyTV/supertimeline/compare/8.2.3...8.2.4) (2022-01-26)
+
+
+### Bug Fixes
+
+* don't set resolvedStates.state prematurely, instead do that after having walked through all object-instances ([bd1f20e](https://github.com/SuperFlyTV/supertimeline/commit/bd1f20ed03a9158e8067fe02c347b47dd81032aa))
+
+### [8.2.3](https://github.com/SuperFlyTV/supertimeline/compare/8.2.2...8.2.3) (2022-01-04)
+
+
+### Bug Fixes
+
+* replace some _.each with for of loops, to conform with convention ([9716f86](https://github.com/SuperFlyTV/supertimeline/commit/9716f862f364532895a9059ee365c8b6acb22b55))
+
+### [8.2.2](https://github.com/SuperFlyTV/supertimeline/compare/8.2.1...8.2.2) (2021-10-22)
+
+
+### Bug Fixes
+
+* cap children inside of their parents ([7de10d7](https://github.com/SuperFlyTV/supertimeline/commit/7de10d7d3e5c46f58f8451494546da8c4f9b9bf8))
+* remove onlyForTime in resolveStates, as it causes issues in some situations ([adbe2e6](https://github.com/SuperFlyTV/supertimeline/commit/adbe2e6f34eda3fae716c99c1d641aa2be3d6619))
+* remove redundant zero-length instances of children ([2323d88](https://github.com/SuperFlyTV/supertimeline/commit/2323d88316bb2bf9a80b224cfa999aa84102d2d5))
+* when a parent is affected, also do a check of the children ([cf05ede](https://github.com/SuperFlyTV/supertimeline/commit/cf05ede7457c2fb416e2e01115a07dcc712c8ed1))
+
+### [8.2.1](https://github.com/SuperFlyTV/supertimeline/compare/8.2.0...8.2.1) (2021-04-26)
+
+
+### Bug Fixes
+
+* bug when using the cache, and only changing the content of a timeline-object ([#78](https://github.com/SuperFlyTV/supertimeline/issues/78)) ([c5ac319](https://github.com/SuperFlyTV/supertimeline/commit/c5ac319d5d979f15b38c97a4c3e64aa33206e97c))
+
+## [8.2.0](https://github.com/SuperFlyTV/supertimeline/compare/8.1.2...8.2.0) (2021-02-04)
+
+
+### Features
+
+* introduce new property: "seamless" ([8bd91e5](https://github.com/SuperFlyTV/supertimeline/commit/8bd91e56807071f37f964e9456ae0a55a78f4885))
+* use @sofie-automation/code-standard-preset ([6f22c15](https://github.com/SuperFlyTV/supertimeline/commit/6f22c159dd0b4cd38d8d54df42acedb4c3ad98fa))
+
+
+### Bug Fixes
+
+* bug fix for when having multiple enable-expressions ([5f4ebf6](https://github.com/SuperFlyTV/supertimeline/commit/5f4ebf65dbdbd430a7a5a187b75c32f0520a2500))
+* bug fix: merge instances better for when using .seamless property. ([a183f82](https://github.com/SuperFlyTV/supertimeline/commit/a183f828f01c5320715f143974e219b75e1d1a93))
+* refine tests ([35d6199](https://github.com/SuperFlyTV/supertimeline/commit/35d6199805045022d9857b50f4930b41ec26f7a4))
+
+### [8.1.2](https://github.com/SuperFlyTV/supertimeline/compare/8.1.1...8.1.2) (2020-10-15)
+
+
+### Bug Fixes
+
+* rewrite capInstances(), to fix issues with instances being split across multiple parent instances ([cdb5599](https://github.com/SuperFlyTV/supertimeline/commit/cdb5599aa98d8fbcbdf65fa52bde40785ef0e6b9))
+* rewrite of resolveStates() to handle keyframes inside split objects ([f412a9a](https://github.com/SuperFlyTV/supertimeline/commit/f412a9a3fef2b9b2f37b5102bdcec6fde2fe9d77))
+
+### [8.1.1](https://github.com/SuperFlyTV/supertimeline/compare/8.1.0...8.1.1) (2020-09-11)
+
+
+### Bug Fixes
+
+* in child objects; when end is a constant, it should refer to parent (independently of what start is set to be) ([af66705](https://github.com/SuperFlyTV/supertimeline/commit/af667058d389dd33daee3c17e5697d99b17f0173))
+
+## [8.1.0](https://github.com/SuperFlyTV/supertimeline/compare/8.0.0...8.1.0) (2020-08-14)
+
+
+### Features
+
+* support for zero-length and negative instances ([0b340db](https://github.com/SuperFlyTV/supertimeline/commit/0b340db2cb626671c94242d77a392f0f14a7afa7))
+* support for zero-length and negative instances ([bc03699](https://github.com/SuperFlyTV/supertimeline/commit/bc03699cd87eab299ee66ab09c1f54e1c4d7d56c))
+
+## [8.0.0](https://github.com/SuperFlyTV/supertimeline/compare/7.3.1...8.0.0) (2020-06-27)
+
+
+### ⚠ BREAKING CHANGES
+
+* drop node 8 support
+
+### Features
+
+* drop node 8 support ([98f42ca](https://github.com/SuperFlyTV/supertimeline/commit/98f42caf62f0d93364e1cf921fd359437a27fea4))
+* **ci:** prerelease flow & optional audit skip [skip ci] ([a7a4c20](https://github.com/SuperFlyTV/supertimeline/commit/a7a4c20d01971d934253cbb348744ed5d042c2d1))
+* add check in resolveAllStates, optimizing when no changes are detected at all. ([6d02009](https://github.com/SuperFlyTV/supertimeline/commit/6d02009995de2ebaf782774ade5779e321ca15b2))
+* be able to provide enable.instances directly in the timeline. ([0bd3149](https://github.com/SuperFlyTV/supertimeline/commit/0bd31490734d001e5ea4ab1c9e751717c85e1a37))
+* partial resolve of timeline ([eab68aa](https://github.com/SuperFlyTV/supertimeline/commit/eab68aac2d7b70e85ec5bc6a733676358f348ec1))
+
+
+### Bug Fixes
+
+* don't hash content, it takes too much time ([ac35795](https://github.com/SuperFlyTV/supertimeline/commit/ac35795ae6d7e74ef2413b0b2391f0206d23343c))
+* optimize cleanInstances for most common situations ([8b9e0b5](https://github.com/SuperFlyTV/supertimeline/commit/8b9e0b51976f47d620af1332a061e74c18549928))
+* performance: cache result of interpretExpression ([ea572cb](https://github.com/SuperFlyTV/supertimeline/commit/ea572cbd791366b44134144292418ed5f057831f))
+* performance: move applyParendInstances ([bb1e952](https://github.com/SuperFlyTV/supertimeline/commit/bb1e952019b085264b501e60c6a950eeb84d041b))
+* performance: refactor _.uniq + _.reduce + _.compact ([d6d7eb5](https://github.com/SuperFlyTV/supertimeline/commit/d6d7eb5cf780707a3a6ebaa545e4ea20d672be75))
+* performance: replace _.each for for-loops where it's most used ([5d1df6a](https://github.com/SuperFlyTV/supertimeline/commit/5d1df6a99042c6233bb6fe76715c73c565933a80))
+* performance: use typeof instead of _.isObject ([14bf545](https://github.com/SuperFlyTV/supertimeline/commit/14bf5453423cbb93e80e0db3bf62cb363c9dd1b4))
+* reworked instances to instead use arrays directly on the .enable property ([ccc8452](https://github.com/SuperFlyTV/supertimeline/commit/ccc845278d3f2e5c279fd3cffe2ebf40f87b651a))
+
+### [7.3.1](https://github.com/SuperFlyTV/supertimeline/compare/7.3.0...7.3.1) (2019-12-02)
+
+
+### Bug Fixes
+
+* add reference to tslib ([e2fed55](https://github.com/SuperFlyTV/supertimeline/commit/e2fed55320704bdf385a893cf91a7b319a2e36b7))
+
+## [7.3.0](https://github.com/SuperFlyTV/supertimeline/compare/7.2.4...7.3.0) (2019-11-01)
+
+
+### Features
+
+* update ci to run for node 8,10,12 ([7a182c6](https://github.com/SuperFlyTV/supertimeline/commit/7a182c639f1798ca3144bfdc1ac57f7a1ac6b760))
+
+
+### Bug Fixes
+
+* be able to reference other objects in own class or layer ([3996a80](https://github.com/SuperFlyTV/supertimeline/commit/3996a80f082b578032ade77b28119c8fd5fd62fd))
+* disregard event instances with 0 duration ([678bd19](https://github.com/SuperFlyTV/supertimeline/commit/678bd19bab2ea47829818188e23469cf62cd9d55))
+* keyframe class from chained group ([6164a6e](https://github.com/SuperFlyTV/supertimeline/commit/6164a6eec8bf5f0d5ba52ddddb420eb854a3993d))
+* simplify expressions to allow for using arithmetics inside of parent groups ([91a5a64](https://github.com/SuperFlyTV/supertimeline/commit/91a5a64df5417421910090ce44164d0289eeea6e))
+
+### [7.2.4](https://github.com/SuperFlyTV/supertimeline/compare/7.2.3...7.2.4) (2019-09-03)
+
+
+### Bug Fixes
+
+* keyframe class from chained group ([7f5c95d](https://github.com/SuperFlyTV/supertimeline/commit/7f5c95d))
+
+### [7.2.3](https://github.com/SuperFlyTV/supertimeline/compare/7.2.2...7.2.3) (2019-08-13)
+
+
+### Bug Fixes
+
+* bug fix: reference duration ([de7b86c](https://github.com/SuperFlyTV/supertimeline/commit/de7b86c))
+
+### [7.2.2](https://github.com/SuperFlyTV/supertimeline/compare/7.2.1...7.2.2) (2019-08-09)
+
+
+### Bug Fixes
+
+* Handle keyframes that begin or end outside of their parents ([1eb1f50](https://github.com/SuperFlyTV/supertimeline/commit/1eb1f50))
+* lookupExpression should return [], not null, when a reference yields zero results ([0d6586d](https://github.com/SuperFlyTV/supertimeline/commit/0d6586d))
+* make child in group-behaviour constistent... ([95af8c3](https://github.com/SuperFlyTV/supertimeline/commit/95af8c3))
+* while: 1 and while: '1' should return same result ([7ca9452](https://github.com/SuperFlyTV/supertimeline/commit/7ca9452))
+
+### [7.2.1](https://github.com/SuperFlyTV/supertimeline/compare/7.2.0...7.2.1) (2019-07-30)
+
+
+### Bug Fixes
+
+* update dependencies, removed unused "marked" dependency ([2098912](https://github.com/SuperFlyTV/supertimeline/commit/2098912))
+
+## [7.2.0](https://github.com/SuperFlyTV/supertimeline/compare/7.1.2...7.2.0) (2019-07-16)
+
+
+### Bug Fixes
+
+* typo ([f8901b3](https://github.com/SuperFlyTV/supertimeline/commit/f8901b3))
+* update dependencies, due to security issues upstream ([28aa657](https://github.com/SuperFlyTV/supertimeline/commit/28aa657))
+
+
+### Features
+
+* add typings for originalStart & originalEnd ([1f7af78](https://github.com/SuperFlyTV/supertimeline/commit/1f7af78))
+* support for having negative start times in groups ([9a61048](https://github.com/SuperFlyTV/supertimeline/commit/9a61048))
+* support for originalStart & originalEnd in instances ([52b2a9b](https://github.com/SuperFlyTV/supertimeline/commit/52b2a9b))
+
+
+
+<a name="7.1.2"></a>
+## [7.1.2](https://github.com/SuperFlyTV/supertimeline/compare/7.1.1...7.1.2) (2019-05-21)
+
+
+### Bug Fixes
+
+* some expressions failing to be converted to objects ([6921801](https://github.com/SuperFlyTV/supertimeline/commit/6921801))
+
+
+
+<a name="7.1.1"></a>
+## [7.1.1](https://github.com/SuperFlyTV/supertimeline/compare/7.1.0...7.1.1) (2019-05-21)
+
+
+### Bug Fixes
+
+* make instance ids unique ([3376662](https://github.com/SuperFlyTV/supertimeline/commit/3376662))
+* missing type in getState ([4f86b1b](https://github.com/SuperFlyTV/supertimeline/commit/4f86b1b))
+
+
+
+<a name="7.1.0"></a>
+# [7.1.0](https://github.com/SuperFlyTV/supertimeline/compare/7.0.2...7.1.0) (2019-05-18)
+
+
+### Bug Fixes
+
+* carefully merging of caps of instances ([4e0dd91](https://github.com/SuperFlyTV/supertimeline/commit/4e0dd91))
+* issue with non-unique instance ids ([f594aa4](https://github.com/SuperFlyTV/supertimeline/commit/f594aa4))
+
+
+### Features
+
+* implement resolveStates ([76a4ec6](https://github.com/SuperFlyTV/supertimeline/commit/76a4ec6))
+* Implement support for negations ("!") together with parentheses ([efe79a6](https://github.com/SuperFlyTV/supertimeline/commit/efe79a6))
+
+
+
+<a name="7.0.2"></a>
+## [7.0.2](https://github.com/SuperFlyTV/supertimeline/compare/7.0.1...7.0.2) (2019-04-07)
+
+
+
+<a name="7.0.1"></a>
+## [7.0.1](https://github.com/SuperFlyTV/supertimeline/compare/7.0.0...7.0.1) (2019-04-07)
+
+
+### Bug Fixes
+
+* reset ids on start of resolving ([b65585a](https://github.com/SuperFlyTV/supertimeline/commit/b65585a))
+
+
+
+<a name="7.0.0"></a>
+# [7.0.0](https://github.com/SuperFlyTV/supertimeline/compare/6.0.3...7.0.0) (2019-04-06)
+
+
+### Bug Fixes
+
+* minor bugs in expressions ([bcfe44f](https://github.com/SuperFlyTV/supertimeline/commit/bcfe44f))
+* tests and ts3 lint issues ([01a537e](https://github.com/SuperFlyTV/supertimeline/commit/01a537e))
+* use ts 3 and update deps ([0731cba](https://github.com/SuperFlyTV/supertimeline/commit/0731cba))
+
+
+### Features
+
+* add reference breadcrumbs, continued work on capping-in-parent etc.. ([af4380d](https://github.com/SuperFlyTV/supertimeline/commit/af4380d))
+* continued implementation ([296729c](https://github.com/SuperFlyTV/supertimeline/commit/296729c))
+* continued implementation, all (non-deprecated) tests are now ok ([3f90008](https://github.com/SuperFlyTV/supertimeline/commit/3f90008))
+* continued implementation, validation, ([f95b4ce](https://github.com/SuperFlyTV/supertimeline/commit/f95b4ce))
+* implement cap-in-parent, refactoring, rename trigger => enable ([ce656a9](https://github.com/SuperFlyTV/supertimeline/commit/ce656a9))
+* implement classes ([6d1b2e0](https://github.com/SuperFlyTV/supertimeline/commit/6d1b2e0))
+* implement getState & getNextEvents ([c04a269](https://github.com/SuperFlyTV/supertimeline/commit/c04a269))
+* implement getState, groups & repeating trigger ([f1753e1](https://github.com/SuperFlyTV/supertimeline/commit/f1753e1))
+* implement keyframes ([80513ea](https://github.com/SuperFlyTV/supertimeline/commit/80513ea))
+* mixed expressions, initial implementation. Complete rehaul (WIP) ([923b2e2](https://github.com/SuperFlyTV/supertimeline/commit/923b2e2))
+
+
+
+<a name="6.0.3"></a>
+## [6.0.3](https://github.com/SuperFlyTV/supertimeline/compare/6.0.2...6.0.3) (2018-11-07)
+
+
+### Bug Fixes
+
+* Create TimelineTrigger interface for trigger property ([a497393](https://github.com/SuperFlyTV/supertimeline/commit/a497393))
+
+
+
+<a name="6.0.2"></a>
+## [6.0.2](https://github.com/SuperFlyTV/supertimeline/compare/6.0.1...6.0.2) (2018-10-30)
+
+
+### Bug Fixes
+
+* Allow string llayer ids in logical triggers ([cedd170](https://github.com/SuperFlyTV/supertimeline/commit/cedd170))
+
+
+
+<a name="6.0.1"></a>
+## [6.0.1](https://github.com/SuperFlyTV/supertimeline/compare/5.0.6...6.0.1) (2018-09-13)
+
+
+
+<a name="5.0.6"></a>
+## [5.0.6](https://github.com/SuperFlyTV/supertimeline/compare/5.0.5...5.0.6) (2018-09-13)
+
+
+### Bug Fixes
+
+* TimelineObject duration can be a string ([edf3ae3](https://github.com/SuperFlyTV/supertimeline/commit/edf3ae3))
+
+
+
+<a name="5.0.5"></a>
+## [5.0.5](https://github.com/SuperFlyTV/supertimeline/compare/5.0.4...5.0.5) (2018-09-13)
+
+
+### Bug Fixes
+
+* cap startTime within parent group ([4e913ba](https://github.com/SuperFlyTV/supertimeline/commit/4e913ba))
+* changed duration interpretation to support Infinite duration properly ([489fc4e](https://github.com/SuperFlyTV/supertimeline/commit/489fc4e))
+* duration can be undefined ([bc278d6](https://github.com/SuperFlyTV/supertimeline/commit/bc278d6))
+
+
 
 <a name="5.0.4"></a>
 ## [5.0.4](https://github.com/SuperFlyTV/supertimeline/compare/5.0.3...5.0.4) (2018-09-04)
