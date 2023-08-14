@@ -2,6 +2,7 @@ import { ExpressionObj, Expression, InnerExpression, ExpressionOperator } from '
 import { compact, isArray, isObject } from './lib/lib'
 import { Cache } from './lib/cache'
 import { isNumericExpr } from './lib/expression'
+import { ResolveOptions } from '../api/resolver'
 
 export const OPERATORS: ExpressionOperator[] = ['&', '|', '+', '-', '*', '/', '%', '!']
 
@@ -10,7 +11,7 @@ export const REGEXP_OPERATORS = new RegExp('([' + OPERATORS.map((o) => '\\' + o)
 export class ExpressionHandler {
 	private cache: Cache
 
-	constructor(autoClearCache?: boolean) {
+	constructor(autoClearCache?: boolean, private skipValidation?: ResolveOptions['skipValidation']) {
 		this.cache = new Cache(autoClearCache)
 	}
 
@@ -51,9 +52,9 @@ export class ExpressionHandler {
 						)
 					}
 
-					const expression = this.words2Expression(OPERATORS, innerExpression.inner)
-					this.validateExpression(OPERATORS, expression)
-					return expression
+					const returnExpression = this.words2Expression(OPERATORS, innerExpression.inner)
+					if (!this.skipValidation) this.validateExpression(OPERATORS, returnExpression)
+					return returnExpression
 				},
 				60 * 60 * 1000 // 1 hour
 			)

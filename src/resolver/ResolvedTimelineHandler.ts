@@ -79,7 +79,7 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 	private objectResolveCount = 0
 
 	constructor(public options: ResolveOptions) {
-		this.expression = new ExpressionHandler()
+		this.expression = new ExpressionHandler(false, this.options.skipValidation)
 		this.instance = new InstanceHandler(this)
 		this.reference = new ReferenceHandler(this, this.instance)
 
