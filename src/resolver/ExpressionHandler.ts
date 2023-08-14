@@ -129,7 +129,7 @@ export class ExpressionHandler {
 	public validateExpression(operatorList: Array<string>, expr0: Expression, breadcrumbs?: string): true {
 		if (!breadcrumbs) breadcrumbs = 'ROOT'
 
-		if (isObject(expr0)) {
+		if (isObject(expr0) && !isArray(expr0)) {
 			const expr: ExpressionObj = expr0
 
 			if (expr.l === undefined)
