@@ -1456,6 +1456,167 @@ describeVariants(
 			const state1 = getResolvedState(resolved, 5000)
 			expect(state1.layers['l1']).toBeFalsy()
 		})
+
+		test('Dependent object stops with ref', () => {
+			const baseTime = 3000 // Some real point in time
+			const timeline = fixTimeline([
+				{
+					id: 'grp0',
+					enable: {
+						start: 1000,
+					},
+					priority: 1,
+					layer: '',
+					content: {},
+					children: [
+						{
+							id: 'child0_control',
+							enable: {
+								start: 0,
+							},
+							layer: 'l1',
+							priority: 1,
+							content: {},
+						},
+						{
+							id: 'child0',
+							content: {},
+							children: [
+								{
+									id: 'obj0',
+									enable: {
+										start: 0,
+									},
+									priority: 6,
+									layer: 'nora_primary_logo',
+									content: {},
+								},
+							],
+							isGroup: true,
+							enable: {
+								start: '#child0_control.start - 160',
+								end: '#child0_control.end + 0',
+							},
+							layer: 'test',
+						},
+					],
+					isGroup: true,
+				},
+
+				{
+					id: 'grp1',
+					enable: {
+						start: 5000,
+					},
+					priority: 5,
+					layer: '',
+					content: {},
+					children: [
+						{
+							id: 'child1',
+							enable: {
+								start: 320,
+							},
+							layer: 'l1',
+							priority: 5,
+							content: {},
+						},
+					],
+					isGroup: true,
+				},
+			])
+
+			const resolved = resolveTimeline(timeline, {
+				cache: getCache(),
+				time: baseTime + 1000,
+				limitCount: 10,
+				limitTime: 999,
+			})
+
+			{
+				// While child0_control is on l1
+				const state1 = getResolvedState(resolved, 2000)
+				expect(state1.layers['l1']).toBeTruthy()
+				expect(state1.layers['l1'].id).toBe('child0_control') // baseline
+				expect(state1.layers['l1'].instance.start).toBe(1000)
+				expect(state1.layers['l1'].instance.end).toBe(5320)
+
+				expect(state1.layers['test']).toBeTruthy()
+				expect(state1.layers['test'].id).toBe('child0') // baseline
+				expect(state1.layers['test'].instance.start).toBe(1000)
+				expect(state1.layers['test'].instance.end).toBe(5320)
+			}
+
+			{
+				// While child1 is on l1
+				const state1 = getResolvedState(resolved, 6000)
+				expect(state1.layers['l1']).toBeTruthy()
+				expect(state1.layers['l1'].id).toBe('child1') // baseline
+				expect(state1.layers['l1'].instance.start).toBe(5320)
+				expect(state1.layers['l1'].instance.end).toBe(null)
+
+				expect(state1.layers['test']).toBeFalsy()
+			}
+		})
+
+		test('Dependent object stops when referenced object is interrupted', () => {
+			const timeline = fixTimeline([
+				{
+					id: 'obj_interrupted',
+					enable: {
+						start: 1000,
+						end: 9999,
+					},
+					priority: 1,
+					layer: 'L1',
+					content: {},
+				},
+				{
+					id: 'obj_interruptee',
+					enable: {
+						start: 2000,
+					},
+					priority: 1,
+					layer: 'L1',
+					content: {},
+				},
+				{
+					id: 'other_obj',
+					enable: {
+						start: '#obj_interrupted.end',
+					},
+					priority: 1,
+					layer: 'L2',
+					content: {},
+				},
+			])
+
+			const resolved = resolveTimeline(timeline, {
+				cache: getCache(),
+				time: 0,
+				limitCount: 10,
+				limitTime: 999,
+			})
+
+			expect(resolved.objects['obj_interruptee'].resolved.instances).toMatchObject([
+				{
+					start: 2000,
+					end: null,
+				},
+			])
+			expect(resolved.objects['obj_interrupted'].resolved.instances).toMatchObject([
+				{
+					start: 1000,
+					end: 2000,
+				},
+			])
+			expect(resolved.objects['other_obj'].resolved.instances).toMatchObject([
+				{
+					start: 2000,
+					end: null,
+				},
+			])
+		})
 	},
 	{
 		normal: true,
