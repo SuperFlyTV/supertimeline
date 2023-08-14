@@ -75,6 +75,7 @@
 		"rimraf": "^5.0.1",
 		"standard-version": "^9.5.0",
 		"ts-jest": "^29.1.1",
+		"ts-node": "^10.9.1",
 		"typedoc": "^0.24.8",
 		"typescript": "~4.9"
 	},
