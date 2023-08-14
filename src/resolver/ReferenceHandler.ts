@@ -16,9 +16,10 @@ export interface ValueWithReference {
 	references: Reference[]
 }
 type LookupResult = {
-	result: TimelineObjectInstance[] | ValueWithReference | null
+	result: ReferenceResult
 	allReferences: Reference[]
 }
+type ReferenceResult = TimelineObjectInstance[] | ValueWithReference | null
 
 export class ReferenceHandler {
 	constructor(private resolvedTimeline: ResolvedTimelineHandler, private instance: InstanceHandler) {}
@@ -118,16 +119,14 @@ export class ReferenceHandler {
 			}
 			for (let i = 0; i < objIdsToReference.length; i++) {
 				const refObjId: string = objIdsToReference[i]
-				if (refObjId !== obj.id) {
-					const refObj = this.resolvedTimeline.getObject(refObjId)
-					if (refObj) {
-						referencedObjs.push(refObj)
-					}
-				} else {
+				if (refObjId == obj.id) {
 					// Looks like the object is referencing itself!
 					if (obj.resolved.resolving) {
 						obj.resolved.isSelfReferencing = true
 					}
+				} else {
+					const refObj = this.resolvedTimeline.getObject(refObjId)
+					if (refObj) referencedObjs.push(refObj)
 				}
 			}
 			if (!referenceIsOk) {
@@ -188,10 +187,10 @@ export class ReferenceHandler {
 	 * @param operate
 	 */
 	public operateOnArrays(
-		array0: Array<TimelineObjectInstance> | ValueWithReference | null,
-		array1: Array<TimelineObjectInstance> | ValueWithReference | null,
+		array0: ReferenceResult,
+		array1: ReferenceResult,
 		operate: OperatorFunction
-	): Array<TimelineObjectInstance> | ValueWithReference | null {
+	): ReferenceResult {
 		if (array0 === null || array1 === null) return null
 
 		if (isReference(array0) && isReference(array1)) {

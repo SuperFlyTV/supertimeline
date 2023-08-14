@@ -114,35 +114,34 @@ export class InstanceHandler {
 				// No instances are active
 				if (lastInstance && previousActive) {
 					lastInstance.end = event.time
-				} else {
-					if (Object.keys(negativeInstances).length && !event.data.notANegativeInstance) {
-						// There is a negative instance running
+				} else if (Object.keys(negativeInstances).length && !event.data.notANegativeInstance) {
+					// There is a negative instance running
 
-						const o = this.handleActiveInstances(
-							event,
-							lastInstance,
-							negativeInstanceId,
-							eventId,
-							negativeInstances,
-							allowMerge,
-							allowZeroGaps
-						)
-						negativeInstanceId = o.activeInstanceId
-						if (o.returnInstance) {
-							const newInstance: TimelineObjectInstance = {
-								...o.returnInstance,
-								start: o.returnInstance.end ?? 0,
-								end: o.returnInstance.start,
-							}
-							if (omitOriginalStartEnd) {
-								newInstance.originalStart = undefined
-								newInstance.originalEnd = undefined
-							}
-							returnInstances.push(newInstance)
+					const o = this.handleActiveInstances(
+						event,
+						lastInstance,
+						negativeInstanceId,
+						eventId,
+						negativeInstances,
+						allowMerge,
+						allowZeroGaps
+					)
+					negativeInstanceId = o.activeInstanceId
+					if (o.returnInstance) {
+						const newInstance: TimelineObjectInstance = {
+							...o.returnInstance,
+							start: o.returnInstance.end ?? 0,
+							end: o.returnInstance.start,
 						}
-						previousNegative = true
+						if (omitOriginalStartEnd) {
+							newInstance.originalStart = undefined
+							newInstance.originalEnd = undefined
+						}
+						returnInstances.push(newInstance)
 					}
+					previousNegative = true
 				}
+
 				previousActive = false
 			}
 		}
