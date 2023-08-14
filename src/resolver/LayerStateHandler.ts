@@ -71,7 +71,7 @@ export class LayerStateHandler {
 			// We also assume that the object has a layer
 
 			for (const instance of obj.resolved.instances) {
-				const timeEvents: Array<TimeEvent> = []
+				const timeEvents: TimeEvent[] = []
 
 				timeEvents.push({ time: instance.start, enable: true })
 				if (instance.end) timeEvents.push({ time: instance.end, enable: false })

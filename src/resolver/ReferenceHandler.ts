@@ -13,7 +13,7 @@ import { isNumericExpr } from './lib/expression'
 type ObjectRefType = 'start' | 'end' | 'duration'
 export interface ValueWithReference {
 	value: number
-	references: Array<Reference>
+	references: Reference[]
 }
 type LookupResult = {
 	result: TimelineObjectInstance[] | ValueWithReference | null
@@ -26,7 +26,7 @@ export class ReferenceHandler {
 	/**
 	 * Look up a reference on the timeline
 	 * Return values:
-	 * Array<TimelineObjectInstance>: Instances on the timeline where the reference expression is true
+	 * TimelineObjectInstance[]: Instances on the timeline where the reference expression is true
 	 * ValueWithReference: A singular value which can be combined arithmetically with Instances
 	 * null: Means "something is invalid", an null-value will always return null when combined with other values
 	 *
@@ -198,7 +198,7 @@ export class ReferenceHandler {
 			return operate(array0, array1)
 		}
 
-		const result: Array<TimelineObjectInstance> = []
+		const result: TimelineObjectInstance[] = []
 
 		const minLength = Math.min(
 			isArray(array0) ? array0.length : Infinity,
@@ -265,7 +265,7 @@ export class ReferenceHandler {
 		referencedObjs: ResolvedTimelineObject[],
 		allReferences: Reference[]
 	): LookupResult {
-		const instanceDurations: Array<ValueWithReference> = []
+		const instanceDurations: ValueWithReference[] = []
 		for (let i = 0; i < referencedObjs.length; i++) {
 			const referencedObj: ResolvedTimelineObject = referencedObjs[i]
 
@@ -482,7 +482,7 @@ class ReferenceAndOrCombiner {
 
 			if (!next || next.time !== e.time) {
 				const newResultValue = this.calcResult(leftValue, rightValue)
-				const resultCaps: Array<Cap> = (leftInstance ? leftInstance.caps ?? [] : []).concat(
+				const resultCaps: Cap[] = (leftInstance ? leftInstance.caps ?? [] : []).concat(
 					rightInstance ? rightInstance.caps ?? [] : []
 				)
 
@@ -504,7 +504,7 @@ class ReferenceAndOrCombiner {
 		return this.instances
 	}
 
-	private updateInstance(time: Time, value: boolean, references: Reference[], caps: Array<Cap>) {
+	private updateInstance(time: Time, value: boolean, references: Reference[], caps: Cap[]) {
 		if (value) {
 			this.instances.push({
 				id: this.resolvedTimeline.getInstanceId(),

@@ -6,7 +6,7 @@ export function generateTimeline(seed: number, maxCount: number, maxGroupDepth: 
 
 	const timeline: TimelineObject[] = []
 
-	const ref: Array<Array<TimelineObject>> = [timeline]
+	const ref: TimelineObject[][] = [timeline]
 
 	const layers: string[] = []
 	const layerCount = Math.ceil(random.get() * maxCount * 0.3)

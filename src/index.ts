@@ -110,7 +110,7 @@ export function simplifyExpression(expr0: Expression): Expression {
 export function wrapInnerExpressions(words: Array<any>): InnerExpression {
 	return getExpressionHandler().wrapInnerExpressions(words)
 }
-export function validateExpression(operatorList: Array<string>, expr0: Expression, breadcrumbs?: string): true {
+export function validateExpression(operatorList: string[], expr0: Expression, breadcrumbs?: string): true {
 	return getExpressionHandler().validateExpression(operatorList, expr0, breadcrumbs)
 }
 

@@ -18,12 +18,12 @@ export interface ResolvedTimeline<TContent extends Content = Content> {
 	/** Map of all objects on timeline */
 	objects: ResolvedTimelineObjects<TContent>
 	/** Map of all classes on timeline, maps className to object ids */
-	classes: { [className: string]: Array<string> }
+	classes: { [className: string]: string[] }
 	/** Map of the object ids, per layer */
-	layers: { [layer: string]: Array<string> }
+	layers: { [layer: string]: string[] }
 
 	// states: AllStates
-	nextEvents: Array<NextEvent>
+	nextEvents: NextEvent[]
 
 	statistics: {
 		/** Number of timeline objects (including keyframes) in the timeline */
@@ -56,7 +56,7 @@ export interface ResolvedTimelineObjects<TContent extends Content = Content> {
 export interface ResolvedTimelineObject<TContent extends Content = Content> extends TimelineObject<TContent> {
 	resolved: {
 		/** Instances of the object on the timeline */
-		instances: Array<TimelineObjectInstance>
+		instances: TimelineObjectInstance[]
 		/** A number that increases the more levels inside of a group the objects is. 0 = no parent */
 		levelDeep: number
 		/** Id of the parent object (for children in groups or keyframes) */
@@ -103,10 +103,10 @@ export interface TimelineObjectInstance extends InstanceBase {
 	originalEnd?: Time | null
 
 	/** array of the id of the referenced objects */
-	references: Array<Reference>
+	references: Reference[]
 
 	/** If set, tells the cap of the parent. The instance will always be capped inside this. */
-	caps?: Array<Cap>
+	caps?: Cap[]
 	/** If the instance was generated from another instance, reference to the original */
 	fromInstanceId?: string
 }

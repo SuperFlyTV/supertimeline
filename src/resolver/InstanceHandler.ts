@@ -11,10 +11,10 @@ import { joinReferences, isReference } from './lib/reference'
 export class InstanceHandler {
 	constructor(private resolvedTimeline: ResolvedTimelineHandler) {}
 
-	public invertInstances(instances: Array<TimelineObjectInstance>): Array<TimelineObjectInstance> {
+	public invertInstances(instances: TimelineObjectInstance[]): TimelineObjectInstance[] {
 		if (instances.length) {
 			instances = this.cleanInstances(instances, true, true)
-			const invertedInstances: Array<TimelineObjectInstance> = []
+			const invertedInstances: TimelineObjectInstance[] = []
 			if (instances[0].start !== 0) {
 				invertedInstances.push({
 					id: this.resolvedTimeline.getInstanceId(),
@@ -54,11 +54,11 @@ export class InstanceHandler {
 		}
 	}
 	public convertEventsToInstances(
-		events: Array<EventForInstance>,
+		events: EventForInstance[],
 		allowMerge: boolean,
 		allowZeroGaps = false,
 		omitOriginalStartEnd = false
-	): Array<TimelineObjectInstance> {
+	): TimelineObjectInstance[] {
 		sortEvents(events)
 
 		const activeInstances: { [eventId: string]: InstanceEvent } = {}
@@ -69,7 +69,7 @@ export class InstanceHandler {
 		let previousNegative = false
 		let negativeInstanceId: string | null = null
 
-		const returnInstances: Array<TimelineObjectInstance> = []
+		const returnInstances: TimelineObjectInstance[] = []
 		for (let i = 0; i < events.length; i++) {
 			const event = events[i]
 			const eventId: string = event.data.id ?? event.data.instance.id
@@ -272,15 +272,15 @@ export class InstanceHandler {
 	 * @param instances
 	 */
 	public cleanInstances(
-		instances: Array<TimelineObjectInstance>,
+		instances: TimelineObjectInstance[],
 		allowMerge: boolean,
 		allowZeroGaps = false
-	): Array<TimelineObjectInstance> {
+	): TimelineObjectInstance[] {
 		// First, optimize for certain common situations:
 		if (instances.length === 0) return []
 		if (instances.length === 1) return instances
 
-		const events: Array<EventForInstance> = []
+		const events: EventForInstance[] = []
 
 		for (let i = 0; i < instances.length; i++) {
 			const instance = instances[i]

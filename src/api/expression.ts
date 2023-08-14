@@ -17,6 +17,6 @@ export interface ExpressionObj {
 	r: Expression
 }
 export interface InnerExpression {
-	inner: Array<any> // string or Array<string>
-	rest: Array<string>
+	inner: any[]
+	rest: string[]
 }

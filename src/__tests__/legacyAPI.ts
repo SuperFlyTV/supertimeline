@@ -19,7 +19,7 @@ export interface TimelineObject {
 
 		[key: string]: any
 	}
-	classes?: Array<string>
+	classes?: string[]
 	disabled?: boolean
 	isGroup?: boolean
 	repeating?: boolean
@@ -56,7 +56,7 @@ export interface TimelineKeyframe {
 		// templateData?: any,
 		[key: string]: any
 	}
-	classes?: Array<string>
+	classes?: string[]
 }
 export interface UnresolvedLogicObject {
 	prevOnTimeline?: string | boolean | null
@@ -137,7 +137,7 @@ export interface Filter {
 	startTime?: StartTime
 	endTime?: EndTime
 }
-export type WhosAskingTrace = Array<string>
+export type WhosAskingTrace = string[]
 export type objAttributeFunction = (
 	objId: string,
 	hook: 'start' | 'end' | 'duration' | 'parentStart',

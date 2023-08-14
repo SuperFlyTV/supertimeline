@@ -31,7 +31,7 @@ export interface TimelineObject<TContent extends Content = Content> {
 	/**
 	 * A list of classes on this Timeline-object. classes can be referenced by other objects using the syntax: ".className"
 	 */
-	classes?: Array<string>
+	classes?: string[]
 
 	/** If set to true, the object will be excluded when resolving the timeline. */
 	disabled?: boolean
@@ -95,7 +95,7 @@ export interface TimelineKeyframe<TContent extends Content = Content> {
 	/**
 	 * A list of classes on this Timeline-object. classes can be referenced by other objects using the syntax: ".className"
 	 */
-	classes?: Array<string>
+	classes?: string[]
 
 	/** If set to true, the object will be excluded when resolving the timeline. */
 	disabled?: boolean

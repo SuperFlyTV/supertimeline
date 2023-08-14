@@ -27,7 +27,7 @@ export class TimelineValidator {
 	/** Validates all objects in the timeline. Throws an error if something's wrong. */
 	public validateTimeline(
 		/** The timeline to validate */
-		timeline: Array<TimelineObject>,
+		timeline: TimelineObject[],
 		/** Set to true to enable some optional strict rules. Set this to true to increase future compatibility. */
 		strict?: boolean
 	): void {

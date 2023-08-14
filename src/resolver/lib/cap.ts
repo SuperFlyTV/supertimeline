@@ -1,6 +1,6 @@
 import { Cap, TimelineObjectInstance } from '../../api'
 
-export function joinCaps(...caps: Array<Array<Cap> | undefined>): Array<Cap> {
+export function joinCaps(...caps: Array<Cap[] | undefined>): Cap[] {
 	const capMap: { [capReference: string]: Cap } = {}
 	for (let i = 0; i < caps.length; i++) {
 		const caps2 = caps[i]
@@ -13,7 +13,7 @@ export function joinCaps(...caps: Array<Array<Cap> | undefined>): Array<Cap> {
 	}
 	return Object.values<Cap>(capMap)
 }
-export function addCapsToResuming(instance: TimelineObjectInstance, ...caps: Array<Array<Cap> | undefined>): void {
+export function addCapsToResuming(instance: TimelineObjectInstance, ...caps: Array<Cap[] | undefined>): void {
 	const capsToAdd: Cap[] = []
 	const joinedCaps = joinCaps(...caps)
 	for (let i = 0; i < joinedCaps.length; i++) {

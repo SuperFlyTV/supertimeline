@@ -28,7 +28,7 @@ export class ExpressionHandler {
 				() => {
 					const expr = expressionString.replace(REGEXP_OPERATORS, ' $1 ') // Make sure there's a space between every operator & operand
 
-					const words: Array<string> = compact(expr.split(' '))
+					const words: string[] = compact(expr.split(' '))
 
 					if (words.length === 0) return null // empty expression
 
@@ -98,7 +98,7 @@ export class ExpressionHandler {
 
 	// Turns ['a', '(', 'b', 'c', ')'] into ['a', ['b', 'c']]
 	// or ['a', '&', '!', 'b'] into ['a', '&', ['', '!', 'b']]
-	public wrapInnerExpressions(words: Array<any>): InnerExpression {
+	public wrapInnerExpressions(words: any[]): InnerExpression {
 		for (let i = 0; i < words.length; i++) {
 			if (words[i] === '(') {
 				const tmp = this.wrapInnerExpressions(words.slice(i + 1))
@@ -126,7 +126,7 @@ export class ExpressionHandler {
 	}
 
 	/** Validates an expression. Returns true on success, throws error if not */
-	public validateExpression(operatorList: Array<string>, expr0: Expression, breadcrumbs?: string): true {
+	public validateExpression(operatorList: string[], expr0: Expression, breadcrumbs?: string): true {
 		if (!breadcrumbs) breadcrumbs = 'ROOT'
 
 		if (isObject(expr0) && !isArray(expr0)) {
@@ -156,7 +156,7 @@ export class ExpressionHandler {
 	public clearCache(): void {
 		this.cache.clear()
 	}
-	private words2Expression(operatorList: Array<string>, words: Array<any>): Expression {
+	private words2Expression(operatorList: string[], words: any[]): Expression {
 		/* istanbul ignore if */
 		if (!words?.length) throw new Error('words2Expression: syntax error: unbalanced expression')
 		while (words.length === 1 && words[0] !== null && isArray(words[0])) words = words[0]
