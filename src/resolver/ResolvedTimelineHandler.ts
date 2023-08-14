@@ -175,8 +175,10 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 	}
 	/**
 	 * Resolve a timeline-object.
-	 * During a resolve, the object.resolved property is populated by instances.
-	 * The instances depend on the .enable expressions, as well as parents etc.
+	 * The Resolve algorithm works like this:
+	 * 1. Go through the .enable expression(s) and look up all referenced objects.
+	 * 	  1.5 For each referenced object, recursively resolve it first if not already resolved.
+	 * 2. Collect the resolved instances and calculate the resulting list of resulting instances.
 	 */
 	public resolveTimelineObj(obj: ResolvedTimelineObject): void {
 		if (obj.resolved.resolving) throw new Error(`Circular dependency when trying to resolve "${obj.id}"`)
@@ -305,6 +307,8 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 					if (lookedupStarts === null) {
 						// Do nothing
 					} else if (isArray(lookedupStarts)) {
+						// Use the start-times of the instances and add them to the list of events:
+						// (The end-times are irrelevant)
 						for (let i = 0; i < lookedupStarts.length; i++) {
 							const instance = lookedupStarts[i]
 							const eventId = `${obj.id}_${iStart++}`
@@ -351,6 +355,8 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 						if (lookedupEnds === null) {
 							// Do nothing
 						} else if (isArray(lookedupEnds)) {
+							// Use the start-times of the instances and add them (as end-events) to the list:
+							// (The end-times are irrelevant)
 							for (let i = 0; i < lookedupEnds.length; i++) {
 								const instance = lookedupEnds[i]
 								events.push({
@@ -407,21 +413,25 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 								lookedupDuration.value = lookedupRepeating.value
 							}
 
-							const tmpLookedupDuration: ValueWithReference = lookedupDuration // cast type
-
+							// Go through all pre-existing start-events, and add end-events for each of them.
 							for (let i = 0; i < events.length; i++) {
-								const e = events[i]
+								const startEvent = events[i]
 
-								if (e.value) {
-									const time = e.time + tmpLookedupDuration.value
-									const references = joinReferences(e.references, tmpLookedupDuration.references)
+								if (startEvent.value) {
+									// Is a start-event
+
+									const time = startEvent.time + lookedupDuration.value
+									const references = joinReferences(
+										startEvent.references,
+										lookedupDuration.references
+									)
 									events.push({
 										time: time,
 										value: false,
 										data: {
-											id: e.data.id,
+											id: startEvent.data.id,
 											instance: {
-												id: e.data.instance.id,
+												id: startEvent.data.instance.id,
 												start: time,
 												end: null,
 												references: references,
@@ -483,6 +493,7 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 
 				enableInstances = this.instance.applyRepeatingInstances(enableInstances, lookedupRepeating)
 
+				// Add the instances resulting from this enable-expression to the list:
 				pushToArray<TimelineObjectInstance>(resultingInstances, enableInstances)
 			}
 

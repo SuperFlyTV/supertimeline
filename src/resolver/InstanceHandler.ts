@@ -53,6 +53,13 @@ export class InstanceHandler {
 			]
 		}
 	}
+	/**
+	 * Converts a list of events into a list of instances.
+	 * @param events The list of start- and end- events
+	 * @param allowMerge If true, will merge instances that overlap into one.
+	 * @param allowZeroGaps If true, allows zero-length gaps between instances. If false, will combine the two into one instance.
+	 * @param omitOriginalStartEnd Of true, will not keep .originalStart and .originalEnd of the instances
+	 */
 	public convertEventsToInstances(
 		events: EventForInstance[],
 		allowMerge: boolean,
@@ -74,10 +81,13 @@ export class InstanceHandler {
 			const event = events[i]
 			const eventId: string = event.data.id ?? event.data.instance.id
 			const lastInstance = returnInstances[returnInstances.length - 1]
+
 			if (event.value) {
+				// Start-event
 				activeInstances[eventId] = event
 				delete negativeInstances[eventId]
 			} else {
+				// End-event
 				delete activeInstances[eventId]
 				negativeInstances[eventId] = event
 			}

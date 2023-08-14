@@ -28,7 +28,12 @@ export function reduceObj<V, R>(
 	}, initialValue)
 }
 
-/** Convenience function, used to ensure that the two arrays are of the same type */
+/**
+ * Concatenate two arrays of values.
+ * This is a convenience function used to ensure that the two arrays are of the same type.
+ * @param arr0 The array of values to push into
+ * @param arr1 An array of values to push into arr0
+ */
 export function pushToArray<T>(arr0: T[], arr1: T[]): void {
 	for (const item of arr1) {
 		arr0.push(item)
