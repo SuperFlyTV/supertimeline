@@ -7,7 +7,7 @@ import {
 	TimelineState,
 } from '../api'
 import { instanceIsActive } from './lib/instance'
-import { clone, isObject } from './lib/lib'
+import { clone, isArray, isObject } from './lib/lib'
 import { tic } from './lib/performance'
 import { objHasLayer } from './lib/timeline'
 
@@ -74,13 +74,17 @@ export class StateHandler {
 	public static applyKeyframeContent(parentContent: Content, keyframeContent: Content): void {
 		const toc = tic('  applyKeyframeContent')
 		for (const [attr, value] of Object.entries<any>(keyframeContent)) {
-			if (Array.isArray(value)) {
-				if (!Array.isArray(parentContent[attr])) parentContent[attr] = []
-				this.applyKeyframeContent(parentContent[attr], value)
-				parentContent[attr].splice(value.length, Infinity)
-			} else if (isObject(value)) {
-				if (!isObject(parentContent[attr]) || Array.isArray(parentContent[attr])) parentContent[attr] = {}
-				this.applyKeyframeContent(parentContent[attr], value)
+			if (isObject(value)) {
+				if (isArray(value)) {
+					// Value is an array
+					if (!Array.isArray(parentContent[attr])) parentContent[attr] = []
+					this.applyKeyframeContent(parentContent[attr], value)
+					parentContent[attr].splice(value.length, Infinity)
+				} else {
+					// Value is an object
+					if (!isObject(parentContent[attr]) || Array.isArray(parentContent[attr])) parentContent[attr] = {}
+					this.applyKeyframeContent(parentContent[attr], value)
+				}
 			} else {
 				parentContent[attr] = value
 			}

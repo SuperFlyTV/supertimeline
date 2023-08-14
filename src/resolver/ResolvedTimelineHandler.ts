@@ -3,7 +3,7 @@ import { ReferenceHandler, ValueWithReference } from './ReferenceHandler'
 import { Expression } from '../api/expression'
 import { ResolvedTimeline, ResolvedTimelineObject, TimelineObjectInstance } from '../api/resolvedTimeline'
 import { Content, TimelineEnable, TimelineKeyframe, TimelineObject } from '../api/timeline'
-import { assertNever, ensureArray, literal, pushToArray } from './lib/lib'
+import { assertNever, ensureArray, isArray, literal, pushToArray } from './lib/lib'
 import { InstanceHandler } from './InstanceHandler'
 import {
 	getRefClass,
@@ -232,7 +232,10 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 				pushToArray<Reference>(directReferences, lookupRepeating.allReferences)
 
 				let lookedupRepeating: ValueWithReference | null
-				if (Array.isArray(lookupRepeating.result)) {
+				if (lookupRepeating.result === null) {
+					// Do nothing
+					lookedupRepeating = null
+				} else if (isArray(lookupRepeating.result)) {
 					if (lookupRepeating.result.length === 0) {
 						lookedupRepeating = null
 					} else if (lookupRepeating.result.length === 1) {
@@ -266,7 +269,10 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 					const lookupWhile = this.reference.lookupExpression(obj, whileExpr, 'start')
 					pushToArray<Reference>(directReferences, lookupWhile.allReferences)
 
-					if (Array.isArray(lookupWhile.result)) {
+					if (lookupWhile.result === null) {
+						// Do nothing
+						enableInstances = []
+					} else if (isArray(lookupWhile.result)) {
 						enableInstances = lookupWhile.result
 					} else if (lookupWhile.result !== null) {
 						enableInstances = [
@@ -296,7 +302,9 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 					// const endEvents: EventForInstance[] = []
 					let iStart = 0
 					let iEnd = 0
-					if (Array.isArray(lookedupStarts)) {
+					if (lookedupStarts === null) {
+						// Do nothing
+					} else if (isArray(lookedupStarts)) {
 						for (let i = 0; i < lookedupStarts.length; i++) {
 							const instance = lookedupStarts[i]
 							const eventId = `${obj.id}_${iStart++}`
@@ -307,7 +315,7 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 								references: instance.references,
 							})
 						}
-					} else if (lookedupStarts !== null) {
+					} else {
 						events.push({
 							time: lookedupStarts.value,
 							value: true,
@@ -340,7 +348,9 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 							? this.reference.applyParentInstances(parentInstances, lookupEnd.result)
 							: lookupEnd.result
 
-						if (Array.isArray(lookedupEnds)) {
+						if (lookedupEnds === null) {
+							// Do nothing
+						} else if (isArray(lookedupEnds)) {
 							for (let i = 0; i < lookedupEnds.length; i++) {
 								const instance = lookedupEnds[i]
 								events.push({
@@ -350,7 +360,7 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 									references: instance.references,
 								})
 							}
-						} else if (lookedupEnds !== null) {
+						} else if (lookedupEnds) {
 							events.push({
 								time: lookedupEnds.value,
 								value: false,
@@ -372,20 +382,26 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 						pushToArray<Reference>(directReferences, lookupDuration.allReferences)
 
 						let lookedupDuration = lookupDuration.result
-						if (Array.isArray(lookedupDuration) && lookedupDuration.length === 1) {
-							lookedupDuration = literal<ValueWithReference>({
-								value: lookedupDuration[0].start,
-								references: lookedupDuration[0].references,
-							})
-						}
-						if (Array.isArray(lookedupDuration) && !lookedupDuration.length) lookedupDuration = null
 
-						if (Array.isArray(lookedupDuration)) {
-							// Lookup rendeded multiple durations.
-							// This is unsupported at the moment, but could possibly be added in the future.
-							/* istanbul ignore next */
-							throw new Error(`lookedupDuration should never return an array for .duration lookup`)
-						} else if (lookedupDuration !== null) {
+						if (lookedupDuration === null) {
+							// Do nothing
+						} else if (isArray(lookedupDuration)) {
+							if (lookedupDuration.length === 1) {
+								lookedupDuration = literal<ValueWithReference>({
+									value: lookedupDuration[0].start,
+									references: lookedupDuration[0].references,
+								})
+							} else if (lookedupDuration.length === 0) {
+								lookedupDuration = null
+							} else {
+								// Lookup rendeded multiple durations.
+								// This is unsupported at the moment, but could possibly be added in the future.
+								/* istanbul ignore next */
+								throw new Error(`lookedupDuration should never return an array for .duration lookup`)
+							}
+						}
+
+						if (lookedupDuration !== null) {
 							if (lookedupRepeating !== null && lookedupDuration.value > lookedupRepeating.value) {
 								// Cap duration to repeating duration
 								lookedupDuration.value = lookedupRepeating.value

@@ -73,6 +73,10 @@ export function isEmpty(obj: object): boolean {
 export function ensureArray<T>(value: T | T[]): T[] {
 	return Array.isArray(value) ? value : [value]
 }
+/**
+ * Slightly faster than Array.isArray().
+ * Note: Ensure that the value provided is not null!
+ */
 export function isArray(arg: object | any[]): arg is any[] {
 	// Fast-path optimization: checking for .length is faster than Array.isArray()
 
