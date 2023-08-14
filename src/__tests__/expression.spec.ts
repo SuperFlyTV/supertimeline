@@ -1,12 +1,15 @@
-import { interpretExpression, wrapInnerExpressions, simplifyExpression, validateExpression } from '../expression'
+import { interpretExpression, wrapInnerExpressions, simplifyExpression, validateExpression, onCloseCleanup } from '..'
 
 describe('Expression', () => {
+	afterAll(() => {
+		onCloseCleanup()
+	})
 	test('interpretExpression from string', () => {
 		expect(interpretExpression('42.5')).toEqual(42.5)
 		expect(interpretExpression('+42.5')).toEqual(42.5)
 		expect(interpretExpression('-42.5')).toEqual(-42.5)
 
-		expect(() => interpretExpression('45 +')).toThrowError()
+		expect(() => interpretExpression('45 +')).toThrow()
 
 		expect(interpretExpression('1+2')).toMatchObject({
 			l: '1',
@@ -144,30 +147,52 @@ describe('Expression', () => {
 			o: '+',
 			r: 'asdf',
 		})
+
+		expect(simplifyExpression('42 % 10')).toEqual(2)
+		expect(simplifyExpression('42 % asdf')).toEqual({
+			l: 42,
+			o: '%',
+			r: 'asdf',
+		})
+
+		// &: numbers can't really be combined:
+		expect(simplifyExpression('5 & 1')).toEqual({
+			l: 5,
+			o: '&',
+			r: 1,
+		})
 	})
 	test('validateExpression', () => {
 		expect(validateExpression(['+', '-'], '1+1')).toEqual(true)
 		expect(validateExpression(['+', '-'], { l: 1, o: '+', r: 1 })).toEqual(true)
 
 		// @ts-ignore
-		expect(() => validateExpression(['+', '-'], { l: 1, o: '+' })).toThrowError(/missing/)
+		expect(() => validateExpression(['+', '-'], { l: 1, o: '+' })).toThrow(/missing/)
 		// @ts-ignore
-		expect(() => validateExpression(['+', '-'], { o: '+', r: 1 })).toThrowError(/missing/)
+		expect(() => validateExpression(['+', '-'], { o: '+', r: 1 })).toThrow(/missing/)
 		// @ts-ignore
-		expect(() => validateExpression(['+', '-'], { l: 1, o: 12, r: 1 })).toThrowError(/not a string/)
+		expect(() => validateExpression(['+', '-'], { l: 1, o: 12, r: 1 })).toThrow(/not a string/)
 		// @ts-ignore
-		expect(() => validateExpression(['+', '-'], { l: 1, r: 1 })).toThrowError(/missing/)
+		expect(() => validateExpression(['+', '-'], { l: 1, r: 1 })).toThrow(/missing/)
 
-		expect(() => validateExpression(['+', '-'], { l: 1, o: '*', r: 1 })).toThrowError(/not valid/)
+		expect(() => validateExpression(['+', '-'], { l: 1, o: '*', r: 1 })).toThrow(/not valid/)
 		// @ts-ignore
-		expect(() => validateExpression(['+', '-'], { l: 1, o: '+', r: [] })).toThrowError(/invalid type/)
+		expect(() => validateExpression(['+', '-'], { l: 1, o: '+', r: [] })).toThrow(/invalid type/)
 
-		expect(() => validateExpression(['+', '-'], { l: 1, o: '+', r: { l: 1, o: '+', r: 1 } })).not.toThrowError()
-		expect(() => validateExpression(['+', '-'], { l: 1, o: '+', r: { l: 1, o: '*', r: 1 } })).toThrowError(
-			/not valid/
-		)
-		expect(() => validateExpression(['+', '-'], { r: 1, o: '+', l: { l: 1, o: '*', r: 1 } })).toThrowError(
-			/not valid/
-		)
+		expect(() => validateExpression(['+', '-'], { l: 1, o: '+', r: { l: 1, o: '+', r: 1 } })).not.toThrow()
+		expect(() => validateExpression(['+', '-'], { l: 1, o: '+', r: { l: 1, o: '*', r: 1 } })).toThrow(/not valid/)
+		expect(() => validateExpression(['+', '-'], { r: 1, o: '+', l: { l: 1, o: '*', r: 1 } })).toThrow(/not valid/)
+	})
+	test('unknown operator', () => {
+		let errString = ''
+		try {
+			interpretExpression('1 _ 2')
+		} catch (e) {
+			errString = `${e}`
+		}
+		expect(errString).toMatch(/operator not found/)
+	})
+	afterAll(() => {
+		onCloseCleanup()
 	})
 })

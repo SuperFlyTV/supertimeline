@@ -1,4 +1,4 @@
-import { TimelineObject } from '../api/api'
+import { TimelineObject } from '../api'
 
 /** Returns a timeline, to be used in tests */
 export function generateTimeline(seed: number, maxCount: number, maxGroupDepth: number): TimelineObject[] {

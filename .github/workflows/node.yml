@@ -16,11 +16,11 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Use Node.js 14.x
-        uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3
         with:
-          node-version: 14.x
+          node-version: 18.x
       - name: Prepare Environment
         run: |
           yarn install
@@ -41,12 +41,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [12.x, 14.x, 16.x, 18.x]
+        node-version: [14.x, 16.x, 18.x, 20.x]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
       - name: Prepare Environment
@@ -60,10 +60,10 @@ jobs:
         env:
           CI: true
       - name: Send coverage
-        uses: codecov/codecov-action@v2
-        if: matrix.node-version == '14.x'
+        uses: codecov/codecov-action@v3
+        if: matrix.node-version == '18.x'
       - name: Check docs generation
-        if: matrix.node-version == '14.x'
+        if: matrix.node-version == '18.x'
         run: |
           yarn docs:test
         env:
@@ -81,13 +81,13 @@ jobs:
       - test
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Use Node.js 14.x
-        uses: actions/setup-node@v1
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3
         with:
-          node-version: 14.x
+          node-version: 18.x
       - name: Check release is desired
         id: do-publish
         run: |

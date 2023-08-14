@@ -1,4 +1,4 @@
-name: Publish prerelease
+name: Publish Nightly
 
 on:
   # Allows you to run this workflow manually from the Actions tab
@@ -13,12 +13,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [12.x, 14.x, 16.x, 18.x]
+        node-version: [14.x, 16.x, 18.x]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
       - name: Prepare Environment
@@ -41,13 +41,13 @@ jobs:
       - test
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Use Node.js 14.x
-        uses: actions/setup-node@v1
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3
         with:
-          node-version: 14.x
+          node-version: 18.x
       - name: Check release is desired
         id: do-publish
         run: |
@@ -74,6 +74,9 @@ jobs:
       - name: Bump version and build
         if: ${{ steps.do-publish.outputs.publish }}
         run: |
+          git config --global user.email "info@superfly.tv"
+          git config --global user.name "superflytvab"
+
           COMMIT_TIMESTAMP=$(git log -1 --pretty=format:%ct HEAD)
           COMMIT_DATE=$(date -d @$COMMIT_TIMESTAMP +%Y%m%d-%H%M%S)
           GIT_HASH=$(git rev-parse --short HEAD)

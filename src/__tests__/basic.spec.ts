@@ -1,7 +1,8 @@
 /* eslint-disable jest/no-standalone-expect */
-import * as _ from 'underscore'
-import { describeVariants } from '../testlib'
-import { EventType, Resolver } from '../../..'
+
+import { EventType, ResolvedTimelineObject, TimelineObjectInstance, getResolvedState, resolveTimeline } from '..'
+import { baseInstances } from '../resolver/lib/instance'
+import { describeVariants } from './testlib'
 
 describeVariants(
 	'Resolver, basic',
@@ -39,30 +40,27 @@ describeVariants(
 					content: {},
 				},
 			])
-			const resolved = Resolver.resolveAllStates(
-				Resolver.resolveTimeline(timeline, { time: 0, cache: getCache() })
-			)
+			const resolved = resolveTimeline(timeline, { time: 0, cache: getCache() })
 
 			expect(resolved.objects['video']).toBeTruthy()
 			expect(resolved.objects['graphic0']).toBeTruthy()
 			expect(resolved.objects['graphic1']).toBeTruthy()
 
 			expect(resolved.statistics.resolvedObjectCount).toEqual(3)
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
 			expect(resolved.objects['video'].resolved).toMatchObject({
-				resolved: true,
+				resolvedReferences: true,
 				instances: [{ start: 0, end: 100 }],
 			})
 			expect(resolved.objects['graphic0'].resolved).toMatchObject({
-				resolved: true,
+				resolvedReferences: true,
 				instances: [{ start: 10, end: 20 }],
 			})
 			expect(resolved.objects['graphic1'].resolved).toMatchObject({
-				resolved: true,
+				resolvedReferences: true,
 				instances: [{ start: 30, end: 45 }],
 			})
 
-			const state0 = Resolver.getState(resolved, 5)
+			const state0 = getResolvedState(resolved, 5)
 			expect(state0.time).toEqual(5)
 			expect(state0.layers).toMatchObject({
 				'0': {
@@ -71,7 +69,7 @@ describeVariants(
 			})
 			expect(state0.layers['1']).toBeFalsy()
 
-			expect(Resolver.getState(resolved, 15)).toMatchObject({
+			expect(getResolvedState(resolved, 15)).toMatchObject({
 				layers: {
 					'0': {
 						id: 'video',
@@ -103,7 +101,7 @@ describeVariants(
 					},
 				],
 			})
-			const state1 = Resolver.getState(resolved, 21)
+			const state1 = getResolvedState(resolved, 21)
 			expect(state1.layers).toMatchObject({
 				'0': {
 					id: 'video',
@@ -111,7 +109,7 @@ describeVariants(
 			})
 			expect(state1.layers['1']).toBeFalsy()
 
-			expect(Resolver.getState(resolved, 31).layers).toMatchObject({
+			expect(getResolvedState(resolved, 31).layers).toMatchObject({
 				'0': {
 					id: 'video',
 				},
@@ -119,7 +117,7 @@ describeVariants(
 					id: 'graphic1',
 				},
 			})
-			const state2 = Resolver.getState(resolved, 46)
+			const state2 = getResolvedState(resolved, 46)
 			expect(state2.layers).toMatchObject({
 				'0': {
 					id: 'video',
@@ -150,32 +148,23 @@ describeVariants(
 				},
 			])
 
-			const resolved = Resolver.resolveAllStates(
-				Resolver.resolveTimeline(timeline, { time: 0, limitCount: 99, limitTime: 145, cache: getCache() })
-			)
+			const resolved = resolveTimeline(timeline, { time: 0, limitCount: 99, limitTime: 145, cache: getCache() })
 
 			expect(resolved.statistics.resolvedObjectCount).toEqual(2)
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 			expect(resolved.objects['video']).toBeTruthy()
 			expect(resolved.objects['graphic0']).toBeTruthy()
-			expect(resolved.objects['video'].resolved).toMatchObject({
-				resolved: true,
-				instances: [
-					{ start: 0, end: 40 },
-					{ start: 50, end: 90 },
-					{ start: 100, end: 140 },
-				],
-			})
-			expect(resolved.objects['graphic0'].resolved).toMatchObject({
-				resolved: true,
-				instances: [
-					{ start: 20, end: 39 },
-					{ start: 70, end: 89 },
-					{ start: 120, end: 139 },
-				],
-			})
-			const state0 = Resolver.getState(resolved, 15)
+			expect(baseInstances(resolved.objects['video'].resolved.instances)).toMatchObject([
+				{ start: 0, end: 40 },
+				{ start: 50, end: 90 },
+				{ start: 100, end: 140 },
+			])
+			expect(baseInstances(resolved.objects['graphic0'].resolved.instances)).toMatchObject([
+				{ start: 20, end: 39 },
+				{ start: 70, end: 89 },
+				{ start: 120, end: 139 },
+			])
+			const state0 = getResolvedState(resolved, 15)
 			expect(state0.layers['1']).toBeFalsy()
 			expect(state0).toMatchObject({
 				layers: {
@@ -244,7 +233,7 @@ describeVariants(
 				],
 			})
 
-			expect(Resolver.getState(resolved, 21).layers).toMatchObject({
+			expect(getResolvedState(resolved, 21).layers).toMatchObject({
 				'0': {
 					id: 'video',
 				},
@@ -252,7 +241,7 @@ describeVariants(
 					id: 'graphic0',
 				},
 			})
-			const state1 = Resolver.getState(resolved, 39)
+			const state1 = getResolvedState(resolved, 39)
 			expect(state1.layers['1']).toBeFalsy()
 			expect(state1).toMatchObject({
 				layers: {
@@ -262,13 +251,13 @@ describeVariants(
 				},
 			})
 
-			expect(Resolver.getState(resolved, 51).layers).toMatchObject({
+			expect(getResolvedState(resolved, 51).layers).toMatchObject({
 				'0': {
 					id: 'video',
 				},
 			})
 
-			expect(Resolver.getState(resolved, 72).layers).toMatchObject({
+			expect(getResolvedState(resolved, 72).layers).toMatchObject({
 				'0': {
 					id: 'video',
 				},
@@ -319,10 +308,9 @@ describeVariants(
 				},
 			])
 
-			const resolved = Resolver.resolveTimeline(timeline, { time: 0, limitTime: 100, cache: getCache() })
+			const resolved = resolveTimeline(timeline, { time: 0, limitTime: 100, cache: getCache() })
 
 			expect(resolved.statistics.resolvedObjectCount).toEqual(4)
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 			expect(resolved.objects['video0']).toBeTruthy()
 			expect(resolved.objects['video1']).toBeTruthy()
@@ -330,21 +318,21 @@ describeVariants(
 			expect(resolved.objects['graphic1']).toBeTruthy()
 
 			expect(resolved.objects['video0'].resolved).toMatchObject({
-				resolved: true,
+				resolvedReferences: true,
 				instances: [
 					{ start: 0, end: 10 },
 					{ start: 50, end: 60 },
 				],
 			})
 			expect(resolved.objects['video1'].resolved).toMatchObject({
-				resolved: true,
+				resolvedReferences: true,
 				instances: [
 					{ start: 25, end: 35 },
 					{ start: 75, end: 85 },
 				],
 			})
 			expect(resolved.objects['graphic0'].resolved).toMatchObject({
-				resolved: true,
+				resolvedReferences: true,
 				instances: [
 					{ start: 0, end: 10 },
 					{ start: 25, end: 35 },
@@ -353,14 +341,14 @@ describeVariants(
 				],
 			})
 			expect(resolved.objects['graphic1'].resolved).toMatchObject({
-				resolved: true,
+				resolvedReferences: true,
 				instances: [
 					{ start: 26, end: 36 },
 					{ start: 76, end: 86 },
 				],
 			})
 
-			const state0 = Resolver.getState(resolved, 5)
+			const state0 = getResolvedState(resolved, 5)
 			expect(state0.layers['2']).toBeFalsy()
 			expect(state0.layers).toMatchObject({
 				'0': {
@@ -370,7 +358,7 @@ describeVariants(
 					id: 'graphic0',
 				},
 			})
-			const state1 = Resolver.getState(resolved, 25)
+			const state1 = getResolvedState(resolved, 25)
 			expect(state1.layers['2']).toBeFalsy()
 			expect(state1.layers).toMatchObject({
 				'0': {
@@ -380,7 +368,7 @@ describeVariants(
 					id: 'graphic0',
 				},
 			})
-			expect(Resolver.getState(resolved, 26).layers).toMatchObject({
+			expect(getResolvedState(resolved, 26).layers).toMatchObject({
 				'0': {
 					id: 'video1',
 				},
@@ -392,7 +380,7 @@ describeVariants(
 				},
 			})
 
-			expect(Resolver.getState(resolved, 76).layers).toMatchObject({
+			expect(getResolvedState(resolved, 76).layers).toMatchObject({
 				'0': {
 					id: 'video1',
 				},
@@ -427,25 +415,33 @@ describeVariants(
 				},
 			])
 
-			const resolved = Resolver.resolveAllStates(
-				Resolver.resolveTimeline(timeline, { time: 0, limitCount: 99, limitTime: 199, cache: getCache() })
-			)
+			const resolved = resolveTimeline(timeline, {
+				time: 0,
+				limitCount: 99,
+				limitTime: 199,
+				cache: getCache(),
+			})
 
 			expect(resolved.statistics.resolvedObjectCount).toEqual(2)
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 			expect(resolved.objects['video0']).toBeTruthy()
 			expect(resolved.objects['video1']).toBeTruthy()
 
+			expect(resolved.objects['video0'].resolved.instances).toMatchObject([
+				{ start: 10, end: 10 },
+				{ start: 30, end: 90 },
+			])
+			expect(resolved.objects['video1'].resolved.instances).toMatchObject([{ start: 10, end: 30 }])
+
 			const instanceIds: { [id: string]: true } = {}
-			_.each(resolved.objects, (obj) => {
-				_.each(obj.resolved.instances, (instance) => {
+			for (const obj of Object.values<ResolvedTimelineObject>(resolved.objects)) {
+				for (const instance of Object.values<TimelineObjectInstance>(obj.resolved.instances)) {
 					expect(instanceIds[instance.id]).toBeFalsy()
 					instanceIds[instance.id] = true
-				})
-			})
+				}
+			}
 
-			expect(_.keys(instanceIds)).toHaveLength(3)
+			expect(Object.keys(instanceIds)).toHaveLength(3)
 		})
 		test('Repeating many', () => {
 			const timeline = fixTimeline([
@@ -461,12 +457,14 @@ describeVariants(
 				},
 			])
 
-			const resolved = Resolver.resolveAllStates(
-				Resolver.resolveTimeline(timeline, { time: 0, limitCount: 100, limitTime: 99999, cache: getCache() })
-			)
+			const resolved = resolveTimeline(timeline, {
+				time: 0,
+				limitCount: 100,
+				limitTime: 99999,
+				cache: getCache(),
+			})
 
 			expect(resolved.statistics.resolvedObjectCount).toEqual(1)
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 			expect(resolved.objects['video0']).toBeTruthy()
 			expect(resolved.objects['video0'].resolved.instances).toHaveLength(100)
@@ -493,12 +491,9 @@ describeVariants(
 				},
 			])
 
-			const resolved = Resolver.resolveAllStates(
-				Resolver.resolveTimeline(timeline, { time: 0, limitCount: 5, cache: getCache() })
-			)
+			const resolved = resolveTimeline(timeline, { time: 0, limitCount: 5, cache: getCache() })
 
 			expect(resolved.statistics.resolvedObjectCount).toEqual(2)
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 			expect(resolved.objects['obj1'].resolved.instances).toMatchObject([
 				{ start: 22, end: 30 },
@@ -536,12 +531,9 @@ describeVariants(
 				},
 			])
 
-			const resolved = Resolver.resolveAllStates(
-				Resolver.resolveTimeline(timeline, { time: 0, limitCount: 5, cache: getCache() })
-			)
+			const resolved = resolveTimeline(timeline, { time: 0, limitCount: 5, cache: getCache() })
 
 			expect(resolved.statistics.resolvedObjectCount).toEqual(2)
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 			expect(resolved.objects['obj1'].resolved.instances).toMatchObject([{ start: 22, end: null }])
 			expect(resolved.objects['obj0'].resolved.instances).toMatchObject([
@@ -563,17 +555,14 @@ describeVariants(
 				},
 			])
 
-			const resolved = Resolver.resolveAllStates(
-				Resolver.resolveTimeline(timeline, { time: 0, limitCount: 10, limitTime: 999, cache: getCache() })
-			)
+			const resolved = resolveTimeline(timeline, { time: 0, limitCount: 10, limitTime: 999, cache: getCache() })
 
 			expect(resolved.statistics.resolvedObjectCount).toEqual(1)
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
 
-			expect(resolved.objects['video0']).toBeTruthy() // TODO - is this one correct?
+			expect(resolved.objects['video0']).toBeTruthy()
 			expect(resolved.objects['video0'].resolved.instances).toHaveLength(1)
 
-			const state = Resolver.getState(resolved, 10, 10)
+			const state = getResolvedState(resolved, 10, 10)
 			expect(state.layers['0']).toBeTruthy()
 			expect(state.layers['0'].id).toEqual('video0')
 		})
@@ -601,12 +590,9 @@ describeVariants(
 				},
 			])
 
-			const resolved = Resolver.resolveAllStates(
-				Resolver.resolveTimeline(timeline, { time: 0, limitCount: 10, limitTime: 999, cache: getCache() })
-			)
+			const resolved = resolveTimeline(timeline, { time: 0, limitCount: 10, limitTime: 999, cache: getCache() })
 
 			expect(resolved.statistics.resolvedObjectCount).toEqual(2)
-			expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 			expect(resolved.objects['video0']).toBeTruthy()
 			expect(resolved.objects['video1']).toBeTruthy()
@@ -654,17 +640,14 @@ describeVariants(
 				timeline.reverse() // change the order
 				expect(timeline.length).toEqual(3)
 
-				const resolved = Resolver.resolveAllStates(
-					Resolver.resolveTimeline(timeline, {
-						time: 0,
-						limitCount: 100,
-						limitTime: 99999,
-						cache: getCache(),
-					})
-				)
+				const resolved = resolveTimeline(timeline, {
+					time: 0,
+					limitCount: 100,
+					limitTime: 99999,
+					cache: getCache(),
+				})
 
 				expect(resolved.statistics.resolvedObjectCount).toEqual(3)
-				expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 				expect(resolved.objects['video0']).toBeTruthy()
 				expect(resolved.objects['video0'].resolved.instances).toMatchObject([
@@ -732,17 +715,14 @@ describeVariants(
 				timeline.reverse() // change the order
 				expect(timeline.length).toEqual(3)
 
-				const resolved = Resolver.resolveAllStates(
-					Resolver.resolveTimeline(timeline, {
-						time: 0,
-						limitCount: 100,
-						limitTime: 99999,
-						cache: getCache(),
-					})
-				)
+				const resolved = resolveTimeline(timeline, {
+					time: 0,
+					limitCount: 100,
+					limitTime: 99999,
+					cache: getCache(),
+				})
 
 				expect(resolved.statistics.resolvedObjectCount).toEqual(3)
-				expect(resolved.statistics.unresolvedCount).toEqual(0)
 
 				expect(resolved.objects['video0']).toBeTruthy()
 				expect(resolved.objects['video0'].resolved.instances).toMatchObject([
@@ -774,45 +754,44 @@ describeVariants(
 			const timeline = fixTimeline([
 				{
 					id: 'a',
-					layer: 'a',
+					layer: 'aLayer',
 					priority: 0,
 					enable: {
 						start: '100', // 100
 						duration: 100, // 200
 					},
 					content: {},
-					classes: ['a'],
+					classes: ['aClass'],
 				},
 				{
 					id: 'b',
-					layer: 'b',
+					layer: 'bLayer',
 					priority: 0,
 					enable: {
 						start: '150', // 200
 						duration: 100, // 300
 					},
 					content: {},
-					classes: ['b'],
+					classes: ['bClass'],
 				},
 				{
-					id: 'test0',
-					layer: 'test0',
+					id: 'ref',
+					layer: 'refLayer',
 					priority: 0,
 					enable: {
-						while: '.a & !.b',
+						while: '.aClass & !.bClass',
 					},
 					content: {},
 				},
 			])
-			const resolved0 = Resolver.resolveTimeline(timeline, {
+			const resolved = resolveTimeline(timeline, {
 				time: 0,
 				limitCount: 10,
 				limitTime: 999,
 				cache: getCache(),
 			})
-			const resolved = Resolver.resolveAllStates(resolved0)
 
-			expect(resolved.objects['test0'].resolved.instances).toMatchObject([{ start: 100, end: 150 }])
+			expect(resolved.objects['ref'].resolved.instances).toMatchObject([{ start: 100, end: 150 }])
 		})
 		test('Continuous combined negated and normal classes on different objects', () => {
 			// https://github.com/SuperFlyTV/supertimeline/pull/57
@@ -874,13 +853,12 @@ describeVariants(
 					classes: ['playout'],
 				},
 			])
-			const resolved0 = Resolver.resolveTimeline(timeline, {
+			const resolved = resolveTimeline(timeline, {
 				time: 0,
 				limitCount: 10,
 				limitTime: 999,
 				cache: getCache(),
 			})
-			const resolved = Resolver.resolveAllStates(resolved0)
 
 			expect(resolved.statistics.resolvedObjectCount).toEqual(4)
 
@@ -892,14 +870,14 @@ describeVariants(
 			expect(resolved.objects['kf0'].resolved.instances).toMatchObject([{ start: 300, end: 400 }])
 
 			// first everything is normal
-			expect(Resolver.getState(resolved, 50).layers).toMatchObject({
+			expect(getResolvedState(resolved, 50).layers).toMatchObject({
 				p0: {
 					content: { val: 1 },
 				},
 			})
 
 			// then we have muted playout
-			expect(Resolver.getState(resolved, 150).layers).toMatchObject({
+			expect(getResolvedState(resolved, 150).layers).toMatchObject({
 				p0: {
 					content: { val: 1 },
 				},
@@ -907,7 +885,7 @@ describeVariants(
 			})
 
 			// then we have muted playout again
-			expect(Resolver.getState(resolved, 250).layers).toMatchObject({
+			expect(getResolvedState(resolved, 250).layers).toMatchObject({
 				p0: {
 					content: { val: 1 },
 				},
@@ -915,13 +893,35 @@ describeVariants(
 			})
 
 			// only then we have unmuted playout
-			expect(Resolver.getState(resolved, 350).layers).toMatchObject({
+			expect(getResolvedState(resolved, 350).layers).toMatchObject({
 				p0: {
 					content: { val: 2 },
 				},
 				'2': { id: 'unmuted_playout1' },
 			})
 		})
+		test('zero length object, basic', () => {
+			const timeline = fixTimeline([
+				{
+					id: 'obj0',
+					layer: 'L1',
+					enable: {
+						start: 10,
+						end: 10,
+					},
+					content: {},
+				},
+			])
+			const resolved = resolveTimeline(timeline, { time: 0, cache: getCache() })
+
+			expect(resolved.objects['obj0'].resolved.instances).toMatchObject([
+				{
+					start: 10,
+					end: 10,
+				},
+			])
+		})
+
 		test('zero length object', () => {
 			const timeline = fixTimeline([
 				{
@@ -951,7 +951,7 @@ describeVariants(
 					content: {},
 				},
 			])
-			const resolved = Resolver.resolveTimeline(timeline, { time: 0, cache: getCache() })
+			const resolved = resolveTimeline(timeline, { time: 0, cache: getCache() })
 
 			expect(resolved.objects['obj0'].resolved.instances).toMatchObject([
 				{
@@ -966,10 +966,50 @@ describeVariants(
 				},
 			])
 
-			const state = Resolver.getState(resolved, 15)
+			const state = getResolvedState(resolved, 15)
 			expect(state.layers.L1).toBeUndefined()
 			expect(state.layers.L2).toMatchObject({ id: 'obj1' })
 			expect(state.layers.L3).toMatchObject({ id: 'obj2' })
+		})
+		test('zero length object interrupts another', () => {
+			const timeline = fixTimeline([
+				{
+					id: 'obj0',
+					layer: 'L1',
+					enable: {
+						start: 10,
+						end: 100,
+					},
+					content: {},
+				},
+				{
+					id: 'zero',
+					layer: 'L1',
+					enable: {
+						start: 50,
+						end: 50,
+					},
+					content: {},
+				},
+			])
+			const resolved = resolveTimeline(timeline, { time: 0, cache: getCache() })
+
+			expect(resolved.objects['obj0'].resolved.instances).toMatchObject([
+				{
+					start: 10,
+					end: 50,
+				},
+				{
+					start: 50,
+					end: 100,
+				},
+			])
+			expect(resolved.objects['zero'].resolved.instances).toMatchObject([
+				{
+					start: 50,
+					end: 50,
+				},
+			])
 		})
 		test('zero length object sandwich', () => {
 			const timeline = fixTimeline([
@@ -1001,8 +1041,8 @@ describeVariants(
 				},
 			])
 
-			const resolved = Resolver.resolveTimeline(timeline, { time: 0, cache: getCache() })
-			const state = Resolver.getState(resolved, 20)
+			const resolved = resolveTimeline(timeline, { time: 0, cache: getCache() })
+			const state = getResolvedState(resolved, 20)
 			expect(state.layers.L3).toMatchObject({ id: 'obj2' })
 			expect(state.layers.L2).toBeUndefined()
 			expect(state.layers.L1).toBeUndefined()
@@ -1020,17 +1060,18 @@ describeVariants(
 				},
 			])
 
-			const resolved = Resolver.resolveTimeline(timeline, { time: 0, cache: getCache() })
+			const resolved = resolveTimeline(timeline, { time: 0, cache: getCache() })
+
 			expect(resolved.objects['obj0'].resolved.instances).toMatchObject([
 				{
 					start: 15,
-					end: 10,
+					end: 15,
 				},
 			])
-			const state0 = Resolver.getState(resolved, 14)
+			const state0 = getResolvedState(resolved, 14)
 			expect(state0.layers.L1).toBeUndefined()
 
-			const state1 = Resolver.getState(resolved, 15)
+			const state1 = getResolvedState(resolved, 15)
 			expect(state1.layers.L1).toBeUndefined()
 		})
 		/* eslint-disable jest/no-commented-out-tests */
@@ -1084,7 +1125,7 @@ describeVariants(
 		// 		}
 		// 	]
 
-		// 	const resolved = Resolver.resolveTimeline(timeline, { time: 0, cache: getCache() })
+		// 	const resolved = resolveTimeline(timeline, { time: 0, cache: getCache() })
 		// 	expect(resolved.objects['obj1'].resolved.instances).toMatchObject([{
 		// 		start: 15,
 		// 		end: 10
@@ -1097,7 +1138,7 @@ describeVariants(
 		// 		start: 15,
 		// 		end: 25
 		// 	}])
-		// 	const state = Resolver.getState(resolved, 20)
+		// 	const state = getResolvedState(resolved, 20)
 		// 	expect(state.layers.L1).toBeUndefined()
 		// 	expect(state.layers.L2).toBeUndefined()
 		// 	expect(state.layers.L3).toMatchObject({ id: 'obj2' })
@@ -1134,7 +1175,7 @@ describeVariants(
 				content: {},
 			}
 			const timeline = fixTimeline([obj0, obj1, obj2])
-			const resolved0 = Resolver.resolveTimeline(timeline, { time: 0, cache: getCache() })
+			const resolved0 = resolveTimeline(timeline, { time: 0, cache: getCache() })
 			expect(resolved0.objects['obj0'].resolved.instances).toMatchObject([{ start: 10, end: 20 }])
 			expect(resolved0.objects['obj1'].resolved.instances).toMatchObject([{ start: 20, end: 30 }])
 			expect(resolved0.objects['obj2'].resolved.instances).toMatchObject([{ start: 30, end: 40 }])
@@ -1144,7 +1185,7 @@ describeVariants(
 			// @ts-ignore
 			obj2.enable.start = 20
 
-			const resolved1 = Resolver.resolveTimeline(timeline, { time: 0, cache: getCache() })
+			const resolved1 = resolveTimeline(timeline, { time: 0, cache: getCache() })
 			expect(resolved1.objects['obj0'].resolved.instances).toMatchObject([{ start: 10, end: 20 }])
 			expect(resolved1.objects['obj1'].resolved.instances).toMatchObject([{ start: 20, end: 20 }])
 			expect(resolved1.objects['obj2'].resolved.instances).toMatchObject([{ start: 20, end: 30 }])
@@ -1153,12 +1194,12 @@ describeVariants(
 			// @ts-ignore
 			obj2.enable.start = 15
 
-			const resolved2 = Resolver.resolveTimeline(timeline, { time: 0, cache: getCache() })
+			const resolved2 = resolveTimeline(timeline, { time: 0, cache: getCache() })
 			expect(resolved2.objects['obj0'].resolved.instances).toMatchObject([{ start: 10, end: 20 }])
-			expect(resolved2.objects['obj1'].resolved.instances).toMatchObject([{ start: 20, end: 15 }])
+			expect(resolved2.objects['obj1'].resolved.instances).toMatchObject([{ start: 20, end: 20 }])
 			expect(resolved2.objects['obj2'].resolved.instances).toMatchObject([{ start: 15, end: 25 }])
 
-			const state2 = Resolver.getState(resolved2, 17)
+			const state2 = getResolvedState(resolved2, 17)
 			expect(state2.layers.L1).toMatchObject({ id: 'obj0' })
 			expect(state2.layers.L2).toBeUndefined()
 			expect(state2.layers.L3).toMatchObject({ id: 'obj2' })
@@ -1199,15 +1240,15 @@ describeVariants(
 
 			const timeline = fixTimeline([enable0, enable1, obj0])
 			{
-				const resolved0 = Resolver.resolveTimeline(timeline, { time: boundary + 50, cache: getCache() })
-				const allStates0 = Resolver.resolveAllStates(resolved0)
-				const state0 = Resolver.getState(allStates0, boundary + 50)
+				const resolved0 = resolveTimeline(timeline, { time: boundary + 50, cache: getCache() })
+
+				const state0 = getResolvedState(resolved0, boundary + 50)
 				expect(state0.layers['layer0'].resolved.instances).toMatchObject([
 					{ start: 10, end: null, originalStart: 10 },
 				])
 				expect(state0.layers['layer0'].instance).toMatchObject(state0.layers['layer0'].resolved.instances[0])
 
-				const state1 = Resolver.getState(resolved0, boundary + 50)
+				const state1 = getResolvedState(resolved0, boundary + 50)
 				expect(state1.layers['layer0'].resolved.instances).toMatchObject([
 					{ start: 10, end: null, originalStart: 10 },
 				])
@@ -1218,15 +1259,15 @@ describeVariants(
 			obj0.enable.end = boundary
 
 			{
-				const resolved0 = Resolver.resolveTimeline(timeline, { time: boundary - 50, cache: getCache() })
-				const allStates0 = Resolver.resolveAllStates(resolved0)
-				const state0 = Resolver.getState(allStates0, boundary + 50)
+				const resolved0 = resolveTimeline(timeline, { time: boundary - 50, cache: getCache() })
+
+				const state0 = getResolvedState(resolved0, boundary + 50)
 				expect(state0.layers['layer0'].resolved.instances).toMatchObject([
 					{ start: 10, end: null, originalStart: 10 },
 				])
 				expect(state0.layers['layer0'].instance).toMatchObject(state0.layers['layer0'].resolved.instances[0])
 
-				const state1 = Resolver.getState(resolved0, boundary + 50)
+				const state1 = getResolvedState(resolved0, boundary + 50)
 				expect(state1.layers['layer0'].resolved.instances).toMatchObject([
 					{ start: 10, end: null, originalStart: 10 },
 				])
@@ -1252,22 +1293,24 @@ describeVariants(
 			}
 			const timeline = fixTimeline([obj0])
 			{
-				const resolved0 = Resolver.resolveTimeline(timeline, { time: 0, cache: getCache() })
-				const allStates0 = Resolver.resolveAllStates(resolved0)
-				expect(allStates0.objects['obj0'].resolved.instances).toMatchObject([
+				const resolved0 = resolveTimeline(timeline, { time: 0, cache: getCache() })
+				expect(resolved0.objects['obj0'].resolved.instances).toMatchObject([
 					{ start: 10, end: 20, originalStart: 10 },
 					{ start: 20, end: 30, originalStart: 20 },
+
 					{ start: 40, end: 50, originalStart: 40 },
+					{ start: 50, end: 50, originalStart: 50 },
 					{ start: 50, end: 51, originalStart: 50 },
+
+					{ start: 60, end: 60, originalStart: 60 },
 					{ start: 60, end: null, originalStart: 60 },
 				])
 			}
 			// Now check when seamless is enabled:
 			obj0.seamless = true
 			{
-				const resolved0 = Resolver.resolveTimeline(timeline, { time: 0, cache: getCache() })
-				const allStates0 = Resolver.resolveAllStates(resolved0)
-				expect(allStates0.objects['obj0'].resolved.instances).toMatchObject([
+				const resolved0 = resolveTimeline(timeline, { time: 0, cache: getCache() })
+				expect(resolved0.objects['obj0'].resolved.instances).toMatchObject([
 					{ start: 10, end: 30, originalStart: 10 },
 					{ start: 40, end: 51, originalStart: 40 },
 					{ start: 60, end: null, originalStart: 60 },
@@ -1292,16 +1335,15 @@ describeVariants(
 				},
 			])
 
-			const resolved0 = Resolver.resolveTimeline(timeline, { time: 0, cache: getCache() })
-			const allStates0 = Resolver.resolveAllStates(resolved0)
-			expect(allStates0).toBeTruthy()
+			const resolved0 = resolveTimeline(timeline, { time: 0, cache: getCache() })
+			expect(resolved0).toBeTruthy()
 		})
 		test('too many start events2', () => {
 			const timeline = fixTimeline([
 				{
 					id: 'a',
 					enable: {
-						while: '!.layer0', // { start: 0, end: 10000000000 }, { start: 10000001000 }
+						while: '!.layer0',
 					},
 					layer: '',
 					content: {},
@@ -1350,12 +1392,310 @@ describeVariants(
 				},
 			] as any)
 
-			const resolved0 = Resolver.resolveTimeline(timeline, {
+			const resolved0 = resolveTimeline(timeline, {
 				time: 0,
 				cache: getCache(),
 			})
-			const allStates0 = Resolver.resolveAllStates(resolved0)
-			expect(allStates0).toBeTruthy()
+			expect(resolved0).toBeTruthy()
+		})
+		test('priorities', () => {
+			const timeline = fixTimeline([
+				{
+					id: 'default',
+					enable: {
+						start: 100,
+					},
+					layer: 'layer1',
+					content: {},
+					// default priority (0)
+				},
+				{
+					id: 'high',
+					enable: {
+						start: 200,
+						end: 500,
+					},
+					layer: 'layer1',
+					content: {},
+					priority: 2,
+				},
+				{
+					id: 'medium',
+					enable: {
+						start: 400,
+						end: 600,
+					},
+					layer: 'layer1',
+					content: {},
+					priority: 1,
+				},
+				{
+					id: 'low',
+					enable: {
+						start: 500,
+						end: 700,
+					},
+					layer: 'layer1',
+					content: {},
+					priority: -1,
+				},
+			] as any)
+
+			const resolved = resolveTimeline(timeline, {
+				time: 0,
+				cache: getCache(),
+			})
+			expect(baseInstances(resolved.objects['default'].resolved.instances)).toMatchObject([
+				{ start: 100, end: 200 }, // interrupted by "high"
+				{ start: 600, end: null },
+			])
+			expect(baseInstances(resolved.objects['high'].resolved.instances)).toMatchObject([
+				{ start: 200, end: 500 }, // has higher prio than everyone else
+			])
+			expect(baseInstances(resolved.objects['medium'].resolved.instances)).toMatchObject([
+				{ start: 500, end: 600 },
+			])
+			expect(baseInstances(resolved.objects['low'].resolved.instances)).toMatchObject([]) // Lower prio than everyone
+		})
+
+		test('ref-while: Keep originalStart', () => {
+			const timeline = fixTimeline([
+				{
+					id: 'A1',
+					layer: 'A',
+					enable: {
+						start: 10,
+						end: 100,
+					},
+					content: {},
+				},
+				{
+					id: 'A2',
+					layer: 'A',
+					enable: {
+						start: 50,
+						end: 60,
+					},
+					content: {},
+				},
+				{
+					id: 'B',
+					layer: 'B',
+					enable: {
+						while: '#A1',
+					},
+					content: {},
+				},
+			])
+			const resolved = resolveTimeline(timeline, { time: 0, cache: getCache() })
+
+			expect(resolved.objects['A1']).toBeTruthy()
+			expect(resolved.objects['A2']).toBeTruthy()
+			expect(resolved.objects['B']).toBeTruthy()
+
+			expect(resolved.objects['A1'].resolved.instances).toMatchObject([
+				{ start: 10, end: 50, originalStart: 10 },
+				{ start: 60, end: 100, originalStart: 10 },
+			])
+			expect(resolved.objects['B'].resolved.instances).toMatchObject([
+				{ start: 10, end: 50, originalStart: 10 },
+				{ start: 60, end: 100, originalStart: 10 }, // Use the referenced originalStart when reference is a 'while'
+			])
+		})
+		test('ref-start: dont keep originalStart', () => {
+			const timeline = fixTimeline([
+				{
+					id: 'A1',
+					layer: 'A',
+					enable: {
+						start: 10,
+						end: 100,
+					},
+					content: {},
+				},
+				{
+					id: 'A2',
+					layer: 'A',
+					enable: {
+						start: 50,
+						end: 60,
+					},
+					content: {},
+				},
+				{
+					id: 'B',
+					layer: 'B',
+					enable: {
+						start: '#A1.start',
+						duration: 10,
+					},
+					content: {},
+				},
+			])
+			const resolved = resolveTimeline(timeline, { time: 0, cache: getCache() })
+
+			expect(resolved.objects['A1']).toBeTruthy()
+			expect(resolved.objects['A2']).toBeTruthy()
+			expect(resolved.objects['B']).toBeTruthy()
+
+			expect(resolved.objects['A1'].resolved.instances).toMatchObject([
+				{ start: 10, end: 50, originalStart: 10 },
+				{ start: 60, end: 100, originalStart: 10 },
+			])
+			expect(resolved.objects['B'].resolved.instances).toMatchObject([
+				{ start: 10, end: 20, originalStart: 10 },
+				{ start: 60, end: 70, originalStart: 60 }, // Don't use the referenced originalStart when reference is a 'start'
+			])
+		})
+		test('Interrupted, keep originalStart', () => {
+			const timeline = fixTimeline([
+				{
+					id: 'A1',
+					layer: 'A',
+					enable: {
+						while: 1,
+					},
+					content: {},
+				},
+				{
+					id: 'A2',
+					layer: 'A',
+					enable: {
+						start: 50,
+						end: 60,
+					},
+					content: {},
+				},
+			])
+			const resolved = resolveTimeline(timeline, { time: 0, cache: getCache() })
+
+			expect(resolved.objects['A1']).toBeTruthy()
+			expect(resolved.objects['A2']).toBeTruthy()
+
+			expect(resolved.objects['A1'].resolved.instances).toMatchObject([
+				{ start: 0, end: 50, originalStart: 0 },
+				{ start: 60, end: null, originalStart: 0 },
+			])
+			expect(resolved.objects['A2'].resolved.instances).toMatchObject([{ start: 50, end: 60, originalStart: 50 }])
+		})
+		test('start', () => {
+			const timeline = fixTimeline([
+				{
+					id: 'A1',
+					layer: '',
+					enable: {
+						start: 1,
+						end: 50,
+					},
+					classes: ['A'],
+					content: {},
+				},
+				{
+					id: 'A2',
+					layer: '',
+					enable: {
+						start: 20,
+						end: 60,
+					},
+					classes: ['A'],
+					content: {},
+				},
+				{
+					id: 'ref',
+					layer: '',
+					enable: {
+						start: '.A.start',
+						end: '.A.end',
+					},
+					content: {},
+				},
+			])
+			const resolved = resolveTimeline(timeline, { time: 0, cache: getCache() })
+
+			expect(resolved.objects['A1']).toBeTruthy()
+			expect(resolved.objects['A2']).toBeTruthy()
+
+			expect(baseInstances(resolved.objects['ref'].resolved.instances)).toMatchObject([{ start: 1, end: 60 }])
+		})
+		test('transparent objects', () => {
+			// "transparent objects" are objects without a layer
+			const timeline = fixTimeline([
+				{
+					id: 'transp0',
+					layer: '',
+					enable: {
+						start: 10,
+						end: 100,
+					},
+					content: {},
+				},
+				{
+					id: 'ref0',
+					layer: 'A',
+					enable: {
+						start: '#transp0.start+1',
+						duration: 10,
+					},
+					content: {},
+				},
+			])
+
+			const resolved = resolveTimeline(timeline, { cache: getCache(), time: 0 })
+
+			expect(resolved.objects['transp0']).toBeTruthy()
+			expect(resolved.objects['ref0']).toBeTruthy()
+
+			expect(resolved.objects['transp0'].resolved.instances).toMatchObject([{ start: 10, end: 100 }])
+			expect(resolved.objects['ref0'].resolved.instances).toMatchObject([{ start: 11, end: 21 }])
+
+			expect(getResolvedState(resolved, 15).layers).toMatchObject({
+				A: {
+					id: 'ref0',
+				},
+			})
+		})
+		test('empty object', () => {
+			const timeline = fixTimeline([
+				{
+					id: 'empty',
+					layer: 'A',
+					enable: [],
+					content: {},
+				},
+				{
+					id: 'emptyObj',
+					layer: 'A',
+					enable: [{}], // Not really valid, so skipping validation
+					content: {},
+				},
+			])
+			const resolved = resolveTimeline(timeline, { cache: getCache(), time: 0, skipValidation: true })
+			expect(resolved.objects['empty']).toBeTruthy()
+			expect(resolved.objects['emptyObj']).toBeTruthy()
+			expect(resolved.objects['empty'].resolved.instances).toMatchObject([])
+			expect(resolved.objects['emptyObj'].resolved.instances).toMatchObject([])
+		})
+		test('skipStatistics', () => {
+			const timeline = fixTimeline([
+				{
+					id: 'A',
+					layer: 'A',
+					enable: [{ start: 10, end: 100 }],
+					content: {},
+				},
+			])
+			const resolved = resolveTimeline(timeline, { cache: getCache(), time: 0, skipStatistics: true })
+			expect(resolved.objects['A']).toBeTruthy()
+
+			expect(resolved.statistics).toEqual({
+				totalCount: 0,
+				resolvedInstanceCount: 0,
+				resolvedObjectCount: 0,
+				resolvedGroupCount: 0,
+				resolvedKeyframeCount: 0,
+				resolvingObjectCount: 0,
+				resolvingCount: 0,
+			})
 		})
 	},
 	{
