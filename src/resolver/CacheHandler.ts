@@ -6,11 +6,27 @@ import { getRefObjectId, isObjectReference, joinReferences } from './lib/referen
 import { objHasLayer } from './lib/timeline'
 
 export class CacheHandler {
+	/** A Persistant store. This object contains data that is persisted between resolves. */
 	private cache: ResolverCache
+
+	private canUseIncomingCache: boolean
 
 	constructor(cache: Partial<ResolverCache>, private resolvedTimeline: ResolvedTimelineHandler) {
 		if (!cache.objHashes) cache.objHashes = {}
 		if (!cache.objects) cache.objects = {}
+
+		if (!cache.canBeUsed) {
+			// Reset the cache:
+			cache.objHashes = {}
+			cache.objects = {}
+
+			this.canUseIncomingCache = false
+		} else {
+			this.canUseIncomingCache = true
+		}
+
+		// cache.canBeUsed will be set in this.persistData()
+		cache.canBeUsed = false
 
 		this.cache = cache as ResolverCache
 	}
@@ -69,7 +85,7 @@ export class CacheHandler {
 				}
 			}
 		}
-		if (this.cache.hasOldData) {
+		if (this.canUseIncomingCache) {
 			// Go through all old hashes, removing the ones that doesn't exist anymore
 			for (const objId in this.cache.objects) {
 				if (!allNewObjects[objId]) {
@@ -148,8 +164,17 @@ export class CacheHandler {
 
 	public persistData(): void {
 		const toc = tic('  cache.persistData')
-		this.cache.objects = mapToObject(this.resolvedTimeline.objectsMap)
-		this.cache.hasOldData = true
+
+		if (this.resolvedTimeline.resolveError) {
+			// If there was a resolve error, clear the cache:
+			this.cache.objHashes = {}
+			this.cache.objects = {}
+			this.cache.canBeUsed = false
+		} else {
+			this.cache.objects = mapToObject(this.resolvedTimeline.objectsMap)
+			this.cache.canBeUsed = true
+		}
+
 		toc()
 	}
 

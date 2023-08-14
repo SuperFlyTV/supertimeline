@@ -45,10 +45,14 @@ export interface ResolveOptions {
 
 	/** Skip generating statistics, this improves performance slightly. */
 	skipStatistics?: boolean
+
+	/** Don't throw when an error (such as circular dependency) occurs. The Error will instead be written to resolvedTimeline.error */
+	dontThrowOnError?: boolean
 }
 export interface ResolverCache<TContent extends Content = Content> {
 	objHashes: { [id: string]: string }
 
 	objects: ResolvedTimelineObjects<TContent>
-	hasOldData?: boolean
+	/** Set to true if the data in the cache can be used */
+	canBeUsed?: boolean
 }

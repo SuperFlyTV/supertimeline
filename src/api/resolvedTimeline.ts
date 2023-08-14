@@ -49,6 +49,8 @@ export interface ResolvedTimeline<TContent extends Content = Content> {
 		 */
 		resolvingCount: number
 	}
+	/** Is set if there was an error during Resolving and options.dontThrowOnError is set. */
+	error?: Error
 }
 export interface ResolvedTimelineObjects<TContent extends Content = Content> {
 	[id: string]: ResolvedTimelineObject<TContent>

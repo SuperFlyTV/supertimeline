@@ -78,6 +78,9 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 	/** Counter that increases during resolving, for every object that might need re-resolving*/
 	private objectResolveCount = 0
 
+	/** Error message, is set when an error is encountered and this.options.dontThrowOnError is set */
+	private _resolveError: Error | undefined = undefined
+
 	constructor(public options: ResolveOptions) {
 		this.expression = new ExpressionHandler(false, this.options.skipValidation)
 		this.instance = new InstanceHandler(this)
@@ -85,6 +88,10 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 
 		this.debug = this.options.debug ?? false
 	}
+	public get resolveError(): Error | undefined {
+		return this._resolveError
+	}
+
 	/** Populate ResolvedTimelineHandler with a timeline-object. */
 	public addTimelineObject(obj: TimelineObject<TContent>): void {
 		this._addTimelineObject(obj, 0, undefined, false)
@@ -123,19 +130,29 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 			// in this.resolveConflictsForObjs() will be detected later:
 			this.resolvedObjInstancesHash.set(obj.id, getInstancesHash(obj.resolved.instances))
 		}
+		if (this._resolveError) return // Abort on error
+
 		// Step 1b: Resolve conflicts for all objects:
 		this.resolveConflictsForObjs(null)
+
+		if (this._resolveError) return // Abort on error
 
 		// Step 2: re-resolve all changed objects, until no more changes are detected:
 		while (this.objectsToReResolve.size > 0) {
 			if (this.objectResolveCount >= objectResolveCountMax) {
-				throw new Error(
+				const error = new Error(
 					`Maximum conflict iteration reached (${
 						this.objectResolveCount
 					}). This is due to a circular dependency in the timeline. Latest changes:\n${this.changedObjIdsExplanations.join(
 						'Next iteration -------------------------\n'
 					)}`
 				)
+				if (this.options.dontThrowOnError) {
+					this._resolveError = error
+					return
+				} else {
+					throw error
+				}
 			}
 
 			/* istanbul ignore if */
@@ -167,6 +184,8 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 					conflictObjectsToResolve.push(obj)
 				}
 			}
+			if (this._resolveError) return // Abort on error
+
 			// Resolve conflicts for objects that depend on previously changed objects:
 			this.resolveConflictsForObjs(conflictObjectsToResolve)
 		}
@@ -181,7 +200,22 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 	 * 2. Collect the resolved instances and calculate the resulting list of resulting instances.
 	 */
 	public resolveTimelineObj(obj: ResolvedTimelineObject): void {
-		if (obj.resolved.resolving) throw new Error(`Circular dependency when trying to resolve "${obj.id}"`)
+		if (obj.resolved.resolving) {
+			// Circular dependency
+
+			const error = Error(`Circular dependency when trying to resolve "${obj.id}"`)
+
+			if (this.options.dontThrowOnError) {
+				this._resolveError = error
+				obj.resolved.firstResolved = true
+				obj.resolved.resolvedReferences = true
+				obj.resolved.resolving = false
+				obj.resolved.instances = []
+				return
+			} else {
+				throw error
+			}
+		}
 		if (obj.resolved.resolvedReferences) return // already resolved
 		const toc = tic('     resolveTimelineObj')
 		obj.resolved.resolving = true

@@ -81,6 +81,8 @@ resolver.run(timeline);`
 			nextEvents: this.nextEvents,
 
 			statistics: this.resolvedTimeline.getStatistics(),
+
+			error: this.resolvedTimeline.resolveError,
 		})
 		toc()
 		return resolvedTimeline

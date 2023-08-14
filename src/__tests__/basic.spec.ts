@@ -1757,6 +1757,30 @@ describeVariants(
 			expect(state.layers['2']).toBeTruthy()
 			expect(state.layers['2'].id).toEqual('video3')
 		})
+
+		test('dontThrowOnError', () => {
+			const timeline = fixTimeline([
+				{
+					id: 'A',
+					layer: 'A',
+					enable: [{ start: '#B', duration: 100 }],
+					content: {},
+				},
+				{
+					id: 'B',
+					layer: 'B',
+					enable: [{ start: '#A', end: 100 }],
+					content: {},
+				},
+			])
+
+			expect(() => {
+				resolveTimeline(timeline, { cache: getCache(), time: 0, dontThrowOnError: false })
+			}).toThrow()
+
+			const resolved = resolveTimeline(timeline, { cache: getCache(), time: 0, dontThrowOnError: true })
+			expect(resolved.error).toBeTruthy()
+		})
 	},
 	{
 		normal: true,
