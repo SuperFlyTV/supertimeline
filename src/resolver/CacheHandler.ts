@@ -13,9 +13,13 @@ export class CacheHandler {
 		if (!cache.objects) cache.objects = {}
 
 		this.cache = cache as ResolverCache
+		if (resolvedTimeline.options.debug) {
+			this.debug = console.log
+		}
 	}
-	private debug(...args: any[]) {
-		if (this.resolvedTimeline.options.debug) console.log(...args)
+
+	private debug(_args: any) {
+		// no-op by default, might get replaced
 	}
 	public determineChangedObjects(): void {
 		const toc = tic('  cache.determineChangedObjects')

@@ -24,9 +24,13 @@ export class LayerStateHandler {
 	) {
 		this.objectsOnLayer = []
 		this.objectIdsOnLayer = this.resolvedTimeline.getLayerObjects(layer)
+		if (resolvedTimeline.options.debug) {
+			this.debug = console.log
+		}
 	}
-	private debug(...args: any[]) {
-		if (this.resolvedTimeline.options.debug) console.log(...args)
+
+	private debug(..._args: any[]) {
+		// no-op by default, might get replaced
 	}
 
 	/** Resolve conflicts between objects on the layer. */
