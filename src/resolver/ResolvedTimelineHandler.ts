@@ -624,27 +624,7 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 				})
 			}
 		}
-		sortEvents(events, (a, b) => {
-			// start event be first:
-			if (a.value && !b.value) return -1
-			if (!a.value && b.value) return 1
-
-			if (a.value) {
-				// start: parents first:
-				if (a.data.isParent && !b.data.isParent) return -1
-				if (!a.data.isParent && b.data.isParent) return 1
-			} else {
-				// end: parents last:
-				if (a.data.isParent && !b.data.isParent) return 1
-				if (!a.data.isParent && b.data.isParent) return -1
-			}
-
-			// parents first:
-			// if (a.data.isParent && !b.data.isParent) return -1
-			// if (!a.data.isParent && b.data.isParent) return 1
-
-			return 0
-		})
+		sortEvents(events, compareEvents)
 
 		const parentActiveInstances: TimelineObjectInstance[] = []
 		const childActiveInstances: TimelineObjectInstance[] = []
@@ -1002,6 +982,32 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 	private debugTrace(...args: any[]) {
 		if (this.debug) console.log(...args)
 	}
+}
+
+function compareEvents<T extends InstanceEvent>(a: T, b: T): number {
+	// start event be first:
+	const aValue = a.value
+	const bValue = b.value
+	if (aValue && !bValue) return -1
+	if (!aValue && bValue) return 1
+
+	const aIsParent = a.data.isParent
+	const bIsParent = b.data.isParent
+	if (aValue) {
+		// start: parents first:
+		if (aIsParent && !bIsParent) return -1
+		if (!aIsParent && bIsParent) return 1
+	} else {
+		// end: parents last:
+		if (aIsParent && !bIsParent) return 1
+		if (!aIsParent && bIsParent) return -1
+	}
+
+	// parents first:
+	// if (a.data.isParent && !b.data.isParent) return -1
+	// if (!a.data.isParent && b.data.isParent) return 1
+
+	return 0
 }
 export interface TimelineObjectKeyframe<TContent extends Content = Content>
 	extends TimelineObject<TContent>,
