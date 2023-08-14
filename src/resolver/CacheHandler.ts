@@ -82,16 +82,13 @@ export class CacheHandler {
 					addChangedObject(obj)
 				}
 			}
+			/** All references that depend on another reference (ie objects, classs or layers): */
+			const affectReferenceMap: { [ref: Reference]: Reference[] } = {}
 			// Invalidate objects, by gradually removing the invalidated ones from validObjects
 			// Prepare validObjects:
 			const validObjects: ResolvedTimelineObjects = {}
 			for (const obj of this.resolvedTimeline.objectsMap.values()) {
 				validObjects[obj.id] = obj
-			}
-			/** All references that depend on another reference (ie objects, classs or layers): */
-			const affectReferenceMap: { [ref: Reference]: Reference[] } = {}
-
-			for (const obj of this.resolvedTimeline.objectsMap.values()) {
 				// Add everything that this object affects:
 				const cachedObj = this.cache.objects[obj.id]
 				let affectedReferences = this.getAllReferencesThisObjectAffects(obj)
@@ -101,8 +98,7 @@ export class CacheHandler {
 						this.getAllReferencesThisObjectAffects(cachedObj)
 					)
 				}
-				for (let i = 0; i < affectedReferences.length; i++) {
-					const ref = affectedReferences[i]
+				for (const ref of affectedReferences) {
 					const objRef: Reference = `#${obj.id}`
 					if (ref !== objRef) {
 						if (!affectReferenceMap[objRef]) affectReferenceMap[objRef] = []
@@ -121,9 +117,7 @@ export class CacheHandler {
 						// Fetch all references for the object from the last time it was resolved.
 						// Note: This can be done, since _if_ the object was changed in any way since last resolve
 						// it'll be invalidated anyway
-						const dependOnReferences = cachedObj.resolved.directReferences
-						for (let i = 0; i < dependOnReferences.length; i++) {
-							const ref = dependOnReferences[i]
+						for (const ref of cachedObj.resolved.directReferences) {
 							if (!affectReferenceMap[ref]) affectReferenceMap[ref] = []
 							affectReferenceMap[ref].push(`#${obj.id}`)
 						}
@@ -195,8 +189,7 @@ export class CacheHandler {
 		// Invalidate all objects that depend on any of the references that this reference affects:
 		const affectedReferences = affectReferenceMap[reference]
 		if (affectedReferences) {
-			for (let i = 0; i < affectedReferences.length; i++) {
-				const referencingReference = affectedReferences[i]
+			for (const referencingReference of affectedReferences) {
 				this.invalidateObjectsWithReference(
 					handledReferences,
 					referencingReference,
@@ -209,24 +202,14 @@ export class CacheHandler {
 }
 /** Return a "hash-string" which changes whenever anything that affects timing of a timeline-object has changed. */
 export function hashTimelineObject(obj: ResolvedTimelineObject): string {
-	const thingsThatMatter: string[] = [
-		JSON.stringify(obj.enable),
-		obj.disabled + '',
-		obj.priority + '',
-		obj.resolved.parentId ?? '',
-		obj.resolved.isKeyframe + '',
-		obj.classes ? obj.classes.join('.') : '',
-		obj.layer + '',
-		obj.seamless + '',
-
-		/*
-		Note: The following properties are ignored, as they don't affect timing or resolving:
-		 * id
-		 * children
-		 * keyframes
-		 * isGroup
-		 * content
-		 */
-	]
-	return thingsThatMatter.join(',')
+	/*
+	Note: The following properties are ignored, as they don't affect timing or resolving:
+	 * id
+	 * children
+	 * keyframes
+	 * isGroup
+	 * content
+	 */
+	return `${JSON.stringify(obj.enable)},${+!!obj.disabled},${obj.priority}',${obj.resolved.parentId},${+obj.resolved
+		.isKeyframe},${obj.classes ? obj.classes.join('.') : ''},${obj.layer},${+!!obj.seamless}`
 }
