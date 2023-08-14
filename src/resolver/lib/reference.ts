@@ -50,7 +50,7 @@ export function joinReferences(references: Reference[], ...addReferences: Array<
 
 	// Fast path: When nothing is added, return the original references:
 	if (addReferences.length === 1 && typeof addReferences[0] !== 'string' && addReferences[0].length === 0) {
-		return [...references]
+		return references.slice()
 	}
 
 	let fastPath = false
@@ -60,10 +60,10 @@ export function joinReferences(references: Reference[], ...addReferences: Array<
 	if (addReferences.length === 1 && typeof addReferences[0] === 'string') {
 		if (references.includes(addReferences[0])) {
 			// The value already exists, return the original references:
-			return [...references]
+			return references.slice()
 		} else {
 			// just quickly add the reference and jump forward to sorting of resultingRefs:
-			resultingRefs = [...references]
+			resultingRefs = references.slice()
 			resultingRefs.push(addReferences[0])
 			fastPath = true
 		}
