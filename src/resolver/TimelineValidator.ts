@@ -182,11 +182,14 @@ export class TimelineValidator {
 	static validateReferenceString(str: string, strict?: boolean): void {
 		if (!str) return
 
-		const matchOperators: string[] = str.match(REGEXP_OPERATORS) ?? []
-		const matchReserved: string[] = str.match(RESERVED_CHARACTERS) ?? []
-		const matchFutureReserved: string[] = (strict && str.match(FUTURE_RESERVED_CHARACTERS)) || []
+		const matchesOperators = REGEXP_OPERATORS.test(str)
+		const matchesReserved = RESERVED_CHARACTERS.test(str)
+		const matchesFutureReserved = strict && FUTURE_RESERVED_CHARACTERS.test(str)
 
-		if (matchOperators.length > 0 || matchReserved.length > 0 || matchFutureReserved.length > 0) {
+		if (matchesOperators || matchesReserved || matchesFutureReserved) {
+			const matchOperators: string[] = str.match(REGEXP_OPERATORS) ?? []
+			const matchReserved: string[] = str.match(RESERVED_CHARACTERS) ?? []
+			const matchFutureReserved: string[] = (strict && str.match(FUTURE_RESERVED_CHARACTERS)) || []
 			throw new Error(
 				`The string "${str}" contains characters which aren't allowed in Timeline: ${[
 					matchOperators.length > 0 && `${matchOperators.map((o) => `"${o}"`).join(', ')} (is an operator)`,
