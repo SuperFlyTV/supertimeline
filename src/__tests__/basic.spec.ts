@@ -1697,6 +1697,66 @@ describeVariants(
 				resolvingCount: 0,
 			})
 		})
+		test('Class state overrides', () => {
+			const timeline = fixTimeline([
+				{
+					id: 'video0',
+					layer: '0',
+					priority: 0,
+					enable: {
+						while: '1',
+					},
+					content: {},
+					classes: ['class0'],
+				},
+				{
+					id: 'video1',
+					layer: '0',
+					priority: 1,
+					enable: {
+						while: '1',
+					},
+					content: {},
+					classes: ['class1'],
+				},
+				{
+					id: 'video2',
+					layer: '1',
+					enable: {
+						while: '.class0',
+					},
+					content: {},
+				},
+				{
+					id: 'video3',
+					layer: '2',
+					enable: {
+						while: '.class1',
+					},
+					content: {},
+				},
+			])
+
+			const resolved = resolveTimeline(timeline, { cache: getCache(), time: 0, skipValidation: true })
+
+			expect(resolved.statistics.resolvedObjectCount).toEqual(4)
+
+			expect(resolved.objects['video0']).toBeTruthy()
+			expect(resolved.objects['video0'].resolved.instances).toHaveLength(1)
+			expect(resolved.objects['video1']).toBeTruthy()
+			expect(resolved.objects['video1'].resolved.instances).toHaveLength(1)
+			expect(resolved.objects['video2']).toBeTruthy()
+			expect(resolved.objects['video2'].resolved.instances).toHaveLength(1)
+			expect(resolved.objects['video3']).toBeTruthy()
+			expect(resolved.objects['video3'].resolved.instances).toHaveLength(1)
+
+			const state = getResolvedState(resolved, 10, 10)
+			expect(state.layers['0']).toBeTruthy()
+			expect(state.layers['0'].id).toEqual('video1')
+			expect(state.layers['1']).toBeFalsy() // class0 is not in the state
+			expect(state.layers['2']).toBeTruthy()
+			expect(state.layers['2'].id).toEqual('video3')
+		})
 	},
 	{
 		normal: true,
