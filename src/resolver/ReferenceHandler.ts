@@ -7,19 +7,11 @@ import { ResolvedTimelineHandler } from './ResolvedTimelineHandler'
 import { InstanceHandler } from './InstanceHandler'
 import { joinCaps } from './lib/cap'
 import { InstanceEvent, sortEvents } from './lib/event'
-import { joinReferences, isReference } from './lib/reference'
+import { joinReferences, isReference, ValueWithReference } from './lib/reference'
 import { isNumericExpr } from './lib/expression'
+import { OperatorFunction, Operator } from './lib/operator'
 
 export type ObjectRefType = 'start' | 'end' | 'duration'
-export interface ValueWithReference {
-	value: number
-	references: Reference[]
-}
-type LookupResult = {
-	result: ReferenceResult
-	allReferences: Reference[]
-}
-type ReferenceResult = TimelineObjectInstance[] | ValueWithReference | null
 
 export class ReferenceHandler {
 	constructor(private resolvedTimeline: ResolvedTimelineHandler, private instance: InstanceHandler) {}
@@ -383,14 +375,13 @@ export class ReferenceHandler {
 
 			return { result: instances, allReferences: allReferences }
 		} else {
-			const operate = Operators.get(lookupExpr.o)
+			const operate = Operator.get(lookupExpr.o)
 
 			const result = this.operateOnArrays(lookupExpr.l, lookupExpr.r, operate)
 			return { result: result, allReferences: allReferences }
 		}
 	}
 }
-type OperatorFunction = (a: ValueWithReference | null, b: ValueWithReference | null) => ValueWithReference | null
 
 /** Helper class that deals with an And ('&') or an Or ('|') expression */
 class ReferenceAndOrCombiner {
@@ -526,70 +517,8 @@ interface SideEvent extends InstanceEvent<boolean> {
 	left: boolean // true = left, false = right side
 	instance: TimelineObjectInstance
 }
-
-/** Helper class for various operators */
-class Operators {
-	static get(operator: '+' | '-' | '*' | '/' | '%'): OperatorFunction {
-		switch (operator) {
-			case '+':
-				return Operators.Add
-			case '-':
-				return Operators.Subtract
-			case '*':
-				return Operators.Multiply
-			case '/':
-				return Operators.Divide
-			case '%':
-				return Operators.Modulo
-			default: {
-				assertNever(operator)
-				return Operators.Null
-			}
-		}
-	}
-
-	private static Add = (a: ValueWithReference | null, b: ValueWithReference | null): ValueWithReference | null => {
-		if (a === null || b === null) return null
-		return {
-			value: a.value + b.value,
-			references: joinReferences(a.references, b.references),
-		}
-	}
-	private static Subtract = (
-		a: ValueWithReference | null,
-		b: ValueWithReference | null
-	): ValueWithReference | null => {
-		if (a === null || b === null) return null
-		return {
-			value: a.value - b.value,
-			references: joinReferences(a.references, b.references),
-		}
-	}
-	private static Multiply = (
-		a: ValueWithReference | null,
-		b: ValueWithReference | null
-	): ValueWithReference | null => {
-		if (a === null || b === null) return null
-		return {
-			value: a.value * b.value,
-			references: joinReferences(a.references, b.references),
-		}
-	}
-	private static Divide = (a: ValueWithReference | null, b: ValueWithReference | null): ValueWithReference | null => {
-		if (a === null || b === null) return null
-		return {
-			value: a.value / b.value,
-			references: joinReferences(a.references, b.references),
-		}
-	}
-	private static Modulo = (a: ValueWithReference | null, b: ValueWithReference | null): ValueWithReference | null => {
-		if (a === null || b === null) return null
-		return {
-			value: a.value % b.value,
-			references: joinReferences(a.references, b.references),
-		}
-	}
-	private static Null = (): ValueWithReference | null => {
-		return null
-	}
+type LookupResult = {
+	result: ReferenceResult
+	allReferences: Reference[]
 }
+type ReferenceResult = TimelineObjectInstance[] | ValueWithReference | null

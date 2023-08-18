@@ -1,12 +1,11 @@
 import { Duration, Time } from '../api'
 import { Cap, TimelineObjectInstance } from '../api/resolvedTimeline'
-import { ValueWithReference } from './ReferenceHandler'
 import { ResolvedTimelineHandler } from './ResolvedTimelineHandler'
 import { addCapsToResuming } from './lib/cap'
 import { EventForInstance, sortEvents, InstanceEvent } from './lib/event'
 import { isInstanceId } from './lib/instance'
 import { last, reduceObj } from './lib/lib'
-import { joinReferences, isReference } from './lib/reference'
+import { joinReferences, isReference, ValueWithReference } from './lib/reference'
 
 export class InstanceHandler {
 	constructor(private resolvedTimeline: ResolvedTimelineHandler) {}

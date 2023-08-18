@@ -1,9 +1,9 @@
 import { ResolvedTimelineObject } from '../../api'
 import { ExpressionHandler } from '../ExpressionHandler'
 import { InstanceHandler } from '../InstanceHandler'
-import { ReferenceHandler, ValueWithReference } from '../ReferenceHandler'
+import { ReferenceHandler } from '../ReferenceHandler'
 import { ResolvedTimelineHandler } from '../ResolvedTimelineHandler'
-import { joinReferences } from '../lib/reference'
+import { ValueWithReference, joinReferences } from '../lib/reference'
 
 const plus = (a: ValueWithReference | null, b: ValueWithReference | null): ValueWithReference | null => {
 	if (a === null || b === null) return null

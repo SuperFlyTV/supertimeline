@@ -7,7 +7,6 @@ import {
 	Reference,
 	TimelineObjectInstance,
 } from '../../api'
-import { ValueWithReference } from '../ReferenceHandler'
 import { compareStrings } from './lib'
 import { tic } from './performance'
 
@@ -102,4 +101,8 @@ export function joinReferences(references: Reference[], ...addReferences: Array<
 
 export function isReference(ref: ValueWithReference | TimelineObjectInstance[] | null): ref is ValueWithReference {
 	return ref !== null && typeof (ref as any).value === 'number'
+}
+export interface ValueWithReference {
+	value: number
+	references: Reference[]
 }

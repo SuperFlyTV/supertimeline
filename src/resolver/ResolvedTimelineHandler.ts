@@ -1,11 +1,12 @@
 import { ExpressionHandler } from './ExpressionHandler'
-import { ObjectRefType, ReferenceHandler, ValueWithReference } from './ReferenceHandler'
+import { ObjectRefType, ReferenceHandler } from './ReferenceHandler'
 import { Expression } from '../api/expression'
 import { ResolvedTimeline, ResolvedTimelineObject, TimelineObjectInstance } from '../api/resolvedTimeline'
 import { Content, TimelineEnable, TimelineKeyframe, TimelineObject } from '../api/timeline'
 import { assertNever, ensureArray, isArray, literal, pushToArray } from './lib/lib'
 import { InstanceHandler } from './InstanceHandler'
 import {
+	ValueWithReference,
 	getRefClass,
 	getRefInstanceId,
 	getRefLayer,
