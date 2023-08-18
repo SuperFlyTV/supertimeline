@@ -90,7 +90,7 @@ export const doPerformanceTest = (
 			useTest = true
 		} catch (e) {
 			errorCount++
-			if (`${e}`.match(/circular/)) {
+			if (/circular/.test(`${e}`)) {
 				// Unable to resolve timeline due to circular references
 				// ignore, we'll just use the next one instead.
 			} else {
