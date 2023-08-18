@@ -1,11 +1,11 @@
-import { activatePerformanceDebugging, ticTocPrint } from '../resolver/lib/performance'
-import { doPerformanceTest, round } from './performance'
+import { ticTocPrint } from '../resolver/lib/performance'
+import { doPerformanceTest, round, setupPerformanceTests } from './performance'
 
 const TIMEOUT_TIME = 10 * 1000
 const TEST_COUNT = 500
 
 beforeAll(() => {
-	activatePerformanceDebugging(false) // set to true to enable performance debugging
+	setupPerformanceTests(false) // set to true to enable performance debugging
 })
 describe('performance', () => {
 	test(

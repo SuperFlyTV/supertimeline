@@ -1,5 +1,3 @@
-import { performance } from 'perf_hooks'
-
 let durations: { [name: string]: number } = {}
 let callCounts: { [name: string]: number } = {}
 
@@ -8,6 +6,22 @@ let firstStartTime = 0
 let active = false
 export function activatePerformanceDebugging(activate: boolean): void {
 	active = activate
+}
+export const performance: {
+	now: (this: void) => number
+} = {
+	now: Date.now,
+}
+/**
+ * This is a little wierd, but we don't want to import performance from 'perf_hooks' directly,
+ * because that will cause issues when this library is used in a browser.
+ * Intended usage:
+ * import { performance } from 'perf_hooks'
+ * setPerformanceTimeFunction(performance.now)
+ * @param now
+ */
+export function setPerformanceTimeFunction(now: () => number): void {
+	performance.now = now
 }
 
 function noop(): void {

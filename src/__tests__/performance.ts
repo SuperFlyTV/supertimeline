@@ -1,7 +1,15 @@
+import { performance } from 'perf_hooks'
 import { generateTimeline } from './timelineGenerator'
 import { ResolveOptions, ResolvedTimeline, TimelineObject } from '../api'
 import { getResolvedState, resolveTimeline } from '..'
 import { sortBy } from '../resolver/lib/lib'
+import { activatePerformanceDebugging, setPerformanceTimeFunction } from '../resolver/lib/performance'
+
+export function setupPerformanceTests(activateDebugging: boolean): void {
+	activatePerformanceDebugging(activateDebugging)
+	// eslint-disable-next-line @typescript-eslint/unbound-method
+	setPerformanceTimeFunction(performance.now)
+}
 
 const startTimer = () => {
 	const startTime = process.hrtime()
