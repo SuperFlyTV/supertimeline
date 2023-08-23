@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [9.0.0](https://github.com/SuperFlyTV/supertimeline/compare/8.3.1...9.0.0) (2023-08-23)
+
+
+### ⚠ BREAKING CHANGES
+
+* BIG REWRITE, see [PR #95](https://github.com/SuperFlyTV/supertimeline/pull/95)
+* Drop support for Node 12
+
+### Features
+
+* add option to skip statistics generation, for improved performance ([3d1582b](https://github.com/SuperFlyTV/supertimeline/commit/3d1582ba183956fb37a5c2cb4809a006b5e2c7c6))
+* BIG REWRITE ([43b54da](https://github.com/SuperFlyTV/supertimeline/commit/43b54dadd805cdefc2ed2afd65c65b5c9763bcbe)), closes [#95](https://github.com/SuperFlyTV/supertimeline/issues/95)
+* Drop support for Node 12 ([91d7e5b](https://github.com/SuperFlyTV/supertimeline/commit/91d7e5b4c3ef64d70794843254633faa74c83e70))
+* export applyKeyframeContent() function ([a288a9e](https://github.com/SuperFlyTV/supertimeline/commit/a288a9eba312669243367eea8087c0ac5514208c))
+
+
+### Bug Fixes
+
+* add option.dontThrowOnError ([f364536](https://github.com/SuperFlyTV/supertimeline/commit/f364536c7a61b9c0952a80efc24e8d819e5e8811))
+* better explanation of what is wrong in reference strings & add unit test "validateReferenceString" ([f3028ce](https://github.com/SuperFlyTV/supertimeline/commit/f3028ce95d44d2805245ae0a7a6e236c434dcd42))
+* improve performance in updateNextEvents ([956aa63](https://github.com/SuperFlyTV/supertimeline/commit/956aa633ab2a9e6a547f6f970e61390155fbbeb2))
+* make the timeline-object.content property generic ([a13df02](https://github.com/SuperFlyTV/supertimeline/commit/a13df02f631669c58e6b92dc72e1010b8e9fa605))
+* refactor: split functionality into separate functions. ([0782b14](https://github.com/SuperFlyTV/supertimeline/commit/0782b14ddefdf07e89edc7446e64888820b5f1f6))
+* remove statistics `unresolvedCount`, rename and add a few other properties ([ab430ae](https://github.com/SuperFlyTV/supertimeline/commit/ab430ae999f0b46839263871efcd7af1dfa82f53))
+* rename `validateIdString` to `validateReferenceString` ([2180e78](https://github.com/SuperFlyTV/supertimeline/commit/2180e78af220a653de07396c35685f76adbe7862))
+* support generic content in functions ([ae6ee49](https://github.com/SuperFlyTV/supertimeline/commit/ae6ee490f362938d37348844733e1cb3bfc06f2d))
+
 ### [8.3.1](https://github.com/SuperFlyTV/supertimeline/compare/8.3.0...8.3.1) (2022-11-01)
 
 
