@@ -35,13 +35,14 @@
 		"unit": "jest --forceExit --detectOpenHandles",
 		"test": "yarn lint && yarn unit",
 		"watch": "jest --watch",
-		"cov": "jest --coverage && yarn open-cli coverage/lcov-report/index.html",
+		"cov": "yarn unit --coverage=true && yarn cov-open",
 		"cov-open": "open-cli coverage/lcov-report/index.html",
 		"docs": "yarn docs:html && open-cli docs/index.html",
 		"docs:test": "yarn docs:html",
 		"docs:html": "typedoc src/index.ts --excludePrivate --theme default --out docs --tsconfig tsconfig.build.json",
 		"docs:json": "typedoc --json docs/typedoc.json src/index.ts --tsconfig tsconfig.build.json",
 		"release": "standard-version",
+		"prerelease": "standard-version --prerelease",
 		"reset": "git clean -dfx && git reset --hard && yarn",
 		"validate:dependencies": "yarn audit --groups dependencies && yarn license-validate",
 		"validate:dev-dependencies": "yarn audit --groups devDependencies",
@@ -66,17 +67,16 @@
 		"/LICENSE"
 	],
 	"devDependencies": {
-		"@sofie-automation/code-standard-preset": "^2.3.1",
-		"@types/jest": "^29.4.0",
-		"@types/node": "^14",
-		"@types/underscore": "^1.11.4",
-		"fast-clone": "^1.5.13",
-		"jest": "^29.4.3",
-		"open-cli": "^7.1.0",
-		"rimraf": "^4.1.2",
+		"@sofie-automation/code-standard-preset": "^2.4.7",
+		"@types/jest": "^29.5.2",
+		"@types/node": "^20",
+		"jest": "^29.6.0",
+		"open-cli": "^7.2.0",
+		"rimraf": "^5.0.1",
 		"standard-version": "^9.5.0",
-		"ts-jest": "^29.0.5",
-		"typedoc": "^0.23.26",
+		"ts-jest": "^29.1.1",
+		"ts-node": "^10.9.1",
+		"typedoc": "^0.24.8",
 		"typescript": "~4.9"
 	},
 	"keywords": [
@@ -87,8 +87,7 @@
 		"source"
 	],
 	"dependencies": {
-		"tslib": "^2.5.0",
-		"underscore": "^1.13.6"
+		"tslib": "^2.6.0"
 	},
 	"standard-version": {
 		"message": "chore(release): %s",

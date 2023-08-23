@@ -1,9 +1,9 @@
 module.exports = {
 	moduleFileExtensions: ['ts', 'js'],
 	transform: {
-		'^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: 'tsconfig.json' }],
+		'^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: 'tsconfig.json', diagnostics: true }],
 	},
-	testMatch: ['**/__tests__/**/*.spec.(ts|js)'],
+	testMatch: ['**/src/**/__tests__/**/*.spec.(ts|js)'],
 	testEnvironment: 'node',
 	coverageThreshold: {
 		global: {
@@ -15,4 +15,10 @@ module.exports = {
 	},
 	coverageDirectory: './coverage/',
 	collectCoverage: false,
+	collectCoverageFrom: [
+		'src/**/*.ts',
+		'!**/__tests__/**',
+		// Ignore, it is only used for performance testing:
+		'!src/resolver/lib/performance.ts',
+	],
 }

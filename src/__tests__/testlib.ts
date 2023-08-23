@@ -1,5 +1,6 @@
 /* eslint-disable jest/no-export, jest/valid-title, jest/expect-expect, jest/no-standalone-expect, jest/no-done-callback */
-import { ResolverCache, TimelineObject } from '../..'
+
+import { ResolverCache, TimelineObject } from '../api'
 
 interface Test {
 	(name: string, fn?: ProvidesCallback, timeout?: number): void
@@ -17,7 +18,7 @@ type ProvidesCallback = (cb: DoneCallback) => void
 
 // export type Test = (testName: string, cb: (cache: any | undefined) => void | Promise<void>) => void
 export type FixTimeline = (timeline: TimelineObject[]) => TimelineObject[]
-export type GetCache = () => ResolverCache | undefined
+export type GetCache = () => Partial<ResolverCache> | undefined
 
 function makeTest(setupTest: (test: jest.It, name: string, fn?: ProvidesCallback, timeout?: number) => void): jest.It {
 	const testFunction: jest.It = (name, fn, timeout) => setupTest(test, name, fn, timeout)
@@ -75,7 +76,7 @@ export function describeVariants(
 		// Run tests with cache:
 		describe(describeName, () => {
 			const c = {
-				cache: {},
+				cache: {} as Partial<ResolverCache>,
 			}
 			let reverse = false
 

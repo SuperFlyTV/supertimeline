@@ -1,6 +1,9 @@
-import { interpretExpression, wrapInnerExpressions, simplifyExpression, validateExpression } from '../expression'
+import { interpretExpression, wrapInnerExpressions, simplifyExpression, validateExpression, onCloseCleanup } from '..'
 
 describe('Expression', () => {
+	afterAll(() => {
+		onCloseCleanup()
+	})
 	test('interpretExpression from string', () => {
 		expect(interpretExpression('42.5')).toEqual(42.5)
 		expect(interpretExpression('+42.5')).toEqual(42.5)
@@ -144,6 +147,20 @@ describe('Expression', () => {
 			o: '+',
 			r: 'asdf',
 		})
+
+		expect(simplifyExpression('42 % 10')).toEqual(2)
+		expect(simplifyExpression('42 % asdf')).toEqual({
+			l: 42,
+			o: '%',
+			r: 'asdf',
+		})
+
+		// &: numbers can't really be combined:
+		expect(simplifyExpression('5 & 1')).toEqual({
+			l: 5,
+			o: '&',
+			r: 1,
+		})
 	})
 	test('validateExpression', () => {
 		expect(validateExpression(['+', '-'], '1+1')).toEqual(true)
@@ -165,5 +182,17 @@ describe('Expression', () => {
 		expect(() => validateExpression(['+', '-'], { l: 1, o: '+', r: { l: 1, o: '+', r: 1 } })).not.toThrow()
 		expect(() => validateExpression(['+', '-'], { l: 1, o: '+', r: { l: 1, o: '*', r: 1 } })).toThrow(/not valid/)
 		expect(() => validateExpression(['+', '-'], { r: 1, o: '+', l: { l: 1, o: '*', r: 1 } })).toThrow(/not valid/)
+	})
+	test('unknown operator', () => {
+		let errString = ''
+		try {
+			interpretExpression('1 _ 2')
+		} catch (e) {
+			errString = `${e}`
+		}
+		expect(errString).toMatch(/operator not found/)
+	})
+	afterAll(() => {
+		onCloseCleanup()
 	})
 })

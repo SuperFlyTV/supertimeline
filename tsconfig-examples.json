@@ -1,16 +1,30 @@
 {
 	"extends": "@sofie-automation/code-standard-preset/ts/tsconfig.lib",
-	"include": ["examples/**/*.ts"],
-	"exclude": ["node_modules/**", "src/**/*.ts", "src/**/__tests__/*", "src/**/__mocks__/*"],
+	"include": [
+		"examples/**/*.ts"
+	],
+	"exclude": [
+		"node_modules/**",
+		"src/**/*.ts",
+		"src/**/__tests__/*",
+		"src/**/__mocks__/*"
+	],
 	"compilerOptions": {
 		"outDir": "./examples",
 		"baseUrl": "./",
 		"paths": {
-			"*": ["./node_modules/*"],
-			"superfly-timeline": ["./src/index.ts"]
+			"*": [
+				"./node_modules/*"
+			],
+			"superfly-timeline": [
+				"./src/index.ts"
+			]
 		},
-		"types": ["node"],
+		"types": [
+			"node"
+		],
 		"sourceMap": false,
-		"declaration": false
+		"declaration": false,
+		"declarationMap": false,
 	}
 }
