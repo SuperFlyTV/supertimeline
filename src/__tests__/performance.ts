@@ -27,6 +27,7 @@ export const round = (num: number): number => {
 
 export const doPerformanceTest = (
 	testCount: number,
+	timeoutTime: number,
 	useCache: boolean
 ): {
 	errorCount: number
@@ -48,8 +49,13 @@ export const doPerformanceTest = (
 
 	const testCountMax = testCount * 2
 
+	const startTime = Date.now()
 	for (let i = 0; i < testCountMax; i++) {
 		if (executionTimeCount >= testCount) break
+		const totalDuration = Date.now() - startTime
+		if (totalDuration >= timeoutTime) {
+			throw new Error(`Tests took too long (${totalDuration}ms)`)
+		}
 
 		seed++
 
