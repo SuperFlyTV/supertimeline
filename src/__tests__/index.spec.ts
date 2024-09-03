@@ -815,6 +815,24 @@ describe('index', () => {
 				],
 				isGroup: true,
 			},
+			{
+				id: 'bg2',
+				enable: {
+					while: '#bg',
+				},
+				layer: 'layerB',
+				content: {},
+				priority: 1,
+			},
+			{
+				id: 'bg3',
+				enable: {
+					while: 1,
+				},
+				layer: 'layerB',
+				content: {},
+				priority: 0,
+			},
 		]
 
 		const timeline1 = clone(timeline0)
@@ -837,13 +855,27 @@ describe('index', () => {
 		// cache and no-cache should render the same result
 		expect(state1NoCache.layers['layerA']).toBeTruthy()
 
-		expect(state1.layers['layerA']).toMatchObject({
-			id: 'bg',
-			instance: {
+		// "bg" should have changed, since that is affected by a collision with "child0"
+		expect(rtl1.objects['bg'].resolved.instances).toMatchObject([
+			{
 				start: 0,
 				end: 15001,
 			},
-		})
+		])
+		// "bg2" should have changed, since that is affected by the change to "bg"
+		expect(rtl1.objects['bg2'].resolved.instances).toMatchObject([
+			{
+				start: 0,
+				end: 15001,
+			},
+		])
+		// "bg3" should have changed, since that is affected by a collision with "bg2"
+		expect(rtl1.objects['bg3'].resolved.instances).toMatchObject([
+			{
+				start: 15001,
+				end: null,
+			},
+		])
 
 		expect(state1.layers['layerA']).toEqual(state1NoCache.layers['layerA'])
 	})
