@@ -2,7 +2,7 @@ import { Reference, ResolvedTimelineObject, ResolvedTimelineObjects, ResolverCac
 import { ResolvedTimelineHandler } from './ResolvedTimelineHandler'
 import { mapToObject } from './lib/lib'
 import { tic } from './lib/performance'
-import { getRefObjectId, isObjectReference, joinReferences } from './lib/reference'
+import { getRefLayer, getRefObjectId, isLayerReference, isObjectReference, joinReferences } from './lib/reference'
 import { objHasLayer } from './lib/timeline'
 
 export class CacheHandler {
@@ -42,6 +42,9 @@ export class CacheHandler {
 			const references = this.getAllReferencesThisObjectAffects(obj)
 			for (const ref of references) {
 				changedReferences[ref] = true
+			}
+			if (objHasLayer(obj)) {
+				changedReferences[`$${obj.layer}`] = true
 			}
 		}
 
@@ -94,14 +97,20 @@ export class CacheHandler {
 					addChangedObject(obj)
 				}
 			}
-			// Invalidate objects, by gradually removing the invalidated ones from validObjects
+			// At this point, all directly changed objects have been marked as changed.
+
+			// Next step is to invalidate any indirectly affected objects, by gradually removing the invalidated ones from validObjects
+
 			// Prepare validObjects:
 			const validObjects: ResolvedTimelineObjects = {}
 			for (const obj of this.resolvedTimeline.objectsMap.values()) {
 				validObjects[obj.id] = obj
 			}
-			/** All references that depend on another reference (ie objects, classs or layers): */
+			/** All references that depend on another reference (ie objects, class or layers): */
 			const affectReferenceMap: { [ref: Reference]: Reference[] } = {}
+
+			/** Map of which objects can be affected by any other object, per layer */
+			const objectLayerMap: { [layer: string]: string[] } = {}
 
 			for (const obj of this.resolvedTimeline.objectsMap.values()) {
 				// Add everything that this object affects:
@@ -124,9 +133,12 @@ export class CacheHandler {
 
 				// Add everything that this object is affected by:
 				if (changedReferences[`#${obj.id}`]) {
-					// The object is directly said to be invalid, no need to add it to referencingObjects,
-					// since it'll be easily invalidated anyway later
+					// The object is directly said to have changed.
+					// (No need to add it to affectReferenceMap, since it'll be easily invalidated anyway later)
 				} else {
+					// The object is not directly said to have changed.
+					// But if might have been affected by other objects that have changed.
+
 					// Note: we only have to check for the OLD object, since if the old and the new object differs,
 					// that would mean it'll be directly invalidated anyway.
 					if (cachedObj) {
@@ -134,6 +146,13 @@ export class CacheHandler {
 						// Note: This can be done, since _if_ the object was changed in any way since last resolve
 						// it'll be invalidated anyway
 						const dependOnReferences = cachedObj.resolved.directReferences
+
+						// Build up objectLayerMap:
+						if (objHasLayer(cachedObj)) {
+							if (!objectLayerMap[cachedObj.layer]) objectLayerMap[cachedObj.layer] = []
+							objectLayerMap[cachedObj.layer].push(obj.id)
+						}
+
 						for (let i = 0; i < dependOnReferences.length; i++) {
 							const ref = dependOnReferences[i]
 							if (!affectReferenceMap[ref]) affectReferenceMap[ref] = []
@@ -142,13 +161,20 @@ export class CacheHandler {
 					}
 				}
 			}
+
 			// Invalidate all changed objects, and recursively invalidate all objects that reference those objects:
 			const handledReferences: { [ref: Reference]: true } = {}
 			for (const reference of Object.keys(changedReferences) as Reference[]) {
-				this.invalidateObjectsWithReference(handledReferences, reference, affectReferenceMap, validObjects)
+				this.invalidateObjectsWithReference(
+					handledReferences,
+					reference,
+					affectReferenceMap,
+					validObjects,
+					objectLayerMap
+				)
 			}
 
-			// The objects that are left in validObjects at this point are still valid.
+			// At this point, the objects that are left in validObjects are still valid (ie has not changed or is affected by any others).
 			// We can reuse the old resolving for those:
 			for (const obj of Object.values<ResolvedTimelineObject>(validObjects)) {
 				if (!this.cache.objects[obj.id])
@@ -201,7 +227,9 @@ export class CacheHandler {
 		handledReferences: { [ref: Reference]: true },
 		reference: Reference,
 		affectReferenceMap: { [ref: Reference]: Reference[] },
-		validObjects: ResolvedTimelineObjects
+		validObjects: ResolvedTimelineObjects,
+		/** Map of which objects can be affected by any other object, per layer */
+		objectLayerMap: { [layer: string]: string[] }
 	) {
 		if (handledReferences[reference]) return // to avoid infinite loops
 		handledReferences[reference] = true
@@ -210,6 +238,20 @@ export class CacheHandler {
 			const objId = getRefObjectId(reference)
 			if (validObjects[objId]) {
 				delete validObjects[objId]
+			}
+		}
+		if (isLayerReference(reference)) {
+			const layer = getRefLayer(reference)
+			if (objectLayerMap[layer]) {
+				for (const affectedObjId of objectLayerMap[layer]) {
+					this.invalidateObjectsWithReference(
+						handledReferences,
+						`#${affectedObjId}`,
+						affectReferenceMap,
+						validObjects,
+						objectLayerMap
+					)
+				}
 			}
 		}
 
@@ -222,7 +264,8 @@ export class CacheHandler {
 					handledReferences,
 					referencingReference,
 					affectReferenceMap,
-					validObjects
+					validObjects,
+					objectLayerMap
 				)
 			}
 		}

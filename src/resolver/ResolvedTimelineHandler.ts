@@ -233,8 +233,7 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 		if (obj.disabled) {
 			resultingInstances = []
 		} else {
-			// Loop up references to the parent:
-
+			// Look up references to the parent:
 			let parentInstances: TimelineObjectInstance[] | null = null
 			let hasParent = false
 			let parentRef: ObjectReference | undefined = undefined
