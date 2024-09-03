@@ -9,6 +9,7 @@ import {
 	applyKeyframeContent,
 } from '../index'
 import { baseInstances } from '../resolver/lib/instance'
+import { clone } from '../resolver/lib/lib'
 
 describe('index', () => {
 	test('resolve timeline', () => {
@@ -782,5 +783,68 @@ describe('index', () => {
 				override: 9,
 			},
 		})
+	})
+
+	test('Cache', () => {
+		const timeline0: TimelineObject[] = [
+			{
+				id: 'bg',
+				enable: {
+					while: 1,
+				},
+				layer: 'layerA',
+				content: {},
+			},
+			{
+				id: 'group0',
+				enable: {
+					start: 10000,
+				},
+				layer: '',
+				content: {},
+				children: [
+					{
+						id: 'child0',
+						enable: {
+							start: 5000, // 15000
+							end: null,
+						},
+						layer: 'layerA',
+						content: {},
+					},
+				],
+				isGroup: true,
+			},
+		]
+
+		const timeline1 = clone(timeline0)
+
+		// Nudge "group0" a little bit, this should cause "child0" to be resolved differently, which in turn affects "bg" via collision
+		timeline1[1].enable = {
+			start: 10001,
+		}
+
+		const cache = {}
+
+		resolveTimeline(timeline0, { cache: cache, time: 0 })
+
+		const rtl1NoCache = resolveTimeline(timeline1, { time: 0 })
+		const rtl1 = resolveTimeline(timeline1, { cache: cache, time: 0 })
+
+		const state1NoCache = getResolvedState(rtl1NoCache, 10)
+		const state1 = getResolvedState(rtl1, 10)
+
+		// cache and no-cache should render the same result
+		expect(state1NoCache.layers['layerA']).toBeTruthy()
+
+		expect(state1.layers['layerA']).toMatchObject({
+			id: 'bg',
+			instance: {
+				start: 0,
+				end: 15001,
+			},
+		})
+
+		expect(state1.layers['layerA']).toEqual(state1NoCache.layers['layerA'])
 	})
 })
