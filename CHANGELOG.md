@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [9.0.1](https://github.com/SuperFlyTV/supertimeline/compare/9.0.0...9.0.1) (2024-09-04)
+
+
+### Bug Fixes
+
+* when using the cache: invalidate objects on layers affected by changes ([26f4e82](https://github.com/SuperFlyTV/supertimeline/commit/26f4e821c29f6de73d80cb97007dc5cc2fd87ece))
+
 ## [9.0.0](https://github.com/SuperFlyTV/supertimeline/compare/8.3.1...9.0.0) (2023-08-23)
 
 
