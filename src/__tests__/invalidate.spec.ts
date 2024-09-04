@@ -55,7 +55,7 @@ describeVariants(
 			graphic1.enable.start = '#graphic0.end + 15' // 35
 
 			const resolved2 = resolveTimeline(timeline, { time: 0, cache })
-			expect(resolved2.statistics.resolvingObjectCount).toEqual(1)
+			expect(resolved2.statistics.resolvingObjectCount).toEqual(2)
 			expect(resolved2.objects['video'].resolved).toMatchObject({ instances: [{ start: 0, end: 100 }] })
 			expect(resolved2.objects['graphic0'].resolved).toMatchObject({ instances: [{ start: 10, end: 20 }] })
 			expect(resolved2.objects['graphic1'].resolved).toMatchObject({ instances: [{ start: 35, end: 50 }] })
@@ -121,7 +121,7 @@ describeVariants(
 
 			const resolved2 = resolveTimeline(timeline, { time: 0, cache })
 
-			expect(resolved2.statistics.resolvingObjectCount).toEqual(2)
+			expect(resolved2.statistics.resolvingObjectCount).toEqual(3)
 			expect(resolved2.objects['video0'].resolved.instances).toMatchObject([{ start: 20, end: 30 }])
 			expect(resolved2.objects['graphic0'].resolved.instances).toMatchObject([{ start: 30, end: 40 }])
 			expect(resolved2.objects['graphic1'].resolved.instances).toHaveLength(0)
@@ -261,7 +261,7 @@ describeVariants(
 			timeline.splice(index, 1)
 
 			const resolved3 = resolveTimeline(timeline, { time: 0, cache })
-			expect(resolved3.statistics.resolvingObjectCount).toEqual(1)
+			expect(resolved3.statistics.resolvingObjectCount).toEqual(2)
 			expect(resolved3.objects['video0'].resolved).toMatchObject({ instances: [{ start: 0, end: 100 }] })
 			expect(resolved3.objects['graphic0'].resolved).toMatchObject({ instances: [{ start: 10, end: 20 }] })
 			expect(resolved3.objects['graphic1'].resolved).toMatchObject({ instances: [{ start: 20, end: 25 }] })

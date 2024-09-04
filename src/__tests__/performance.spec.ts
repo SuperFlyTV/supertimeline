@@ -11,7 +11,7 @@ describe('performance', () => {
 	test(
 		'performance test, no cache',
 		() => {
-			const { sortedTimes, executionTimeAvg } = doPerformanceTest(TEST_COUNT, false)
+			const { sortedTimes, executionTimeAvg } = doPerformanceTest(TEST_COUNT, TIMEOUT_TIME, false)
 			console.log(
 				`No Cache: Average time of execution: ${round(executionTimeAvg)} ms\n` +
 					'Worst 5:\n' +
@@ -29,7 +29,7 @@ describe('performance', () => {
 	test(
 		'performance test, with cache',
 		() => {
-			const { sortedTimes, executionTimeAvg } = doPerformanceTest(TEST_COUNT, true)
+			const { sortedTimes, executionTimeAvg } = doPerformanceTest(TEST_COUNT, TIMEOUT_TIME, true)
 			console.log(
 				`With cache: Average time of execution: ${round(executionTimeAvg)} ms\n` +
 					'Worst 5:\n' +

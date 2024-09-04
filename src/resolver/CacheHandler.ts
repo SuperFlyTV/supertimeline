@@ -2,11 +2,11 @@ import { Reference, ResolvedTimelineObject, ResolvedTimelineObjects, ResolverCac
 import { ResolvedTimelineHandler } from './ResolvedTimelineHandler'
 import { mapToObject } from './lib/lib'
 import { tic } from './lib/performance'
-import { getRefObjectId, isObjectReference, joinReferences } from './lib/reference'
+import { getRefLayer, getRefObjectId, isLayerReference, isObjectReference, joinReferences } from './lib/reference'
 import { objHasLayer } from './lib/timeline'
 
 export class CacheHandler {
-	/** A Persistant store. This object contains data that is persisted between resolves. */
+	/** A Persistent store. This object contains data that is persisted between resolves. */
 	private cache: ResolverCache
 
 	private canUseIncomingCache: boolean
@@ -37,13 +37,8 @@ export class CacheHandler {
 		const toc = tic('  cache.determineChangedObjects')
 		// Go through all new objects, and determine whether they have changed:
 		const allNewObjects: { [objId: string]: true } = {}
-		const changedReferences: { [reference: Reference]: true } = {}
-		const addChangedObject = (obj: ResolvedTimelineObject) => {
-			const references = this.getAllReferencesThisObjectAffects(obj)
-			for (const ref of references) {
-				changedReferences[ref] = true
-			}
-		}
+
+		const changedTracker = new ChangedTracker()
 
 		for (const obj of this.resolvedTimeline.objectsMap.values()) {
 			const oldHash = this.cache.objHashes[obj.id]
@@ -59,10 +54,10 @@ export class CacheHandler {
 				oldHash !== newHash
 			) {
 				this.cache.objHashes[obj.id] = newHash
-				addChangedObject(obj)
+				changedTracker.addChangedObject(obj)
 
 				const oldObj = this.cache.objects[obj.id]
-				if (oldObj) addChangedObject(oldObj)
+				if (oldObj) changedTracker.addChangedObject(oldObj)
 			} else {
 				// No timing-affecting changes detected
 				/* istanbul ignore if */
@@ -91,42 +86,44 @@ export class CacheHandler {
 				if (!allNewObjects[objId]) {
 					const obj = this.cache.objects[objId]
 					delete this.cache.objHashes[objId]
-					addChangedObject(obj)
+					changedTracker.addChangedObject(obj)
 				}
 			}
-			// Invalidate objects, by gradually removing the invalidated ones from validObjects
-			// Prepare validObjects:
-			const validObjects: ResolvedTimelineObjects = {}
+			// At this point, all directly changed objects have been marked as changed.
+
+			// Next step is to invalidate any indirectly affected objects, by gradually removing the invalidated ones from validObjects
+
+			// Prepare the invalidator, ie populate it with the objects that are still valid:
+			const invalidator = new Invalidator()
 			for (const obj of this.resolvedTimeline.objectsMap.values()) {
-				validObjects[obj.id] = obj
+				invalidator.addValidObject(obj)
 			}
-			/** All references that depend on another reference (ie objects, classs or layers): */
-			const affectReferenceMap: { [ref: Reference]: Reference[] } = {}
 
 			for (const obj of this.resolvedTimeline.objectsMap.values()) {
 				// Add everything that this object affects:
 				const cachedObj = this.cache.objects[obj.id]
-				let affectedReferences = this.getAllReferencesThisObjectAffects(obj)
+				let affectedReferences = getAllReferencesThisObjectAffects(obj)
 				if (cachedObj) {
 					affectedReferences = joinReferences(
 						affectedReferences,
-						this.getAllReferencesThisObjectAffects(cachedObj)
+						getAllReferencesThisObjectAffects(cachedObj)
 					)
 				}
 				for (let i = 0; i < affectedReferences.length; i++) {
 					const ref = affectedReferences[i]
 					const objRef: Reference = `#${obj.id}`
 					if (ref !== objRef) {
-						if (!affectReferenceMap[objRef]) affectReferenceMap[objRef] = []
-						affectReferenceMap[objRef].push(ref)
+						invalidator.addAffectedReference(objRef, ref)
 					}
 				}
 
 				// Add everything that this object is affected by:
-				if (changedReferences[`#${obj.id}`]) {
-					// The object is directly said to be invalid, no need to add it to referencingObjects,
-					// since it'll be easily invalidated anyway later
+				if (changedTracker.isChanged(`#${obj.id}`)) {
+					// The object is directly said to have changed.
 				} else {
+					// The object is not directly said to have changed.
+					// But if might have been affected by other objects that have changed.
+
 					// Note: we only have to check for the OLD object, since if the old and the new object differs,
 					// that would mean it'll be directly invalidated anyway.
 					if (cachedObj) {
@@ -134,23 +131,28 @@ export class CacheHandler {
 						// Note: This can be done, since _if_ the object was changed in any way since last resolve
 						// it'll be invalidated anyway
 						const dependOnReferences = cachedObj.resolved.directReferences
+
+						// Build up objectLayerMap:
+						if (objHasLayer(cachedObj)) {
+							invalidator.addObjectOnLayer(`${cachedObj.layer}`, obj)
+						}
+
 						for (let i = 0; i < dependOnReferences.length; i++) {
 							const ref = dependOnReferences[i]
-							if (!affectReferenceMap[ref]) affectReferenceMap[ref] = []
-							affectReferenceMap[ref].push(`#${obj.id}`)
+							invalidator.addAffectedReference(ref, `#${obj.id}`)
 						}
 					}
 				}
 			}
+
 			// Invalidate all changed objects, and recursively invalidate all objects that reference those objects:
-			const handledReferences: { [ref: Reference]: true } = {}
-			for (const reference of Object.keys(changedReferences) as Reference[]) {
-				this.invalidateObjectsWithReference(handledReferences, reference, affectReferenceMap, validObjects)
+			for (const reference of changedTracker.listChanged()) {
+				invalidator.invalidateObjectsWithReference(reference)
 			}
 
-			// The objects that are left in validObjects at this point are still valid.
+			// At this point, the objects that are left in validObjects are still valid (ie has not changed or is affected by any others).
 			// We can reuse the old resolving for those:
-			for (const obj of Object.values<ResolvedTimelineObject>(validObjects)) {
+			for (const obj of invalidator.getValidObjects()) {
 				if (!this.cache.objects[obj.id])
 					/* istanbul ignore next */
 					throw new Error(
@@ -177,56 +179,6 @@ export class CacheHandler {
 
 		toc()
 	}
-
-	private getAllReferencesThisObjectAffects(newObj: ResolvedTimelineObject): Reference[] {
-		const references: Reference[] = [`#${newObj.id}`]
-
-		if (newObj.classes) {
-			for (const className of newObj.classes) {
-				references.push(`.${className}`)
-			}
-		}
-		if (objHasLayer(newObj)) references.push(`$${newObj.layer}`)
-
-		if (newObj.children) {
-			for (const child of newObj.children) {
-				references.push(`#${child.id}`)
-			}
-		}
-		return references
-	}
-
-	/** Invalidate all changed objects, and recursively invalidate all objects that reference those objects */
-	private invalidateObjectsWithReference(
-		handledReferences: { [ref: Reference]: true },
-		reference: Reference,
-		affectReferenceMap: { [ref: Reference]: Reference[] },
-		validObjects: ResolvedTimelineObjects
-	) {
-		if (handledReferences[reference]) return // to avoid infinite loops
-		handledReferences[reference] = true
-
-		if (isObjectReference(reference)) {
-			const objId = getRefObjectId(reference)
-			if (validObjects[objId]) {
-				delete validObjects[objId]
-			}
-		}
-
-		// Invalidate all objects that depend on any of the references that this reference affects:
-		const affectedReferences = affectReferenceMap[reference]
-		if (affectedReferences) {
-			for (let i = 0; i < affectedReferences.length; i++) {
-				const referencingReference = affectedReferences[i]
-				this.invalidateObjectsWithReference(
-					handledReferences,
-					referencingReference,
-					affectReferenceMap,
-					validObjects
-				)
-			}
-		}
-	}
 }
 /** Return a "hash-string" which changes whenever anything that affects timing of a timeline-object has changed. */
 export function hashTimelineObject(obj: ResolvedTimelineObject): string {
@@ -240,4 +192,95 @@ export function hashTimelineObject(obj: ResolvedTimelineObject): string {
 	 */
 	return `${JSON.stringify(obj.enable)},${+!!obj.disabled},${obj.priority}',${obj.resolved.parentId},${+obj.resolved
 		.isKeyframe},${obj.classes ? obj.classes.join('.') : ''},${obj.layer},${+!!obj.seamless}`
+}
+function getAllReferencesThisObjectAffects(newObj: ResolvedTimelineObject): Reference[] {
+	const references: Reference[] = [`#${newObj.id}`]
+
+	if (newObj.classes) {
+		for (const className of newObj.classes) {
+			references.push(`.${className}`)
+		}
+	}
+	if (objHasLayer(newObj)) references.push(`$${newObj.layer}`)
+
+	if (newObj.children) {
+		for (const child of newObj.children) {
+			references.push(`#${child.id}`)
+		}
+	}
+	return references
+}
+class ChangedTracker {
+	private changedReferences = new Set<Reference>()
+
+	public addChangedObject(obj: ResolvedTimelineObject) {
+		const references = getAllReferencesThisObjectAffects(obj)
+		for (const ref of references) {
+			this.changedReferences.add(ref)
+		}
+		if (objHasLayer(obj)) {
+			this.changedReferences.add(`$${obj.layer}`)
+		}
+	}
+	public isChanged(ref: Reference): boolean {
+		return this.changedReferences.has(ref)
+	}
+	public listChanged(): IterableIterator<Reference> {
+		return this.changedReferences.keys()
+	}
+}
+
+/** The Invalidator  */
+class Invalidator {
+	private handledReferences: { [ref: Reference]: true } = {}
+	/** All references that depend on another reference (ie objects, class or layers): */
+	private affectReferenceMap: { [ref: Reference]: Reference[] } = {}
+	private validObjects: ResolvedTimelineObjects = {}
+	/** Map of which objects can be affected by any other object, per layer */
+	private objectLayerMap: { [layer: string]: string[] } = {}
+
+	public addValidObject(obj: ResolvedTimelineObject) {
+		this.validObjects[obj.id] = obj
+	}
+	public getValidObjects(): ResolvedTimelineObject[] {
+		return Object.values<ResolvedTimelineObject>(this.validObjects)
+	}
+	public addObjectOnLayer(layer: string, obj: ResolvedTimelineObject) {
+		if (!this.objectLayerMap[layer]) this.objectLayerMap[layer] = []
+		this.objectLayerMap[layer].push(obj.id)
+	}
+	public addAffectedReference(objRef: Reference, ref: Reference) {
+		if (!this.affectReferenceMap[objRef]) this.affectReferenceMap[objRef] = []
+		this.affectReferenceMap[objRef].push(ref)
+	}
+
+	/** Invalidate all changed objects, and recursively invalidate all objects that reference those objects */
+	public invalidateObjectsWithReference(reference: Reference) {
+		if (this.handledReferences[reference]) return // to avoid infinite loops
+		this.handledReferences[reference] = true
+
+		if (isObjectReference(reference)) {
+			const objId = getRefObjectId(reference)
+			if (this.validObjects[objId]) {
+				delete this.validObjects[objId]
+			}
+		}
+		if (isLayerReference(reference)) {
+			const layer = getRefLayer(reference)
+			if (this.objectLayerMap[layer]) {
+				for (const affectedObjId of this.objectLayerMap[layer]) {
+					this.invalidateObjectsWithReference(`#${affectedObjId}`)
+				}
+			}
+		}
+
+		// Invalidate all objects that depend on any of the references that this reference affects:
+		const affectedReferences = this.affectReferenceMap[reference]
+		if (affectedReferences) {
+			for (let i = 0; i < affectedReferences.length; i++) {
+				const referencingReference = affectedReferences[i]
+				this.invalidateObjectsWithReference(referencingReference)
+			}
+		}
+	}
 }
