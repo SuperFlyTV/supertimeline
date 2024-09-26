@@ -26,9 +26,6 @@ export class LayerStateHandler {
 		this.objectsOnLayer = []
 		this.objectIdsOnLayer = this.resolvedTimeline.getLayerObjects(layer)
 	}
-	private debug(...args: any[]) {
-		if (this.resolvedTimeline.options.debug) console.log(...args)
-	}
 
 	/** Resolve conflicts between objects on the layer. */
 	public resolveConflicts(): void {
@@ -45,6 +42,12 @@ export class LayerStateHandler {
 		for (const objId of this.objectIdsOnLayer) {
 			this.objectsOnLayer.push(this.resolvedTimeline.getObject(objId))
 		}
+		if (this.resolvedTimeline.traceResolving)
+			this.resolvedTimeline.addResolveTrace(
+				`LayerState: Resolve conflicts for layer "${this.layer}", objects: ${this.objectsOnLayer
+					.map((o) => o.id)
+					.join(', ')}`
+			)
 
 		// Fast-path: if there's only one object on the layer, it can't conflict with anything
 		if (this.objectsOnLayer.length === 1) {
@@ -58,8 +61,6 @@ export class LayerStateHandler {
 			}
 			return
 		}
-
-		this.debug(`======= resolveConflicts "${this.layer}" (${this.objectsOnLayer.length} objects)`)
 
 		// Sort to make sure parent groups are evaluated before their children:
 		this.objectsOnLayer.sort(compareObjectsOnLayer)
@@ -109,7 +110,7 @@ export class LayerStateHandler {
 
 		// Iterate through all points-of-interest times:
 		for (const time of times) {
-			this.debug(`-------------- time: ${time}`)
+			const traceConflicts: string[] = []
 
 			/** A set of identifiers for which instance-events have been check at this point in time. Used to avoid looking at the same object twice. */
 			const checkedThisTime = new Set<string>()
@@ -169,10 +170,10 @@ export class LayerStateHandler {
 							// Cap the old instance, so it'll end at this point in time:
 							this.instance.setInstanceEndTime(prevObjInstance.instance, time)
 
-							this.debug(`${prevObjInstance.id} stop`)
-
 							// Update activeObjIds:
 							delete activeObjIds[prevObjInstance.id]
+
+							if (this.resolvedTimeline.traceResolving) traceConflicts.push(`${prevObjInstance.id} stop`)
 						}
 					}
 
@@ -180,8 +181,6 @@ export class LayerStateHandler {
 						// Set the new objectInstance to be the current one:
 
 						const currentObj = instanceOnTopOfLayer.obj
-
-						this.debug(`${currentObj.id} play`)
 
 						const newInstance: TimelineObjectInstance = {
 							...instanceOnTopOfLayer.instance,
@@ -212,12 +211,20 @@ export class LayerStateHandler {
 
 						// Update activeObjIds:
 						activeObjIds[newObjInstance.id] = newObjInstance
+
+						if (this.resolvedTimeline.traceResolving) traceConflicts.push(`${newObjInstance.id} start`)
 					} else if (removeOld) {
 						// Remove from current state:
 						currentState = undefined
+
+						if (this.resolvedTimeline.traceResolving) traceConflicts.push(`-nothing-`)
 					}
 				}
 			}
+			if (this.resolvedTimeline.traceResolving)
+				this.resolvedTimeline.addResolveTrace(
+					`LayerState: Layer "${this.layer}": time: ${time}: ${traceConflicts.join(', ')}`
+				)
 		}
 		// At this point, the instances of all objects are calculated,
 		// taking into account priorities, clashes etc.
@@ -247,8 +254,6 @@ export class LayerStateHandler {
 			}
 		}
 
-		this.debug('==== resolveConflicts done')
-
 		toc()
 	}
 	/** Add an instance and event to a certain point-in-time */
@@ -259,7 +264,6 @@ export class LayerStateHandler {
 		instance: TimelineObjectInstance
 	) {
 		// Note on order: Ending events come before starting events
-		this.debug('addPointInTime', time, instanceEvent, instance)
 
 		if (!this.pointsInTime[time + '']) this.pointsInTime[time + ''] = []
 		this.pointsInTime[time + ''].push({ obj, instance, instanceEvent })

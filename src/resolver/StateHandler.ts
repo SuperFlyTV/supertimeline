@@ -40,8 +40,8 @@ export class StateHandler {
 					/* istanbul ignore if */
 					if (state.layers[`${obj.layer}`]) {
 						// There is already an object on this layer!
-						console.error(state.layers[`${obj.layer}`])
-						console.error(objInstance)
+						console.error(`layer "${obj.layer}": ${JSON.stringify(state.layers[`${obj.layer}`])}`)
+						console.error(`object "${objInstance.id}": ${JSON.stringify(objInstance)}`)
 						throw new Error(`Internal Error: There is already an object on layer "${obj.layer}"!`)
 					}
 

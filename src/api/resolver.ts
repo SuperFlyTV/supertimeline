@@ -38,6 +38,12 @@ export interface ResolveOptions {
 	debug?: boolean
 
 	/**
+	 * If true, will store traces of the resolving into resolvedTimeline.statistics.resolveTrace.
+	 * This decreases performance slightly.
+	 */
+	traceResolving?: boolean
+
+	/**
 	 * Skip timeline validation.
 	 * This improves performance slightly, but will not catch errors in the input timeline so use with caution.
 	 */
@@ -46,7 +52,7 @@ export interface ResolveOptions {
 	/** Skip generating statistics, this improves performance slightly. */
 	skipStatistics?: boolean
 
-	/** Don't throw when an error (such as circular dependency) occurs. The Error will instead be written to resolvedTimeline.error */
+	/** Don't throw when a timeline-error (such as circular dependency) occurs. The Error will instead be written to resolvedTimeline.error */
 	dontThrowOnError?: boolean
 }
 export interface ResolverCache<TContent extends Content = Content> {
