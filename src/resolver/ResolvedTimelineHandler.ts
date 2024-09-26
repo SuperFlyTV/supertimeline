@@ -920,23 +920,37 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 			}
 		}
 	}
-	private getObjectsLayers(objs: IterableIterator<ResolvedTimelineObject> | ResolvedTimelineObject[]): string[] {
-		const layers = new Set<string>()
+	private getLayersForObjects(objs: IterableIterator<ResolvedTimelineObject> | ResolvedTimelineObject[]): string[] {
+		const sortedLayers = this.getAllObjectLayers()
+
+		/** Map of layer and object count */
+		const usedLayers = new Set<string>()
 
 		for (const obj of objs) {
 			if (objHasLayer(obj)) {
-				layers.add(`${obj.layer}`)
+				usedLayers.add(`${obj.layer}`)
 			}
 		}
-
-		return Array.from(layers.values())
+		// Return the layers that are used by the objects, in the correct order:
+		return sortedLayers.filter((layer) => usedLayers.has(layer))
 	}
+	/** Cache of all layers, sorted by object count ASC */
 	private allObjectLayersCache: string[] | undefined
-	/** Returns a list of all object's layers */
+	/**
+	 * Returns a list of all object's layers, sorted by object count ASC
+	 * Note: The order of the layers is important from a performance perspective.
+	 * By feeding layers with a low object count first into this.resolveConflictsForLayer(),
+	 * there is a higher likelihood that a conflict from a low-count layer will affect an object on
+	 * a high-count layer, so it can be skipped in this iteration.
+	 */
 	private getAllObjectLayers(): string[] {
 		if (!this.allObjectLayersCache) {
 			// Cache this, since this won't change:
-			this.allObjectLayersCache = this.getObjectsLayers(this.objectsMap.values())
+
+			// Sort the layers by count ASC:
+			this.allObjectLayersCache = Array.from(this.layersMap.entries())
+				.sort((a, b) => a[1].length - b[1].length)
+				.map(([layer, _count]) => layer)
 		}
 		return this.allObjectLayersCache
 	}
@@ -1069,7 +1083,7 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 		if (objs === null) {
 			layers = this.getAllObjectLayers()
 		} else {
-			layers = this.getObjectsLayers(objs)
+			layers = this.getLayersForObjects(objs)
 		}
 
 		for (const layer of layers) {
