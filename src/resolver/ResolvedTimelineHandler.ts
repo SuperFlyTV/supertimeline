@@ -780,6 +780,108 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 
 		return cappedInstances
 	}
+	public getResolvedTimeline(): ResolvedTimeline<TContent> {
+		return literal<ResolvedTimeline<TContent>>({
+			objects: mapToObject(this.objectsMap),
+			classes: mapToObject(this.classesMap),
+			layers: mapToObject(this.layersMap),
+			nextEvents: this.getNextEvents(),
+
+			statistics: this.getStatistics(),
+
+			error: this.resolveError,
+		})
+	}
+	private getNextEvents(): NextEvent[] {
+		const toc = tic('  getNextEvents')
+		const nextEvents: NextEvent[] = []
+
+		const allObjects: ResolvedTimelineObject[] = []
+		const allKeyframes: ResolvedTimelineObject[] = []
+
+		for (const obj of this.objectsMap.values()) {
+			if (obj.resolved.isKeyframe) {
+				allKeyframes.push(obj)
+			} else {
+				allObjects.push(obj)
+			}
+		}
+
+		/** Used to fast-track in cases where there are no keyframes */
+		const hasKeyframes = allKeyframes.length > 0
+
+		const objectInstanceStartTimes = new Set<string>()
+		const objectInstanceEndTimes = new Set<string>()
+
+		// Go through keyframes last:
+		for (const obj of [...allObjects, ...allKeyframes]) {
+			if (!obj.resolved.isKeyframe) {
+				if (!objHasLayer(obj)) continue // transparent objects are omitted in NextEvents
+			} else if (obj.resolved.parentId !== undefined) {
+				const parentObj = this.getObject(obj.resolved.parentId)
+				if (parentObj) {
+					/* istanbul ignore if */
+					if (!objHasLayer(parentObj)) continue // Keyframes of transparent objects are omitted in NextEvents
+				}
+			}
+
+			for (let i = 0; i < obj.resolved.instances.length; i++) {
+				const instance = obj.resolved.instances[i]
+				if (instance.start > this.options.time && instance.start < (this.options.limitTime ?? Infinity)) {
+					let useThis = true
+
+					if (hasKeyframes) {
+						if (!obj.resolved.isKeyframe) {
+							objectInstanceStartTimes.add(`${obj.id}_${instance.start}`)
+						} else {
+							// No need to put keyframe event if its parent starts at the same time:
+							if (objectInstanceStartTimes.has(`${obj.resolved.parentId}_${instance.start}`)) {
+								useThis = false
+							}
+						}
+					}
+
+					if (useThis) {
+						nextEvents.push({
+							objId: obj.id,
+							type: obj.resolved.isKeyframe ? EventType.KEYFRAME : EventType.START,
+							time: instance.start,
+						})
+					}
+				}
+				if (
+					instance.end !== null &&
+					instance.end > this.options.time &&
+					instance.end < (this.options.limitTime ?? Infinity)
+				) {
+					let useThis = true
+					if (hasKeyframes) {
+						if (!obj.resolved.isKeyframe) {
+							objectInstanceEndTimes.add(`${obj.id}_${instance.end}`)
+						} else {
+							// No need to put keyframe event if its parent ends at the same time:
+							if (objectInstanceEndTimes.has(`${obj.resolved.parentId}_${instance.end}`)) {
+								useThis = false
+							}
+						}
+					}
+
+					if (useThis) {
+						nextEvents.push({
+							objId: obj.id,
+							type: obj.resolved.isKeyframe ? EventType.KEYFRAME : EventType.END,
+							time: instance.end,
+						})
+					}
+				}
+			}
+		}
+		nextEvents.sort(compareNextEvents)
+
+		toc()
+		return nextEvents
+	}
+
 	private updateDirectReferenceMap(obj: ResolvedTimelineObject, directReferences: Reference[]) {
 		obj.resolved.directReferences = directReferences
 
@@ -1080,3 +1182,6 @@ function compareEvents<T extends InstanceEvent>(a: T, b: T): number {
 export interface TimelineObjectKeyframe<TContent extends Content = Content>
 	extends TimelineObject<TContent>,
 		TimelineKeyframe<TContent> {}
+function compareNextEvents(a: NextEvent, b: NextEvent): number {
+	return a.time - b.time || b.type - a.type || compareStrings(a.objId, b.objId)
+}
