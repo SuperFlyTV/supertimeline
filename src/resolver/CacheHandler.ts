@@ -17,8 +17,7 @@ export class CacheHandler {
 
 		if (!cache.canBeUsed) {
 			// Reset the cache:
-			cache.objHashes = {}
-			cache.objects = {}
+			CacheHandler.resetCache(cache)
 
 			this.canUseIncomingCache = false
 		} else {
@@ -207,6 +206,12 @@ export class CacheHandler {
 		}
 
 		toc()
+	}
+	/** Resets / Clears the cache */
+	static resetCache(cache: Partial<ResolverCache>): void {
+		delete cache.canBeUsed
+		cache.objHashes = {}
+		cache.objects = {}
 	}
 }
 /** Return a "hash-string" which changes whenever anything that affects timing of a timeline-object has changed. */

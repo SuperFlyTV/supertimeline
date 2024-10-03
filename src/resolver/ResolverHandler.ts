@@ -91,6 +91,11 @@ export class ResolverHandler<TContent extends Content = Content> {
 			toc()
 			return resolvedTimeline
 		} catch (e) {
+			if (this.options.cache) {
+				// Reset cache, since it might be corrupt.
+				CacheHandler.resetCache(this.options.cache)
+			}
+
 			throw new ResolveError(e, this.resolvedTimeline.getResolvedTimeline())
 		}
 	}
