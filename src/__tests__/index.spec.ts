@@ -7,8 +7,8 @@ import {
 	resolveTimeline,
 	getResolvedState,
 	applyKeyframeContent,
+	ResolveError,
 } from '../index'
-import { ResolveError } from '../resolver/lib/Error'
 import { baseInstances } from '../resolver/lib/instance'
 import { clone } from '../resolver/lib/lib'
 
