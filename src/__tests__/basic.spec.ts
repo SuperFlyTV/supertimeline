@@ -1,6 +1,7 @@
 /* eslint-disable jest/no-standalone-expect */
 
 import { EventType, ResolvedTimelineObject, TimelineObjectInstance, getResolvedState, resolveTimeline } from '..'
+
 import { baseInstances } from '../resolver/lib/instance'
 import { describeVariants } from './testlib'
 
@@ -1695,6 +1696,7 @@ describeVariants(
 				resolvedKeyframeCount: 0,
 				resolvingObjectCount: 0,
 				resolvingCount: 0,
+				resolveTrace: [],
 			})
 		})
 		test('Class state overrides', () => {

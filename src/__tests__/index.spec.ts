@@ -7,6 +7,7 @@ import {
 	resolveTimeline,
 	getResolvedState,
 	applyKeyframeContent,
+	ResolveError,
 } from '../index'
 import { baseInstances } from '../resolver/lib/instance'
 import { clone } from '../resolver/lib/lib'
@@ -878,5 +879,69 @@ describe('index', () => {
 		])
 
 		expect(state1.layers['layerA']).toEqual(state1NoCache.layers['layerA'])
+	})
+	test('traceResolving', () => {
+		const timeline: TimelineObject<any>[] = [
+			{
+				id: 'A',
+				layer: 'L',
+				enable: { start: 100, duration: 1 },
+				content: {},
+				priority: 0,
+			},
+		]
+
+		const resolved = resolveTimeline(timeline, {
+			cache: {},
+			time: 0,
+			traceResolving: true,
+		})
+
+		// Note: The exact content of the trace isn't that important, since it's for troubleshooting purposes
+		expect(resolved.statistics.resolveTrace).toMatchObject([
+			'init',
+			'resolveTimeline start',
+			'timeline object count 1',
+			'objects: 1',
+			'using cache',
+			'cache: init',
+			'cache: canUseIncomingCache: false',
+			'cache: cached objects: []',
+			'cache: object "A" is new',
+			'Resolver: Step 1a',
+			'Resolver: Resolve object "A"',
+			'Resolver: object "A" resolved.instances: [{"id":"@A_0","start":100,"end":101,"references":[]}]',
+			'Resolver: object "A" directReferences: []',
+			'Resolver: Step 1b',
+			'Resolver: Resolve conflicts for layers: ["L"]',
+			'LayerState: Resolve conflicts for layer "L", objects: A',
+			'Resolver: Step 2',
+			'resolveTimeline done!',
+		])
+	})
+	test('thrown errors should be ResolveError', () => {
+		const timeline: TimelineObject<any>[] = [
+			{
+				id: 'A',
+				layer: 'L',
+				enable: { start: 'badexpression((' },
+				content: {},
+				priority: 0,
+			},
+		]
+
+		{
+			let error: any = null
+			try {
+				resolveTimeline(timeline, {
+					time: 0,
+					traceResolving: true,
+				})
+			} catch (e) {
+				error = e
+			}
+			expect(error).toBeInstanceOf(ResolveError)
+			expect(error.resolvedTimeline).toBeTruthy()
+		}
 	})
 })

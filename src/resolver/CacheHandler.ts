@@ -17,21 +17,25 @@ export class CacheHandler {
 
 		if (!cache.canBeUsed) {
 			// Reset the cache:
-			cache.objHashes = {}
-			cache.objects = {}
+			CacheHandler.resetCache(cache)
 
 			this.canUseIncomingCache = false
 		} else {
 			this.canUseIncomingCache = true
 		}
 
+		if (this.resolvedTimeline.traceResolving) {
+			this.resolvedTimeline.addResolveTrace(`cache: init`)
+			this.resolvedTimeline.addResolveTrace(`cache: canUseIncomingCache: ${this.canUseIncomingCache}`)
+			this.resolvedTimeline.addResolveTrace(
+				`cache: cached objects: ${JSON.stringify(Object.keys(cache.objects))}`
+			)
+		}
+
 		// cache.canBeUsed will be set in this.persistData()
 		cache.canBeUsed = false
 
 		this.cache = cache as ResolverCache
-	}
-	private debug(...args: any[]) {
-		if (this.resolvedTimeline.options.debug) console.log(...args)
 	}
 	public determineChangedObjects(): void {
 		const toc = tic('  cache.determineChangedObjects')
@@ -45,8 +49,15 @@ export class CacheHandler {
 			const newHash = hashTimelineObject(obj)
 			allNewObjects[obj.id] = true
 
-			if (!oldHash) this.debug(`Cache: Object "${obj.id}" is new`)
-			else if (oldHash !== newHash) this.debug(`Cache: Object "${obj.id}" has changed`)
+			if (!oldHash) {
+				if (this.resolvedTimeline.traceResolving) {
+					this.resolvedTimeline.addResolveTrace(`cache: object "${obj.id}" is new`)
+				}
+			} else if (oldHash !== newHash) {
+				if (this.resolvedTimeline.traceResolving) {
+					this.resolvedTimeline.addResolveTrace(`cache: object "${obj.id}" has changed`)
+				}
+			}
 			if (
 				// Object is new:
 				!oldHash ||
@@ -61,7 +72,11 @@ export class CacheHandler {
 			} else {
 				// No timing-affecting changes detected
 				/* istanbul ignore if */
-				if (!oldHash) this.debug(`Cache: Object "${obj.id}" is similar`)
+				if (!oldHash) {
+					if (this.resolvedTimeline.traceResolving) {
+						this.resolvedTimeline.addResolveTrace(`cache: object "${obj.id}" is similar`)
+					}
+				}
 
 				// Even though the timeline-properties hasn't changed,
 				// the content (and other properties) might have:
@@ -69,8 +84,8 @@ export class CacheHandler {
 
 				/* istanbul ignore if */
 				if (!oldObj) {
-					console.error('oldHash', oldHash)
-					console.error('ids', Object.keys(this.cache.objects))
+					console.error(`oldHash: "${oldHash}"`)
+					console.error(`ids: ${JSON.stringify(Object.keys(this.cache.objects))}`)
 					throw new Error(`Internal Error: obj "${obj.id}" not found in cache, even though hashes match!`)
 				}
 
@@ -149,15 +164,28 @@ export class CacheHandler {
 			for (const reference of changedTracker.listChanged()) {
 				invalidator.invalidateObjectsWithReference(reference)
 			}
+			if (this.resolvedTimeline.traceResolving) {
+				this.resolvedTimeline.addResolveTrace(
+					`cache: changed references: ${JSON.stringify(Array.from(changedTracker.listChanged()))}`
+				)
+				this.resolvedTimeline.addResolveTrace(
+					`cache: invalidated objects: ${JSON.stringify(Array.from(invalidator.getInValidObjectIds()))}`
+				)
+				this.resolvedTimeline.addResolveTrace(
+					`cache: unchanged objects: ${JSON.stringify(invalidator.getValidObjects().map((o) => o.id))}`
+				)
+			}
 
 			// At this point, the objects that are left in validObjects are still valid (ie has not changed or is affected by any others).
 			// We can reuse the old resolving for those:
 			for (const obj of invalidator.getValidObjects()) {
-				if (!this.cache.objects[obj.id])
+				if (!this.cache.objects[obj.id]) {
 					/* istanbul ignore next */
 					throw new Error(
-						`Something went wrong: "${obj.id}" does not exist in cache.resolvedTimeline.objects`
+						`Internal Error: Something went wrong: "${obj.id}" does not exist in cache.resolvedTimeline.objects`
 					)
+				}
+
 				this.resolvedTimeline.objectsMap.set(obj.id, this.cache.objects[obj.id])
 			}
 		}
@@ -178,6 +206,12 @@ export class CacheHandler {
 		}
 
 		toc()
+	}
+	/** Resets / Clears the cache */
+	static resetCache(cache: Partial<ResolverCache>): void {
+		delete cache.canBeUsed
+		cache.objHashes = {}
+		cache.objects = {}
 	}
 }
 /** Return a "hash-string" which changes whenever anything that affects timing of a timeline-object has changed. */
@@ -210,21 +244,26 @@ function getAllReferencesThisObjectAffects(newObj: ResolvedTimelineObject): Refe
 	}
 	return references
 }
+/**
+ * Keeps track of which timeline object have been changed
+ */
 class ChangedTracker {
 	private changedReferences = new Set<Reference>()
 
+	/**
+	 * Mark an object as "has changed".
+	 * Will store all references that are affected by this object.
+	 */
 	public addChangedObject(obj: ResolvedTimelineObject) {
-		const references = getAllReferencesThisObjectAffects(obj)
-		for (const ref of references) {
+		for (const ref of getAllReferencesThisObjectAffects(obj)) {
 			this.changedReferences.add(ref)
 		}
-		if (objHasLayer(obj)) {
-			this.changedReferences.add(`$${obj.layer}`)
-		}
 	}
+	/** Returns true if a reference has changed */
 	public isChanged(ref: Reference): boolean {
 		return this.changedReferences.has(ref)
 	}
+	/** Returns a list of all changed references */
 	public listChanged(): IterableIterator<Reference> {
 		return this.changedReferences.keys()
 	}
@@ -236,6 +275,7 @@ class Invalidator {
 	/** All references that depend on another reference (ie objects, class or layers): */
 	private affectReferenceMap: { [ref: Reference]: Reference[] } = {}
 	private validObjects: ResolvedTimelineObjects = {}
+	private inValidObjectIds: string[] = []
 	/** Map of which objects can be affected by any other object, per layer */
 	private objectLayerMap: { [layer: string]: string[] } = {}
 
@@ -244,6 +284,9 @@ class Invalidator {
 	}
 	public getValidObjects(): ResolvedTimelineObject[] {
 		return Object.values<ResolvedTimelineObject>(this.validObjects)
+	}
+	public getInValidObjectIds(): string[] {
+		return this.inValidObjectIds
 	}
 	public addObjectOnLayer(layer: string, obj: ResolvedTimelineObject) {
 		if (!this.objectLayerMap[layer]) this.objectLayerMap[layer] = []
@@ -263,6 +306,7 @@ class Invalidator {
 			const objId = getRefObjectId(reference)
 			if (this.validObjects[objId]) {
 				delete this.validObjects[objId]
+				this.inValidObjectIds.push(objId)
 			}
 		}
 		if (isLayerReference(reference)) {

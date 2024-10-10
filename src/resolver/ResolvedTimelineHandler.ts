@@ -1,9 +1,15 @@
 import { ExpressionHandler } from './ExpressionHandler'
 import { ObjectRefType, ReferenceHandler } from './ReferenceHandler'
 import { Expression } from '../api/expression'
-import { ResolvedTimeline, ResolvedTimelineObject, TimelineObjectInstance } from '../api/resolvedTimeline'
+import {
+	EventType,
+	NextEvent,
+	ResolvedTimeline,
+	ResolvedTimelineObject,
+	TimelineObjectInstance,
+} from '../api/resolvedTimeline'
 import { Content, TimelineEnable, TimelineKeyframe, TimelineObject } from '../api/timeline'
-import { assertNever, ensureArray, isArray, literal, pushToArray } from './lib/lib'
+import { assertNever, compareStrings, ensureArray, isArray, literal, mapToObject, pushToArray } from './lib/lib'
 import { InstanceHandler } from './InstanceHandler'
 import {
 	ValueWithReference,
@@ -59,6 +65,8 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 
 	private debug: boolean
 
+	private _resolveTrace: string[] = []
+
 	/**
 	 * A Map of strings (instance hashes) that is used to determine if an objects instances have changed.
 	 * Maps objectId -> instancesHash
@@ -82,12 +90,15 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 	/** Error message, is set when an error is encountered and this.options.dontThrowOnError is set */
 	private _resolveError: Error | undefined = undefined
 
+	public readonly traceResolving: boolean
+
 	constructor(public options: ResolveOptions) {
 		this.expression = new ExpressionHandler(false, this.options.skipValidation)
 		this.instance = new InstanceHandler(this)
 		this.reference = new ReferenceHandler(this, this.instance)
 
 		this.debug = this.options.debug ?? false
+		this.traceResolving = this.options.traceResolving || this.debug
 	}
 	public get resolveError(): Error | undefined {
 		return this._resolveError
@@ -101,7 +112,6 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 	/** Resolve the timeline. */
 	public resolveAllTimelineObjs(): void {
 		const toc = tic('  resolveAllTimelineObjs')
-		this.debugTrace('=================================== resolveAllTimelineObjs')
 
 		// Step 0: Preparations:
 
@@ -124,6 +134,7 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 		*/
 
 		// Step 1a: Resolve all objects:
+		if (this.traceResolving) this.addResolveTrace('Resolver: Step 1a')
 		for (const obj of this.objectsMap.values()) {
 			this.resolveTimelineObj(obj)
 
@@ -134,11 +145,13 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 		if (this._resolveError) return // Abort on error
 
 		// Step 1b: Resolve conflicts for all objects:
+		if (this.traceResolving) this.addResolveTrace('Resolver: Step 1b')
 		this.resolveConflictsForObjs(null)
 
 		if (this._resolveError) return // Abort on error
 
 		// Step 2: re-resolve all changed objects, until no more changes are detected:
+		if (this.traceResolving) this.addResolveTrace('Resolver: Step 2')
 		while (this.objectsToReResolve.size > 0) {
 			if (this.objectResolveCount >= objectResolveCountMax) {
 				const error = new Error(
@@ -156,14 +169,11 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 				}
 			}
 
-			/* istanbul ignore if */
-			if (this.debug) {
-				this.debugTrace(`---------------------------------`)
-				this.debugTrace(`objectsToReResolve: [${Array.from(this.objectsToReResolve.entries())}]`)
-				this.debugTrace(
-					`directReferences: [${Array.from(this.directReferenceMap.entries()).map(
-						([key, value]) => `${key}: [${value}]`
-					)}]`
+			if (this.traceResolving) {
+				this.addResolveTrace(
+					`Resolver: Step 2: objectsToReResolve: ${JSON.stringify(
+						Array.from(this.objectsToReResolve.keys())
+					)}`
 				)
 			}
 
@@ -219,6 +229,7 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 		}
 		if (obj.resolved.resolvedReferences) return // already resolved
 		const toc = tic('     resolveTimelineObj')
+
 		obj.resolved.resolving = true
 
 		this.statisticResolvingCount++
@@ -226,7 +237,8 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 			this.statisticResolvingObjectCount++
 		}
 
-		this.debugTrace(`============ resolving "${obj.id}"`)
+		if (this.traceResolving) this.addResolveTrace(`Resolver: Resolve object "${obj.id}"`)
+
 		const directReferences: Reference[] = []
 		let resultingInstances: TimelineObjectInstance[] = []
 
@@ -553,9 +565,11 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 		obj.resolved.resolving = false
 		obj.resolved.instances = resultingInstances
 
-		if (this.debug) {
-			this.debugTrace(`directReferences "${obj.id}": ${JSON.stringify(directReferences)}`)
-			this.debugTrace(`resolved "${obj.id}": ${JSON.stringify(obj.resolved.instances)}`)
+		if (this.traceResolving) {
+			this.addResolveTrace(
+				`Resolver: object "${obj.id}" resolved.instances: ${JSON.stringify(obj.resolved.instances)}`
+			)
+			this.addResolveTrace(`Resolver: object "${obj.id}" directReferences: ${JSON.stringify(directReferences)}`)
 		}
 
 		// Finally:
@@ -573,6 +587,7 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 				resolvedKeyframeCount: 0,
 				resolvingObjectCount: 0,
 				resolvingCount: 0,
+				resolveTrace: this._resolveTrace,
 			}
 		}
 		const statistics: ResolvedTimeline['statistics'] = {
@@ -584,6 +599,7 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 
 			resolvingObjectCount: this.statisticResolvingObjectCount,
 			resolvingCount: this.statisticResolvingCount,
+			resolveTrace: this._resolveTrace,
 		}
 
 		for (const obj of this.objectsMap.values()) {
@@ -780,6 +796,113 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 
 		return cappedInstances
 	}
+	public addResolveTrace(message: string): void {
+		this._resolveTrace.push(message)
+		if (this.debug) console.log(message)
+	}
+
+	public getResolvedTimeline(): ResolvedTimeline<TContent> {
+		return literal<ResolvedTimeline<TContent>>({
+			objects: mapToObject(this.objectsMap),
+			classes: mapToObject(this.classesMap),
+			layers: mapToObject(this.layersMap),
+			nextEvents: this.getNextEvents(),
+
+			statistics: this.getStatistics(),
+
+			error: this.resolveError,
+		})
+	}
+	private getNextEvents(): NextEvent[] {
+		const toc = tic('  getNextEvents')
+		const nextEvents: NextEvent[] = []
+
+		const allObjects: ResolvedTimelineObject[] = []
+		const allKeyframes: ResolvedTimelineObject[] = []
+
+		for (const obj of this.objectsMap.values()) {
+			if (obj.resolved.isKeyframe) {
+				allKeyframes.push(obj)
+			} else {
+				allObjects.push(obj)
+			}
+		}
+
+		/** Used to fast-track in cases where there are no keyframes */
+		const hasKeyframes = allKeyframes.length > 0
+
+		const objectInstanceStartTimes = new Set<string>()
+		const objectInstanceEndTimes = new Set<string>()
+
+		// Go through keyframes last:
+		for (const obj of [...allObjects, ...allKeyframes]) {
+			if (!obj.resolved.isKeyframe) {
+				if (!objHasLayer(obj)) continue // transparent objects are omitted in NextEvents
+			} else if (obj.resolved.parentId !== undefined) {
+				const parentObj = this.getObject(obj.resolved.parentId)
+				if (parentObj) {
+					/* istanbul ignore if */
+					if (!objHasLayer(parentObj)) continue // Keyframes of transparent objects are omitted in NextEvents
+				}
+			}
+
+			for (let i = 0; i < obj.resolved.instances.length; i++) {
+				const instance = obj.resolved.instances[i]
+				if (instance.start > this.options.time && instance.start < (this.options.limitTime ?? Infinity)) {
+					let useThis = true
+
+					if (hasKeyframes) {
+						if (!obj.resolved.isKeyframe) {
+							objectInstanceStartTimes.add(`${obj.id}_${instance.start}`)
+						} else {
+							// No need to put keyframe event if its parent starts at the same time:
+							if (objectInstanceStartTimes.has(`${obj.resolved.parentId}_${instance.start}`)) {
+								useThis = false
+							}
+						}
+					}
+
+					if (useThis) {
+						nextEvents.push({
+							objId: obj.id,
+							type: obj.resolved.isKeyframe ? EventType.KEYFRAME : EventType.START,
+							time: instance.start,
+						})
+					}
+				}
+				if (
+					instance.end !== null &&
+					instance.end > this.options.time &&
+					instance.end < (this.options.limitTime ?? Infinity)
+				) {
+					let useThis = true
+					if (hasKeyframes) {
+						if (!obj.resolved.isKeyframe) {
+							objectInstanceEndTimes.add(`${obj.id}_${instance.end}`)
+						} else {
+							// No need to put keyframe event if its parent ends at the same time:
+							if (objectInstanceEndTimes.has(`${obj.resolved.parentId}_${instance.end}`)) {
+								useThis = false
+							}
+						}
+					}
+
+					if (useThis) {
+						nextEvents.push({
+							objId: obj.id,
+							type: obj.resolved.isKeyframe ? EventType.KEYFRAME : EventType.END,
+							time: instance.end,
+						})
+					}
+				}
+			}
+		}
+		nextEvents.sort(compareNextEvents)
+
+		toc()
+		return nextEvents
+	}
+
 	private updateDirectReferenceMap(obj: ResolvedTimelineObject, directReferences: Reference[]) {
 		obj.resolved.directReferences = directReferences
 
@@ -818,23 +941,37 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 			}
 		}
 	}
-	private getObjectsLayers(objs: IterableIterator<ResolvedTimelineObject> | ResolvedTimelineObject[]): string[] {
-		const layers = new Set<string>()
+	private getLayersForObjects(objs: IterableIterator<ResolvedTimelineObject> | ResolvedTimelineObject[]): string[] {
+		const sortedLayers = this.getAllObjectLayers()
+
+		/** Map of layer and object count */
+		const usedLayers = new Set<string>()
 
 		for (const obj of objs) {
 			if (objHasLayer(obj)) {
-				layers.add(`${obj.layer}`)
+				usedLayers.add(`${obj.layer}`)
 			}
 		}
-
-		return Array.from(layers.values())
+		// Return the layers that are used by the objects, in the correct order:
+		return sortedLayers.filter((layer) => usedLayers.has(layer))
 	}
+	/** Cache of all layers, sorted by object count ASC */
 	private allObjectLayersCache: string[] | undefined
-	/** Returns a list of all object's layers */
+	/**
+	 * Returns a list of all object's layers, sorted by object count ASC
+	 * Note: The order of the layers is important from a performance perspective.
+	 * By feeding layers with a low object count first into this.resolveConflictsForLayer(),
+	 * there is a higher likelihood that a conflict from a low-count layer will affect an object on
+	 * a high-count layer, so it can be skipped in this iteration.
+	 */
 	private getAllObjectLayers(): string[] {
 		if (!this.allObjectLayersCache) {
 			// Cache this, since this won't change:
-			this.allObjectLayersCache = this.getObjectsLayers(this.objectsMap.values())
+
+			// Sort the layers by count ASC:
+			this.allObjectLayersCache = Array.from(this.layersMap.entries())
+				.sort((a, b) => a[1].length - b[1].length)
+				.map(([layer, _count]) => layer)
 		}
 		return this.allObjectLayersCache
 	}
@@ -860,6 +997,9 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 		}
 	}
 
+	/**
+	 * Add timelineObject or keyframe
+	 */
 	private _addTimelineObject(
 		obj: TimelineObject<TContent>,
 		/** A number that increases the more levels inside of a group the objects is. 0 = no parent */
@@ -967,8 +1107,11 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 		if (objs === null) {
 			layers = this.getAllObjectLayers()
 		} else {
-			layers = this.getObjectsLayers(objs)
+			layers = this.getLayersForObjects(objs)
 		}
+
+		if (this.traceResolving)
+			this.addResolveTrace(`Resolver: Resolve conflicts for layers: ${JSON.stringify(layers)}`)
 
 		for (const layer of layers) {
 			const maybeChangedObjs = this.resolveConflictsForLayer(layer)
@@ -992,7 +1135,10 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 		// Because the objects will likely change during the next resolve-iteration anyway.
 		for (const objId of handler.objectIdsOnLayer) {
 			if (this.objectsToReResolve.has(objId)) {
-				this.debugTrace(`optimization: Skipping "${layer}" since "${objId}" changed`)
+				if (this.traceResolving)
+					this.addResolveTrace(
+						`Resolver: Skipping resolve conflicts for layer "${layer}" since "${objId}" changed`
+					)
 				return []
 			}
 		}
@@ -1025,7 +1171,10 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 				)
 				if (this.changedObjIdsExplanations.length > 2) this.changedObjIdsExplanations.shift()
 
-				this.debugTrace(`changed: ${obj.id}: "${prevHash}" -> "${instancesHash}"`)
+				if (this.traceResolving)
+					this.addResolveTrace(
+						`Resolver: Object ${obj.id} changed from: "${prevHash}", to "${instancesHash}"`
+					)
 				changedObjs.add(obj.id)
 
 				this.resolvedObjInstancesHash.set(obj.id, instancesHash)
@@ -1042,13 +1191,12 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 				// Note: obj.resolved.resolvedConflicts will be set to false later when resolving references
 
 				this.objectsToReResolve.set(obj.id, obj)
+
+				if (this.traceResolving)
+					this.addResolveTrace(`Resolver: Will re-resolve object ${obj.id} due to "${changedObjId}"`)
 			}
 		}
 		toc()
-	}
-
-	private debugTrace(...args: any[]) {
-		if (this.debug) console.log(...args)
 	}
 }
 
@@ -1080,3 +1228,6 @@ function compareEvents<T extends InstanceEvent>(a: T, b: T): number {
 export interface TimelineObjectKeyframe<TContent extends Content = Content>
 	extends TimelineObject<TContent>,
 		TimelineKeyframe<TContent> {}
+function compareNextEvents(a: NextEvent, b: NextEvent): number {
+	return a.time - b.time || b.type - a.type || compareStrings(a.objId, b.objId)
+}

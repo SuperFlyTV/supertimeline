@@ -48,6 +48,9 @@ export interface ResolvedTimeline<TContent extends Content = Content> {
 		 * (is affected when using cache)
 		 */
 		resolvingCount: number
+
+		/** If traceResolving option is enabled, will contain a trace of the steps the resolver did while resolving */
+		resolveTrace: string[]
 	}
 	/** Is set if there was an error during Resolving and options.dontThrowOnError is set. */
 	error?: Error

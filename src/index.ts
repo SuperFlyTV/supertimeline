@@ -11,6 +11,7 @@ import {
 	TimelineObject,
 } from './api'
 export * from './api'
+export { ResolveError } from './resolver/lib/Error'
 
 import { StateHandler } from './resolver/StateHandler'
 import { ExpressionHandler } from './resolver/ExpressionHandler'
