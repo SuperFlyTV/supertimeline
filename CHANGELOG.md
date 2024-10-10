@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [9.0.2](https://github.com/SuperFlyTV/supertimeline/compare/9.0.1...9.0.2) (2024-10-10)
+
+
+### Bug Fixes
+
+* improved tracing of resolver, for better troubleshooting of resolving issues in production ([7e8de97](https://github.com/SuperFlyTV/supertimeline/commit/7e8de97cc2cd00115f12f7b37012ef3eda18aef3))
+* reset cache in case of thrown error during resolve ([fd80f85](https://github.com/SuperFlyTV/supertimeline/commit/fd80f855e577fa2b649b9f564325c4be96f91587))
+* slight performance improvement ([811f0b3](https://github.com/SuperFlyTV/supertimeline/commit/811f0b388766657b9797bdfdf3e79343ccd6396b))
+
 ### [9.0.1](https://github.com/SuperFlyTV/supertimeline/compare/9.0.0...9.0.1) (2024-09-04)
 
 
