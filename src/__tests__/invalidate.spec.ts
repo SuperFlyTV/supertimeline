@@ -1,6 +1,6 @@
 /* eslint-disable jest/no-standalone-expect */
-import { TimelineObject, getResolvedState, resolveTimeline } from '../'
-import { describeVariants } from './testlib'
+import { TimelineObject } from '../'
+import { describeVariants, resolveTimeline, getResolvedState } from './testlib'
 
 function clone<T>(o: T): T {
 	return JSON.parse(JSON.stringify(o))

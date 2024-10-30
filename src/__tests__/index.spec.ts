@@ -4,13 +4,12 @@ import {
 	EventType,
 	validateObject,
 	validateTimeline,
-	resolveTimeline,
-	getResolvedState,
 	applyKeyframeContent,
 	ResolveError,
 } from '../index'
 import { baseInstances } from '../resolver/lib/instance'
 import { clone } from '../resolver/lib/lib'
+import { resolveTimeline, getResolvedState } from './testlib'
 
 describe('index', () => {
 	test('resolve timeline', () => {

@@ -1,6 +1,7 @@
 /* eslint-disable jest/no-export, jest/valid-title, jest/expect-expect, jest/no-standalone-expect, jest/no-done-callback */
 
 import { ResolverCache, TimelineObject } from '../api'
+import * as Timeline from '..'
 
 interface Test {
 	(name: string, fn?: ProvidesCallback, timeout?: number): void
@@ -141,4 +142,21 @@ function reverseTimeline(tl: TimelineObject[]): TimelineObject[] {
 	}
 
 	return tl
+}
+
+/** resolveTimeline, with an extra check that the timeline is serializable */
+export function resolveTimeline(
+	...args: Parameters<typeof Timeline.resolveTimeline>
+): ReturnType<typeof Timeline.resolveTimeline> {
+	const tl = Timeline.resolveTimeline(...args)
+	expect(() => JSON.stringify(tl)).not.toThrow() // test that it's serializable
+	return tl
+}
+/** getResolvedState, with an extra check that the state is serializable */
+export function getResolvedState(
+	...args: Parameters<typeof Timeline.getResolvedState>
+): ReturnType<typeof Timeline.getResolvedState> {
+	const state = Timeline.getResolvedState(...args)
+	expect(() => JSON.stringify(state)).not.toThrow() // test that it's serializable
+	return state
 }

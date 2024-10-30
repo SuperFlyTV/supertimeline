@@ -12,7 +12,7 @@ import {
 	TimelineEnable,
 } from '../api'
 
-import { getResolvedState, resolveTimeline } from '..'
+import { resolveTimeline, getResolvedState } from './testlib'
 import { clone, isEmpty, sortBy } from '../resolver/lib/lib'
 import { baseInstances } from '../resolver/lib/instance'
 

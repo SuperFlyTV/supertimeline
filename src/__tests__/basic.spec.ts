@@ -1,9 +1,9 @@
 /* eslint-disable jest/no-standalone-expect */
 
-import { EventType, ResolvedTimelineObject, TimelineObjectInstance, getResolvedState, resolveTimeline } from '..'
+import { EventType, ResolvedTimelineObject, TimelineObjectInstance } from '..'
 
 import { baseInstances } from '../resolver/lib/instance'
-import { describeVariants } from './testlib'
+import { describeVariants, resolveTimeline, getResolvedState } from './testlib'
 
 describeVariants(
 	'Resolver, basic',
