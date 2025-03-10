@@ -21,7 +21,11 @@ export class LayerStateHandler {
 	constructor(
 		private resolvedTimeline: ResolvedTimelineHandler,
 		private instance: InstanceHandler,
-		private layer: string
+		private layer: string,
+		/**
+		 * Maps an array of object ids to an object id (objects that directly reference an reference).
+		 */
+		private directReferenceMap: Map<string, string[]>
 	) {
 		this.objectsOnLayer = []
 		this.objectIdsOnLayer = this.resolvedTimeline.getLayerObjects(layer)
@@ -291,6 +295,12 @@ export class LayerStateHandler {
 			const difference = (a.instance.end ?? Infinity) - (b.instance.end ?? Infinity)
 			if (difference) return difference
 		}
+
+		// If A references B, A should be handled after B, (B might resolve into a zero-length instance)
+		const aRefObjIds = this.directReferenceMap.get(a.obj.id)
+		if (aRefObjIds?.includes(b.obj.id)) return -1
+		const bRefObjIds = this.directReferenceMap.get(b.obj.id)
+		if (bRefObjIds?.includes(a.obj.id)) return 1
 
 		if (a.obj.resolved && b.obj.resolved) {
 			// Deeper objects (children in groups) comes later, we want to check the parent groups first:

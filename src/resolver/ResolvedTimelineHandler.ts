@@ -1129,7 +1129,7 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 	 * @returns A list of objects on that layer
 	 */
 	private resolveConflictsForLayer(layer: string): ResolvedTimelineObject[] {
-		const handler = new LayerStateHandler(this, this.instance, layer)
+		const handler = new LayerStateHandler(this, this.instance, layer, this.directReferenceMap)
 
 		// Fast path: If an object on this layer depends on an already changed object we should skip this layer, this iteration.
 		// Because the objects will likely change during the next resolve-iteration anyway.
