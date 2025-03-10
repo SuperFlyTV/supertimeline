@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [9.0.3](https://github.com/SuperFlyTV/supertimeline/compare/9.0.2...9.0.3) (2025-03-10)
+
+
+### Bug Fixes
+
+* When resolving conflicts, process objects that are being referenced first. Resolves [#105](https://github.com/SuperFlyTV/supertimeline/issues/105) ([4d5934e](https://github.com/SuperFlyTV/supertimeline/commit/4d5934eeb67e9894f494129021d4ccc3fcae7c36))
+
 ### [9.0.2](https://github.com/SuperFlyTV/supertimeline/compare/9.0.1...9.0.2) (2024-10-10)
 
 
