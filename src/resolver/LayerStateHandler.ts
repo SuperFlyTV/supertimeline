@@ -117,7 +117,7 @@ export class LayerStateHandler {
 
 			/** List of the instances to check at this point in time. */
 			const instancesToCheck: InstanceAtPointInTime[] = this.pointsInTime[time]
-			instancesToCheck.sort(compareInstancesToCheck)
+			instancesToCheck.sort(this.compareInstancesToCheck)
 
 			for (let j = 0; j < instancesToCheck.length; j++) {
 				const o = instancesToCheck[j]
@@ -268,6 +268,39 @@ export class LayerStateHandler {
 		if (!this.pointsInTime[time + '']) this.pointsInTime[time + ''] = []
 		this.pointsInTime[time + ''].push({ obj, instance, instanceEvent })
 	}
+	private compareInstancesToCheck = (a: InstanceAtPointInTime, b: InstanceAtPointInTime) => {
+		// Note: we assume that there are no keyframes here. (if there where, they would be sorted first)
+
+		if (
+			a.instance.id === b.instance.id &&
+			a.instance.start === b.instance.start &&
+			a.instance.end === b.instance.end
+		) {
+			// A & B are the same instance, it is a zero-length instance!
+			// In this case, put the start before the end:
+			if (a.instanceEvent === 'start' && b.instanceEvent === 'end') return -1
+			if (a.instanceEvent === 'end' && b.instanceEvent === 'start') return 1
+		}
+
+		// Handle ending instances first:
+		if (a.instanceEvent === 'start' && b.instanceEvent === 'end') return 1
+		if (a.instanceEvent === 'end' && b.instanceEvent === 'start') return -1
+
+		if (a.instance.start === a.instance.end || b.instance.start === b.instance.end) {
+			// Put later-ending instances last (in the case of zero-length vs non-zero-length instance):
+			const difference = (a.instance.end ?? Infinity) - (b.instance.end ?? Infinity)
+			if (difference) return difference
+		}
+
+		if (a.obj.resolved && b.obj.resolved) {
+			// Deeper objects (children in groups) comes later, we want to check the parent groups first:
+			const difference = a.obj.resolved.levelDeep - b.obj.resolved.levelDeep
+			if (difference) return difference
+		}
+
+		// Last resort, sort by id to make it deterministic:
+		return compareStrings(a.obj.id, b.obj.id) || compareStrings(a.instance.id, b.instance.id)
+	}
 }
 export interface TimeEvent {
 	time: number
@@ -290,36 +323,6 @@ interface AspiringInstance {
 function compareObjectsOnLayer(a: ResolvedTimelineObject, b: ResolvedTimelineObject) {
 	// Sort to make sure parent groups are evaluated before their children:
 	return a.resolved.levelDeep - b.resolved.levelDeep || compareStrings(a.id, b.id)
-}
-
-function compareInstancesToCheck(a: InstanceAtPointInTime, b: InstanceAtPointInTime) {
-	// Note: we assume that there are no keyframes here. (if there where, they would be sorted first)
-
-	if (a.instance.id === b.instance.id && a.instance.start === b.instance.start && a.instance.end === b.instance.end) {
-		// A & B are the same instance, it is a zero-length instance!
-		// In this case, put the start before the end:
-		if (a.instanceEvent === 'start' && b.instanceEvent === 'end') return -1
-		if (a.instanceEvent === 'end' && b.instanceEvent === 'start') return 1
-	}
-
-	// Handle ending instances first:
-	if (a.instanceEvent === 'start' && b.instanceEvent === 'end') return 1
-	if (a.instanceEvent === 'end' && b.instanceEvent === 'start') return -1
-
-	if (a.instance.start === a.instance.end || b.instance.start === b.instance.end) {
-		// Put later-ending instances last (in the case of zero-length vs non-zero-length instance):
-		const difference = (a.instance.end ?? Infinity) - (b.instance.end ?? Infinity)
-		if (difference) return difference
-	}
-
-	if (a.obj.resolved && b.obj.resolved) {
-		// Deeper objects (children in groups) comes later, we want to check the parent groups first:
-		const difference = a.obj.resolved.levelDeep - b.obj.resolved.levelDeep
-		if (difference) return difference
-	}
-
-	// Last resort, sort by id to make it deterministic:
-	return compareStrings(a.obj.id, b.obj.id) || compareStrings(a.instance.id, b.instance.id)
 }
 
 const removeFromAspiringInstances = (aspiringInstances: AspiringInstance[], objId: string): AspiringInstance[] => {
