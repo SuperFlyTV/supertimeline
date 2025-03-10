@@ -353,3 +353,20 @@ This is for readability only, you may use whatever time-base you like (like mill
 See [CHANGELOG.md](./CHANGELOG.md)
 
 For notes on breaking changes, see [MIGRATION.md](./MIGRATION.md)
+
+# For developers
+
+## Developing
+
+```bash
+corepack enable
+yarn
+yarn build
+yarn test
+```
+
+## Do a release
+
+- `yarn release:release`
+- Push the commit and tag.
+- GitHub Actions will publish the package to npm.
