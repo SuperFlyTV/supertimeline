@@ -1617,6 +1617,45 @@ describeVariants(
 				},
 			])
 		})
+
+		test('Referencing and replacing a same-layer child of a group from the outside', () => {
+			const timeline = fixTimeline([
+				{
+					id: 'group',
+					enable: { start: 1000 },
+					priority: 0,
+					layer: '',
+					content: {},
+					children: [
+						{
+							id: 'obj_inside',
+							enable: { start: 0 },
+							layer: 'L1',
+							content: { value: 'wrong' },
+							priority: 0,
+						},
+					],
+					isGroup: true,
+				},
+				{
+					id: 'obj_outside',
+					enable: { start: '#obj_inside.start' },
+					layer: 'L1',
+					content: { value: 'right' },
+					priority: 1,
+				},
+			])
+			const time = 1000
+			const resolved = resolveTimeline(timeline, { time, cache: getCache() })
+
+			const state0 = getResolvedState(resolved, time)
+			expect(state0.time).toEqual(time)
+			expect(state0.layers).toMatchObject({
+				L1: {
+					content: { value: 'right' },
+				},
+			})
+		})
 	},
 	{
 		normal: true,

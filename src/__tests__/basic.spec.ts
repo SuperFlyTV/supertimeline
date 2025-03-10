@@ -1783,6 +1783,77 @@ describeVariants(
 			const resolved = resolveTimeline(timeline, { cache: getCache(), time: 0, dontThrowOnError: true })
 			expect(resolved.error).toBeTruthy()
 		})
+		test('Object that start at the same time as another', () => {
+			// An object that start at the same time as another should behave as expected
+			//
+			const timeline = fixTimeline([
+				{
+					id: 'A',
+					enable: { start: 1000 }, // 1000
+					layer: 'L1',
+					content: { value: 'replaced' },
+					priority: 0,
+				},
+				{
+					id: 'B',
+					enable: { start: '#A.start' }, // 1000
+					layer: 'L1',
+					content: { value: 'playing' },
+					priority: 1,
+				},
+				// Same as above, but with ids in different alphabetical order
+				{
+					id: 'D',
+					enable: { start: 1000 }, // 1000
+					layer: 'L2',
+					content: { value: 'replaced' },
+					priority: 0,
+				},
+				{
+					id: 'C',
+					enable: { start: '#D.start' }, // 1000
+					layer: 'L2',
+					content: { value: 'playing' },
+					priority: 1,
+				},
+			])
+			const time = 1010
+			const resolved = resolveTimeline(timeline, { time, cache: getCache() })
+
+			expect(resolved.objects).toMatchObject({
+				A: {
+					resolved: {
+						instances: [{ start: 1000, end: 1000 }],
+					},
+				},
+				B: {
+					resolved: {
+						instances: [{ start: 1000, end: null }],
+					},
+				},
+				D: {
+					resolved: {
+						instances: [{ start: 1000, end: 1000 }],
+					},
+				},
+				C: {
+					resolved: {
+						instances: [{ start: 1000, end: null }],
+					},
+				},
+			})
+
+			const state0 = getResolvedState(resolved, time)
+			expect(state0.time).toEqual(time)
+			expect(state0.layers).toMatchObject({
+				L1: {
+					content: { value: 'playing' },
+				},
+				L2: {
+					content: { value: 'playing' },
+				},
+			})
+		})
 	},
 	{
 		normal: true,
