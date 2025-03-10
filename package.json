@@ -92,5 +92,6 @@
 	"standard-version": {
 		"message": "chore(release): %s",
 		"tagPrefix": ""
-	}
+	},
+	"packageManager": "yarn@4.7.0"
 }
