@@ -14,4 +14,5 @@ export type ObjectReference = `#${string}`
 export type ClassReference = `.${string}`
 export type LayerReference = `$${string}`
 export type InstanceReference = `@${InstanceId}`
-export type Reference = ObjectReference | ClassReference | LayerReference | InstanceReference
+export type ParentReference = '#@'
+export type Reference = ObjectReference | ClassReference | LayerReference | InstanceReference | ParentReference

@@ -80,8 +80,11 @@ export class ReferenceHandler {
 			// Match id, example: "#objectId.start"
 			const m = /^\W*#([^.]+)(.*)/.exec(expr)
 			if (m) {
-				const id = m[1]
+				let id = m[1]
 				rest = m[2]
+
+				// Special case: if the id is '@', use the parent id
+				if (id === '@') id = obj.resolved.parentId || id
 
 				referenceIsOk = true
 				objIdsToReference = [id]

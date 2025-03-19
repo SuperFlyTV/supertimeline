@@ -4,6 +4,7 @@ import {
 	InstanceReference,
 	LayerReference,
 	ObjectReference,
+	ParentReference,
 	Reference,
 	TimelineObjectInstance,
 } from '../../api'
@@ -20,6 +21,9 @@ export function isObjectReference(ref: Reference): ref is ObjectReference {
 }
 export function getRefObjectId(ref: ObjectReference): string {
 	return ref.slice(1)
+}
+export function isParentReference(ref: Reference): ref is ParentReference {
+	return ref == '#@'
 }
 
 export function isClassReference(ref: Reference): ref is ClassReference {
