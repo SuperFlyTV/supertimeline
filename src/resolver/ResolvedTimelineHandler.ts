@@ -21,6 +21,7 @@ import {
 	isInstanceReference,
 	isLayerReference,
 	isObjectReference,
+	isParentReference,
 	joinReferences,
 } from './lib/reference'
 import { EventForInstance, InstanceEvent, sortEvents } from './lib/event'
@@ -908,7 +909,10 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 
 		for (const ref of directReferences) {
 			const objectsThisIsReferencing: string[] = []
-			if (isObjectReference(ref)) {
+			if (isParentReference(ref)) {
+				const parentObjId = obj.resolved.parentId
+				if (parentObjId) objectsThisIsReferencing.push(parentObjId)
+			} else if (isObjectReference(ref)) {
 				const objId = getRefObjectId(ref)
 				objectsThisIsReferencing.push(objId)
 			} else if (isClassReference(ref)) {

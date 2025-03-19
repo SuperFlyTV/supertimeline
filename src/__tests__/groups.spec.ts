@@ -1656,6 +1656,79 @@ describeVariants(
 				},
 			})
 		})
+
+		test('Relative to end of parent group', () => {
+			const timeline = fixTimeline([
+				{
+					id: 'group',
+					enable: { start: 1000, end: 5000 },
+					priority: 0,
+					layer: '',
+					content: {},
+					children: [
+						{
+							id: 'obj_inside',
+							enable: { start: 0, end: '#@.end - 1000' },
+							layer: 'L1',
+							content: {},
+							priority: 0,
+						},
+					],
+					isGroup: true,
+				},
+			])
+			const time = 1000
+			const resolved = resolveTimeline(timeline, { time, cache: getCache() })
+
+			const obj_inside = resolved.objects['obj_inside']
+			expect(obj_inside).toBeTruthy()
+			expect(obj_inside.resolved.instances).toHaveLength(1)
+			expect(obj_inside.resolved.instances[0]).toMatchObject({
+				start: 1000,
+				end: 5000 - 1000,
+			})
+		})
+
+		test('Relative to end of parent group - interrupted', () => {
+			const timeline = fixTimeline([
+				{
+					id: 'group',
+					enable: { start: 1000 },
+					priority: 0,
+					layer: 'LG',
+					content: {},
+					children: [
+						{
+							id: 'obj_inside',
+							enable: { start: 0, end: '#@.end - 1000' },
+							layer: 'L1',
+							content: {},
+							priority: 0,
+						},
+					],
+					isGroup: true,
+				},
+				{
+					id: 'group2',
+					enable: { start: 5000 },
+					priority: 0,
+					layer: 'LG',
+					content: {},
+					children: [],
+					isGroup: true,
+				},
+			])
+			const time = 1000
+			const resolved = resolveTimeline(timeline, { time, cache: getCache() })
+
+			const obj_inside = resolved.objects['obj_inside']
+			expect(obj_inside).toBeTruthy()
+			expect(obj_inside.resolved.instances).toHaveLength(1)
+			expect(obj_inside.resolved.instances[0]).toMatchObject({
+				start: 1000,
+				end: 5000 - 1000,
+			})
+		})
 	},
 	{
 		normal: true,
