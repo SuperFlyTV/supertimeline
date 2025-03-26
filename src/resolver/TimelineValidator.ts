@@ -86,7 +86,7 @@ export class TimelineValidator {
 			if (err instanceof Error) {
 				const err2 = new Error(`Object "${obj.id}": ${err.message}`)
 				err2.stack = err.stack
-				throw err
+				throw err2
 			} else throw err
 		}
 	}
