@@ -103,6 +103,10 @@ Will play whenever there&#39;s not nothing playing with the class.</li>
 <td>Reference to the object that has the specified <strong>.id</strong></td>
 </tr>
 <tr>
+<td><code>##parent</code></td>
+<td>Reference to the group that contains this object</td>
+</tr>
+<tr>
 <td><code>.className</code></td>
 <td>Reference to any object that has the class-name in its <strong>.classes</strong></td>
 </tr>
@@ -161,6 +165,13 @@ Will play whenever there&#39;s not nothing playing with the class.</li>
 This is for readability only, you may use whatever time-base you like (like milliseconds) in your implementation.</p>
 <a id="md:changelog-and-breaking-changes" class="tsd-anchor"></a><h2><a href="#md:changelog-and-breaking-changes">Changelog and Breaking changes</a></h2><p>See <a href="./CHANGELOG.md">CHANGELOG.md</a></p>
 <p>For notes on breaking changes, see <a href="./MIGRATION.md">MIGRATION.md</a></p>
+<a id="md:for-developers" class="tsd-anchor"></a><h1><a href="#md:for-developers">For developers</a></h1><a id="md:developing" class="tsd-anchor"></a><h2><a href="#md:developing">Developing</a></h2><pre><code class="language-bash"><span class="hl-1">corepack </span><span class="hl-3">enable</span><br/><span class="hl-1">yarn</span><br/><span class="hl-1">yarn </span><span class="hl-3">build</span><br/><span class="hl-1">yarn </span><span class="hl-3">test</span>
+</code><button>Copy</button></pre>
+<a id="md:do-a-release" class="tsd-anchor"></a><h2><a href="#md:do-a-release">Do a release</a></h2><ul>
+<li><code>yarn release:release</code></li>
+<li>Push the commit and tag.</li>
+<li>GitHub Actions will publish the package to npm.</li>
+</ul>
 </div></div>
 <div class="col-sidebar">
 <div class="page-menu">
@@ -207,7 +218,12 @@ This is for readability only, you may use whatever time-base you like (like mill
 <li><a href="#md:reference-combinations"><span>Reference combinations</span></a></li></ul></li>
 <li><a href="#md:keyframes"><span>Keyframes</span></a></li>
 <li><a href="#md:groups"><span>Groups</span></a></li>
-<li><a href="#md:changelog-and-breaking-changes"><span>Changelog and <wbr/>Breaking changes</span></a></li></ul></li></ul></li></ul></div></details></div>
+<li><a href="#md:changelog-and-breaking-changes"><span>Changelog and <wbr/>Breaking changes</span></a></li></ul></li>
+<li><a href="#md:for-developers"><span>For developers</span></a></li>
+<li>
+<ul>
+<li><a href="#md:developing"><span>Developing</span></a></li>
+<li><a href="#md:do-a-release"><span>Do a release</span></a></li></ul></li></ul></li></ul></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="modules.html" class="current"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-4"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-namespace)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.33 16V7.24H10.77L13.446 14.74C13.43 14.54 13.41 14.296 13.386 14.008C13.37 13.712 13.354 13.404 13.338 13.084C13.33 12.756 13.326 12.448 13.326 12.16V7.24H14.37V16H12.93L10.266 8.5C10.282 8.692 10.298 8.936 10.314 9.232C10.33 9.52 10.342 9.828 10.35 10.156C10.366 10.476 10.374 10.784 10.374 11.08V16H9.33Z" fill="var(--color-text)"></path></g></svg><span>superfly-<wbr/>timeline</span></a>
 <ul class="tsd-small-nested-navigation">
@@ -242,6 +258,7 @@ This is for readability only, you may use whatever time-base you like (like mill
 <li><a href="types/LayerReference.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Layer<wbr/>Reference</span></a></li>
 <li><a href="types/ObjectId.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Object<wbr/>Id</span></a></li>
 <li><a href="types/ObjectReference.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Object<wbr/>Reference</span></a></li>
+<li><a href="types/ParentReference.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Parent<wbr/>Reference</span></a></li>
 <li><a href="types/Reference.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Reference</span></a></li>
 <li><a href="types/Time.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Time</span></a></li>
 <li><a href="functions/applyKeyframeContent.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-64"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-function)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.39 16V7.24H14.55V8.224H10.446V11.128H14.238V12.112H10.47V16H9.39Z" fill="var(--color-text)"></path></g></svg><span>apply<wbr/>Keyframe<wbr/>Content</span></a></li>
