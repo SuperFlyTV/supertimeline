@@ -228,7 +228,7 @@ All objects will be on a **layer** in the resolved **state**. There are a few ru
 | Reference    | Description                                                         |
 | ------------ | ------------------------------------------------------------------- |
 | `#objId`     | Reference to the object that has the specified **.id**              |
-| `#@`         | Reference to the group that contains this object                    |
+| `##parent`   | Reference to the group that contains this object                    |
 | `.className` | Reference to any object that has the class-name in its **.classes** |
 | `$layerName` | Reference to any object that is on the specified layer (**.layer**) |
 

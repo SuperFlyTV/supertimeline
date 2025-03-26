@@ -1668,7 +1668,7 @@ describeVariants(
 					children: [
 						{
 							id: 'obj_inside',
-							enable: { start: 0, end: '#@.end - 1000' },
+							enable: { start: 0, end: '##parent.end - 1000' },
 							layer: 'L1',
 							content: {},
 							priority: 0,
@@ -1700,7 +1700,7 @@ describeVariants(
 					children: [
 						{
 							id: 'obj_inside',
-							enable: { start: 0, end: '#@.end - 1000' },
+							enable: { start: 0, end: '##parent.end - 1000' },
 							layer: 'L1',
 							content: {},
 							priority: 0,

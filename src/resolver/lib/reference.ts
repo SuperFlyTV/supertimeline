@@ -23,7 +23,7 @@ export function getRefObjectId(ref: ObjectReference): string {
 	return ref.slice(1)
 }
 export function isParentReference(ref: Reference): ref is ParentReference {
-	return ref == '#@'
+	return ref == '##parent'
 }
 
 export function isClassReference(ref: Reference): ref is ClassReference {
