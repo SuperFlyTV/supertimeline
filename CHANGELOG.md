@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [9.1.0](https://github.com/SuperFlyTV/supertimeline/compare/9.0.3...9.1.0) (2025-03-26)
+
+
+### Features
+
+* ##parent to reference parent object ([e8a2fb6](https://github.com/SuperFlyTV/supertimeline/commit/e8a2fb6bed3eefe4a734e4f35dde08b757aa8047))
+
 ### [9.0.3](https://github.com/SuperFlyTV/supertimeline/compare/9.0.2...9.0.3) (2025-03-10)
 
 
