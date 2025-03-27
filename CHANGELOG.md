@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [9.1.1](https://github.com/SuperFlyTV/supertimeline/compare/9.1.0...9.1.1) (2025-03-27)
+
+
+### Bug Fixes
+
+* Add missing object id reference to the thrown Validator errors ([2c60d55](https://github.com/SuperFlyTV/supertimeline/commit/2c60d55acfc7666a32a05c8e931051068388019c))
+
 ## [9.1.0](https://github.com/SuperFlyTV/supertimeline/compare/9.0.3...9.1.0) (2025-03-26)
 
 
