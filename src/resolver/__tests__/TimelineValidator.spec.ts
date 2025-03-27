@@ -54,3 +54,21 @@ test('validateReferenceString', () => {
 		/contains characters which aren't allowed in Timeline: "-" \(is an operator\), "§", "=" \(is a strict reserved character/
 	)
 })
+test('validateObject', () => {
+	const validator = new TimelineValidator()
+	expect(() =>
+		validator.validateObject(
+			{
+				id: 'obj0',
+				content: {},
+				enable: {
+					start: 0,
+					duration: 0,
+					end: 0, // end and duration cannot be combined
+				},
+				layer: 'L1',
+			},
+			true
+		)
+	).toThrow(/obj0.*end.*duration.*cannot be combined/)
+})
