@@ -36,7 +36,7 @@ export class LayerStateHandler {
 		const toc = tic('       resolveConflicts')
 
 		/*
-			This algoritm basically works like this:
+			This algorithm basically works like this:
 
 			1. Collect all instances start- and end-times as points-of-interest
 			2. Sweep through the points-of-interest and determine which instance is the "winning one" at every point in time
