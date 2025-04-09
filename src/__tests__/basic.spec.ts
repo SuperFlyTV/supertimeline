@@ -1854,6 +1854,81 @@ describeVariants(
 				},
 			})
 		})
+		test('Object that depend on object that depend on colliding object', () => {
+			// An object that start at the same time as another should behave as expected
+			//
+			const timeline = fixTimeline([
+				{
+					id: 'A',
+					enable: {
+						start: 20,
+					},
+					layer: 'layer1',
+					content: {},
+				},
+				{
+					id: 'B',
+					enable: {
+						start: 10,
+					},
+					layer: 'layer1',
+					classes: ['myClass'],
+					content: {},
+				},
+				{
+					id: 'C',
+					enable: {
+						while: '.myClass',
+					},
+					priority: 1,
+					layer: 'layer0',
+					content: {},
+				},
+				{
+					id: 'D',
+					enable: {
+						while: 1,
+					},
+					priority: 0,
+					layer: 'layer0',
+					content: {},
+				},
+			])
+			// Expected behavior:
+			// A plays from 20 to null
+			// B plays from 10 to 20 (due to colliding with A)
+			// C plays from 10 to 20 (same as B)
+			// D plays from 0 to 10, then 20 to null (due to collision with C)
+
+			const time = 0
+			const resolved = resolveTimeline(timeline, { time, cache: getCache() })
+
+			expect(resolved.objects).toMatchObject({
+				A: {
+					resolved: {
+						instances: [{ start: 20, end: null }],
+					},
+				},
+				B: {
+					resolved: {
+						instances: [{ start: 10, end: 20 }],
+					},
+				},
+				C: {
+					resolved: {
+						instances: [{ start: 10, end: 20 }],
+					},
+				},
+				D: {
+					resolved: {
+						instances: [
+							{ start: 0, end: 10 },
+							{ start: 20, end: null },
+						],
+					},
+				},
+			})
+		})
 	},
 	{
 		normal: true,
