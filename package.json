@@ -1,13 +1,37 @@
 {
 	"name": "superfly-timeline",
 	"version": "9.1.1",
-	"description": "A collection of rules as well as a resolver for placing objects on a virtual timeline.",
+	"description": "Resolver for defining objects with temporal boolean logic relationships on a timeline",
 	"license": "MIT",
 	"author": {
 		"name": "Johan Nyman",
 		"email": "johan@superfly.tv"
 	},
 	"contributors": [
+		{
+			"name": "Julian Waller",
+			"email": "julian@superfly.tv"
+		},
+		{
+			"name": "Jesper Stærkær",
+			"email": "jesper@superfly.tv"
+		},
+		{
+			"name": "Krzysztof Zegzuła",
+			"email": "krzysztof@superfly.tv"
+		},
+		{
+			"name": "Jan Starzak",
+			"email": "jan@superfly.tv"
+		},
+		{
+			"name": "Jonas Hummelstrand",
+			"email": "jan@superfly.tv"
+		},
+		{
+			"name": "Ola Christian Gundelsby",
+			"email": "ola.christian.gundelsby@nrk.no"
+		},
 		{
 			"name": "Stephan Nordnes Eriksen",
 			"email": "Stephanruler@gmail.com"
