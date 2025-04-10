@@ -1187,20 +1187,37 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 
 		for (const changedObjId of changedObjs.values()) {
 			// Find all objects that depend on this:
-			const directReferences = this.directReferenceMap.get(changedObjId) ?? []
-			for (const objId of directReferences) {
+			const directReferenceIbjIds = this.directReferenceMap.get(changedObjId) ?? []
+
+			for (const objId of directReferenceIbjIds) {
 				const obj = this.getObject(objId)
 
-				obj.resolved.resolvedReferences = false
-				// Note: obj.resolved.resolvedConflicts will be set to false later when resolving references
+				if (!obj.resolved.resolvedReferences) continue // Optimization: No need to go through the object again
 
-				this.objectsToReResolve.set(obj.id, obj)
+				this.markObjectToBeReResolved(obj, changedObjId)
 
-				if (this.traceResolving)
-					this.addResolveTrace(`Resolver: Will re-resolve object ${obj.id} due to "${changedObjId}"`)
+				// We also need to re-resolve the objects on the same layer:
+				if (objHasLayer(obj)) {
+					const onSameLayerObjIds = this.getLayerObjects(`${obj.layer}`)
+					for (const onSameLayerObjId of onSameLayerObjIds) {
+						const onSameLayerObj = this.getObject(onSameLayerObjId)
+
+						this.markObjectToBeReResolved(onSameLayerObj, `same layer as "${obj.id}"`)
+					}
+				}
 			}
 		}
 		toc()
+	}
+	private markObjectToBeReResolved(obj: ResolvedTimelineObject, reason: string) {
+		if (!obj.resolved.resolvedReferences) return
+
+		obj.resolved.resolvedReferences = false
+		// Note: obj.resolved.resolvedConflicts will be set to false later when resolving references
+
+		this.objectsToReResolve.set(obj.id, obj)
+
+		if (this.traceResolving) this.addResolveTrace(`Resolver: Will re-resolve object ${obj.id} due to "${reason}"`)
 	}
 }
 
