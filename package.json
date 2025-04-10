@@ -1,6 +1,6 @@
 {
 	"name": "superfly-timeline",
-	"version": "9.1.1",
+	"version": "9.1.2",
 	"description": "Resolver for defining objects with temporal boolean logic relationships on a timeline",
 	"license": "MIT",
 	"author": {

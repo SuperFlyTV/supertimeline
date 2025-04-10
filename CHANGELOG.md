@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [9.1.2](https://github.com/SuperFlyTV/supertimeline/compare/9.1.1...9.1.2) (2025-04-10)
+
+
+### Bug Fixes
+
+* Issue where an Object that depend on object that depend on colliding object wasn't re-resolved properly. ([2a0ff22](https://github.com/SuperFlyTV/supertimeline/commit/2a0ff226a2282d9959bf7ef25d06d87893ee3d2d))
+
 ### [9.1.1](https://github.com/SuperFlyTV/supertimeline/compare/9.1.0...9.1.1) (2025-03-27)
 
 
