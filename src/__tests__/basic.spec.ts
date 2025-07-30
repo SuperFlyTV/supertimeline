@@ -1929,6 +1929,67 @@ describeVariants(
 				},
 			})
 		})
+
+		test('Object colliding with its start reference', () => {
+			const tl0 = fixTimeline([
+				{
+					id: 'EetprnQcvGncgkg0ZUG4jQwQpzM_',
+					enable: {
+						while: '.casparcg_next_clip_stk',
+					},
+					priority: 1,
+					layer: 'casparcg_player_clip_stk_next',
+					content: {},
+				},
+
+				{
+					id: 'from_previous_part',
+					priority: 0,
+					enable: {
+						start: 1000,
+					},
+					layer: 'casparcg_player_clip_next_select',
+					classes: ['casparcg_next_clip_stk'],
+					content: {},
+				},
+
+				{
+					id: 'new_part_obj',
+					priority: 0, // Putting this above 0.05 avoids the issue
+					enable: {
+						start: 5000,
+						duration: 1,
+					},
+					layer: 'casparcg_player_clip_next_select',
+					classes: ['casparcg_next_clip_stk'],
+					content: {},
+				},
+
+				{
+					id: 'lookahead_future0',
+					priority: 0.05,
+					enable: {
+						start: '#new_part_obj.start + 0',
+					},
+					layer: 'casparcg_player_clip_next_select',
+					classes: ['casparcg_next_clip_stk'],
+					content: {},
+					disabled: false,
+				},
+			])
+
+			const sample = 5000
+
+			const resolved = resolveTimeline(tl0, { time: sample, cache: getCache() })
+
+			// const obj0 = resolved.objects['new_part_obj']
+			// const obj1 = resolved.objects['lookahead_future0']
+
+			// console.log('obj0', JSON.stringify(obj0, undefined, '\t'))
+			// console.log('obj1', JSON.stringify(obj1, undefined, '\t'))
+
+			getResolvedState(resolved, sample)
+		})
 	},
 	{
 		normal: true,
