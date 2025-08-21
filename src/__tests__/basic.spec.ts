@@ -1933,48 +1933,46 @@ describeVariants(
 		test('Object colliding with its start reference', () => {
 			const tl0 = fixTimeline([
 				{
-					id: 'EetprnQcvGncgkg0ZUG4jQwQpzM_',
-					enable: {
-						while: '.casparcg_next_clip_stk',
-					},
-					priority: 1,
-					layer: 'casparcg_player_clip_stk_next',
-					content: {},
-				},
-
-				{
-					id: 'from_previous_part',
-					priority: 0,
-					enable: {
-						start: 1000,
-					},
-					layer: 'casparcg_player_clip_next_select',
-					classes: ['casparcg_next_clip_stk'],
-					content: {},
-				},
-
-				{
-					id: 'new_part_obj',
+					id: 'A',
 					priority: 0, // Putting this above 0.05 avoids the issue
 					enable: {
 						start: 5000,
 						duration: 1,
 					},
-					layer: 'casparcg_player_clip_next_select',
-					classes: ['casparcg_next_clip_stk'],
+					layer: 'L1',
+					classes: ['class0'],
+					content: {},
+				},
+				{
+					id: 'B',
+					enable: {
+						while: '.class0',
+					},
+					priority: 1,
+					layer: 'L0',
 					content: {},
 				},
 
 				{
-					id: 'lookahead_future0',
+					id: 'C',
+					priority: 0,
+					enable: {
+						start: 1000,
+					},
+					layer: 'L1',
+					classes: ['class0'],
+					content: {},
+				},
+
+				{
+					id: 'D',
 					priority: 0.05,
 					enable: {
-						start: '#new_part_obj.start + 0',
+						start: '#C.start',
 					},
-					layer: 'casparcg_player_clip_next_select',
-					classes: ['casparcg_next_clip_stk'],
+					layer: 'L1',
+					classes: ['class0'],
 					content: {},
-					disabled: false,
 				},
 			])
 
