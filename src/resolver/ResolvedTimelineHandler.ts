@@ -178,23 +178,11 @@ export class ResolvedTimelineHandler<TContent extends Content = Content> {
 				)
 			}
 
-			// Collect and reset all objects that depend on previously changed objects
-			const conflictObjectsToResolve: ResolvedTimelineObject[] = []
-			for (const obj of this.objectsToReResolve.values()) {
+			// Re-resolve all objects that might have changed (due to conflicts):
+			const conflictObjectsToResolve: ResolvedTimelineObject[] = Array.from(this.objectsToReResolve.values())
+			for (const obj of conflictObjectsToResolve) {
 				this.objectResolveCount++
-
-				// Force a new resolve, since the referenced objects might have changed (due to conflicts):
-				let needsConflictResolve = false
-				if (!obj.resolved.resolvedReferences) {
-					this.resolveTimelineObj(obj)
-					needsConflictResolve = true
-				}
-				if (!obj.resolved.resolvedConflicts) {
-					needsConflictResolve = true
-				}
-				if (needsConflictResolve) {
-					conflictObjectsToResolve.push(obj)
-				}
+				this.resolveTimelineObj(obj)
 			}
 			if (this._resolveError) return // Abort on error
 
