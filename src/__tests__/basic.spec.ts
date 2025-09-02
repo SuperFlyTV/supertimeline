@@ -1929,6 +1929,65 @@ describeVariants(
 				},
 			})
 		})
+
+		test('Object colliding with its start reference', () => {
+			const tl0 = fixTimeline([
+				{
+					id: 'A',
+					priority: 0, // Putting this above 0.05 avoids the issue
+					enable: {
+						start: 5000,
+						duration: 1,
+					},
+					layer: 'L1',
+					classes: ['class0'],
+					content: {},
+				},
+				{
+					id: 'B',
+					enable: {
+						while: '.class0',
+					},
+					priority: 1,
+					layer: 'L0',
+					content: {},
+				},
+
+				{
+					id: 'C',
+					priority: 0,
+					enable: {
+						start: 1000,
+					},
+					layer: 'L1',
+					classes: ['class0'],
+					content: {},
+				},
+
+				{
+					id: 'D',
+					priority: 0.05,
+					enable: {
+						start: '#C.start',
+					},
+					layer: 'L1',
+					classes: ['class0'],
+					content: {},
+				},
+			])
+
+			const sample = 5000
+
+			const resolved = resolveTimeline(tl0, { time: sample, cache: getCache() })
+
+			// const obj0 = resolved.objects['new_part_obj']
+			// const obj1 = resolved.objects['lookahead_future0']
+
+			// console.log('obj0', JSON.stringify(obj0, undefined, '\t'))
+			// console.log('obj1', JSON.stringify(obj1, undefined, '\t'))
+
+			getResolvedState(resolved, sample)
+		})
 	},
 	{
 		normal: true,
