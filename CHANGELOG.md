@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [9.2.0](https://github.com/SuperFlyTV/supertimeline/compare/9.0.2...9.2.0) (2025-09-02)
+
+
+### Features
+
+* ##parent to reference parent object ([e8a2fb6](https://github.com/SuperFlyTV/supertimeline/commit/e8a2fb6bed3eefe4a734e4f35dde08b757aa8047))
+
+
+### Bug Fixes
+
+* Add missing object id reference to the thrown Validator errors ([2c60d55](https://github.com/SuperFlyTV/supertimeline/commit/2c60d55acfc7666a32a05c8e931051068388019c))
+* ensure all objects are re-resolved and used to resolve conflicts on second pass. ([a0da1cc](https://github.com/SuperFlyTV/supertimeline/commit/a0da1cc10fccc5e8986b9f1e446a567f301f96d1))
+* Issue where an Object that depend on object that depend on colliding object wasn't re-resolved properly. ([2a0ff22](https://github.com/SuperFlyTV/supertimeline/commit/2a0ff226a2282d9959bf7ef25d06d87893ee3d2d))
+* When resolving conflicts, process objects that are being referenced first. Resolves [#105](https://github.com/SuperFlyTV/supertimeline/issues/105) ([4d5934e](https://github.com/SuperFlyTV/supertimeline/commit/4d5934eeb67e9894f494129021d4ccc3fcae7c36))
+
 ### [9.1.2](https://github.com/SuperFlyTV/supertimeline/compare/9.1.1...9.1.2) (2025-04-10)
 
 
